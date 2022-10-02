@@ -22,7 +22,7 @@ expression {
   
   String { '"' (!["\\] | "\\" _)* '"' }
   
-  Identifier { $[a-zA-Z_0-9]+ }
+
 
   LineComment { ";" ![\n]* }
   
@@ -33,6 +33,6 @@ expression {
 
 @skip { space | LineComment }
 
-@external tokens keyword from "./tokenizer.js" { Directives, Commands, Extensions, Reporters, TurtleVars, PatchVars, LinkVars, Constants, Unsupported }
+@external tokens keyword from "./tokenizer.js" { Identifier, Directives, Commands, Extensions, Reporters, TurtleVars, PatchVars, LinkVars, Constants, Unsupported }
 
 @detectDelim

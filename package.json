@@ -5,6 +5,7 @@
     "@rollup/plugin-node-resolve": "^14.1.0",
     "codemirror": "^6.0.1",
     "lezer-generator": "^0.13.4",
+    "minimist": "^1.2.6",
     "rollup": "^2.79.1"
   }
 }

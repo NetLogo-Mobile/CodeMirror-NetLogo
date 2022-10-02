@@ -2,16 +2,17 @@ import { parser } from "./lang.js"
 import { foldNodeProp, foldInside, indentNodeProp } from "@codemirror/language"
 import { styleTags, tags as t } from "@lezer/highlight"
 import { closeBrackets, completeFromList } from "@codemirror/autocomplete"
+import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported } from "./keywords.js"
 
 let parserWithMetadata = parser.configure({
   props: [
     styleTags({
-      Identifier: t.variableName,
-      Constant: t.string,
+      
+      Constants: t.string,
       String: t.string,
       LineComment: t.lineComment,
       "[ ]": t.paren,
-      Directive: t.strong,
+      Directives: t.strong,
       Numeric: t.string,
       Extensions: t.bool,
       LinkVars: t.bool,
@@ -39,16 +40,14 @@ export const exampleLanguage = LRLanguage.define({
   }
 })
 
+let keywords = directives+ commands+ extensions+ reporters+ turtleVars+ patchVars+ linkVars+ constants+ unsupported
+keywords=keywords.split(",")
+let keywords_list = keywords.map(function (x) {
+  return {label:x, type:"keyword"}
+})
 
 export const exampleCompletion = exampleLanguage.data.of({
-  autocomplete: completeFromList([
-    { label: "defun", type: "keyword" },
-    { label: "defvar", type: "keyword" },
-    { label: "let", type: "keyword" },
-    { label: "cons", type: "function" },
-    { label: "car", type: "function" },
-    { label: "cdr", type: "function" }
-  ])
+  autocomplete: completeFromList(keywords_list)
 })
 
 import { LanguageSupport } from "@codemirror/language"
