@@ -1,0 +1,5 @@
+/package-lock.json
+/dist/editor.bundle.js
+/lang/lang.js
+/lang/lang.terms.js
+node_modules
