@@ -1,5 +1,7 @@
 import { nodeResolve } from "@rollup/plugin-node-resolve"
-export default {
+
+export default [
+{
     input: "./editor.js",
     output: {
         file: "./dist/editor.bundle.js",
@@ -7,3 +9,4 @@ export default {
     },
     plugins: [nodeResolve()]
 }
+]

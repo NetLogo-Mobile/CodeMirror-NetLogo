@@ -12,7 +12,6 @@ export const keyword = new ExternalTokenizer(input => {
     }
     if (token == "") return;
     // Find if the token belongs to any category
-    console.log(token)
     if (directives.indexOf(token) != -1) {
         input.acceptToken(Directives);
     } else if (commands.indexOf(token) != -1) {

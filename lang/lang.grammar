@@ -21,8 +21,6 @@ expression {
   Numeric { $[0-9]+ $[\.]? $[0-9]* }
   
   String { '"' (!["\\] | "\\" _)* '"' }
-  
-
 
   LineComment { ";" ![\n]* }
   
