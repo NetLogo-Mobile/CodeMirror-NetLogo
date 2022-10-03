@@ -2,6 +2,7 @@
 @precedence { }
 
 expression {
+  Identifier |
   Numeric |
   String |
   Constants |
