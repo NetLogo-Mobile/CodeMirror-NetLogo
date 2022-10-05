@@ -37,10 +37,10 @@ export const NetLogoLanguage = LRLanguage.define({
   }
 })
 
-let keywords = directives+ commands+ extensions+ reporters+ turtleVars+ patchVars+ linkVars+ constants+ unsupported
-keywords=keywords.split(",")
+let keywords = directives + commands + extensions + reporters + turtleVars + patchVars + linkVars + constants + unsupported
+keywords = keywords.split(",")
 let keywords_list = keywords.map(function (x) {
-  return {label:x, type:"keyword"}
+  return { label: x, type: "keyword" }
 })
 
 export const NetLogoCompletion = NetLogoLanguage.data.of({
