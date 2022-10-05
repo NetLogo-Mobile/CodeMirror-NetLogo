@@ -3,7 +3,7 @@ import typescript from '@rollup/plugin-typescript';
 
 export default [
 {
-    input: "./editor.ts",
+    input: "./src/editor.ts",
     output: {
         file: "./dist/editor.bundle.js",
         format: "iife"
