@@ -4,7 +4,7 @@ import { NetLogo } from "./lang/netlogo.js"
 import { EditorConfig } from "./editor-config.js";
 import { highlight } from "./codemirror/style-highlight";
 import { indentExtension } from "./codemirror/extension-indent";
-import { updateExtension } from "./codemirror/extension-update.js";
+import { updateExtension } from "./codemirror/extension-update";
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -23,6 +23,14 @@ export class GalapagosEditor {
       ],
       parent: parent
     });
+  }
+
+  /** Highlight: Highlight a given snippet of code. */
+  // I am not sure how the API should look like. 
+  // Possible inputs: string => output HTMLElement/HTML string;
+  // Or input HTMLElement and replace the HTMLElement into colored HTMLElement.
+  Highlight() {
+
   }
   
   // #region "Editor API"

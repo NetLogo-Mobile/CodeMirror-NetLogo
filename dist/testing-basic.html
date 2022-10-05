@@ -2,13 +2,14 @@
 <html>
     <head>
         <meta charset="utf8" />
-        <h1>Hello World</h1>
+        <h1>Testing Basic Features</h1>
     </head>
     <body>
+        <button name="Undo" onclick="Editor.Undo();">Undo</button>
         <div id="Container"></div>
         <script src="editor.bundle.js"></script>
         <script>
-            new GalapagosEditor(document.getElementById("Container"), {});
+            var Editor = new GalapagosEditor(document.getElementById("Container"), {});
         </script>
     </body>
 </html>

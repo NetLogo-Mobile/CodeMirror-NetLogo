@@ -3,9 +3,7 @@ import { ViewUpdate } from "@codemirror/view";
 /** Options: Options of an editor. */
 export interface EditorConfig {
     /** Language: The programming language of this editor. */
-    Language?: EditorLanguage; 
-    /** HighlightOnly: Do we only need a highlighted text instead of the full editor? */
-    HighlightOnly?: boolean; // To be implemented
+    Language?: EditorLanguage;  // To be implemented
     /** ReadOnly: Is the editor in read-only mode? */
     ReadOnly?: boolean; // To be implemented
     /** OneLine: Is the editor in forced one-line mode? */
