@@ -6,8 +6,6 @@ import { highlight } from "./codemirror/style-highlight";
 import { indentExtension } from "./codemirror/extension-indent";
 import { updateExtension } from "./codemirror/extension-update.js";
 
-// Those code need to be moved
-
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
   /** CodeMirror: The CodeMirror 6 component. */
@@ -36,8 +34,7 @@ export class GalapagosEditor {
   }
   /** GetCode: Get the code from the editor. */
   GetCode(): string {
-    // Stub - need implementation
-    return "";
+    return this.CodeMirror.state.doc.toString();
   }
   /** SetReadOnly: Set the readonly status for the editor. */
   SetReadOnly(status: boolean) {
