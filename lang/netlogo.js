@@ -1,5 +1,5 @@
 import { parser } from "./lang.js"
-import { foldNodeProp, foldInside, indentNodeProp } from "@codemirror/language"
+import { foldNodeProp, foldInside, indentNodeProp, LRLanguage, LanguageSupport } from "@codemirror/language"
 import { styleTags, tags as t } from "@lezer/highlight"
 import { closeBrackets, completeFromList } from "@codemirror/autocomplete"
 import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported } from "./keywords.js"
@@ -7,7 +7,6 @@ import { directives, commands, extensions, reporters, turtleVars, patchVars, lin
 let parserWithMetadata = parser.configure({
   props: [
     styleTags({
-      
       Constants: t.string,
       String: t.string,
       LineComment: t.lineComment,
@@ -30,9 +29,7 @@ let parserWithMetadata = parser.configure({
   ]
 })
 
-import { LRLanguage } from "@codemirror/language"
-
-export const exampleLanguage = LRLanguage.define({
+export const NetLogoLanguage = LRLanguage.define({
   parser: parserWithMetadata,
   languageData: {
     commentTokens: { line: ";" },
@@ -46,13 +43,11 @@ let keywords_list = keywords.map(function (x) {
   return {label:x, type:"keyword"}
 })
 
-export const exampleCompletion = exampleLanguage.data.of({
+export const NetLogoCompletion = NetLogoLanguage.data.of({
   autocomplete: completeFromList(keywords_list)
 })
 
-import { LanguageSupport } from "@codemirror/language"
-
-export function example() {
-  return new LanguageSupport(exampleLanguage, [exampleCompletion])
+export function NetLogo() {
+  return new LanguageSupport(NetLogoLanguage, [NetLogoCompletion])
 }
 
