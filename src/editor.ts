@@ -18,7 +18,7 @@ export class GalapagosEditor {
     this.CodeMirror = new EditorView({
       extensions: [
         basicSetup, 
-        updateExtension(this.onUpdate), 
+        // updateExtension(this.onUpdate), 
         NetLogo(), highlight, indentExtension
       ],
       parent: parent

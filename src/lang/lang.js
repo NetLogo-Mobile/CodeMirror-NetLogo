@@ -3,19 +3,19 @@ import {LRParser} from "@lezer/lr"
 import {keyword} from "./tokenizer.js"
 export const parser = LRParser.deserialize({
   version: 14,
-  states: "!WQYQROOO!QQRO'#CmOOQQ'#Cr'#CrOOQQ'#Cn'#CnQYQROOOOQQ,59X,59XO!XQRO,59XOOQQ-E6l-E6lOOQQ1G.s1G.s",
-  stateData: "!`~OeOSZOS~OQQORQOSQOTQOUQOVQOWQOXQOYQO]QO^QO`PO~O_TO~PYO_WO~PYO",
-  goto: "!OgPPPPPPPPPPPPPPPPPhnPPPxXQOPSUQSOQUPTVSUXROPSU",
-  nodeNames: "⚠ Identifier Directives Commands Extensions Reporters TurtleVars PatchVars LinkVars Constants Unsupported LineComment Program Numeric String ] [ Application",
-  maxTerm: 22,
+  states: "!WQYQROOO!TQRO'#CmOOQP'#Cs'#CsOOQP'#Co'#CoQYQROOOOQP,59X,59XO![QRO,59XOOQP-E6m-E6mOOQP1G.s1G.s",
+  stateData: "!c~OfOSZOS~OPQOQQORQOTQOUQOVQOWQOXQOYQO]QO^QO`PObQO~O_TO~PYO_WO~PYO",
+  goto: "!PhPPPPPPPPPPPPPPPPPiPoPPPyXQOPSUQSOQUPTVSUXROPSU",
+  nodeNames: "⚠ Identifier Directive Command Extension Reporter TurtleVar PatchVar LinkVar Constant Unsupported LineComment Program Numeric String ] [ Application Extensions",
+  maxTerm: 23,
   nodeProps: [
     ["openedBy", 15,"["],
     ["closedBy", 16,"]"]
   ],
-  skippedNodes: [0,1,11],
+  skippedNodes: [0,4,11],
   repeatNodeCount: 1,
-  tokenData: "#h~RXXYnYZn]^npqnrs!P!Q![!n!]!^#R!}#O#^#P#Q#c~sSe~XYnYZn]^npqn~!STOr!Prs!cs#O!P#O#P!h#P~!P~!hO^~~!kPO~!P~!sQ]~!O!P!y!Q![!n~#OP]~!Q![!y~#WQZ~OY#RZ~#R~#cO`~~#hO_~",
-  tokenizers: [0, keyword],
+  tokenData: "%O~RYXYqYZq]^qpqqrs!S!Q![!q!]!^#U!}#O#a#P#Q#f#X#Y#k~vSf~XYqYZq]^qpqq~!VTOr!Srs!fs#O!S#O#P!k#P~!S~!kO^~~!nPO~!S~!vQ]~!O!P!|!Q![!q~#RP]~!Q![!|~#ZQZ~OY#UZ~#U~#fO`~~#kO_~~#nP#l#m#q~#tP#h#i#w~#zP#X#Y#}~$QP#b#c$T~$WP#g#h$Z~$^P#]#^$a~$dP#c#d$g~$jP#b#c$m~$pP#g#h$s~$xQb~OY$sZ~$s",
+  tokenizers: [keyword, 0],
   topRules: {"Program":[0,12]},
   tokenPrec: 0
 })

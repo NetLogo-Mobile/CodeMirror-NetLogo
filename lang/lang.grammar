@@ -1,0 +1,37 @@
+@top Program { expression* }
+@precedence { }
+
+expression {
+  Identifier |
+  Numeric |
+  String |
+  Constants |
+  Directives |
+  Extensions |
+  TurtleVars |
+  PatchVars |
+  LinkVars |
+  Reporters |
+  Commands |
+  Unsupported |
+  Application { "[" expression* "]" }
+}
+
+@tokens {
+
+  Numeric { $[0-9]+ $[\.]? $[0-9]* }
+  
+  String { '"' (!["\\] | "\\" _)* '"' }
+
+  LineComment { ";" ![\n]* }
+  
+  space { $[ \t\n\r]+ }
+
+  "[" "]"
+}
+
+@skip { space | LineComment }
+
+@external tokens keyword from "./tokenizer.js" { Identifier, Directive, Command, Extension, Reporter, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
+
+@detectDelim
