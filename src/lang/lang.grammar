@@ -8,7 +8,7 @@
 @skip { space | LineComment }
 
 globalStatement {
-  Extensions { "extensions" expression? }
+  Extensions { "extensions" "[" Extension* "]" }
 }
 
 @tokens {
@@ -28,7 +28,6 @@ expression {
   Directive |
   Command |
   Reporter |
-  Extension | 
   Numeric |
   String |
   Constant |
