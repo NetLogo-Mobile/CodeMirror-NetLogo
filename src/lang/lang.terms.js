@@ -3,8 +3,8 @@ export const
   Identifier = 1,
   Directive = 2,
   Command = 3,
-  Extension = 4,
-  Reporter = 5,
+  Reporter = 4,
+  Extension = 5,
   TurtleVar = 6,
   PatchVar = 7,
   LinkVar = 8,
@@ -13,5 +13,4 @@ export const
   LineComment = 11,
   Program = 12,
   Numeric = 13,
-  String = 14,
-  Extensions = 18
+  String = 14

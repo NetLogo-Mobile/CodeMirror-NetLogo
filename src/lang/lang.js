@@ -3,19 +3,19 @@ import {LRParser} from "@lezer/lr"
 import {keyword} from "./tokenizer.js"
 export const parser = LRParser.deserialize({
   version: 14,
-  states: "!WQYQROOO!TQRO'#CmOOQP'#Cs'#CsOOQP'#Co'#CoQYQROOOOQP,59X,59XO![QRO,59XOOQP-E6m-E6mOOQP1G.s1G.s",
-  stateData: "!c~OfOSZOS~OPQOQQORQOTQOUQOVQOWQOXQOYQO]QO^QO`PObQO~O_TO~PYO_WO~PYO",
-  goto: "!PhPPPPPPPPPPPPPPPPPiPoPPPyXQOPSUQSOQUPTVSUXROPSU",
-  nodeNames: "⚠ Identifier Directive Command Extension Reporter TurtleVar PatchVar LinkVar Constant Unsupported LineComment Program Numeric String ] [ Application Extensions",
-  maxTerm: 23,
+  states: "!jOYQROOO#RQRO'#CmOOQQ'#Cs'#CsOOQQ'#Co'#CoOYQROOO#YQRO'#CnQOQPOOOOQQ,59X,59XO#aQRO,59XOOQQ-E6m-E6mOOQO,59Y,59YOOQQ1G.s1G.s",
+  stateData: "#h~OfOSZOS~OPQOQQORQOSQOTQOUQOVQOWQOXQOYQO]QO^QO`POhTO~OPQOQQORQOSQOTQOUQOVQOWQOXQOYQO]QO^QO`PO~O_VO~P!WOdbX~P!WO_ZO~P!WO",
+  goto: "!XhPPPPPPPPPPPPPPPPPiptPPP!OZQOPSTWTUOSQSOQWPTXSWWROPSWRYT",
+  nodeNames: "⚠ Identifier Directive Command Reporter Extension TurtleVar PatchVar LinkVar Constant Unsupported LineComment Program Numeric String ] [ Application Extensions",
+  maxTerm: 24,
   nodeProps: [
     ["openedBy", 15,"["],
     ["closedBy", 16,"]"]
   ],
-  skippedNodes: [0,4,11],
+  skippedNodes: [0,11],
   repeatNodeCount: 1,
-  tokenData: "%O~RYXYqYZq]^qpqqrs!S!Q![!q!]!^#U!}#O#a#P#Q#f#X#Y#k~vSf~XYqYZq]^qpqq~!VTOr!Srs!fs#O!S#O#P!k#P~!S~!kO^~~!nPO~!S~!vQ]~!O!P!|!Q![!q~#RP]~!Q![!|~#ZQZ~OY#UZ~#U~#fO`~~#kO_~~#nP#l#m#q~#tP#h#i#w~#zP#X#Y#}~$QP#b#c$T~$WP#g#h$Z~$^P#]#^$a~$dP#c#d$g~$jP#b#c$m~$pP#g#h$s~$xQb~OY$sZ~$s",
-  tokenizers: [keyword, 0],
+  tokenData: "$x~RYXYqYZq]^qpqqrs!S!Q![!q!]!^#U!}#O#a#P#Q#f#X#Y#k~vSf~XYqYZq]^qpqq~!VTOr!Srs!fs#O!S#O#P!k#P~!S~!kO^~~!nPO~!S~!vQ]~!O!P!|!Q![!q~#RP]~!Q![!|~#ZQZ~OY#UZ~#U~#fO`~~#kO_~~#nP#l#m#q~#tP#h#i#w~#zP#X#Y#}~$QP#b#c$T~$WP#g#h$Z~$^P#]#^$a~$dP#c#d$g~$jP#b#c$m~$pP#g#h$s~$xOh~",
+  tokenizers: [0, keyword],
   topRules: {"Program":[0,12]},
   tokenPrec: 0
 })

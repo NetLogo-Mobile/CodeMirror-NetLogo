@@ -1,33 +1,17 @@
-@top Program { expression* }
-@precedence { }
-
-expression {
-  Identifier |
-  Numeric |
-  String |
-  Constant |
-  Directive |
-  TurtleVar |
-  PatchVar |
-  LinkVar |
-  Reporter |
-  Command |
-  Unsupported |
-  Application { "[" expression* "]" } |
-  Extensions
+@top Program { 
+  expression*
+  globalStatement
 }
-
-@skip { space | LineComment }
-
-@external tokens keyword from "./tokenizer.js" { Identifier, Directive, Command, Extension, Reporter, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
-
-
 
 @detectDelim
 
-@tokens {
-  Extensions { "extensions" ![\n]* }
+@skip { space | LineComment }
 
+globalStatement {
+  Extensions { "extensions" expression? }
+}
+
+@tokens {
   Numeric { $[0-9]+ $[\.]? $[0-9]* }
   
   String { '"' (!["\\] | "\\" _)* '"' }
@@ -38,3 +22,21 @@ expression {
 
   "[" "]"
 }
+
+expression {
+  Identifier |
+  Directive |
+  Command |
+  Reporter |
+  Extension | 
+  Numeric |
+  String |
+  Constant |
+  TurtleVar |
+  PatchVar |
+  LinkVar |
+  Unsupported |
+  Application { "[" expression* "]" }
+}
+
+@external tokens keyword from "./tokenizer.js" { Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }

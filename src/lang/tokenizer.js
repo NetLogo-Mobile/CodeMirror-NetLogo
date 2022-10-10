@@ -38,19 +38,19 @@ export const keyword = new ExternalTokenizer(input => {
 // Check if the character is valid for a keyword. 
 function isValidKeyword(ch) {
     // 0-9
-    return ch >= 48 && ch <= 58 
-    // -
-    || ch == 45 
-    // _
-    || ch == 95 
-    // A-Z
-    || ch >= 63 && ch <= 90 
-    // a-z
-    || ch >= 97 && ch <= 122 
-    // non-English characters
-    || ch>=128 && ch <=154 
-    || ch>= 160 && ch<= 165 
-    || ch>=181 && ch <=183 
-    || ch>=210 && ch<=216 
-    || ch>=224 && ch<=237
+    return ch >= 48 && ch <= 58
+        // -
+        || ch == 45
+        // _
+        || ch == 95
+        // A-Z
+        || ch >= 63 && ch <= 90
+        // a-z
+        || ch >= 97 && ch <= 122
+        // non-English characters
+        || ch >= 128 && ch <= 154
+        || ch >= 160 && ch <= 165
+        || ch >= 181 && ch <= 183
+        || ch >= 210 && ch <= 216
+        || ch >= 224 && ch <= 237
 }

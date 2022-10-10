@@ -53,10 +53,9 @@ let keywords_list = keywords.map(function (x) {
 // }
 
 export const NetLogoCompletion = NetLogoLanguage.data.of({
-  autocomplete: ifNotIn(["Extensions"],completeFromList(keywords_list))
+  autocomplete: ifNotIn(["Extensions"], completeFromList(keywords_list))
 })
 
 export function NetLogo() {
   return new LanguageSupport(NetLogoLanguage, [NetLogoCompletion])
 }
-
