@@ -8,7 +8,19 @@
 @skip { space | LineComment }
 
 globalStatement {
-  Extensions { "extensions" "[" Extension* "]" }
+  Extensions { "extensions" "[" Extension* "]" } |
+
+  Globals { "globals" "["  Identifier* "]"  } |
+
+  Breed { 
+    "breed" "[" expression* "]" |
+    "directed-link-breed" "[" expression* "]" |
+    "undirected-link-breed" "[" expression* "]"
+  } |
+
+  BreedsOwn{
+    expression "-own" "[" expression* "]"
+  }
 }
 
 @tokens {

@@ -19,7 +19,10 @@ let parserWithMetadata = parser.configure({
       TurtleVar: t.bool,
       Reporter: t.bool,
       Command: t.variableName,
-      Extensions: t.string
+      Extensions: t.string,
+      Globals: t.string,
+      Breed: t.string,
+      BreedsOwn: t.string,
     }),
     indentNodeProp.add({
       Application: context => context.column(context.node.from) + context.unit
@@ -44,16 +47,16 @@ let keywords_list = keywords.map(function (x) {
   return { label: x, type: "keyword" }
 })
 
-// let extensions_map = extensions.map(function (x) {
-//   return { label: x, type: "keyword" }
-// })
+let extensions_map = extensions.map(function (x) {
+  return { label: x, type: "keyword" }
+})
 
 // function completions(){
 //   return ifNotIn('Extensions',keywords_list)
 // }
 
 export const NetLogoCompletion = NetLogoLanguage.data.of({
-  autocomplete: ifNotIn(["Extensions"], completeFromList(keywords_list))
+  autocomplete: ifIn(["Extensions"], completeFromList(extensions_map))
 })
 
 export function NetLogo() {
