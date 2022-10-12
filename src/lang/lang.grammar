@@ -1,24 +1,29 @@
-@top Program { expression* }
-@precedence { }
+@top Program { 
+  expression*
+  globalStatement
+}
 
-expression {
-  Identifier |
-  Numeric |
-  String |
-  Constants |
-  Directives |
-  Extensions |
-  TurtleVars |
-  PatchVars |
-  LinkVars |
-  Reporters |
-  Commands |
-  Unsupported |
-  Application { "[" expression* "]" }
+@detectDelim
+
+@skip { space | LineComment }
+
+globalStatement {
+  Extensions { "extensions" "[" Extension* "]" } |
+
+  Globals { "globals" "["  Identifier* "]"  } |
+
+  Breed { 
+    "breed" "[" expression* "]" |
+    "directed-link-breed" "[" expression* "]" |
+    "undirected-link-breed" "[" expression* "]"
+  } |
+
+  BreedsOwn{
+    expression "-own" "[" expression* "]"
+  }
 }
 
 @tokens {
-
   Numeric { $[0-9]+ $[\.]? $[0-9]* }
   
   String { '"' (!["\\] | "\\" _)* '"' }
@@ -30,8 +35,19 @@ expression {
   "[" "]"
 }
 
-@skip { space | LineComment }
+expression {
+  Identifier |
+  Directive |
+  Command |
+  Reporter |
+  Numeric |
+  String |
+  Constant |
+  TurtleVar |
+  PatchVar |
+  LinkVar |
+  Unsupported |
+  Application { "[" expression* "]" }
+}
 
-@external tokens keyword from "./tokenizer.js" { Identifier, Directives, Commands, Extensions, Reporters, TurtleVars, PatchVars, LinkVars, Constants, Unsupported }
-
-@detectDelim
+@external tokens keyword from "./tokenizer.js" { Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }

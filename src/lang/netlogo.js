@@ -1,24 +1,28 @@
 import { parser } from "./lang.js"
 import { foldNodeProp, foldInside, indentNodeProp, LRLanguage, LanguageSupport } from "@codemirror/language"
 import { styleTags, tags as t } from "@lezer/highlight"
-import { closeBrackets, completeFromList } from "@codemirror/autocomplete"
+import { closeBrackets, completeFromList, ifNotIn } from "@codemirror/autocomplete"
 import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported } from "./keywords.js"
 
 let parserWithMetadata = parser.configure({
   props: [
     styleTags({
-      Constants: t.string,
+      Constant: t.string,
       String: t.string,
       LineComment: t.lineComment,
       "[ ]": t.paren,
-      Directives: t.strong,
+      Directive: t.strong,
       Numeric: t.string,
-      Extensions: t.bool,
-      LinkVars: t.bool,
-      PatchVars: t.bool,
-      TurtleVars: t.bool,
-      Reporters: t.bool,
-      Commands: t.variableName
+      Extension: t.bool,
+      LinkVar: t.bool,
+      PatchVar: t.bool,
+      TurtleVar: t.bool,
+      Reporter: t.bool,
+      Command: t.variableName,
+      Extensions: t.string,
+      Globals: t.string,
+      Breed: t.string,
+      BreedsOwn: t.string,
     }),
     indentNodeProp.add({
       Application: context => context.column(context.node.from) + context.unit
@@ -37,17 +41,24 @@ export const NetLogoLanguage = LRLanguage.define({
   }
 })
 
-let keywords = directives + commands + extensions + reporters + turtleVars + patchVars + linkVars + constants + unsupported
+let keywords = directives + commands + reporters + turtleVars + patchVars + linkVars + constants + unsupported
 keywords = keywords.split(",")
 let keywords_list = keywords.map(function (x) {
   return { label: x, type: "keyword" }
 })
 
+let extensions_map = extensions.map(function (x) {
+  return { label: x, type: "keyword" }
+})
+
+// function completions(){
+//   return ifNotIn('Extensions',keywords_list)
+// }
+
 export const NetLogoCompletion = NetLogoLanguage.data.of({
-  autocomplete: completeFromList(keywords_list)
+  autocomplete: ifIn(["Extensions"], completeFromList(extensions_map))
 })
 
 export function NetLogo() {
   return new LanguageSupport(NetLogoLanguage, [NetLogoCompletion])
 }
-
