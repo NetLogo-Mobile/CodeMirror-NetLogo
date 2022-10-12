@@ -3,3 +3,4 @@
 /lang/lang.js
 /lang/lang.terms.js
 node_modules
+.DS_Store
