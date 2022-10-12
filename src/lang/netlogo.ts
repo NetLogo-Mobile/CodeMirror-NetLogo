@@ -54,15 +54,16 @@ let extensions_map = extensions.map(function (x) {
 function completions(): CompletionSource{
     return (context: CompletionContext) => {
         let node = syntaxTree(context.state).resolveInner(context.pos,-1)
+        let from = /\./.test(node.name) ? node.to : node.from
         if ((node.parent !=null && node.parent.type.name=='Extensions' )||(node.parent !=null && node.parent.parent !=null && node.parent.parent.type.name=='Extensions' ) ){ 
           return {
-              from:context.pos,
+              from,
               options:extensions_map
           }
         }
         else if (node && node.type.name=='Identifier'){
           return {
-            from:context.pos,
+            from,
             options:keywords_list
           }
         }
