@@ -5,10 +5,11 @@ import { findNext, gotoLine, replaceNext, SearchCursor } from "@codemirror/searc
 import { Compartment } from "@codemirror/state";
 import { ViewUpdate } from "@codemirror/view";
 import { NetLogo } from "./lang/netlogo.js";
-import { EditorConfig } from "./editor-config.js";
+import { EditorConfig } from "./editor-config";
 import { highlight } from "./codemirror/style-highlight";
 import { indentExtension } from "./codemirror/extension-indent";
 import { updateExtension } from "./codemirror/extension-update";
+import { lightTheme } from "./codemirror/theme-light";
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -28,9 +29,13 @@ export class GalapagosEditor {
     // this.language = this.Options.Language;
     this.CodeMirror = new EditorView({
       extensions: [
+        // Editor
         basicSetup,
-        updateExtension(this.onUpdate),
+        lightTheme,
         this.editable.of(EditorView.editable.of(true)),
+        // Events
+        updateExtension(this.onUpdate),
+        // Language-specific
         NetLogo(),
         highlight,
         indentExtension,
@@ -78,7 +83,7 @@ export class GalapagosEditor {
   Undo() {
     undo(this.CodeMirror);
   }
-  /** Redo: Make the editor redo. Returns false if no group was available.*/
+  /** Redo: Make the editor Redo. Returns false if no group was available.*/
   Redo() {
     redo(this.CodeMirror);
   }

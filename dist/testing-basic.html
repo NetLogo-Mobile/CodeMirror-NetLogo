@@ -11,13 +11,13 @@
         <button name="set edit" onclick="Editor.SetReadOnly(false);">set edit</button>
         <button name="find" onclick="Editor.Find()">Find</button>
         <button name="replace" onclick="Editor.Replace();">Replace</button>
-        <button name="go to line" onclick="Editor.JumpTo(8);">Go to line 8</button>
+        <button name="go to line" onclick="Editor.JumpTo(80);">Go to line 80</button>
         <button name="select all" onclick="Editor.SelectAll();">Select All</button>
         <button name="replace interface" onclick="Editor.ShowReplace();">Replace interface</button>
         <button name="go to line interface" onclick="Editor.ShowJumpTo();">Go to line interface</button>
         <button name="Find interface" onclick="Editor.ShowFind();">Find interface</button>
         <button name="Highlight" onclick="Editor.Highlight();">High light</button>
-        <div id="Container"></div>
+        <div id="Container" style="height: 80vh;"></div>
         <script src="editor.bundle.js"></script>
         <script>
             var Editor = new GalapagosEditor(document.getElementById("Container"), {});
