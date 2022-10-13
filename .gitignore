@@ -1,6 +1,6 @@
 /package-lock.json
 /dist/editor.bundle.js
-/lang/lang.js
-/lang/lang.terms.js
+/src/lang/lang.js
+/src/lang/lang.terms.js
 node_modules
 .DS_Store
