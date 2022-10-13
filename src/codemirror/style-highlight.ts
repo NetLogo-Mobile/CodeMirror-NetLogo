@@ -11,4 +11,4 @@ const highlightStyle = HighlightStyle.define([
 
 const highlight = syntaxHighlighting(highlightStyle);
 
-export { highlight };
+export { highlight, highlightStyle };

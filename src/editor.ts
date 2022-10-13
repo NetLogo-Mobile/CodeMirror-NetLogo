@@ -1,15 +1,17 @@
 import { EditorView, basicSetup } from "codemirror";
 import { undo, redo, selectAll } from "@codemirror/commands";
-import { Language } from "@codemirror/language";
+import { LanguageSupport } from '@codemirror/language';
 import { findNext, gotoLine, replaceNext, SearchCursor } from "@codemirror/search";
 import { Compartment } from "@codemirror/state";
 import { ViewUpdate } from "@codemirror/view";
 import { NetLogo } from "./lang/netlogo.js";
 import { EditorConfig } from "./editor-config";
-import { highlight } from "./codemirror/style-highlight";
+import { highlight, highlightStyle } from "./codemirror/style-highlight";
 import { indentExtension } from "./codemirror/extension-indent";
 import { updateExtension } from "./codemirror/extension-update";
 import { lightTheme } from "./codemirror/theme-light";
+import { highlightTree } from "@lezer/highlight"
+
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -17,26 +19,27 @@ export class GalapagosEditor {
   public readonly CodeMirror: EditorView;
   /** Options: Options of this editor. */
   public readonly Options: EditorConfig;
-  /** editable: compartment of the EditorView. */
-  public readonly editable: Compartment;
-  /** language: language of the EditorView. */
-  public readonly language: Language;
+  /** Editable: Compartment of the EditorView. */
+  private readonly Editable: Compartment;
+  /** Language: Language of the EditorView. */
+  public readonly Language: LanguageSupport;
   /** Constructor: Create an editor instance. */
 
   constructor(parent: HTMLElement, options: EditorConfig) {
-    this.editable = new Compartment();
+    this.Editable = new Compartment();
     this.Options = options;
-    // this.language = this.Options.Language;
+    this.Language = NetLogo();
+    // Build the editor
     this.CodeMirror = new EditorView({
       extensions: [
         // Editor
         basicSetup,
         lightTheme,
-        this.editable.of(EditorView.editable.of(true)),
+        this.Editable.of(EditorView.editable.of(true)),
         // Events
         updateExtension(this.onUpdate),
         // Language-specific
-        NetLogo(),
+        this.Language,
         highlight,
         indentExtension,
       ],
@@ -49,14 +52,14 @@ export class GalapagosEditor {
   // Possible inputs: string => output HTMLElement/HTML string;
   // Or input HTMLElement and replace the HTMLElement into colored HTMLElement.
   Highlight(textContent: string, callback: (text: string, style: string, from: number, to: number) => void, options?: Record<string, any>) {
-    // const tree = this.language.parser.parse(textContent);
-    // let pos = 0;
-    // highlightTree(tree, defaultHighlightStyle.match, (from, to, classes) => {
-    //   from > pos && callback(textContent.slice(pos, from), "", pos, from);
-    //   callback(textContent.slice(from, to), classes, from, to);
-    //   pos = to;
-    // });
-    // pos != tree.length && callback(textContent.slice(pos, tree.length), "", pos, tree.length);
+    const tree = this.Language.language.parser.parse(textContent);
+    let pos = 0;
+    highlightTree(tree, highlightStyle, (from, to, classes) => {
+      from > pos && callback(textContent.slice(pos, from), "", pos, from);
+      callback(textContent.slice(from, to), classes, from, to);
+      pos = to;
+    });
+    pos != tree.length && callback(textContent.slice(pos, tree.length), "", pos, tree.length);
   }
 
   // #region "Editor API"
@@ -73,7 +76,7 @@ export class GalapagosEditor {
   /** SetReadOnly: Set the readonly status for the editor. */
   SetReadOnly(status: boolean) {
     this.CodeMirror.dispatch({
-      effects: this.editable.reconfigure(EditorView.editable.of(!status)),
+      effects: this.Editable.reconfigure(EditorView.editable.of(!status)),
     });
   }
   // #endregion
