@@ -13,4 +13,5 @@ export const
   LineComment = 11,
   Program = 12,
   Numeric = 13,
-  String = 14
+  String = 14,
+  Own = 22

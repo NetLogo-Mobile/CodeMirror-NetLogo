@@ -9,7 +9,6 @@ import { EditorConfig } from "./editor-config.js";
 import { highlight } from "./codemirror/style-highlight";
 import { indentExtension } from "./codemirror/extension-indent";
 import { updateExtension } from "./codemirror/extension-update";
-import { highlightTree, defaultHighlightStyle } from "@codemirror/highlight"
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -45,15 +44,15 @@ export class GalapagosEditor {
   // Possible inputs: string => output HTMLElement/HTML string;
   // Or input HTMLElement and replace the HTMLElement into colored HTMLElement.
   Highlight(textContent: string, callback: (text: string, style: string, from: number, to: number) => void, options?: Record<string, any>) {
-  // const tree = this.language.parser.parse(textContent);
-  // let pos = 0;
-  // highlightTree(tree, defaultHighlightStyle.match, (from, to, classes) => {
-  //   from > pos && callback(textContent.slice(pos, from), "", pos, from);
-  //   callback(textContent.slice(from, to), classes, from, to);
-  //   pos = to;
-  // });
-  // pos != tree.length && callback(textContent.slice(pos, tree.length), "", pos, tree.length);
-}
+    // const tree = this.language.parser.parse(textContent);
+    // let pos = 0;
+    // highlightTree(tree, defaultHighlightStyle.match, (from, to, classes) => {
+    //   from > pos && callback(textContent.slice(pos, from), "", pos, from);
+    //   callback(textContent.slice(from, to), classes, from, to);
+    //   pos = to;
+    // });
+    // pos != tree.length && callback(textContent.slice(pos, tree.length), "", pos, tree.length);
+  }
 
   // #region "Editor API"
   /** SetCode: Set the code of the editor. */
@@ -79,10 +78,9 @@ export class GalapagosEditor {
   Undo() {
     undo(this.CodeMirror);
   }
-  /** Redo: Make the editor Redo. Returns false if no group was available.*/
+  /** Redo: Make the editor redo. Returns false if no group was available.*/
   Redo() {
     redo(this.CodeMirror);
-    // Stub - need implementation
   }
 
   /** Find: Find a keyword in the editor and optionally jump to it. */
@@ -184,4 +182,4 @@ export class GalapagosEditor {
 /** Export classes globally. */
 try {
   (window as any).GalapagosEditor = GalapagosEditor;
-} catch (error) {}
+} catch (error) { }
