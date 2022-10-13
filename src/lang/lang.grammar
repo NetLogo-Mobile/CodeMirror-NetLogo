@@ -19,7 +19,7 @@ globalStatement {
   } |
 
   BreedsOwn{
-    expression "-own" "[" expression* "]"
+    Own "[" expression* "]"
   }
 }
 
@@ -29,6 +29,8 @@ globalStatement {
   String { '"' (!["\\] | "\\" _)* '"' }
 
   LineComment { ";" ![\n]* }
+
+  Own { $[A-Za-z]+ "-own" }
   
   space { $[ \t\n\r]+ }
 

@@ -20,10 +20,11 @@ let parserWithMetadata = parser.configure({
       TurtleVar: t.bool,
       Reporter: t.bool,
       Command: t.variableName,
-      Extensions: t.string,
-      Globals: t.string,
+      Extensions: t.strong,
+      Globals: t.strong,
       Breed: t.string,
       BreedsOwn: t.string,
+      Own:t.strong
     }),
     indentNodeProp.add({
       Application: context => context.column(context.node.from) + context.unit
@@ -43,54 +44,47 @@ export const NetLogoLanguage = LRLanguage.define({
 })
 
 let keywords = [...directives , ...commands , ...reporters , ...turtleVars , ...patchVars , ...linkVars , ...constants , ...unsupported]
+
 let keywords_list = keywords.map(function (x) {
-  return { label: x, type: "keyword" }
+  return { label: x, type: "keyword" };
 })
 
 let extensions_map = extensions.map(function (x) {
-  return { label: x, type: "keyword" }
+  return { label: x, type: "keyword" };
 })
 
-function completions(): CompletionSource{
-    return (context: CompletionContext) => {
-        let node = syntaxTree(context.state).resolveInner(context.pos,-1)
-        let from = /\./.test(node.name) ? node.to : node.from
-        if ((node.parent !=null && node.parent.type.name=='Extensions' )||(node.parent !=null && node.parent.parent !=null && node.parent.parent.type.name=='Extensions' ) ){ 
-          return {
-              from,
-              options:extensions_map
-          }
-        }
-        else if (node && node.type.name=='Identifier'){
-          return {
-            from,
-            options:keywords_list
-          }
-        }
-        // if tag==''
-        return null
-      }
+let maps = {
+  "Extensions": extensions_map,
+  "Globals": [],
+  "BreedsOwn":[],
+  'Breed':[]
 }
 
-// function completeFromGlobalScope(context: CompletionContext) {
-//   let nodeBefore = syntaxTree(context.state).resolveInner(context.pos, -1)
-
-//   if (completePropertyAfter.includes(nodeBefore.name) &&
-//       nodeBefore.parent?.name == "MemberExpression") {
-//     let object = nodeBefore.parent.getChild("Expression")
-//     if (object?.name == "VariableName") {
-//       let from = /\./.test(nodeBefore.name) ? nodeBefore.to : nodeBefore.from
-//       let variableName = context.state.sliceDoc(object.from, object.to)
-//       if (typeof window[variableName] == "object")
-//         return completeProperties(from, window[variableName])
-//     }
-//   } else if (nodeBefore.name == "VariableName") {
-//     return completeProperties(nodeBefore.from, window)
-//   } else if (context.explicit && !dontCompleteIn.includes(nodeBefore.name)) {
-//     return completeProperties(context.pos, window)
-//   }
-//   return null
-// }
+function completions(): CompletionSource{
+  return (context: CompletionContext) => {
+    let node = syntaxTree(context.state).resolveInner(context.pos,-1);
+    let from = /\./.test(node.name) ? node.to : node.from;
+    if (
+      (node.parent !=null && Object.keys(maps).indexOf(node.parent.type.name)>-1 )||
+      (node.parent !=null && node.parent.parent !=null && Object.keys(maps).indexOf(node.parent.parent.type.name)>-1 ) 
+    ){ 
+      let map = (Object.keys(maps).indexOf(node.parent.type.name)>-1 || node.parent.parent==null) ? node.parent.type.name : node.parent.parent.type.name;
+      return {
+        from,
+        options: maps[map]
+      }
+    }
+    else if (node && node.type.name=='Identifier'){
+      return {
+        from,
+        options:keywords_list
+      }
+    }
+    else{
+      return null;
+    }
+  }
+}
 
 export const NetLogoCompletion = NetLogoLanguage.data.of({
   autocomplete: completions() //completeFromList(keywords_list)
