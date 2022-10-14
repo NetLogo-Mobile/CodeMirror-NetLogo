@@ -48,18 +48,21 @@ export class GalapagosEditor {
   }
 
   /** Highlight: Highlight a given snippet of code. */
-  // I am not sure how the API should look like.
-  // Possible inputs: string => output HTMLElement/HTML string;
-  // Or input HTMLElement and replace the HTMLElement into colored HTMLElement.
-  Highlight(textContent: string, callback: (text: string, style: string, from: number, to: number) => void, options?: Record<string, any>) {
-    const tree = this.Language.language.parser.parse(textContent);
+  Highlight(Content: string): HTMLElement {
+    // Stub: Here you need to iteratively build the DOM element. The top level should be a <span></span>.
+    // Ideally, using <span class="{}">{}</span> would be enough. 
+    throw new Error();
+  }
+  // The internal method for highlighting.
+  private highlightInternal(Content: string, callback: (text: string, style: string, from: number, to: number) => void, options?: Record<string, any>) {
+    const tree = this.Language.language.parser.parse(Content);
     let pos = 0;
     highlightTree(tree, highlightStyle, (from, to, classes) => {
-      from > pos && callback(textContent.slice(pos, from), "", pos, from);
-      callback(textContent.slice(from, to), classes, from, to);
+      from > pos && callback(Content.slice(pos, from), "", pos, from);
+      callback(Content.slice(from, to), classes, from, to);
       pos = to;
     });
-    pos != tree.length && callback(textContent.slice(pos, tree.length), "", pos, tree.length);
+    pos != tree.length && callback(Content.slice(pos, tree.length), "", pos, tree.length);
   }
 
   // #region "Editor API"

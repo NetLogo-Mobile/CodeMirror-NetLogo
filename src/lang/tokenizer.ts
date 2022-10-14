@@ -1,5 +1,5 @@
 import { ExternalTokenizer } from "@lezer/lr"
-import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported } from "./keywords.js"
+import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported } from "./keywords"
 import { Directive, Command, Extension, Reporter, TurtleVar, PatchVar, LinkVar, Constant, Unsupported, Identifier } from "./lang.terms.js"
 
 // Keyword tokenizer
