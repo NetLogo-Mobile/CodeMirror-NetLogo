@@ -9,6 +9,7 @@ import { EditorConfig } from "./editor-config";
 import { highlight, highlightStyle } from "./codemirror/style-highlight";
 import { indentExtension } from "./codemirror/extension-indent";
 import { updateExtension } from "./codemirror/extension-update";
+import { extensionState } from "./codemirror/extension-state-field";
 import { lightTheme } from "./codemirror/theme-light";
 import { highlightTree } from "@lezer/highlight"
 
@@ -42,6 +43,7 @@ export class GalapagosEditor {
         this.Language,
         highlight,
         indentExtension,
+        extensionState,
       ],
       parent: parent,
     });

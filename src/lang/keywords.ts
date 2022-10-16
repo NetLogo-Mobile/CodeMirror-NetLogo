@@ -214,12 +214,21 @@ export const commands = [
     'with-local-randomness',
     'without-interruption',
     'write',
+];
+
+export const arrayCommands=[
     'array:set',
+];
+
+export const matrixCommands=[
     'matrix:set',
     'matrix:set-row',
     'matrix:set-column',
     'matrix:swap-rows',
     'matrix:swap-columns',
+];
+
+export const otherCommands=[
     'table:clear',
     'table:put',
     'table:remove',
@@ -644,11 +653,17 @@ export const reporters = [
     'world-width',
     'wrap-color',
     'xor',
+]
+
+export const arrayReporters=[
     'array:from-list',
     'array:to-list',
     'array:is-array?',
     'array:length',
     'array:item',
+];
+
+export const otherReporters=[
     'csv:from-string',
     'csv:from-row',
     'csv:from-file',

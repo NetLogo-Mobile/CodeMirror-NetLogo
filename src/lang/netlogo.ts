@@ -3,7 +3,8 @@ import { foldNodeProp, foldInside, indentNodeProp, LRLanguage, LanguageSupport, 
 import { styleTags, tags as t } from "@lezer/highlight"
 import { SyntaxNode } from "@lezer/common"
 import { closeBrackets, completeFromList, CompletionSource, CompletionContext, CompletionResult } from "@codemirror/autocomplete"
-import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported } from "./keywords"
+import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported, arrayCommands,arrayReporters } from "./keywords"
+import { extensionState } from "../codemirror/extension-state-field.js"
 
 let parserWithMetadata = parser.configure({
   props: [
@@ -45,16 +46,14 @@ export const NetLogoLanguage = LRLanguage.define({
 
 let keywords = [...directives, ...commands, ...reporters, ...turtleVars, ...patchVars, ...linkVars, ...constants, ...unsupported];
 
-let keywords_list = keywords.map(function (x) {
-  return { label: x, type: "keyword" };
-});
-
-let extensions_map = extensions.map(function (x) {
-  return { label: x, type: "keyword" };
-});
+const mapping = function(arr){
+  return arr.map(function (x) {
+    return { label: x, type: "keyword" };
+  });
+}
 
 let maps = {
-  "Extensions": extensions_map,
+  "Extensions": mapping(extensions),
   "Globals": [],
   "BreedsOwn": [],
   'Breed': []
@@ -62,22 +61,29 @@ let maps = {
 
 function completions(): CompletionSource {
   return (context: CompletionContext) => {
+    
     let node = syntaxTree(context.state).resolveInner(context.pos, -1);
     let from = /\./.test(node.name) ? node.to : node.from;
     if (
       (node.parent != null && Object.keys(maps).indexOf(node.parent.type.name) > -1) ||
       (node.parent != null && node.parent.parent != null && Object.keys(maps).indexOf(node.parent.parent.type.name) > -1)
     ) {
-      let map = (Object.keys(maps).indexOf(node.parent.type.name) > -1 || node.parent.parent == null) ? node.parent.type.name : node.parent.parent.type.name;
+      let key = (Object.keys(maps).indexOf(node.parent.type.name) > -1 || node.parent.parent == null) ? node.parent.type.name : node.parent.parent.type.name;
       return {
         from,
-        options: maps[map]
+        options: maps[key]
       };
     }
     else if (node && node.type.name == 'Identifier') {
+      
+      let keyword_map = mapping(keywords);
+
+      if (Object.keys(context.state.field(extensionState)).includes('array') && context.state.field(extensionState)['array']){
+        keyword_map = mapping(keywords.concat(arrayCommands.concat(arrayReporters)))
+      }
       return {
         from,
-        options: keywords_list
+        options: keyword_map
       };
     }
     else {
