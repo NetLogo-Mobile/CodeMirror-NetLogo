@@ -33,7 +33,7 @@ let parserWithMetadata = parser.configure({
       Application: foldInside
     })
   ]
-})
+});
 
 export const NetLogoLanguage = LRLanguage.define({
   parser: parserWithMetadata,
@@ -41,24 +41,24 @@ export const NetLogoLanguage = LRLanguage.define({
     commentTokens: { line: ";" },
     closeBrackets: closeBrackets()
   }
-})
+});
 
-let keywords = [...directives, ...commands, ...reporters, ...turtleVars, ...patchVars, ...linkVars, ...constants, ...unsupported]
+let keywords = [...directives, ...commands, ...reporters, ...turtleVars, ...patchVars, ...linkVars, ...constants, ...unsupported];
 
 let keywords_list = keywords.map(function (x) {
   return { label: x, type: "keyword" };
-})
+});
 
 let extensions_map = extensions.map(function (x) {
   return { label: x, type: "keyword" };
-})
+});
 
 let maps = {
   "Extensions": extensions_map,
   "Globals": [],
   "BreedsOwn": [],
   'Breed': []
-}
+};
 
 function completions(): CompletionSource {
   return (context: CompletionContext) => {
@@ -72,24 +72,24 @@ function completions(): CompletionSource {
       return {
         from,
         options: maps[map]
-      }
+      };
     }
     else if (node && node.type.name == 'Identifier') {
       return {
         from,
         options: keywords_list
-      }
+      };
     }
     else {
       return null;
     }
-  }
-}
+  };
+};
 
 export const NetLogoCompletion = NetLogoLanguage.data.of({
   autocomplete: completions() //completeFromList(keywords_list)
-})
+});
 
 export function NetLogo() {
-  return new LanguageSupport(NetLogoLanguage, [NetLogoCompletion])
-}
+  return new LanguageSupport(NetLogoLanguage, [NetLogoCompletion]);
+};
