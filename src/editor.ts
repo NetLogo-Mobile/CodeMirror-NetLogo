@@ -5,11 +5,11 @@ import { findNext, gotoLine, replaceNext, SearchCursor } from "@codemirror/searc
 import { Compartment } from "@codemirror/state";
 import { ViewUpdate } from "@codemirror/view";
 import { NetLogo } from "./lang/netlogo.js";
-import { EditorConfig } from "./editor-config";
+import { EditorConfig, EditorLanguage } from "./editor-config";
 import { highlight, highlightStyle } from "./codemirror/style-highlight";
 import { indentExtension } from "./codemirror/extension-indent";
 import { updateExtension } from "./codemirror/extension-update";
-import { extensionState } from "./codemirror/extension-state-field";
+import { stateExtension } from "./codemirror/extension-state-netlogo";
 import { lightTheme } from "./codemirror/theme-light";
 import { highlightTree } from "@lezer/highlight"
 
@@ -24,28 +24,33 @@ export class GalapagosEditor {
   private readonly Editable: Compartment;
   /** Language: Language of the EditorView. */
   public readonly Language: LanguageSupport;
-  /** Constructor: Create an editor instance. */
 
-  constructor(parent: HTMLElement, options: EditorConfig) {
+  /** Constructor: Create an editor instance. */
+  constructor(Parent: HTMLElement, Options: EditorConfig) {
     this.Editable = new Compartment();
-    this.Options = options;
-    this.Language = NetLogo();
+    this.Options = Options;
+    // Extensions
+    var Extensions = [
+      // Editor
+      basicSetup,
+      lightTheme,
+      this.Editable.of(EditorView.editable.of(true)),
+      // Events
+      updateExtension((Update) => this.onUpdate(Update)),
+      // Language-general
+      highlight,
+      indentExtension,
+    ];
+    // Language-specific
+    if (Options.Language == null || Options.Language == EditorLanguage.NetLogo) {
+      Extensions.push(stateExtension);
+      this.Language = NetLogo();
+    }
     // Build the editor
+    Extensions.push(this.Language);
     this.CodeMirror = new EditorView({
-      extensions: [
-        // Editor
-        basicSetup,
-        lightTheme,
-        this.Editable.of(EditorView.editable.of(true)),
-        // Events
-        updateExtension((Update) => this.onUpdate(Update)),
-        // Language-specific
-        this.Language,
-        highlight,
-        indentExtension,
-        extensionState,
-      ],
-      parent: parent,
+      extensions: Extensions,
+      parent: Parent,
     });
   }
 

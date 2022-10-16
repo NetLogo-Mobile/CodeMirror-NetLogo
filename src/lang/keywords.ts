@@ -216,19 +216,13 @@ export const commands = [
     'write',
 ];
 
-export const arrayCommands=[
+export const extensionCommands = [
     'array:set',
-];
-
-export const matrixCommands=[
     'matrix:set',
     'matrix:set-row',
     'matrix:set-column',
     'matrix:swap-rows',
     'matrix:swap-columns',
-];
-
-export const otherCommands=[
     'table:clear',
     'table:put',
     'table:remove',
@@ -655,15 +649,12 @@ export const reporters = [
     'xor',
 ]
 
-export const arrayReporters=[
+export const extensionReporters = [
     'array:from-list',
     'array:to-list',
     'array:is-array?',
     'array:length',
     'array:item',
-];
-
-export const otherReporters=[
     'csv:from-string',
     'csv:from-row',
     'csv:from-file',
