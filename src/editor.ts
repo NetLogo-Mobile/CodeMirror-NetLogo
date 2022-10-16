@@ -37,7 +37,7 @@ export class GalapagosEditor {
         lightTheme,
         this.Editable.of(EditorView.editable.of(true)),
         // Events
-        updateExtension(this.onUpdate),
+        updateExtension((Update) => this.onUpdate(Update)),
         // Language-specific
         this.Language,
         highlight,
@@ -185,7 +185,8 @@ export class GalapagosEditor {
   // #region "Event Handling"
   /** onUpdate: Handle the Update event. */
   private onUpdate(update: ViewUpdate) {
-    if (this.Options.OnUpdate) this.Options.OnUpdate(update.docChanged, update);
+    if (this.Options.OnUpdate != null) 
+      this.Options.OnUpdate(update.docChanged, update);
   }
   // #endregion
 }
