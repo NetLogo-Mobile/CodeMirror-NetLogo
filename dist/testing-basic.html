@@ -16,11 +16,12 @@
         <button name="replace interface" onclick="Editor.ShowReplace();">Replace interface</button>
         <button name="go to line interface" onclick="Editor.ShowJumpTo();">Go to line interface</button>
         <button name="Find interface" onclick="Editor.ShowFind();">Find interface</button>
+        <button name="Hide All Interfaces" onclick="Editor.HideAllInterfaces();">Hide All Interfaces</button>
         <button name="Highlight" onclick="Editor.Highlight();">High light</button>
         <div id="Container" style="height: 80vh;"></div>
         <script src="editor.bundle.js"></script>
         <script>
-            var Editor = new GalapagosEditor(document.getElementById("Container"), {});
+            var Editor = new GalapagosEditor(document.getElementById("Container"), {ReadOnly: false, OneLine: true});
         </script>
     </body>
 </html>
