@@ -214,6 +214,9 @@ export const commands = [
     'with-local-randomness',
     'without-interruption',
     'write',
+];
+
+export const extensionCommands = [
     'array:set',
     'matrix:set',
     'matrix:set-row',
@@ -644,6 +647,9 @@ export const reporters = [
     'world-width',
     'wrap-color',
     'xor',
+]
+
+export const extensionReporters = [
     'array:from-list',
     'array:to-list',
     'array:is-array?',

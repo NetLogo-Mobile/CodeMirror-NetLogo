@@ -1,9 +1,8 @@
 import { parser } from "./lang.js"
-import { foldNodeProp, foldInside, indentNodeProp, LRLanguage, LanguageSupport, syntaxTree } from "@codemirror/language"
+import { foldNodeProp, foldInside, indentNodeProp, LRLanguage, LanguageSupport } from "@codemirror/language"
 import { styleTags, tags as t } from "@lezer/highlight"
-import {SyntaxNode} from "@lezer/common"
-import { closeBrackets, completeFromList, CompletionSource, CompletionContext, CompletionResult  } from "@codemirror/autocomplete"
-import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported } from "./keywords.js"
+import { closeBrackets } from "@codemirror/autocomplete"
+import { AutoCompletion } from './auto-completion';
 
 let parserWithMetadata = parser.configure({
   props: [
@@ -24,7 +23,7 @@ let parserWithMetadata = parser.configure({
       Globals: t.strong,
       Breed: t.string,
       BreedsOwn: t.string,
-      Own:t.strong
+      Own: t.strong
     }),
     indentNodeProp.add({
       Application: context => context.column(context.node.from) + context.unit
@@ -33,63 +32,20 @@ let parserWithMetadata = parser.configure({
       Application: foldInside
     })
   ]
-})
+});
 
+/** NetLogoLanguage: The NetLogo language. */
 export const NetLogoLanguage = LRLanguage.define({
   parser: parserWithMetadata,
   languageData: {
     commentTokens: { line: ";" },
     closeBrackets: closeBrackets()
   }
-})
+});
 
-let keywords = [...directives , ...commands , ...reporters , ...turtleVars , ...patchVars , ...linkVars , ...constants , ...unsupported]
-
-let keywords_list = keywords.map(function (x) {
-  return { label: x, type: "keyword" };
-})
-
-let extensions_map = extensions.map(function (x) {
-  return { label: x, type: "keyword" };
-})
-
-let maps = {
-  "Extensions": extensions_map,
-  "Globals": [],
-  "BreedsOwn":[],
-  'Breed':[]
-}
-
-function completions(): CompletionSource{
-  return (context: CompletionContext) => {
-    let node = syntaxTree(context.state).resolveInner(context.pos,-1);
-    let from = /\./.test(node.name) ? node.to : node.from;
-    if (
-      (node.parent !=null && Object.keys(maps).indexOf(node.parent.type.name)>-1 )||
-      (node.parent !=null && node.parent.parent !=null && Object.keys(maps).indexOf(node.parent.parent.type.name)>-1 ) 
-    ){ 
-      let map = (Object.keys(maps).indexOf(node.parent.type.name)>-1 || node.parent.parent==null) ? node.parent.type.name : node.parent.parent.type.name;
-      return {
-        from,
-        options: maps[map]
-      }
-    }
-    else if (node && node.type.name=='Identifier'){
-      return {
-        from,
-        options:keywords_list
-      }
-    }
-    else{
-      return null;
-    }
-  }
-}
-
-export const NetLogoCompletion = NetLogoLanguage.data.of({
-  autocomplete: completions() //completeFromList(keywords_list)
-})
-
-export function NetLogo() {
-  return new LanguageSupport(NetLogoLanguage, [NetLogoCompletion])
-}
+/** NetLogo: The NetLogo language support. */
+export function NetLogo(): LanguageSupport {
+  return new LanguageSupport(NetLogoLanguage, [NetLogoLanguage.data.of({
+    autocomplete: new AutoCompletion().GetCompletionSource()
+  })]);
+};
