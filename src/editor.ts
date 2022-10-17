@@ -152,11 +152,12 @@ export class GalapagosEditor {
     // return true;
   }
   /** JumpTo: Jump to a certain line. */
+  // TODO: Scroll to the line
   JumpTo(Line: number) {
     let { state } = this.CodeMirror;
     let docLine = state.doc.line(Math.max(1, Math.min(state.doc.lines, Line)));
     this.CodeMirror.focus();
-    this.CodeMirror.dispatch({ selection: { anchor: docLine.from } });
+    this.CodeMirror.dispatch({ selection: { anchor: docLine.from }, scrollIntoView: true});
   }
   /** SelectAll: Select all text in the editor. */
   SelectAll() {
@@ -166,16 +167,23 @@ export class GalapagosEditor {
 
   // #region "Editor Interfaces"
   /** ShowFind: Show the finding interface. */
+  // TODO: clear other interfaces
   ShowFind() {
     findNext(this.CodeMirror);
   }
   /** ShowReplace: Show the replace interface. */
+  // TODO: clear other interfaces
   ShowReplace() {
     replaceNext(this.CodeMirror);
   }
   /** ShowJumpTo: Show the jump-to-line interface. */
+  // TODO: clear other interfaces
   ShowJumpTo(Line?: number) {
     gotoLine(this.CodeMirror);
+  }
+
+  HideAllInterfaces(){
+
   }
   // #endregion
 
