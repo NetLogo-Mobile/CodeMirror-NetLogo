@@ -14,6 +14,7 @@ export class StateNetLogo {
         if (!Cursor.firstChild()) return this;
         while (true) {
             if (Cursor.node.name == "Extensions") {
+                this.Extensions = [];
                 Cursor.node.getChildren("Extension").map(Node => {
                     this.Extensions.push(State.sliceDoc(Node.from, Node.to));
                 });
