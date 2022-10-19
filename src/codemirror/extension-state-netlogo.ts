@@ -8,6 +8,8 @@ export class StateNetLogo {
     public Extensions: string[] = [];
     /** Globals: Globals in the model. */
     public Globals: string[] = [];
+    /** Breeds: Breeds in the model. */
+    public Breeds: Map<string, Breed> = new Map<string, Breed>();
     /** ParseState: Parse the state from an editor state. */
     public ParseState(State: EditorState): StateNetLogo {
         var Cursor = syntaxTree(State).cursor();
