@@ -1,7 +1,7 @@
 import { EditorView, basicSetup } from "codemirror";
 import { undo, redo, selectAll } from "@codemirror/commands";
 import { LanguageSupport } from '@codemirror/language';
-import { findNext, gotoLine, replaceNext } from "@codemirror/search";
+import { SearchQuery, findNext, gotoLine, replaceNext, setSearchQuery, openSearchPanel, closeSearchPanel } from "@codemirror/search";
 import { Compartment, EditorState } from "@codemirror/state";
 import { ViewUpdate } from "@codemirror/view";
 import { NetLogo } from "./lang/netlogo.js";
@@ -31,7 +31,6 @@ export class GalapagosEditor {
   constructor(Parent: HTMLElement, Options: EditorConfig) {
     this.Editable = new Compartment();
     this.Options = Options;
-
     // Extensions
     var Extensions = [
       // Editor
@@ -40,7 +39,6 @@ export class GalapagosEditor {
       // Readonly
       this.Editable.of(EditorView.editable.of(this.Options.ReadOnly ? false : true)),
       // Events
-      
       updateExtension((Update) => this.onUpdate(Update)),
       // Language-general
       highlight,
@@ -53,7 +51,7 @@ export class GalapagosEditor {
     }
     // Build the editor
     Extensions.push(this.Language);
-
+    // One-line mode
     if (this.Options.OneLine) {
       Extensions.push(EditorState.transactionFilter.of(tr => tr.newDoc.lines > 1 ? [] : tr));
     }
@@ -65,9 +63,18 @@ export class GalapagosEditor {
 
   /** Highlight: Highlight a given snippet of code. */
   Highlight(Content: string): HTMLElement {
-    // Stub: Here you need to iteratively build the DOM element. The top level should be a <span></span>.
-    // Ideally, using <span class="{}">{}</span> would be enough. 
-    throw new Error();
+    const Container = document.createElement("span");
+    this.highlightInternal(Content, (Text, Style, From, To) => {
+      if (Style == "") {
+        Container.appendChild(document.createTextNode(Text));
+      } else {
+        var Node = document.createElement("span");
+        Node.innerText = Text;
+        Node.className = Style;
+        Container.appendChild(Node);
+      }
+    });
+    return Container;
   }
   // The internal method for highlighting.
   private highlightInternal(Content: string, callback: (text: string, style: string, from: number, to: number) => void, options?: Record<string, any>) {
@@ -112,8 +119,13 @@ export class GalapagosEditor {
 
   /** Find: Find a keyword in the editor and optionally jump to it. */
   Find(Keyword: string, JumpTo: boolean) {
+    openSearchPanel(this.CodeMirror);
+    this.CodeMirror.dispatch({ effects: setSearchQuery.of(new SearchQuery({
+      search: Keyword
+    }))});
+    findNext(this.CodeMirror);
+    closeSearchPanel(this.CodeMirror);
   }
-
   /** Replace: Replace the code in the editor. */
   Replace(Source: string, Target: string) {
     // this.CodeMirror.dispatch({change: this.CodeMirror.state.replaceSelection(Source)});
@@ -123,7 +135,7 @@ export class GalapagosEditor {
     let { state } = this.CodeMirror;
     let docLine = state.doc.line(Math.max(1, Math.min(state.doc.lines, Line)));
     this.CodeMirror.focus();
-    this.CodeMirror.dispatch({ selection: { anchor: docLine.from }, scrollIntoView: true});
+    this.CodeMirror.dispatch({ selection: { anchor: docLine.from }, scrollIntoView: true });
   }
   /** SelectAll: Select all text in the editor. */
   SelectAll() {
@@ -136,10 +148,10 @@ export class GalapagosEditor {
   // TODO: clear other interfaces
   ShowFind() {
     const searchElm = document.querySelector<HTMLElement>('.cm-search');
-    searchElm ? searchElm.style.display= 'flex' : findNext(this.CodeMirror);
+    searchElm ? searchElm.style.display = 'flex' : findNext(this.CodeMirror);
     const jumpElm = document.querySelector<HTMLElement>('.cm-gotoLine');
     if (jumpElm) {
-      jumpElm.style.display= 'none';
+      jumpElm.style.display = 'none';
     }
 
   }
@@ -147,32 +159,32 @@ export class GalapagosEditor {
   // TODO: clear other interfaces
   ShowReplace() {
     const searchElm = document.querySelector<HTMLElement>('.cm-search');
-    searchElm ? searchElm.style.display= 'flex' : replaceNext(this.CodeMirror);
+    searchElm ? searchElm.style.display = 'flex' : replaceNext(this.CodeMirror);
     const jumpElm = document.querySelector<HTMLElement>('.cm-gotoLine')!;
     if (jumpElm) {
-      jumpElm.style.display= 'none';
+      jumpElm.style.display = 'none';
     }
 
   }
   /** ShowJumpTo: Show the jump-to-line interface. */
   // TODO: clear other interfaces
-  ShowJumpTo(Line?: number) {
+  ShowJumpTo() {
     const jumpElm = document.querySelector<HTMLElement>('.cm-gotoLine');
-    jumpElm ? jumpElm.style.display= 'flex' : gotoLine(this.CodeMirror);
+    jumpElm ? jumpElm.style.display = 'flex' : gotoLine(this.CodeMirror);
     const searchElm = document.querySelector<HTMLElement>('.cm-search');
     if (searchElm) {
-      searchElm.style.display= 'none';
+      searchElm.style.display = 'none';
     }
   }
 
-  HideAllInterfaces(){
+  HideAllInterfaces() {
     const searchElm = document.querySelector<HTMLElement>('.cm-search');
     if (searchElm) {
-      searchElm.style.display= 'none';
+      searchElm.style.display = 'none';
     }
     const jumpElm = document.querySelector<HTMLElement>('.cm-gotoLine')!;
     if (jumpElm) {
-      jumpElm.style.display= 'none';
+      jumpElm.style.display = 'none';
     }
   }
   // #endregion
@@ -180,7 +192,7 @@ export class GalapagosEditor {
   // #region "Event Handling"
   /** onUpdate: Handle the Update event. */
   private onUpdate(update: ViewUpdate) {
-    if (this.Options.OnUpdate != null) 
+    if (this.Options.OnUpdate != null)
       this.Options.OnUpdate(update.docChanged, update);
   }
   // #endregion

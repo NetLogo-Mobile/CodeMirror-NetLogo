@@ -13,9 +13,6 @@ export interface EditorConfig {
     OnUpdate?: (DocumentChanged: boolean, ViewUpdate: ViewUpdate) => void;
     /** OnKeyDown: Handle the Keydown event. */
     OnKeyDown; // To be implemented
-
-
-
 }
 
 /** Language: Language. */
