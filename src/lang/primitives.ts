@@ -1,4 +1,4 @@
-import { Primitive } from "./primitive";
+import { Primitive, NetLogoType } from "./classes";
 
 export class Primitives {
     private Metadata: Map<string, Primitive>;
@@ -6,13 +6,14 @@ export class Primitives {
     public ImportNLW(Source: NLWPrimitive) {
         this.Metadata.set(Source.name, {
             Name: Source.name,
-            
+            ArgumentTypes: Source.argTypes,
+            ReturnType: Source.returnType         
         });
     }    
 }
 
 export interface NLWPrimitive {
     name: string,
-    argTypes: string[],
-    returnType: string
+    argTypes: NetLogoType[],
+    returnType: NetLogoType
 }

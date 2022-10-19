@@ -1,6 +1,8 @@
 import { StateField, Transaction } from "@codemirror/state"
 import { EditorState } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
+import { Breed } from "../lang/classes";
+
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
