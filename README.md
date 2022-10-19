@@ -1,6 +1,7 @@
 # NetLogo Language Support for CodeMirror 6
-* Work in progress by Ruth Bagley (@rbagley) and John Chen (@CIVITAS-John).
+* Work in progress by Ruth Bagley (@rbagley), Haylie Wu (@wubbalubbadu), and John Chen (@CIVITAS-John).
 * To set up the environment, use `npm install`.
-* To build the language, use `node_modules/.bin/lezer-generator ./src/lang/lang.grammar -o ./src/lang/lang.js`
+* You might need to install `rollup` and `lezer-generator` globally.
+* To build the language, use `lezer-generator ./src/lang/lang.grammar -o ./src/lang/lang.js`.
 * To build the project, use `rollup -c`.
 * Funded by Northwestern SESP Venture Research Fund.
