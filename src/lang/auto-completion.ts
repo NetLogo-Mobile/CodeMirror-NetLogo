@@ -1,7 +1,8 @@
 import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported, extensionCommands, extensionReporters } from "./keywords"
-import { stateExtension } from "../codemirror/extension-state-netlogo"
+import { stateExtension, StateNetLogo } from "../codemirror/extension-state-netlogo"
 import { CompletionSource, CompletionContext, CompletionResult } from "@codemirror/autocomplete"
 import { syntaxTree } from "@codemirror/language";
+import { StateField} from "@codemirror/state"
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 export class AutoCompletion {
@@ -23,6 +24,7 @@ export class AutoCompletion {
     
     /** GetCompletion: Get the completion hint at a given context. */
     public GetCompletion(Context: CompletionContext) : CompletionResult | null | Promise<CompletionResult | null> {
+        // console.log(Context)
         let node = syntaxTree(Context.state).resolveInner(Context.pos, -1);
         let from = /\./.test(node.name) ? node.to : node.from;
         if (
@@ -38,8 +40,16 @@ export class AutoCompletion {
             let results = this.allIdentifiers;
             // Extensions
             let extensions = Context.state.field(stateExtension).Extensions;
-            if (extensions.length > 0)
+            if (extensions.length > 0){
                 results = results.concat(this.FilterExtensions(extensionCommands.concat(extensionReporters), extensions));
+            }
+            // Breeds
+            let breeds = Context.state.field(stateExtension).Breeds;
+            if (breeds.length > 0){
+                for (let breed of breeds){
+                    results.push(breed.Plural+"-own")
+                }
+            }
             // Mappings
             return {
                 from,

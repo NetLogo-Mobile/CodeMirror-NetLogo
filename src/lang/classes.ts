@@ -7,7 +7,7 @@ export class Primitive {
 export class Breed {
     public Name: string;
     public Plural: string;
-    public Variables: NetLogoType[];
+    public Variables: string[];
 }
 
 /** NetLogoType: Types that are available in NetLogo. */

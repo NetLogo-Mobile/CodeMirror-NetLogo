@@ -11,16 +11,42 @@ export class StateNetLogo {
     /** Globals: Globals in the model. */
     public Globals: string[] = [];
     /** Breeds: Breeds in the model. */
-    public Breeds: Map<string, Breed> = new Map<string, Breed>();
+    public Breeds: Breed[] = [];
     /** ParseState: Parse the state from an editor state. */
     public ParseState(State: EditorState): StateNetLogo {
         var Cursor = syntaxTree(State).cursor();
         if (!Cursor.firstChild()) return this;
+        let breedcount=0
         while (true) {
             if (Cursor.node.name == "Extensions") {
                 this.Extensions = [];
                 Cursor.node.getChildren("Extension").map(Node => {
                     this.Extensions.push(State.sliceDoc(Node.from, Node.to));
+                });
+            }
+            if (Cursor.node.name == "Globals") {
+                this.Globals = [];
+                Cursor.node.getChildren("Identifier").map(Node => {
+                    this.Globals.push(State.sliceDoc(Node.from, Node.to));
+                });
+            }
+            if (Cursor.node.name == "Breed") {
+                if (breedcount==0){
+                    this.Breeds = []
+                }
+                breedcount++;
+                let breed= new Breed();
+                let i=0
+                Cursor.node.getChildren("Identifier").map(Node => {
+                    if (i == 0){
+                        breed.Name = State.sliceDoc(Node.from, Node.to);
+                    }
+                    else{
+                        breed.Plural = State.sliceDoc(Node.from, Node.to);
+                        breed.Variables=[];
+                        this.Breeds.push(breed);
+                    }
+                    i++;
                 });
             }
             if (!Cursor.nextSibling()) return this;

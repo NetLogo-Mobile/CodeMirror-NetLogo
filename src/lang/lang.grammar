@@ -1,11 +1,38 @@
 @top Program { 
-  expression*
-  globalStatement
+  globalStatement*
+  procedureOrStatement*
+  
 }
 
 @detectDelim
 
 @skip { space | LineComment }
+
+procedureOrStatement{
+  procedure | statement
+}
+
+statement {
+  Reporter |
+  Command |
+  variable
+}
+
+variable {
+  "let" Identifier value |
+  "set" Identifier value
+}
+
+value {
+  Numeric |
+  String |
+  "[" Identifier "]" "of" Identifier
+}
+
+procedure {
+  Directive Identifier statement* Directive |
+  Directive Identifier "[" Identifier+ "]" statement* Directive
+}
 
 globalStatement {
   Extensions { "extensions" "[" Extension* "]" } |
@@ -13,9 +40,9 @@ globalStatement {
   Globals { "globals" "["  Identifier* "]"  } |
 
   Breed { 
-    "breed" "[" expression* "]" |
-    "directed-link-breed" "[" expression* "]" |
-    "undirected-link-breed" "[" expression* "]"
+    "breed" "[" Identifier Identifier "]" |
+    "directed-link-breed" "[" Identifier Identifier "]" |
+    "undirected-link-breed" "[" Identifier Identifier "]"
   } |
 
   BreedsOwn{
