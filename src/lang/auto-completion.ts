@@ -56,12 +56,12 @@ export class AutoCompletion {
                 from,
                 options: this.GetParentKeywords(parentName, state)
             };
-        } else if (this.ParentTypes.indexOf(grandparentName) > -1) {
+        } else if (grandparentName != "Program" && this.ParentTypes.indexOf(grandparentName) > -1) {
             return {
                 from,
                 options: this.GetParentKeywords(grandparentName, state)
             };
-        } else if (node && node.type.name == 'Identifier') {
+        } else if (nodeName == 'Identifier') {
             let results = this.allIdentifiers;
             // Extensions
             let extensions = Context.state.field(stateExtension).Extensions;
