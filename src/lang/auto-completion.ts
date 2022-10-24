@@ -19,10 +19,11 @@ export class AutoCompletion {
     private ParentMaps = {
         "Extensions": this.KeywordsToCompletions(extensions, "Extension"),
         "Program": this.KeywordsToCompletions(directives, "Extension"),
-        "Globals": [],
-        "BreedsOwn": [],
-        "Breed": [],
-        "Parameters": []
+        "Globals": [], // Names of global variables
+        "BreedsOwn": [], // Names of breed variables
+        "Breed": [], // Names of breeds
+        "ProcedureName": [], // Names of procedures
+        "Parameters": [], // Parameters of procedures
     };
 
     /** ParentTypes: Types of keywords.  */

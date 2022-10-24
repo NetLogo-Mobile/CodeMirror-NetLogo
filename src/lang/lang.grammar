@@ -19,7 +19,11 @@ value {
 }
 
 Procedure {
-  To Identifier Parameters? expression* End
+  To ProcedureName Parameters? expression* End
+}
+
+ProcedureName {
+  Identifier
 }
 
 Parameters {
