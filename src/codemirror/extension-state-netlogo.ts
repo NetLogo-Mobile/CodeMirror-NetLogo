@@ -3,7 +3,6 @@ import { EditorState } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
 import { Breed } from "../lang/classes";
 
-
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
     /** Extensions: Extensions in the model. */
@@ -16,7 +15,7 @@ export class StateNetLogo {
     public ParseState(State: EditorState): StateNetLogo {
         var Cursor = syntaxTree(State).cursor();
         if (!Cursor.firstChild()) return this;
-        let breedcount=0
+        this.Breeds = [];
         while (true) {
             if (Cursor.node.name == "Extensions") {
                 this.Extensions = [];
@@ -31,23 +30,14 @@ export class StateNetLogo {
                 });
             }
             if (Cursor.node.name == "Breed") {
-                if (breedcount==0){
-                    this.Breeds = []
+                let breed = new Breed();
+                var Identifiers = Cursor.node.getChildren("Identifier");
+                if (Identifiers.length == 2) {
+                    breed.Singular = State.sliceDoc(Identifiers[0].from, Identifiers[0].to);
+                    breed.Plural = State.sliceDoc(Identifiers[1].from, Identifiers[1].to);
+                    breed.Variables = [];
+                    this.Breeds.push(breed);
                 }
-                breedcount++;
-                let breed= new Breed();
-                let i=0
-                Cursor.node.getChildren("Identifier").map(Node => {
-                    if (i == 0){
-                        breed.Name = State.sliceDoc(Node.from, Node.to);
-                    }
-                    else{
-                        breed.Plural = State.sliceDoc(Node.from, Node.to);
-                        breed.Variables=[];
-                        this.Breeds.push(breed);
-                    }
-                    i++;
-                });
             }
             if (!Cursor.nextSibling()) return this;
         }

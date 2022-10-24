@@ -1,71 +1,92 @@
 import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported, extensionCommands, extensionReporters } from "./keywords"
 import { stateExtension, StateNetLogo } from "../codemirror/extension-state-netlogo"
-import { CompletionSource, CompletionContext, CompletionResult } from "@codemirror/autocomplete"
+import { Completion, CompletionSource, CompletionContext, CompletionResult } from "@codemirror/autocomplete"
 import { syntaxTree } from "@codemirror/language";
-import { StateField} from "@codemirror/state"
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 export class AutoCompletion {
     /** allIdentifiers: All built-in identifiers. */
-    private allIdentifiers = [...directives, ...commands, ...reporters, ...turtleVars, ...patchVars, ...linkVars, ...constants];
+    private allIdentifiers = ["end", ...commands, ...reporters, ...turtleVars, ...patchVars, ...linkVars, ...constants];
 
-    private mapKeyword(Keywords: string[], Type: string) {
+    /** KeywordsToCompletions: Transform keywords to completions. */
+    private KeywordsToCompletions(Keywords: string[], Type: string): Completion[] {
         return Keywords.map(function (x) {
             return { label: x, type: Type };
         });
     };
 
-    private maps = {
-        "Extensions": this.mapKeyword(extensions, "Extension"),
+    /** ParentMaps: Maps of keywords to parents.  */
+    private ParentMaps = {
+        "Extensions": this.KeywordsToCompletions(extensions, "Extension"),
+        "Program": this.KeywordsToCompletions(directives, "Extension"),
         "Globals": [],
         "BreedsOwn": [],
-        'Breed': []
+        "Breed": [],
+        "Parameters": []
     };
-    
+
+    /** ParentTypes: Types of keywords.  */
+    private ParentTypes = Object.keys(this.ParentMaps);
+
+    /** GetParentKeywords: Get keywords of a certain type. */
+    private GetParentKeywords(Type: string, State: StateNetLogo): Completion[] {
+        let results = this.ParentMaps[Type];
+        switch (Type) {
+            case "Extensions": 
+                results = results.filter(ext => !State.Extensions.includes(ext.label));
+                break;
+        }
+        return results;
+    }
+
     /** GetCompletion: Get the completion hint at a given context. */
-    public GetCompletion(Context: CompletionContext) : CompletionResult | null | Promise<CompletionResult | null> {
+    public GetCompletion(Context: CompletionContext): CompletionResult | null | Promise<CompletionResult | null> {
+        // Preparation
         let node = syntaxTree(Context.state).resolveInner(Context.pos, -1);
         let from = /\./.test(node.name) ? node.to : node.from;
-        // if the node is of a type specified in this.maps
-        if (
-            (node.parent != null && Object.keys(this.maps).indexOf(node.parent.type.name) > -1) ||
-            (node.parent != null && node.parent.parent != null && Object.keys(this.maps).indexOf(node.parent.parent.type.name) > -1)
-        ) {
-            let key = (Object.keys(this.maps).indexOf(node.parent.type.name) > -1 || node.parent.parent == null) ? node.parent.type.name : node.parent.parent.type.name;
-            let results = this.maps[key]
-            //don't suggest duplicate extensions
-            if (key=="Extensions"){
-                results=results.filter(ext=>!Context.state.field(stateExtension).Extensions.includes(ext.label))
-            }
+        var parentName = node.parent?.type.name ?? "";
+        var grandparentName = node.parent?.parent?.type.name ?? "";
+        var nodeName = node.type.name;
+        var state = Context.state.field(stateExtension);
+        console.log(grandparentName + " / " + parentName + " / " + nodeName);
+        // If the parent/grand parent node is of a type specified in this.maps
+        if (this.ParentTypes.indexOf(parentName) > -1) {
             return {
                 from,
-                options: results
+                options: this.GetParentKeywords(parentName, state)
+            };
+        } else if (this.ParentTypes.indexOf(grandparentName) > -1) {
+            return {
+                from,
+                options: this.GetParentKeywords(grandparentName, state)
             };
         } else if (node && node.type.name == 'Identifier') {
             let results = this.allIdentifiers;
             // Extensions
             let extensions = Context.state.field(stateExtension).Extensions;
-            if (extensions.length > 0){
+            if (extensions.length > 0) {
                 results = results.concat(this.FilterExtensions(extensionCommands.concat(extensionReporters), extensions));
             }
             // Breeds
             let breeds = Context.state.field(stateExtension).Breeds;
-            if (breeds.length > 0){
-                for (let breed of breeds){
-                    results.push(breed.Plural+"-own")
+            if (breeds.length > 0) {
+                for (let breed of breeds) {
+                    results.push(breed.Plural + "-own")
                 }
             }
             // Mappings
             return {
                 from,
-                options: this.mapKeyword(results, "Identifier")
+                options: this.KeywordsToCompletions(results, "Identifier")
             };
-        }  else return null;
+        } else return null;
     }
+
     /** GetCompletionSource: Get the completion source for a NetLogo model. */
     public GetCompletionSource(): CompletionSource {
         return (Context) => this.GetCompletion(Context);
     };
+
     /** FilterExtensions: Filter keywords for extensions. */
     private FilterExtensions(Keyword: string[], Extensions: string[]): string[] {
         Extensions = Extensions.map(Extension => Extension + ":");

@@ -7,6 +7,7 @@ import { AutoCompletion } from './auto-completion';
 let parserWithMetadata = parser.configure({
   props: [
     styleTags({
+      // Basic elements
       Constant: t.string,
       String: t.string,
       LineComment: t.lineComment,
@@ -19,11 +20,15 @@ let parserWithMetadata = parser.configure({
       TurtleVar: t.bool,
       Reporter: t.bool,
       Command: t.variableName,
+      // Global statements
       Extensions: t.strong,
       Globals: t.strong,
-      Breed: t.string,
-      BreedsOwn: t.string,
-      Own: t.strong
+      Breed: t.strong,
+      BreedsOwn: t.strong,
+      Own: t.strong,
+      // Procedures
+      To: t.strong,
+      End: t.strong
     }),
     indentNodeProp.add({
       Application: context => context.column(context.node.from) + context.unit

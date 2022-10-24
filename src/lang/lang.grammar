@@ -1,22 +1,11 @@
 @top Program { 
   globalStatement*
-  procedureOrStatement*
-  
+  Procedure*
 }
 
 @detectDelim
 
 @skip { space | LineComment }
-
-procedureOrStatement{
-  procedure | statement
-}
-
-statement {
-  Reporter |
-  Command |
-  variable
-}
 
 variable {
   "let" Identifier value |
@@ -29,9 +18,12 @@ value {
   "[" Identifier "]" "of" Identifier
 }
 
-procedure {
-  Directive Identifier statement* Directive |
-  Directive Identifier "[" Identifier+ "]" statement* Directive
+Procedure {
+  To Identifier Parameters? expression* End
+}
+
+Parameters {
+  "[" Identifier* "]"
 }
 
 globalStatement {
@@ -45,8 +37,8 @@ globalStatement {
     "undirected-link-breed" "[" Identifier Identifier "]"
   } |
 
-  BreedsOwn{
-    Own "[" expression* "]"
+  BreedsOwn {
+    Own "[" Identifier* "]"
   }
 }
 
@@ -57,7 +49,11 @@ globalStatement {
 
   LineComment { ";" ![\n]* }
 
-  Own { $[A-Za-z]+ "-own" }
+  Own { $[A-Za-z0-9]+ "-own" }
+
+  End { "end" }
+
+  To { "to" | "to-report" }
   
   space { $[ \t\n\r]+ }
 
@@ -75,8 +71,7 @@ expression {
   TurtleVar |
   PatchVar |
   LinkVar |
-  Unsupported |
-  Application { "[" expression* "]" }
+  Unsupported
 }
 
 @external tokens keyword from "./tokenizer.js" { Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }

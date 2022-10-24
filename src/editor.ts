@@ -241,7 +241,7 @@ export class GalapagosEditor {
       '.cm-button[name="replaceAll"]'
     );
     if (button2) button2.style.display = "none";
-    this.HideLineDialog();
+    this.HideJumpToDialog();
   }
 
   /** ShowReplace: Show the replace interface. */
@@ -260,8 +260,9 @@ export class GalapagosEditor {
       '.cm-button[name="replaceAll"]'
     );
     if (button2) button2.style.display = "inline-block";
-    this.HideLineDialog();
+    this.HideJumpToDialog();
   }
+
   /** ShowJumpTo: Show the jump-to-line interface. */
   // TODO: clear other interfaces
   ShowJumpTo() {
@@ -270,16 +271,16 @@ export class GalapagosEditor {
     jumpElm ? (jumpElm.style.display = "flex") : gotoLine(this.CodeMirror);
   }
 
-  // Hide line interface
-  HideLineDialog() {
+  // HideJumpToDialog: Hide line interface
+  HideJumpToDialog() {
     const jumpElm = this.Parent.querySelector<HTMLElement>(".cm-gotoLine");
     if (jumpElm) jumpElm.style.display = "none";
   }
 
-  // Hide all interfaces available
+  // HideAllInterfaces: Hide all interfaces available.
   HideAllInterfaces() {
     closeSearchPanel(this.CodeMirror);
-    this.HideLineDialog();
+    this.HideJumpToDialog();
   }
   // #endregion
 
@@ -295,4 +296,4 @@ export class GalapagosEditor {
 /** Export classes globally. */
 try {
   (window as any).GalapagosEditor = GalapagosEditor;
-} catch (error) {}
+} catch (error) { }

@@ -9,6 +9,7 @@
     "@codemirror/search": "^6.2.1",
     "@codemirror/view": "^6.3.0",
     "@lezer/generator": "^1.1.1",
+    "@lezer/lr": "^1.2.3",
     "@rollup/plugin-node-resolve": "^14.1.0",
     "codemirror": "^6.0.1",
     "minimist": "^1.2.6",

@@ -2,7 +2,6 @@ export const directives = [
     'breed',
     'to',
     'to-report',
-    'end',
     'globals',
     'turtles-own',
     'links-own',
