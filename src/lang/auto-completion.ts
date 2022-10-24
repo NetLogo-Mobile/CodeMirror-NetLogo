@@ -1,7 +1,8 @@
 import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported, extensionCommands, extensionReporters } from "./keywords"
-import { stateExtension } from "../codemirror/extension-state-netlogo"
+import { stateExtension, StateNetLogo } from "../codemirror/extension-state-netlogo"
 import { CompletionSource, CompletionContext, CompletionResult } from "@codemirror/autocomplete"
 import { syntaxTree } from "@codemirror/language";
+import { StateField} from "@codemirror/state"
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 export class AutoCompletion {
@@ -25,21 +26,35 @@ export class AutoCompletion {
     public GetCompletion(Context: CompletionContext) : CompletionResult | null | Promise<CompletionResult | null> {
         let node = syntaxTree(Context.state).resolveInner(Context.pos, -1);
         let from = /\./.test(node.name) ? node.to : node.from;
+        // if the node is of a type specified in this.maps
         if (
             (node.parent != null && Object.keys(this.maps).indexOf(node.parent.type.name) > -1) ||
             (node.parent != null && node.parent.parent != null && Object.keys(this.maps).indexOf(node.parent.parent.type.name) > -1)
         ) {
             let key = (Object.keys(this.maps).indexOf(node.parent.type.name) > -1 || node.parent.parent == null) ? node.parent.type.name : node.parent.parent.type.name;
+            let results = this.maps[key]
+            //don't suggest duplicate extensions
+            if (key=="Extensions"){
+                results=results.filter(ext=>!Context.state.field(stateExtension).Extensions.includes(ext.label))
+            }
             return {
                 from,
-                options: this.maps[key]
+                options: results
             };
         } else if (node && node.type.name == 'Identifier') {
             let results = this.allIdentifiers;
             // Extensions
             let extensions = Context.state.field(stateExtension).Extensions;
-            if (extensions.length > 0)
+            if (extensions.length > 0){
                 results = results.concat(this.FilterExtensions(extensionCommands.concat(extensionReporters), extensions));
+            }
+            // Breeds
+            let breeds = Context.state.field(stateExtension).Breeds;
+            if (breeds.length > 0){
+                for (let breed of breeds){
+                    results.push(breed.Plural+"-own")
+                }
+            }
             // Mappings
             return {
                 from,
