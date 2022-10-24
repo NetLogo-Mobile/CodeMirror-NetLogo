@@ -2,6 +2,8 @@
   "dependencies": {
     "@codemirror/commands": "^6.1.1",
     "@codemirror/highlight": "^0.19.8",
+    "@codemirror/lang-css": "^6.0.0",
+    "@codemirror/lang-html": "^6.1.2",
     "@codemirror/lang-javascript": "^6.1.0",
     "@codemirror/language": "^6.2.1",
     "@codemirror/search": "^6.2.1",
