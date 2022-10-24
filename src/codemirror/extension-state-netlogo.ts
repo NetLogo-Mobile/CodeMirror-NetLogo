@@ -52,16 +52,15 @@ export class StateNetLogo {
                     procedure.Name = State.sliceDoc(Node.from, Node.to);
                 });
                 Cursor.node.getChildren("Arguments").map(Node => {
-                    let Identifiers = Node.getChildren("Identifier")
-                    for (let i of Identifiers){
-                        procedure.Arguments.push(State.sliceDoc(i.from, i.to));
-                    }
+                    Node.getChildren("Identifier").map(node =>{
+                        procedure.Arguments.push(State.sliceDoc(node.from, node.to));
+                    })
                 });
                 Cursor.node.getChildren("ProcedureContent").map(Node => {
                     Node.getChildren("VariableDeclaration").map(node => {
                         node.getChildren("NewVariableDeclaration").map(subnode => {
-                            let name= subnode.getChildren("Identifier").map(subsubnode => {
-                                procedure.Variables.push(State.sliceDoc(subsubnode.from,subsubnode.to))
+                            subnode.getChildren("Identifier").map(subsubnode => {
+                                procedure.Variables.push(State.sliceDoc(subsubnode.from,subsubnode.to));
                             })
                         })
                     })
