@@ -31,3 +31,14 @@ export class Breed {
     /** Variables: Variables defined for the breed. */
     public Variables: string[];
 }
+
+
+/** Procedure: Dynamic metadata of a procedure. */
+export class Procedure {
+    /** name: The name of the procedure. */
+    public Name: string;
+    /** Arguments: The arguments of the procedure. */
+    public Arguments: string[];
+    /** Variables: local variables defined for the procedure. */
+    public Variables: string[];
+}

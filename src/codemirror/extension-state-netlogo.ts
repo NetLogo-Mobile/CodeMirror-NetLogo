@@ -1,7 +1,8 @@
 import { StateField, Transaction } from "@codemirror/state"
 import { EditorState } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
-import { Breed } from "../lang/classes";
+import { Breed,Procedure } from "../lang/classes";
+import { cursorTo } from "readline";
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
@@ -11,11 +12,14 @@ export class StateNetLogo {
     public Globals: string[] = [];
     /** Breeds: Breeds in the model. */
     public Breeds: Breed[] = [];
+    /** Procedures: Procedures in the model. */
+    public Procedures: Procedure[] = [];
     /** ParseState: Parse the state from an editor state. */
     public ParseState(State: EditorState): StateNetLogo {
         var Cursor = syntaxTree(State).cursor();
         if (!Cursor.firstChild()) return this;
         this.Breeds = [];
+        this.Procedures=[];
         while (true) {
             if (Cursor.node.name == "Extensions") {
                 this.Extensions = [];
@@ -39,6 +43,31 @@ export class StateNetLogo {
                     this.Breeds.push(breed);
                 }
             }
+            if (Cursor.node.name == "Procedure") {
+                let procedure = new Procedure();
+                procedure.Name = "";
+                procedure.Arguments=[];
+                procedure.Variables=[];
+                Cursor.node.getChildren("ProcedureName").map(Node => {
+                    procedure.Name = State.sliceDoc(Node.from, Node.to);
+                });
+                Cursor.node.getChildren("Arguments").map(Node => {
+                    let Identifiers = Node.getChildren("Identifier")
+                    for (let i of Identifiers){
+                        procedure.Arguments.push(State.sliceDoc(i.from, i.to));
+                    }
+                });
+                Cursor.node.getChildren("ProcedureContent").map(Node => {
+                    Node.getChildren("VariableDeclaration").map(node => {
+                        node.getChildren("NewVariableDeclaration").map(subnode => {
+                            let name= subnode.getChildren("Identifier").map(subsubnode => {
+                                procedure.Variables.push(State.sliceDoc(subsubnode.from,subsubnode.to))
+                            })
+                        })
+                    })
+                });                
+                this.Procedures.push(procedure);                
+            }
             if (!Cursor.nextSibling()) return this;
         }
     }
@@ -48,6 +77,7 @@ export class StateNetLogo {
 const stateExtension = StateField.define<StateNetLogo>({
     create: (State) => new StateNetLogo().ParseState(State),
     update: (Original: StateNetLogo, Transaction: Transaction) => {
+        console.log(Original)
         if (!Transaction.docChanged) return Original;
         return Original.ParseState(Transaction.state);
     }

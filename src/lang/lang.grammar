@@ -7,27 +7,44 @@
 
 @skip { space | LineComment }
 
-variable {
-  "let" Identifier value |
-  "set" Identifier value
+VariableDeclaration {
+  NewVariableDeclaration |
+  SetVariable
 }
 
-value {
+NewVariableDeclaration {
+  "let" Identifier Value
+}
+
+SetVariable {
+  "set" VariableName Value
+}
+
+VariableName {
+  Identifier | PatchVar | TurtleVar | LinkVar
+}
+
+Value {
+  Constant |
   Numeric |
   String |
   "[" Identifier "]" "of" Identifier
 }
 
 Procedure {
-  To ProcedureName Parameters? expression* End
+  To ProcedureName Arguments? ProcedureContent* End
 }
 
 ProcedureName {
   Identifier
 }
 
-Parameters {
+Arguments {
   "[" Identifier* "]"
+}
+
+ProcedureContent {
+  VariableDeclaration | expression
 }
 
 globalStatement {
@@ -53,7 +70,7 @@ globalStatement {
 
   LineComment { ";" ![\n]* }
 
-  Own { $[A-Za-z0-9]+ "-own" }
+  Own { $[A-Za-z]+ "-own" }
 
   End { "end" }
 
