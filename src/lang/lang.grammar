@@ -1,11 +1,16 @@
 @top Program { 
   globalStatement*
   Procedure*
+  Unrecognized*
 }
 
 @detectDelim
 
 @skip { space | LineComment }
+
+Unrecognized {
+  expression
+}
 
 VariableDeclaration {
   NewVariableDeclaration |
@@ -83,7 +88,6 @@ globalStatement {
 
 expression {
   Identifier |
-  Directive |
   Command |
   Reporter |
   Numeric |
