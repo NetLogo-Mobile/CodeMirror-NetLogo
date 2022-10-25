@@ -76,7 +76,7 @@ export class StateNetLogo {
 const stateExtension = StateField.define<StateNetLogo>({
     create: (State) => new StateNetLogo().ParseState(State),
     update: (Original: StateNetLogo, Transaction: Transaction) => {
-        console.log(Original)
+        // console.log(Original)
         if (!Transaction.docChanged) return Original;
         return Original.ParseState(Transaction.state);
     }

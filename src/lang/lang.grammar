@@ -18,11 +18,11 @@ VariableDeclaration {
 }
 
 NewVariableDeclaration {
-  "let" Identifier Value
+  Let Identifier Value
 }
 
 SetVariable {
-  "set" VariableName Value
+  Set VariableName Value
 }
 
 VariableName {
@@ -81,6 +81,10 @@ globalStatement {
 
   To { "to" | "to-report" }
   
+  Set { "set" }
+
+  Let { "let" }
+
   space { $[ \t\n\r]+ }
 
   "[" "]"

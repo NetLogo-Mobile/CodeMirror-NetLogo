@@ -24,7 +24,7 @@ export class AutoCompletion {
         "Breed": [], // Names of breeds
         "ProcedureName": [], // Names of procedures
         "Arguments": [], // Arguments of procedures
-        "VariableName":this.KeywordsToCompletions([...turtleVars, ...patchVars, ...linkVars],"Variables") //variable names
+        "VariableName":this.KeywordsToCompletions([...turtleVars, ...patchVars, ...linkVars],"Variables") //built-in variable names
     };
 
     /** ParentTypes: Types of keywords.  */
