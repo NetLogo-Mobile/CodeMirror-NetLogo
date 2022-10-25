@@ -23,7 +23,8 @@ export class AutoCompletion {
         "BreedsOwn": [], // Names of breed variables
         "Breed": [], // Names of breeds
         "ProcedureName": [], // Names of procedures
-        "Parameters": [], // Parameters of procedures
+        "Arguments": [], // Arguments of procedures
+        "VariableName":this.KeywordsToCompletions([...turtleVars, ...patchVars, ...linkVars],"Variables") //variable names
     };
 
     /** ParentTypes: Types of keywords.  */
@@ -35,6 +36,9 @@ export class AutoCompletion {
         switch (Type) {
             case "Extensions": 
                 results = results.filter(ext => !State.Extensions.includes(ext.label));
+                break;
+            case "VariableName": 
+                results = results.concat(this.KeywordsToCompletions(State.Globals,"Variables"));
                 break;
         }
         return results;
