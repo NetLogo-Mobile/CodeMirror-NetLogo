@@ -25,7 +25,7 @@ import { highlightTree } from '@lezer/highlight';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
-import { UnrecognizedGlobalLinter, VariableLinter } from './lang/linter.js';
+import { UnrecognizedGlobalLinter, IdentifierLinter } from './lang/linter.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -63,7 +63,7 @@ export class GalapagosEditor {
       highlight,
       indentExtension,
       UnrecognizedGlobalLinter,
-      VariableLinter,
+      IdentifierLinter,
     ];
 
     // Language-specific
