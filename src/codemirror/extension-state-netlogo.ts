@@ -1,8 +1,9 @@
 import { StateField, Transaction } from "@codemirror/state"
 import { EditorState } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
-import { Breed,Procedure } from "../lang/classes";
+import { Breed,LocalVariable,Procedure } from "../lang/classes";
 import { cursorTo } from "readline";
+import { VariableDeclaration } from "../lang/lang.terms";
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
@@ -60,7 +61,10 @@ export class StateNetLogo {
                     Node.getChildren("VariableDeclaration").map(node => {
                         node.getChildren("NewVariableDeclaration").map(subnode => {
                             subnode.getChildren("Identifier").map(subsubnode => {
-                                procedure.Variables.push(State.sliceDoc(subsubnode.from,subsubnode.to));
+                                let variable = new LocalVariable()
+                                variable.Name=State.sliceDoc(subsubnode.from,subsubnode.to)
+                                variable.CreationPos=subsubnode.from
+                                procedure.Variables.push(variable);
                             })
                         })
                     })

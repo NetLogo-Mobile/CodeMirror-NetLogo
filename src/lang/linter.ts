@@ -51,8 +51,13 @@ const checkValid = function(Node,value,state,breedNames){
   if (procedureName !=''){
     state.field(stateExtension)['Procedures'].map(procedure => {
       if (procedure.Name==procedureName){
-        procedureVars = procedure.Variables + procedure.Arguments
-        console.log(procedureVars)
+        let vars: string[]=[]
+        procedure.Variables.map(variable => {
+          if (variable.CreationPos < Node.from){
+            vars.push(variable.Name)
+          }
+        })
+        procedureVars = vars + procedure.Arguments
       }
     })
   }
@@ -90,48 +95,6 @@ const IdentifierLinter = linter(view => {
       }
     }
   })
-  return diagnostics
-})
-
-
-const VariableLinter = linter(view => {
-  let diagnostics: Diagnostic[] = []
-  var Cursor = syntaxTree(view.state).cursor()
-  let procedures = view.state.field(stateExtension)['Procedures']
-  Cursor.node.getChildren("Procedure").map(node1 => {
-    let vars=['']
-    node1.getChildren("ProcedureName").map(Node =>{
-      let procedureName = view.state.sliceDoc(Node.from,Node.to)
-      for (let p of procedures){
-        if (p['Name']==procedureName){
-          vars = p['Variables']
-        }
-      } 
-    })  
-    node1.getChildren("ProcedureContent").map(node2 => {
-      node2.getChildren("VariableDeclaration").map(node3 => {
-        node3.getChildren("SetVariable").map(node4 => {
-          node4.getChildren("VariableName").map(node5 => {
-            node5.getChildren("Identifier").map(node6 => {
-              let variableName = view.state.sliceDoc(node6.from,node6.to)
-              if (!view.state.field(stateExtension)['Globals'].includes(variableName) && !vars.includes(variableName)){
-                diagnostics.push({
-                  from: node6.from,
-                  to: node6.to,
-                  severity: "error",
-                  message: "Undeclared Variable",
-                  actions: [{
-                    name: "Remove",
-                    apply(view, from, to) { view.dispatch({changes: {from, to}}) }
-                  }]
-                })
-              }
-            })
-          })
-        })
-      })
-    })
-  });  
   return diagnostics
 })
 

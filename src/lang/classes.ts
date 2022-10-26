@@ -1,4 +1,5 @@
 /** Primitive: Static metadata of a single NetLogo primitive. */
+
 // Seems that there are some exceptions such as 
 export class Primitive {
     /** Extension: Where the primitive belongs to. */
@@ -40,5 +41,16 @@ export class Procedure {
     /** Arguments: The arguments of the procedure. */
     public Arguments: string[];
     /** Variables: local variables defined for the procedure. */
-    public Variables: string[];
+    public Variables: LocalVariable[];
+}
+
+/** LocalVariable: metadata for local variables */
+export class LocalVariable {
+    /** name: The name of the variable. */
+    public Name: string;
+    /** type: The type of the variable. */
+    public Type: NetLogoType;
+    /** name: The position where the variable was created. */
+    public CreationPos: number;
+
 }
