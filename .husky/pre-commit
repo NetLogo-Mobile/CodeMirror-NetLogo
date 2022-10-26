@@ -1,8 +1,4 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
-cd /src
-npm run precommit
 
-cd ..
-cd /dist
 npm run precommit
