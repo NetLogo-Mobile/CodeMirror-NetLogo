@@ -33,7 +33,7 @@ Value {
   Constant |
   Numeric |
   String |
-  "[" Identifier "]" "of" Identifier
+  "[" VariableName "]" "of" Identifier
 }
 
 Procedure {
