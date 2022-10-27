@@ -2,9 +2,6 @@ import { StateField, Transaction } from "@codemirror/state"
 import { EditorState } from "@codemirror/state";
 import { syntaxTree } from "@codemirror/language";
 import { Breed,LocalVariable,Procedure } from "../lang/classes";
-import { cursorTo } from "readline";
-import { VariableDeclaration } from "../lang/lang.terms";
-import { stringify } from "querystring";
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
@@ -95,18 +92,19 @@ export class StateNetLogo {
                 });
                 procedure.Arguments=getArgs(Cursor.node,State)
                 Cursor.node.getChildren("ProcedureContent").map(Node => {
-                    procedure.Variables = getLocalVars(Node,State)
+                    procedure.Variables=procedure.Variables.concat(getLocalVars(Node,State))
+                    console.log(procedure.Variables)
                 });   
-                Cursor.node.getChildren("ProcedureContent").map(Node=>{
-                    Node.getChildren("Primitive").map(node => {
-                        node.getChildren("AnonymousProcedure").map(subnode => {
-                            let anonProc=new Procedure()
-                            anonProc.Name="Anonymous"+this.Procedures.length.toString()
-                            anonProc.Arguments=getArgs(subnode,State)
-                            anonProc.Variables=procedure.Variables.concat(getLocalVars(subnode,State))
-                        })
-                    })
-                })             
+                // Cursor.node.getChildren("ProcedureContent").map(Node=>{
+                //     Node.getChildren("Primitive").map(node => {
+                //         node.getChildren("AnonymousProcedure").map(subnode => {
+                //             let anonProc=new Procedure()
+                //             anonProc.Name="Anonymous"+this.Procedures.length.toString()
+                //             anonProc.Arguments=getArgs(subnode,State)
+                //             anonProc.Variables=procedure.Variables.concat(getLocalVars(subnode,State))
+                //         })
+                //     })
+                // })             
                 this.Procedures.push(procedure);                
             }
             if (!Cursor.nextSibling()) return this;
@@ -121,6 +119,7 @@ const getLocalVars = function(Node,State){
     Node.getChildren("VariableDeclaration").map(node => {
         node.getChildren("NewVariableDeclaration").map(subnode => {
             subnode.getChildren("Identifier").map(subsubnode => {
+                // console.log(subsubnode)
                 let variable = new LocalVariable()
                 variable.Name=State.sliceDoc(subsubnode.from,subsubnode.to)
                 variable.CreationPos=subsubnode.from
@@ -128,6 +127,7 @@ const getLocalVars = function(Node,State){
             })
         })
     })
+    console.log("VARS",vars)
     return vars
 }
 
@@ -145,7 +145,7 @@ const getArgs = function(Node,State){
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),
   update: (Original: StateNetLogo, Transaction: Transaction) => {
-    // console.log(Original)
+    console.log(Original)
     if (!Transaction.docChanged) return Original;
     return Original.ParseState(Transaction.state);
   },

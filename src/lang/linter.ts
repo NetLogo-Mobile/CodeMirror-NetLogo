@@ -1,7 +1,6 @@
 import { syntaxTree } from '@codemirror/language';
 import { linter, Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
-import nodeTest from 'node:test';
 import { stateExtension } from '../codemirror/extension-state-netlogo';
 
 const UnrecognizedGlobalLinter = linter((view) => {
