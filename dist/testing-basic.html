@@ -1,28 +1,56 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
-    <head>
-        <meta charset="utf8" />
-        <h1>Testing Basic Features</h1>
-    </head>
-    <body>
-        <button name="Undo" onclick="Editor.Undo();">Undo</button>
-        <button name="Redo" onclick="Editor.Redo();">Redo</button>
-        <button name="set read only" onclick="Editor.SetReadOnly(true);">set read only</button>
-        <button name="set edit" onclick="Editor.SetReadOnly(false);">set edit</button>
-        <button name="find" onclick="Editor.Find('test')">Find "test"</button>
-        <button name="replace" onclick="Editor.Replace('test', 'test2');">Replace "test" with "test2"</button>
-        <button name="go to line" onclick="Editor.JumpTo(80);">Go to line 80</button>
-        <button name="select all" onclick="Editor.SelectAll();">Select All</button>
-        <button name="replace interface" onclick="Editor.ShowReplace();">Replace interface</button>
-        <button name="go to line interface" onclick="Editor.ShowJumpTo();">Go to line interface</button>
-        <button name="Find interface" onclick="Editor.ShowFind();">Find interface</button>
-        <button name="Hide All Interfaces" onclick="Editor.HideAllInterfaces();">Hide All Interfaces</button>
-        <button name="Highlight" onclick="document.getElementById('Code').appendChild(Editor.Highlight('to setup'));">High light</button>
-        <div id="Container" style="height: 80vh;"></div>
-        <div id="Code"></div>
-        <script src="editor.bundle.js"></script>
-        <script>
-            var Editor = new GalapagosEditor(document.getElementById("Container"), { ReadOnly: false });
-        </script>
-    </body>
+  <head>
+    <meta charset="utf8" />
+    <h1>Testing Basic Features</h1>
+  </head>
+  <body>
+    <button name="Undo" onclick="Editor.Undo();">Undo</button>
+    <button name="Redo" onclick="Editor.Redo();">Redo</button>
+    <button name="set read only" onclick="Editor.SetReadOnly(true);">
+      set read only
+    </button>
+    <button name="set edit" onclick="Editor.SetReadOnly(false);">
+      set edit
+    </button>
+    <button name="find" onclick="Editor.Find('test')">Find "test"</button>
+    <button name="find all" onclick="Editor.FindAll('test')">
+      Find All "test"
+    </button>
+    <button name="replace" onclick="Editor.Replace('test', 'test2');">
+      Replace "test" with "test2"
+    </button>
+    <button name="replace all" onclick="Editor.ReplaceAll('test', 'test2');">
+      Replace All "test" with "test2"
+    </button>
+    <button name="go to line" onclick="Editor.JumpTo(80);">
+      Go to line 80
+    </button>
+    <button name="select all" onclick="Editor.SelectAll();">Select All</button>
+    <button name="replace interface" onclick="Editor.ShowReplace();">
+      Replace interface
+    </button>
+    <button name="go to line interface" onclick="Editor.ShowJumpTo();">
+      Go to line interface
+    </button>
+    <button name="Find interface" onclick="Editor.ShowFind();">
+      Find interface
+    </button>
+    <button name="Hide All Interfaces" onclick="Editor.HideAllInterfaces();">
+      Hide All Interfaces
+    </button>
+    <button
+      name="Highlight"
+      onclick="document.getElementById('Code').appendChild(Editor.Highlight('to setup'));">
+      High light
+    </button>
+    <div id="Container" style="height: 80vh"></div>
+    <div id="Code"></div>
+    <script src="editor.bundle.js"></script>
+    <script>
+      var Editor = new GalapagosEditor(document.getElementById('Container'), {
+        ReadOnly: false,
+      });
+    </script>
+  </body>
 </html>

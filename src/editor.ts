@@ -19,6 +19,8 @@ import { indentExtension } from "./codemirror/extension-indent";
 import { updateExtension } from "./codemirror/extension-update";
 import { stateExtension } from "./codemirror/extension-state-netlogo";
 import { lightTheme } from "./codemirror/theme-light";
+
+
 import { highlightTree } from "@lezer/highlight";
 import { javascript } from "@codemirror/lang-javascript";
 import { html } from "@codemirror/lang-html";

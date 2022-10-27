@@ -113,7 +113,9 @@ export class StateNetLogo {
             if (!Cursor.nextSibling()) return this;
         }
     }
+      
 }
+
 
 const getLocalVars = function(Node,State){
     let vars: LocalVariable[]=[]
@@ -142,12 +144,12 @@ const getArgs = function(Node,State){
 
 /** StateExtension: Extension for managing the editor state.  */
 const stateExtension = StateField.define<StateNetLogo>({
-    create: (State) => new StateNetLogo().ParseState(State),
-    update: (Original: StateNetLogo, Transaction: Transaction) => {
-        console.log(Original)
-        if (!Transaction.docChanged) return Original;
-        return Original.ParseState(Transaction.state);
-    }
+  create: (State) => new StateNetLogo().ParseState(State),
+  update: (Original: StateNetLogo, Transaction: Transaction) => {
+    // console.log(Original)
+    if (!Transaction.docChanged) return Original;
+    return Original.ParseState(Transaction.state);
+  },
 });
 
-export { stateExtension }; 
+export { stateExtension };

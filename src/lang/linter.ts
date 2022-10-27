@@ -1,50 +1,56 @@
-import {syntaxTree} from "@codemirror/language"
-import {linter, Diagnostic} from "@codemirror/lint"
-import { SyntaxNode } from "@lezer/common"
-import nodeTest from "node:test"
-import { stateExtension } from "../codemirror/extension-state-netlogo"
+import { syntaxTree } from '@codemirror/language';
+import { linter, Diagnostic } from '@codemirror/lint';
+import { SyntaxNode } from '@lezer/common';
+import nodeTest from 'node:test';
+import { stateExtension } from '../codemirror/extension-state-netlogo';
 
-const UnrecognizedGlobalLinter = linter(view => {
-  let diagnostics: Diagnostic[] = []
-  syntaxTree(view.state).cursor().iterate(node => {
-    if (node.name == "Unrecognized") diagnostics.push({
-      from: node.from,
-      to: node.to,
-      severity: "error",
-      message: "Unrecognized global statement",
-      actions: [{
-        name: "Remove",
-        apply(view, from, to) { view.dispatch({changes: {from, to}}) }
-      }]
-    })
-  })
-  return diagnostics
-})
+const UnrecognizedGlobalLinter = linter((view) => {
+  let diagnostics: Diagnostic[] = [];
+  syntaxTree(view.state)
+    .cursor()
+    .iterate((node) => {
+      if (node.name == 'Unrecognized')
+        diagnostics.push({
+          from: node.from,
+          to: node.to,
+          severity: 'error',
+          message: 'Unrecognized global statement',
+          actions: [
+            {
+              name: 'Remove',
+              apply(view, from, to) {
+                view.dispatch({ changes: { from, to } });
+              },
+            },
+          ],
+        });
+    });
+  return diagnostics;
+});
 
-var acceptableIdentifiers= [
+var acceptableIdentifiers = [
   'Unrecognized',
   'NewVariableDeclaration',
   'ProcedureName',
   'Arguments',
   'Globals',
   'Breed',
-  'BreedsOwn'
-]
+  'BreedsOwn',
+];
 
-const checkValid = function(Node,value,state,breedNames){
-  let parents: SyntaxNode[]=[]
-  let curr_node=Node
-  let procedureName=""
-  while (curr_node.parent){
-    parents.push(curr_node.parent)
-    curr_node = curr_node.parent
+const checkValid = function (Node, value, state, breedNames) {
+  let parents: SyntaxNode[] = [];
+  let curr_node = Node;
+  let procedureName = '';
+  while (curr_node.parent) {
+    parents.push(curr_node.parent);
+    curr_node = curr_node.parent;
   }
-  parents.map(node => {
-    if (node.name=='Procedure'){
-      node.getChildren("ProcedureName").map(child => {
-        procedureName=state.sliceDoc(child.from,child.to)
-      })
-
+  parents.map((node) => {
+    if (node.name == 'Procedure') {
+      node.getChildren('ProcedureName').map((child) => {
+        procedureName = state.sliceDoc(child.from, child.to);
+      });
     }
   }) 
   let procedureVars: string[] =[]
@@ -58,17 +64,19 @@ const checkValid = function(Node,value,state,breedNames){
           if (variable.CreationPos < Node.from){
             vars.push(variable.Name)
           }
-        })
-        procedureVars = vars + procedure.Arguments
+        });
+        procedureVars = vars + procedure.Arguments;
       }
-    })
+    });
   }
-  
-  return acceptableIdentifiers.includes(Node.parent?.name) ||
+
+  return (
+    acceptableIdentifiers.includes(Node.parent?.name) ||
     state.field(stateExtension)['Globals'].includes(value) ||
     breedNames.includes(value) ||
     procedureVars.includes(value) ||
     procedureNames.includes(value)
+  )
 }
 
 
@@ -92,14 +100,14 @@ const IdentifierLinter = linter(view => {
           message: "Unrecognized identifier",
           actions: [{
             name: "Remove",
-            apply(view, from, to) { view.dispatch({changes: {from, to}}) }
+            apply(view, from, to) { 
+              view.dispatch({changes: {from, to}}) 
+            }
           }]
         })
       }
-    }
-  })
-  return diagnostics
-})
+    }});
+  return diagnostics;
+});
 
-
-export {UnrecognizedGlobalLinter, IdentifierLinter}
+export { UnrecognizedGlobalLinter, IdentifierLinter };
