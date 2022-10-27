@@ -93,7 +93,6 @@ export class StateNetLogo {
                 procedure.Arguments=getArgs(Cursor.node,State)
                 Cursor.node.getChildren("ProcedureContent").map(Node => {
                     procedure.Variables=procedure.Variables.concat(getLocalVars(Node,State))
-                    console.log(procedure.Variables)
                 });   
                 // Cursor.node.getChildren("ProcedureContent").map(Node=>{
                 //     Node.getChildren("Primitive").map(node => {
@@ -119,7 +118,6 @@ const getLocalVars = function(Node,State){
     Node.getChildren("VariableDeclaration").map(node => {
         node.getChildren("NewVariableDeclaration").map(subnode => {
             subnode.getChildren("Identifier").map(subsubnode => {
-                // console.log(subsubnode)
                 let variable = new LocalVariable()
                 variable.Name=State.sliceDoc(subsubnode.from,subsubnode.to)
                 variable.CreationPos=subsubnode.from
@@ -127,7 +125,6 @@ const getLocalVars = function(Node,State){
             })
         })
     })
-    console.log("VARS",vars)
     return vars
 }
 
@@ -145,7 +142,7 @@ const getArgs = function(Node,State){
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),
   update: (Original: StateNetLogo, Transaction: Transaction) => {
-    console.log(Original)
+    // console.log(Original)
     if (!Transaction.docChanged) return Original;
     return Original.ParseState(Transaction.state);
   },
