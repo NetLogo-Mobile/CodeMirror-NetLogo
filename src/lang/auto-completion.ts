@@ -60,7 +60,7 @@ export class AutoCompletion {
                 from,
                 options: this.GetParentKeywords(parentName, state)
             };
-        } else if (grandparentName != "Program" && this.ParentTypes.indexOf(grandparentName) > -1) {
+        } else if (this.ParentTypes.indexOf(grandparentName) > -1) {
             return {
                 from,
                 options: this.GetParentKeywords(grandparentName, state)

@@ -1,6 +1,6 @@
 import { ExternalTokenizer } from "@lezer/lr"
 import { directives, commands, extensions, reporters, turtleVars, patchVars, linkVars, constants, unsupported } from "./keywords"
-import { Directive, Command, Extension, Reporter, TurtleVar, PatchVar, LinkVar, Constant, Unsupported, Identifier } from "./lang.terms.js"
+import { Set, Directive, Command, Extension, Reporter, TurtleVar, PatchVar, LinkVar, Constant, Unsupported, Identifier } from "./lang.terms.js"
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer(input => {
@@ -12,7 +12,9 @@ export const keyword = new ExternalTokenizer(input => {
     }
     if (token == "") return;
     // Find if the token belongs to any category
-    if (directives.indexOf(token) != -1) {
+    if (token=='set'){
+        input.acceptToken(Set)
+    } else if (directives.indexOf(token) != -1) {
         input.acceptToken(Directive);
     } else if (commands.indexOf(token) != -1) {
         input.acceptToken(Command);

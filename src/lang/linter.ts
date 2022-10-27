@@ -48,8 +48,10 @@ const checkValid = function(Node,value,state,breedNames){
     }
   }) 
   let procedureVars: string[] =[]
+  let procedureNames: string[]=[]
   if (procedureName !=''){
     state.field(stateExtension)['Procedures'].map(procedure => {
+      procedureNames.push(procedure.Name)
       if (procedure.Name==procedureName){
         let vars: string[]=[]
         procedure.Variables.map(variable => {
@@ -65,7 +67,8 @@ const checkValid = function(Node,value,state,breedNames){
   return acceptableIdentifiers.includes(Node.parent?.name) ||
     state.field(stateExtension)['Globals'].includes(value) ||
     breedNames.includes(value) ||
-    procedureVars.includes(value)
+    procedureVars.includes(value) ||
+    procedureNames.includes(value)
 }
 
 
@@ -75,7 +78,7 @@ const IdentifierLinter = linter(view => {
   view.state.field(stateExtension)['Breeds'].map(breed => {
     breedNames.push(breed.Singular)
     breedNames.push(breed.Plural)
-    breedNames.concat(breed.Variables)
+    breedNames = breedNames.concat(breed.Variables)
   })
   syntaxTree(view.state).cursor().iterate(noderef => {
     if (noderef.name == "Identifier") {

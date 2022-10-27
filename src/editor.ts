@@ -1,5 +1,5 @@
 import { EditorView, basicSetup } from "codemirror";
-import { undo, redo, selectAll } from "@codemirror/commands";
+import { undo, redo, selectAll, indentWithTab } from "@codemirror/commands";
 import { LanguageSupport } from "@codemirror/language";
 import {
   SearchQuery,
@@ -11,7 +11,7 @@ import {
   closeSearchPanel,
 } from "@codemirror/search";
 import { Compartment, EditorState } from "@codemirror/state";
-import { ViewUpdate } from "@codemirror/view";
+import { ViewUpdate, keymap } from "@codemirror/view";
 import { NetLogo } from "./lang/netlogo.js";
 import { EditorConfig, EditorLanguage } from "./editor-config";
 import { highlight, highlightStyle } from "./codemirror/style-highlight";
@@ -61,7 +61,8 @@ export class GalapagosEditor {
       highlight,
       indentExtension,
       UnrecognizedGlobalLinter,
-      IdentifierLinter
+      IdentifierLinter,
+      keymap.of([indentWithTab]),
     ];
 
     // Language-specific

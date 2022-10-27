@@ -20,6 +20,8 @@ let parserWithMetadata = parser.configure({
       TurtleVar: t.bool,
       Reporter: t.bool,
       Command: t.variableName,
+      Set: t.variableName,
+      Let: t.variableName,
       // Global statements
       Extensions: t.strong,
       Globals: t.strong,
