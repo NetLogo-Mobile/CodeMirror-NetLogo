@@ -50,7 +50,6 @@ export class StateNetLogo {
                 Cursor.node.getChildren("Own").map(node=>{
                     breedName = State.sliceDoc(node.from,node.to)
                     breedName=breedName.substring(0,breedName.length-4)
-                    console.log(breedName)
                     if (breedName=='turtles'){
                         let newBreed = new Breed()
                         newBreed.Singular='turtle'
