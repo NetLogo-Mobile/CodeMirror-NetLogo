@@ -109,4 +109,63 @@ const IdentifierLinter = linter(view => {
   return diagnostics;
 });
 
-export { UnrecognizedGlobalLinter, IdentifierLinter };
+const BreedLinter = linter( view => {
+  let diagnostics: Diagnostic[] = []
+  let breedNames: string[]= []
+  view.state.field(stateExtension)['Breeds'].map(breed => {
+    breedNames.push(breed.Singular)
+    breedNames.push(breed.Plural)
+  })
+  syntaxTree(view.state).cursor().iterate(noderef => {
+    if (noderef.name == "BreedProceduresReporters") {
+      let Node = noderef.node
+      let value = view.state.sliceDoc(noderef.from,noderef.to)
+      if (!checkValidBreed(Node,value,view.state,breedNames)){
+        diagnostics.push({
+          from: noderef.from,
+          to: noderef.to,
+          severity: "error",
+          message: "Unrecognized breed name",
+          actions: [{
+            name: "Remove",
+            apply(view, from, to) { 
+              view.dispatch({changes: {from, to}}) 
+            }
+          }]
+        })
+      }
+    }});
+  return diagnostics;
+})
+
+const checkValidBreed = function (Node, value, state, breedNames) {
+  let isValid=false 
+  Node.getChildren("BreedFirst").map(node => {
+    let value = state.sliceDoc(node.from,node.to)
+    value = value.split("-")
+    value = value[0]
+    if (breedNames.includes(value)){
+      isValid = true
+    }
+  })
+  Node.getChildren("BreedLast").map(node => {
+    let value = state.sliceDoc(node.from,node.to)
+    value = value.split("-")
+    value = value[value.length-1]
+    value = value.replace("?","")
+    if (breedNames.includes(value)){
+      isValid = true
+    }
+  })
+  Node.getChildren("BreedMiddle").map(node => {
+    let value = state.sliceDoc(node.from,node.to)
+    value = value.split("-")
+    value = value[1]
+    if (breedNames.includes(value)){
+      isValid = true
+    }
+  })
+  return isValid
+}
+
+export { UnrecognizedGlobalLinter, IdentifierLinter ,BreedLinter};

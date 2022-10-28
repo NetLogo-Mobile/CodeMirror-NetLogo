@@ -64,6 +64,10 @@ Reporters {
   Reporter | AnonymousProcedure
 }
 
+BreedProceduresReporters {
+  BreedFirst | BreedMiddle | BreedLast
+}
+
 ProcedureName {
   Identifier
 }
@@ -73,7 +77,10 @@ Arguments {
 }
 
 ProcedureContent {
-  VariableDeclaration | Primitive | expression
+  VariableDeclaration | 
+  Primitive |
+  BreedProceduresReporters | 
+  expression
 }
 
 Calculation {
@@ -81,6 +88,7 @@ Calculation {
   "(" Calculation ")" |
   Calculation !operation Operation Calculation 
 }
+
 
 globalStatement {
   Extensions { "extensions" OpenBracket Extension* CloseBracket } |
@@ -105,28 +113,11 @@ globalStatement {
 
   LineComment { ";" ![\n]* }
 
-  Own { $[A-Za-z]+ "-own" }
-
-  End { "end" }
-
-  To { "to" | "to-report" }
-
-  Let { "let" }
-
-  ValFirstPrimitive {
-    "foreach" | "n-values"
-  }
-
-  ValLastPrimitive {
-    "map" | "reduce" | "filter" | "sort-by"
-  }
-
   Operation {
     "+" | "-" | "/" | "*" | "^"
   }
 
   space { $[ \t\n\r]+ }
-
   
   OpenBracket { "[" }
   
@@ -148,4 +139,4 @@ expression {
   Unsupported
 }
 
-@external tokens keyword from "./tokenizer.js" { Set, Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
+@external tokens keyword from "./tokenizer.js" { BreedFirst, BreedLast, BreedMiddle, Own, Set, Let, To, End, ValFirstPrimitive, ValLastPrimitive, Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }

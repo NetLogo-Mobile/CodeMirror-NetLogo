@@ -36,8 +36,8 @@ export class StateNetLogo {
                 let breed = new Breed();
                 var Identifiers = Cursor.node.getChildren("Identifier");
                 if (Identifiers.length == 2) {
-                    breed.Singular = State.sliceDoc(Identifiers[0].from, Identifiers[0].to);
-                    breed.Plural = State.sliceDoc(Identifiers[1].from, Identifiers[1].to);
+                    breed.Plural = State.sliceDoc(Identifiers[0].from, Identifiers[0].to);
+                    breed.Singular = State.sliceDoc(Identifiers[1].from, Identifiers[1].to);
                     breed.Variables = [];
                     this.Breeds.push(breed);
                 }
