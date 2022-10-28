@@ -2,6 +2,8 @@ import { EditorView, basicSetup } from "codemirror";
 import { undo, redo, selectAll, indentWithTab } from "@codemirror/commands";
 import { LanguageSupport } from "@codemirror/language";
 import {
+  replaceAll,
+  selectMatches,
   SearchQuery,
   findNext,
   gotoLine,
@@ -171,10 +173,11 @@ export class GalapagosEditor {
 
   /** Find: Find a keyword in the editor and loop over all matches. */
   Find(Keyword: string) {
+    openSearchPanel(this.CodeMirror);
     let prevValue = (<HTMLInputElement>(
       this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
     ))?.value;
-    openSearchPanel(this.CodeMirror);
+    console.log(prevValue);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
@@ -182,8 +185,8 @@ export class GalapagosEditor {
         })
       ),
     });
-    if (!prevValue) prevValue = '';
     findNext(this.CodeMirror);
+    if (!prevValue) prevValue = '';
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
@@ -191,22 +194,24 @@ export class GalapagosEditor {
         })
       ),
     });
+    console.log("changed to:"+ prevValue)
     closeSearchPanel(this.CodeMirror);
   }
 
   /** Replace: Loop through the matches and replace one at a time. */
   Replace(Source: string, Target: string) {
+    openSearchPanel(this.CodeMirror);
     let prevFind = (<HTMLInputElement>(
       this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
     ))?.value;
     let prevReplace = (<HTMLInputElement>(
       this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]')
     ))?.value;
-    openSearchPanel(this.CodeMirror);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
-          search: "",
+          search: Source,
+          replace: Target,
         })
       ),
     });
@@ -226,22 +231,20 @@ export class GalapagosEditor {
   }
 
   /** FindAll: Find all the matching words in the editor. */
-  FindAll(Source: string, Target: string) {
+  FindAll(Source: string) {
+    openSearchPanel(this.CodeMirror);
     let prevValue = (<HTMLInputElement>(
       this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
     ))?.value;
-    openSearchPanel(this.CodeMirror);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
           search: Source,
-          replace: Target,
         })
       ),
     });
     selectMatches(this.CodeMirror);
     if (!prevValue) prevValue = '';
-    findNext(this.CodeMirror);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
@@ -254,25 +257,24 @@ export class GalapagosEditor {
 
   /** ReplaceAll Replace the all the matching words in the editor. */
   ReplaceAll(Source: string, Target: string) {
+    openSearchPanel(this.CodeMirror);
     let prevFind = (<HTMLInputElement>(
       this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
     ))?.value;
     let prevReplace = (<HTMLInputElement>(
       this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]')
     ))?.value;
-    openSearchPanel(this.CodeMirror);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
-          search: "",
-          replace: "",
+          search: Source,
+          replace: Target,
         })
       ),
     });
     replaceAll(this.CodeMirror);
     if (!prevFind) prevFind = '';
     if (!prevReplace) prevReplace = '';
-    findNext(this.CodeMirror);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
