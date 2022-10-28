@@ -1,6 +1,6 @@
-import { EditorView, basicSetup } from "codemirror";
-import { undo, redo, selectAll, indentWithTab } from "@codemirror/commands";
-import { LanguageSupport } from "@codemirror/language";
+import { EditorView, basicSetup } from 'codemirror';
+import { undo, redo, selectAll, indentWithTab } from '@codemirror/commands';
+import { LanguageSupport } from '@codemirror/language';
 import {
   replaceAll,
   selectMatches,
@@ -11,23 +11,26 @@ import {
   setSearchQuery,
   openSearchPanel,
   closeSearchPanel,
-} from "@codemirror/search";
-import { Compartment, EditorState } from "@codemirror/state";
-import { ViewUpdate, keymap } from "@codemirror/view";
-import { NetLogo } from "./lang/netlogo.js";
-import { EditorConfig, EditorLanguage } from "./editor-config";
-import { highlight, highlightStyle } from "./codemirror/style-highlight";
-import { indentExtension } from "./codemirror/extension-indent";
-import { updateExtension } from "./codemirror/extension-update";
-import { stateExtension } from "./codemirror/extension-state-netlogo";
-import { lightTheme } from "./codemirror/theme-light";
+} from '@codemirror/search';
+import { Compartment, EditorState } from '@codemirror/state';
+import { ViewUpdate, keymap } from '@codemirror/view';
+import { NetLogo } from './lang/netlogo.js';
+import { EditorConfig, EditorLanguage } from './editor-config';
+import { highlight, highlightStyle } from './codemirror/style-highlight';
+import { indentExtension } from './codemirror/extension-indent';
+import { updateExtension } from './codemirror/extension-update';
+import { stateExtension } from './codemirror/extension-state-netlogo';
+import { lightTheme } from './codemirror/theme-light';
 
-
-import { highlightTree } from "@lezer/highlight";
-import { javascript } from "@codemirror/lang-javascript";
-import { html } from "@codemirror/lang-html";
-import { css } from "@codemirror/lang-css";
-import { UnrecognizedGlobalLinter,IdentifierLinter,BreedLinter } from "./lang/linter.js";
+import { highlightTree } from '@lezer/highlight';
+import { javascript } from '@codemirror/lang-javascript';
+import { html } from '@codemirror/lang-html';
+import { css } from '@codemirror/lang-css';
+import {
+  UnrecognizedGlobalLinter,
+  IdentifierLinter,
+  BreedLinter,
+} from './lang/linter.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -108,12 +111,12 @@ export class GalapagosEditor {
 
   /** Highlight: Highlight a given snippet of code. */
   Highlight(Content: string): HTMLElement {
-    const Container = document.createElement("span");
+    const Container = document.createElement('span');
     this.highlightInternal(Content, (Text, Style, From, To) => {
-      if (Style == "") {
+      if (Style == '') {
         Container.appendChild(document.createTextNode(Text));
       } else {
-        var Node = document.createElement("span");
+        var Node = document.createElement('span');
         Node.innerText = Text;
         Node.className = Style;
         Container.appendChild(Node);
@@ -131,12 +134,12 @@ export class GalapagosEditor {
     const tree = this.Language.language.parser.parse(Content);
     let pos = 0;
     highlightTree(tree, highlightStyle, (from, to, classes) => {
-      from > pos && callback(Content.slice(pos, from), "", pos, from);
+      from > pos && callback(Content.slice(pos, from), '', pos, from);
       callback(Content.slice(from, to), classes, from, to);
       pos = to;
     });
     pos != tree.length &&
-      callback(Content.slice(pos, tree.length), "", pos, tree.length);
+      callback(Content.slice(pos, tree.length), '', pos, tree.length);
   }
 
   // #region "Editor API"
@@ -177,7 +180,6 @@ export class GalapagosEditor {
     let prevValue = (<HTMLInputElement>(
       this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
     ))?.value;
-    console.log(prevValue);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
@@ -194,7 +196,6 @@ export class GalapagosEditor {
         })
       ),
     });
-    console.log("changed to:"+ prevValue)
     closeSearchPanel(this.CodeMirror);
   }
 
@@ -311,15 +312,15 @@ export class GalapagosEditor {
     var input = this.Parent.querySelector<HTMLElement>(
       '.cm-textfield[name="replace"]'
     );
-    if (input) input.style.display = "none";
+    if (input) input.style.display = 'none';
     var button1 = this.Parent.querySelector<HTMLElement>(
       '.cm-button[name="replace"]'
     );
-    if (button1) button1.style.display = "none";
+    if (button1) button1.style.display = 'none';
     var button2 = this.Parent.querySelector<HTMLElement>(
       '.cm-button[name="replaceAll"]'
     );
-    if (button2) button2.style.display = "none";
+    if (button2) button2.style.display = 'none';
     this.HideJumpToDialog();
   }
 
@@ -330,15 +331,15 @@ export class GalapagosEditor {
     var input = this.Parent.querySelector<HTMLElement>(
       '.cm-textfield[name="replace"]'
     );
-    if (input) input.style.display = "inline-block";
+    if (input) input.style.display = 'inline-block';
     var button1 = this.Parent.querySelector<HTMLElement>(
       '.cm-button[name="replace"]'
     );
-    if (button1) button1.style.display = "inline-block";
+    if (button1) button1.style.display = 'inline-block';
     var button2 = this.Parent.querySelector<HTMLElement>(
       '.cm-button[name="replaceAll"]'
     );
-    if (button2) button2.style.display = "inline-block";
+    if (button2) button2.style.display = 'inline-block';
     this.HideJumpToDialog();
   }
 
@@ -346,14 +347,14 @@ export class GalapagosEditor {
   // TODO: clear other interfaces
   ShowJumpTo() {
     closeSearchPanel(this.CodeMirror);
-    const jumpElm = this.Parent.querySelector<HTMLElement>(".cm-gotoLine");
-    jumpElm ? (jumpElm.style.display = "flex") : gotoLine(this.CodeMirror);
+    const jumpElm = this.Parent.querySelector<HTMLElement>('.cm-gotoLine');
+    jumpElm ? (jumpElm.style.display = 'flex') : gotoLine(this.CodeMirror);
   }
 
   // HideJumpToDialog: Hide line interface
   HideJumpToDialog() {
-    const jumpElm = this.Parent.querySelector<HTMLElement>(".cm-gotoLine");
-    if (jumpElm) jumpElm.style.display = "none";
+    const jumpElm = this.Parent.querySelector<HTMLElement>('.cm-gotoLine');
+    if (jumpElm) jumpElm.style.display = 'none';
   }
 
   // HideAllInterfaces: Hide all interfaces available.
@@ -375,4 +376,4 @@ export class GalapagosEditor {
 /** Export classes globally. */
 try {
   (window as any).GalapagosEditor = GalapagosEditor;
-} catch (error) { }
+} catch (error) {}
