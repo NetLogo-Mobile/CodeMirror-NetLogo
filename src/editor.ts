@@ -42,6 +42,7 @@ export class GalapagosEditor {
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
   public readonly Parent: HTMLElement;
+  /** FindField: Records the find input of search panel.*/
 
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
@@ -168,6 +169,9 @@ export class GalapagosEditor {
 
   /** Find: Find a keyword in the editor and loop over all matches. */
   Find(Keyword: string) {
+    let prevValue = (<HTMLInputElement>(
+      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
+    ))?.value;
     openSearchPanel(this.CodeMirror);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
@@ -176,12 +180,26 @@ export class GalapagosEditor {
         })
       ),
     });
+    if (!prevValue) prevValue = '';
     findNext(this.CodeMirror);
+    this.CodeMirror.dispatch({
+      effects: setSearchQuery.of(
+        new SearchQuery({
+          search: prevValue,
+        })
+      ),
+    });
     closeSearchPanel(this.CodeMirror);
   }
 
   /** Replace: Loop through the matches and replace one at a time. */
   Replace(Source: string, Target: string) {
+    let prevFind = (<HTMLInputElement>(
+      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
+    ))?.value;
+    let prevReplace = (<HTMLInputElement>(
+      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]')
+    ))?.value;
     openSearchPanel(this.CodeMirror);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
@@ -192,11 +210,25 @@ export class GalapagosEditor {
       ),
     });
     replaceNext(this.CodeMirror);
+    if (!prevFind) prevFind = '';
+    if (!prevReplace) prevReplace = '';
+    findNext(this.CodeMirror);
+    this.CodeMirror.dispatch({
+      effects: setSearchQuery.of(
+        new SearchQuery({
+          search: prevFind,
+          replace: prevReplace,
+        })
+      ),
+    });
     closeSearchPanel(this.CodeMirror);
   }
 
   /** FindAll: Find all the matching words in the editor. */
   FindAll(Source: string, Target: string) {
+    let prevValue = (<HTMLInputElement>(
+      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
+    ))?.value;
     openSearchPanel(this.CodeMirror);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
@@ -206,11 +238,26 @@ export class GalapagosEditor {
       ),
     });
     selectMatches(this.CodeMirror);
+    if (!prevValue) prevValue = '';
+    findNext(this.CodeMirror);
+    this.CodeMirror.dispatch({
+      effects: setSearchQuery.of(
+        new SearchQuery({
+          search: prevValue,
+        })
+      ),
+    });
     closeSearchPanel(this.CodeMirror);
   }
 
   /** ReplaceAll Replace the all the matching words in the editor. */
   ReplaceAll(Source: string, Target: string) {
+    let prevFind = (<HTMLInputElement>(
+      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
+    ))?.value;
+    let prevReplace = (<HTMLInputElement>(
+      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]')
+    ))?.value;
     openSearchPanel(this.CodeMirror);
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
@@ -221,6 +268,17 @@ export class GalapagosEditor {
       ),
     });
     replaceAll(this.CodeMirror);
+    if (!prevFind) prevFind = '';
+    if (!prevReplace) prevReplace = '';
+    findNext(this.CodeMirror);
+    this.CodeMirror.dispatch({
+      effects: setSearchQuery.of(
+        new SearchQuery({
+          search: prevFind,
+          replace: prevReplace,
+        })
+      ),
+    });
     closeSearchPanel(this.CodeMirror);
   }
 
