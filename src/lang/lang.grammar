@@ -1,3 +1,8 @@
+@precedence {
+  operation @left,
+  open @left
+}
+
 @top Program { 
   globalStatement*
   Procedure*
@@ -30,14 +35,37 @@ VariableName {
 }
 
 Value {
+  Calculation |
+  String |
+  OpenBracket Value* CloseBracket 
+}
+
+NumericValue {
   Constant |
   Numeric |
-  String |
-  "[" VariableName "]" "of" Identifier
+  VariableName |
+  OpenBracket VariableName !open CloseBracket "of" Identifier
 }
 
 Procedure {
   To ProcedureName Arguments? ProcedureContent* End
+}
+
+AnonymousProcedure {
+  OpenBracket Arguments "->" ProcedureContent* CloseBracket
+}
+
+Primitive {
+  ValFirstPrimitive Value Reporters |
+  ValLastPrimitive Reporters Value
+}
+
+Reporters {
+  Reporter | AnonymousProcedure
+}
+
+BreedProceduresReporters {
+  BreedFirst | BreedMiddle | BreedLast
 }
 
 ProcedureName {
@@ -45,26 +73,36 @@ ProcedureName {
 }
 
 Arguments {
-  "[" Identifier* "]"
+  OpenBracket Identifier* CloseBracket
 }
 
 ProcedureContent {
-  VariableDeclaration | expression
+  VariableDeclaration | 
+  Primitive |
+  BreedProceduresReporters | 
+  expression
 }
 
-globalStatement {
-  Extensions { "extensions" "[" Extension* "]" } |
+Calculation {
+  NumericValue |
+  "(" Calculation ")" |
+  Calculation !operation Operation Calculation 
+}
 
-  Globals { "globals" "["  Identifier* "]"  } |
+
+globalStatement {
+  Extensions { "extensions" OpenBracket Extension* CloseBracket } |
+
+  Globals { "globals" OpenBracket  Identifier* CloseBracket  } |
 
   Breed { 
-    "breed" "[" Identifier Identifier "]" |
-    "directed-link-breed" "[" Identifier Identifier "]" |
-    "undirected-link-breed" "[" Identifier Identifier "]"
+    "breed" OpenBracket Identifier Identifier CloseBracket |
+    "directed-link-breed" OpenBracket Identifier Identifier CloseBracket |
+    "undirected-link-breed" OpenBracket Identifier Identifier CloseBracket
   } |
 
   BreedsOwn {
-    Own "[" Identifier* "]"
+    Own OpenBracket Identifier* CloseBracket
   }
 }
 
@@ -75,17 +113,15 @@ globalStatement {
 
   LineComment { ";" ![\n]* }
 
-  Own { $[A-Za-z]+ "-own" }
-
-  End { "end" }
-
-  To { "to" | "to-report" }
-  
-  Set { "set" }
-
-  Let { "let" }
+  Operation {
+    "+" | "-" | "/" | "*" | "^"
+  }
 
   space { $[ \t\n\r]+ }
+  
+  OpenBracket { "[" }
+  
+  CloseBracket { "]" }
 
   "[" "]"
 }
@@ -103,4 +139,4 @@ expression {
   Unsupported
 }
 
-@external tokens keyword from "./tokenizer.js" { Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
+@external tokens keyword from "./tokenizer.js" { BreedFirst, BreedLast, BreedMiddle, Own, Set, Let, To, End, ValFirstPrimitive, ValLastPrimitive, Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
