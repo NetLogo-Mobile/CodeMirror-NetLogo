@@ -1,7 +1,7 @@
 {
   "scripts": {
     "precommit": "pretty-quick --staged",
-    "prepare": "husky install .husky"
+    "prepare": "husky install && chmod ug+x .husky/*"
   },
   "dependencies": {
     "@codemirror/commands": "^6.1.1",
