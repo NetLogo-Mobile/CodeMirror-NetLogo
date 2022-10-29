@@ -20,18 +20,21 @@ export class StateNetLogo {
         this.Breeds = [];
         this.Procedures=[];
         while (true) {
+            // get extensions
             if (Cursor.node.name == "Extensions") {
                 this.Extensions = [];
                 Cursor.node.getChildren("Extension").map(Node => {
                     this.Extensions.push(State.sliceDoc(Node.from, Node.to));
                 });
             }
+            // get global variables
             if (Cursor.node.name == "Globals") {
                 this.Globals = [];
                 Cursor.node.getChildren("Identifier").map(Node => {
                     this.Globals.push(State.sliceDoc(Node.from, Node.to));
                 });
             }
+            // get breeds
             if (Cursor.node.name == "Breed") {
                 let breed = new Breed();
                 var Identifiers = Cursor.node.getChildren("Identifier");
@@ -42,11 +45,13 @@ export class StateNetLogo {
                     this.Breeds.push(breed);
                 }
             }
+            // get breed variables
             if (Cursor.node.name == "BreedsOwn"){
                 let breedName=""
                 Cursor.node.getChildren("Own").map(node=>{
                     breedName = State.sliceDoc(node.from,node.to)
                     breedName=breedName.substring(0,breedName.length-4)
+                    //these need to be always included but I haven't gotten there yet
                     if (breedName=='turtles'){
                         let newBreed = new Breed()
                         newBreed.Singular='turtle'
@@ -77,6 +82,7 @@ export class StateNetLogo {
                 })
                 
             }
+            // get procedures
             if (Cursor.node.name == "Procedure") {
                 let procedure = new Procedure();
                 procedure.Name = "";
@@ -84,11 +90,6 @@ export class StateNetLogo {
                 procedure.Variables=[];
                 Cursor.node.getChildren("ProcedureName").map(Node => {
                     procedure.Name = State.sliceDoc(Node.from, Node.to);
-                });
-                Cursor.node.getChildren("Arguments").map(Node => {
-                    Node.getChildren("Identifier").map(node =>{
-                        procedure.Arguments.push(State.sliceDoc(node.from, node.to));
-                    })
                 });
                 procedure.Arguments=getArgs(Cursor.node,State)
                 Cursor.node.getChildren("ProcedureContent").map(Node => {
@@ -112,7 +113,7 @@ export class StateNetLogo {
       
 }
 
-
+//get local variables for the procedure
 const getLocalVars = function(Node,State){
     let vars: LocalVariable[]=[]
     Node.getChildren("VariableDeclaration").map(node => {
@@ -128,6 +129,7 @@ const getLocalVars = function(Node,State){
     return vars
 }
 
+// get arguments for the procedure
 const getArgs = function(Node,State){
     let args: string[]=[]
     Node.getChildren("Arguments").map(node => {
@@ -142,7 +144,7 @@ const getArgs = function(Node,State){
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),
   update: (Original: StateNetLogo, Transaction: Transaction) => {
-    // console.log(Original)
+    console.log(Original)
     if (!Transaction.docChanged) return Original;
     return Original.ParseState(Transaction.state);
   },

@@ -4,6 +4,7 @@ import { SyntaxNode } from '@lezer/common';
 import nodeTest from 'node:test';
 import { stateExtension } from '../codemirror/extension-state-netlogo';
 
+//checks if something at the top layer isn't a procedure, global, etc.
 const UnrecognizedGlobalLinter = linter((view) => {
   let diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
@@ -28,6 +29,7 @@ const UnrecognizedGlobalLinter = linter((view) => {
   return diagnostics;
 });
 
+//always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
 var acceptableIdentifiers = [
   'Unrecognized',
   'NewVariableDeclaration',
@@ -38,6 +40,7 @@ var acceptableIdentifiers = [
   'BreedsOwn',
 ];
 
+//Checks identifiers for valid variable/procedure/breed names
 const checkValid = function (Node, value, state, breedNames) {
   let parents: SyntaxNode[] = [];
   let curr_node = Node;
@@ -46,6 +49,7 @@ const checkValid = function (Node, value, state, breedNames) {
     parents.push(curr_node.parent);
     curr_node = curr_node.parent;
   }
+  // get procedure name--a bit convoluted but it works
   parents.map((node) => {
     if (node.name == 'Procedure') {
       node.getChildren('ProcedureName').map((child) => {
@@ -53,6 +57,7 @@ const checkValid = function (Node, value, state, breedNames) {
       });
     }
   }) 
+  //gets list of procedure variables from own procedure, as well as list of all procedure names
   let procedureVars: string[] =[]
   let procedureNames: string[]=[]
   if (procedureName !=''){
@@ -61,6 +66,7 @@ const checkValid = function (Node, value, state, breedNames) {
       if (procedure.Name==procedureName){
         let vars: string[]=[]
         procedure.Variables.map(variable => {
+          //makes sure the variable has already been created
           if (variable.CreationPos < Node.from){
             vars.push(variable.Name)
           }
@@ -70,16 +76,22 @@ const checkValid = function (Node, value, state, breedNames) {
     });
   }
 
+
   return (
+    //checks if parent is in a category that is always valid (e.g. 'Globals')
     acceptableIdentifiers.includes(Node.parent?.name) ||
+    //checks if identifier is a global variable
     state.field(stateExtension)['Globals'].includes(value) ||
+    //checks if identifier is a breed name or variable
     breedNames.includes(value) ||
+    //checks if identifier is a variable already declared in the procedure
     procedureVars.includes(value) ||
+    //checks if identifier is a procedure name
     procedureNames.includes(value)
   )
 }
 
-
+// Checks anything labelled 'Identifier'
 const IdentifierLinter = linter(view => {
   let diagnostics: Diagnostic[] = []
   let breedNames: string[]= []
@@ -110,6 +122,8 @@ const IdentifierLinter = linter(view => {
   return diagnostics;
 });
 
+
+// Purpose is to check breed commands/reporters for valid breed names
 const BreedLinter = linter( view => {
   let diagnostics: Diagnostic[] = []
   let breedNames: string[]= []
@@ -139,9 +153,14 @@ const BreedLinter = linter( view => {
   return diagnostics;
 })
 
+// Checks if the term in the structure of a breed command/reporter is the name
+// of an actual breed
 const checkValidBreed = function (node, value, state, breedNames) {
   let isValid=false 
   let values = value.split("-")
+  // These are broken up into BreedFirst, BreedMiddle, BreedLast so I know where to
+  // check for the breed name. Entirely possible we don't need this and can just search
+  // the whole string. 
   if (node.name=="BreedFirst"){
     let val = values[0]
     if (breedNames.includes(val)){
@@ -159,6 +178,9 @@ const checkValidBreed = function (node, value, state, breedNames) {
       isValid = true
     }
   }
+  // some procedure names I've come across accidentally use the structure of a 
+  // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
+  // before declaring it invalid
   if (!isValid){
     state.field(stateExtension)['Procedures'].map(procedure => {
       if(value==procedure.Name){

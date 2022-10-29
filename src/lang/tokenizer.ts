@@ -12,7 +12,9 @@ export const keyword = new ExternalTokenizer(input => {
     }
     if (token == "") return;
     // Find if the token belongs to any category
+    //Check if token is a breed reporter/command
     let match = matchBreed(token)
+    //When these were under the regular tokenizer, they matched to word parts rather than whole words
     if (token=='set'){
         input.acceptToken(Set)
     } else if (token=='let') {
@@ -70,6 +72,7 @@ function isValidKeyword(ch) {
         || ch >= 224 && ch <= 237
 }
 
+//checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
 function matchBreed(token){
     let tag=0;
     if (token.match(/\w+-own/)){ 
