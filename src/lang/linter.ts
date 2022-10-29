@@ -1,6 +1,7 @@
 import { syntaxTree } from '@codemirror/language';
 import { linter, Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
+import nodeTest from 'node:test';
 import { stateExtension } from '../codemirror/extension-state-netlogo';
 
 const UnrecognizedGlobalLinter = linter((view) => {
@@ -117,7 +118,7 @@ const BreedLinter = linter( view => {
     breedNames.push(breed.Plural)
   })
   syntaxTree(view.state).cursor().iterate(noderef => {
-    if (noderef.name == "BreedProceduresReporters") {
+    if (noderef.name == "BreedFirst" || noderef.name == "BreedMiddle" || noderef.name == "BreedLast") {
       let Node = noderef.node
       let value = view.state.sliceDoc(noderef.from,noderef.to)
       if (!checkValidBreed(Node,value,view.state,breedNames)){
@@ -138,33 +139,33 @@ const BreedLinter = linter( view => {
   return diagnostics;
 })
 
-const checkValidBreed = function (Node, value, state, breedNames) {
+const checkValidBreed = function (node, value, state, breedNames) {
   let isValid=false 
-  Node.getChildren("BreedFirst").map(node => {
-    let value = state.sliceDoc(node.from,node.to)
-    value = value.split("-")
-    value = value[0]
-    if (breedNames.includes(value)){
+  let values = value.split("-")
+  if (node.name=="BreedFirst"){
+    let val = values[0]
+    if (breedNames.includes(val)){
       isValid = true
     }
-  })
-  Node.getChildren("BreedLast").map(node => {
-    let value = state.sliceDoc(node.from,node.to)
-    value = value.split("-")
-    value = value[value.length-1]
-    value = value.replace("?","")
-    if (breedNames.includes(value)){
+  } else if(node.name=="BreedLast"){
+    let val = values[values.length-1]
+    val = val.replace("?","")
+    if (breedNames.includes(val)){
       isValid = true
     }
-  })
-  Node.getChildren("BreedMiddle").map(node => {
-    let value = state.sliceDoc(node.from,node.to)
-    value = value.split("-")
-    value = value[1]
-    if (breedNames.includes(value)){
+  } else if(node.name=="BreedMiddle"){
+    let val = values[1]
+    if (breedNames.includes(val)){
       isValid = true
     }
-  })
+  }
+  if (!isValid){
+    state.field(stateExtension)['Procedures'].map(procedure => {
+      if(value==procedure.Name){
+        isValid = true
+      }
+    })
+  }
   return isValid
 }
 

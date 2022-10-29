@@ -13,9 +13,7 @@ export const keyword = new ExternalTokenizer(input => {
     if (token == "") return;
     // Find if the token belongs to any category
     let match = matchBreed(token)
-    if (match != 0){
-        input.acceptToken(match)
-    } else if (token=='set'){
+    if (token=='set'){
         input.acceptToken(Set)
     } else if (token=='let') {
         input.acceptToken(Let);
@@ -45,6 +43,8 @@ export const keyword = new ExternalTokenizer(input => {
         input.acceptToken(Constant);
     } else if (unsupported.indexOf(token) != -1) {
         input.acceptToken(Unsupported);
+    } else if (match != 0){
+        input.acceptToken(match)
     } else {
         input.acceptToken(Identifier);
     }
@@ -72,51 +72,51 @@ function isValidKeyword(ch) {
 
 function matchBreed(token){
     let tag=0;
-    if (token.match(/\w+-own/)){
+    if (token.match(/\w+-own/)){ 
         tag=Own
-    } else if(token.match(/\w+-at/)){
+    } else if(token.match(/\w+-at$/)){
         tag = BreedFirst
-    } else if(token.match(/\w+-here/)){
+    } else if(token.match(/\w+-here$/)){
         tag = BreedFirst
-    } else if(token.match(/\w+-on/)){
+    } else if(token.match(/\w+-on$/)){
         tag = BreedFirst
-    } else if(token.match(/\w+-with/)){
+    } else if(token.match(/\w+-with$/)){
         tag = BreedFirst
-    } else if(token.match(/\w+-neighbor\\?/)){
+    } else if(token.match(/\w+-neighbor\\?$/)){
         tag = BreedFirst
-    } else if(token.match(/\w+-neighbors/)){
+    } else if(token.match(/\w+-neighbors$/)){
         tag = BreedFirst
-    } else if(token.match(/create-\w+/)){
+    } else if(token.match(/^create-\w+/)){
         tag = BreedLast
-    } else if(token.match(/my-in-\w+/)){
+    } else if(token.match(/^my-in-\w+/)){
         tag = BreedLast
-    } else if(token.match(/my-out-\w+/)){
+    } else if(token.match(/^my-out-\w+/)){
         tag = BreedLast
-    } else if(token.match(/create-ordered-\w+/)){
+    } else if(token.match(/^create-ordered-\w+/)){
         tag = BreedLast
-    } else if(token.match(/hatch-\w+/)){
+    } else if(token.match(/^hatch-\w+/)){
         tag = BreedLast
-    } else if(token.match(/sprout-\w+/)){
+    } else if(token.match(/^sprout-\w+/)){
         tag = BreedLast
-    } else if(token.match(/is-\w+\\?/)){
+    } else if(token.match(/^is-\w+\\?$/)){
         tag = BreedLast
-    } else if(token.match(/in-\w+-neighbor\\?/)){
+    } else if(token.match(/^in-\w+-neighbor\\?$/)){
         tag = BreedMiddle
-    } else if(token.match(/in-\w+-neighbors/)){
+    } else if(token.match(/^in-\w+-neighbors$/)){
         tag = BreedMiddle
-    } else if(token.match(/in-\w+-from/)){
+    } else if(token.match(/^in-\w+-from$/)){
         tag = BreedMiddle
-    } else if(token.match(/out-\w+-neighbor\\?/)){
+    } else if(token.match(/^out-\w+-neighbor\\?$/)){
         tag = BreedMiddle
-    } else if(token.match(/out-\w+-neighbors/)){
+    } else if(token.match(/^out-\w+-neighbors$/)){
         tag = BreedMiddle
-    } else if(token.match(/out-\w+-to/)){
+    } else if(token.match(/^out-\w+-to$/)){
         tag = BreedMiddle
-    } else if(token.match(/create-\w+-to/)){
+    } else if(token.match(/^create-\w+-to$/)){
         tag = BreedMiddle
-    } else if(token.match(/create-\w+-from/)){
+    } else if(token.match(/^create-\w+-from$/)){
         tag = BreedMiddle
-    } else if(token.match(/create-\w+-with/)){
+    } else if(token.match(/^create-\w+-with$/)){
         tag = BreedMiddle
     }
     return tag
