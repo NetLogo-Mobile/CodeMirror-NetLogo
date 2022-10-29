@@ -60,7 +60,7 @@ export class AutoCompletion {
                 from,
                 options: this.GetParentKeywords(parentName, state)
             };
-        } else if (this.ParentTypes.indexOf(grandparentName) > -1 && !['Procedure'].includes(parentName)) {
+        } else if (this.ParentTypes.indexOf(grandparentName) > -1 && (parentName!='Procedure' || nodeName=='To')) {
             return {
                 from,
                 options: this.GetParentKeywords(grandparentName, state)
