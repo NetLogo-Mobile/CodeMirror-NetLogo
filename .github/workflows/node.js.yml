@@ -52,7 +52,7 @@ jobs:
           name: production-files
           path: ./dist
       - name: Deploy to gh pages
-        uses: wubbalubbadu/actions-gh-pages@v3
+        uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: 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
           publish_dir: ./dist
