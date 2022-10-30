@@ -34,7 +34,7 @@ import {
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
-  public readonly EditorState: EditorState;
+  public readonly EditorState!: EditorState;
   /** CodeMirror: The CodeMirror 6 component. */
   public readonly CodeMirror: EditorView;
   /** Options: Options of this editor. */
@@ -47,7 +47,7 @@ export class GalapagosEditor {
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
   public readonly Parent: HTMLElement;
-  /** FindField: Records the find input of search panel.*/
+  /** FindField: Records the find input of search panel. */
 
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
@@ -56,14 +56,12 @@ export class GalapagosEditor {
     this.Parent = Parent;
     this.Options = Options;
     // Extensions
-    var Extensions = [
+    const Extensions = [
       // Editor
       basicSetup,
       lightTheme,
       // Readonly
-      this.Editable.of(
-        EditorView.editable.of(this.Options.ReadOnly ? false : true)
-      ),
+      this.Editable.of(EditorView.editable.of(!this.Options.ReadOnly)),
       // Events
       updateExtension((Update) => this.onUpdate(Update)),
       highlight,
@@ -116,7 +114,7 @@ export class GalapagosEditor {
       if (Style == '') {
         Container.appendChild(document.createTextNode(Text));
       } else {
-        var Node = document.createElement('span');
+        const Node = document.createElement('span');
         Node.innerText = Text;
         Node.className = Style;
         Container.appendChild(Node);
@@ -164,12 +162,12 @@ export class GalapagosEditor {
   // #endregion
 
   // #region "Editor Features"
-  /** Undo: Make the editor undo. Returns false if no group was available.*/
+  /** Undo: Make the editor undo. Returns false if no group was available. */
   Undo() {
     undo(this.CodeMirror);
   }
 
-  /** Redo: Make the editor Redo. Returns false if no group was available.*/
+  /** Redo: Make the editor Redo. Returns false if no group was available. */
   Redo() {
     redo(this.CodeMirror);
   }
@@ -289,8 +287,10 @@ export class GalapagosEditor {
 
   /** JumpTo: Jump to a certain line. */
   JumpTo(Line: number) {
-    let { state } = this.CodeMirror;
-    let docLine = state.doc.line(Math.max(1, Math.min(state.doc.lines, Line)));
+    const { state } = this.CodeMirror;
+    const docLine = state.doc.line(
+      Math.max(1, Math.min(state.doc.lines, Line))
+    );
     this.CodeMirror.focus();
     this.CodeMirror.dispatch({
       selection: { anchor: docLine.from },
@@ -309,15 +309,15 @@ export class GalapagosEditor {
   ShowFind() {
     openSearchPanel(this.CodeMirror);
     // hide inputs related to replace for find interface
-    var input = this.Parent.querySelector<HTMLElement>(
+    const input = this.Parent.querySelector<HTMLElement>(
       '.cm-textfield[name="replace"]'
     );
     if (input) input.style.display = 'none';
-    var button1 = this.Parent.querySelector<HTMLElement>(
+    const button1 = this.Parent.querySelector<HTMLElement>(
       '.cm-button[name="replace"]'
     );
     if (button1) button1.style.display = 'none';
-    var button2 = this.Parent.querySelector<HTMLElement>(
+    const button2 = this.Parent.querySelector<HTMLElement>(
       '.cm-button[name="replaceAll"]'
     );
     if (button2) button2.style.display = 'none';
@@ -328,15 +328,15 @@ export class GalapagosEditor {
   ShowReplace() {
     openSearchPanel(this.CodeMirror);
     // show inputs related to replace
-    var input = this.Parent.querySelector<HTMLElement>(
+    const input = this.Parent.querySelector<HTMLElement>(
       '.cm-textfield[name="replace"]'
     );
     if (input) input.style.display = 'inline-block';
-    var button1 = this.Parent.querySelector<HTMLElement>(
+    const button1 = this.Parent.querySelector<HTMLElement>(
       '.cm-button[name="replace"]'
     );
     if (button1) button1.style.display = 'inline-block';
-    var button2 = this.Parent.querySelector<HTMLElement>(
+    const button2 = this.Parent.querySelector<HTMLElement>(
       '.cm-button[name="replaceAll"]'
     );
     if (button2) button2.style.display = 'inline-block';
@@ -367,8 +367,9 @@ export class GalapagosEditor {
   // #region "Event Handling"
   /** onUpdate: Handle the Update event. */
   private onUpdate(update: ViewUpdate) {
-    if (this.Options.OnUpdate != null)
+    if (this.Options.OnUpdate != null) {
       this.Options.OnUpdate(update.docChanged, update);
+    }
   }
   // #endregion
 }

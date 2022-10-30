@@ -4,13 +4,13 @@ import { SyntaxNode } from '@lezer/common';
 import nodeTest from 'node:test';
 import { stateExtension } from '../codemirror/extension-state-netlogo';
 
-//checks if something at the top layer isn't a procedure, global, etc.
+// checks if something at the top layer isn't a procedure, global, etc.
 const UnrecognizedGlobalLinter = linter((view) => {
-  let diagnostics: Diagnostic[] = [];
+  const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
-      if (node.name == 'Unrecognized')
+      if (node.name == 'Unrecognized') {
         diagnostics.push({
           from: node.from,
           to: node.to,
@@ -25,12 +25,13 @@ const UnrecognizedGlobalLinter = linter((view) => {
             },
           ],
         });
+      }
     });
   return diagnostics;
 });
 
-//always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
-var acceptableIdentifiers = [
+// always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
+const acceptableIdentifiers = [
   'Unrecognized',
   'NewVariableDeclaration',
   'ProcedureName',
@@ -40,9 +41,9 @@ var acceptableIdentifiers = [
   'BreedsOwn',
 ];
 
-//Checks identifiers for valid variable/procedure/breed names
+// Checks identifiers for valid variable/procedure/breed names
 const checkValid = function (Node, value, state, breedNames) {
-  let parents: SyntaxNode[] = [];
+  const parents: SyntaxNode[] = [];
   let curr_node = Node;
   let procedureName = '';
   while (curr_node.parent) {
@@ -56,19 +57,19 @@ const checkValid = function (Node, value, state, breedNames) {
         procedureName = state.sliceDoc(child.from, child.to);
       });
     }
-  }) 
-  //gets list of procedure variables from own procedure, as well as list of all procedure names
-  let procedureVars: string[] =[]
-  let procedureNames: string[]=[]
-  if (procedureName !=''){
-    state.field(stateExtension)['Procedures'].map(procedure => {
-      procedureNames.push(procedure.Name)
-      if (procedure.Name==procedureName){
-        let vars: string[]=[]
-        procedure.Variables.map(variable => {
-          //makes sure the variable has already been created
-          if (variable.CreationPos < Node.from){
-            vars.push(variable.Name)
+  });
+  // gets list of procedure variables from own procedure, as well as list of all procedure names
+  let procedureVars: string[] = [];
+  const procedureNames: string[] = [];
+  if (procedureName != '') {
+    state.field(stateExtension).Procedures.map((procedure) => {
+      procedureNames.push(procedure.Name);
+      if (procedure.Name == procedureName) {
+        const vars: string[] = [];
+        procedure.Variables.map((variable) => {
+          // makes sure the variable has already been created
+          if (variable.CreationPos < Node.from) {
+            vars.push(variable.Name);
           }
         });
         procedureVars = vars + procedure.Arguments;
@@ -76,119 +77,131 @@ const checkValid = function (Node, value, state, breedNames) {
     });
   }
 
-
   return (
-    //checks if parent is in a category that is always valid (e.g. 'Globals')
+    // checks if parent is in a category that is always valid (e.g. 'Globals')
     acceptableIdentifiers.includes(Node.parent?.name) ||
-    //checks if identifier is a global variable
-    state.field(stateExtension)['Globals'].includes(value) ||
-    //checks if identifier is a breed name or variable
+    // checks if identifier is a global variable
+    state.field(stateExtension).Globals.includes(value) ||
+    // checks if identifier is a breed name or variable
     breedNames.includes(value) ||
-    //checks if identifier is a variable already declared in the procedure
+    // checks if identifier is a variable already declared in the procedure
     procedureVars.includes(value) ||
-    //checks if identifier is a procedure name
+    // checks if identifier is a procedure name
     procedureNames.includes(value)
-  )
-}
+  );
+};
 
 // Checks anything labelled 'Identifier'
-const IdentifierLinter = linter(view => {
-  let diagnostics: Diagnostic[] = []
-  let breedNames: string[]= []
-  view.state.field(stateExtension)['Breeds'].map(breed => {
-    breedNames.push(breed.Singular)
-    breedNames.push(breed.Plural)
-    breedNames = breedNames.concat(breed.Variables)
-  })
-  syntaxTree(view.state).cursor().iterate(noderef => {
-    if (noderef.name == "Identifier") {
-      let Node = noderef.node
-      let value = view.state.sliceDoc(noderef.from,noderef.to)
-      if (!checkValid(Node,value,view.state,breedNames)){
-        diagnostics.push({
-          from: noderef.from,
-          to: noderef.to,
-          severity: "error",
-          message: "Unrecognized identifier",
-          actions: [{
-            name: "Remove",
-            apply(view, from, to) { 
-              view.dispatch({changes: {from, to}}) 
-            }
-          }]
-        })
+const IdentifierLinter = linter((view) => {
+  const diagnostics: Diagnostic[] = [];
+  let breedNames: string[] = [];
+  view.state.field(stateExtension).Breeds.map((breed) => {
+    breedNames.push(breed.Singular);
+    breedNames.push(breed.Plural);
+    breedNames = breedNames.concat(breed.Variables);
+  });
+  syntaxTree(view.state)
+    .cursor()
+    .iterate((noderef) => {
+      if (noderef.name == 'Identifier') {
+        const Node = noderef.node;
+        const value = view.state.sliceDoc(noderef.from, noderef.to);
+        if (!checkValid(Node, value, view.state, breedNames)) {
+          diagnostics.push({
+            from: noderef.from,
+            to: noderef.to,
+            severity: 'error',
+            message: 'Unrecognized identifier',
+            actions: [
+              {
+                name: 'Remove',
+                apply(view, from, to) {
+                  view.dispatch({ changes: { from, to } });
+                },
+              },
+            ],
+          });
+        }
       }
-    }});
+    });
   return diagnostics;
 });
 
-
 // Purpose is to check breed commands/reporters for valid breed names
-const BreedLinter = linter( view => {
-  let diagnostics: Diagnostic[] = []
-  let breedNames: string[]= []
-  view.state.field(stateExtension)['Breeds'].map(breed => {
-    breedNames.push(breed.Singular)
-    breedNames.push(breed.Plural)
-  })
-  syntaxTree(view.state).cursor().iterate(noderef => {
-    if (noderef.name == "BreedFirst" || noderef.name == "BreedMiddle" || noderef.name == "BreedLast") {
-      let Node = noderef.node
-      let value = view.state.sliceDoc(noderef.from,noderef.to)
-      if (!checkValidBreed(Node,value,view.state,breedNames)){
-        diagnostics.push({
-          from: noderef.from,
-          to: noderef.to,
-          severity: "error",
-          message: "Unrecognized breed name",
-          actions: [{
-            name: "Remove",
-            apply(view, from, to) { 
-              view.dispatch({changes: {from, to}}) 
-            }
-          }]
-        })
+const BreedLinter = linter((view) => {
+  const diagnostics: Diagnostic[] = [];
+  const breedNames: string[] = [];
+  view.state.field(stateExtension).Breeds.map((breed) => {
+    breedNames.push(breed.Singular);
+    breedNames.push(breed.Plural);
+  });
+  syntaxTree(view.state)
+    .cursor()
+    .iterate((noderef) => {
+      if (
+        noderef.name == 'BreedFirst' ||
+        noderef.name == 'BreedMiddle' ||
+        noderef.name == 'BreedLast'
+      ) {
+        const Node = noderef.node;
+        const value = view.state.sliceDoc(noderef.from, noderef.to);
+        if (!checkValidBreed(Node, value, view.state, breedNames)) {
+          diagnostics.push({
+            from: noderef.from,
+            to: noderef.to,
+            severity: 'error',
+            message: 'Unrecognized breed name',
+            actions: [
+              {
+                name: 'Remove',
+                apply(view, from, to) {
+                  view.dispatch({ changes: { from, to } });
+                },
+              },
+            ],
+          });
+        }
       }
-    }});
+    });
   return diagnostics;
-})
+});
 
 // Checks if the term in the structure of a breed command/reporter is the name
 // of an actual breed
 const checkValidBreed = function (node, value, state, breedNames) {
-  let isValid=false 
-  let values = value.split("-")
+  let isValid = false;
+  const values = value.split('-');
   // These are broken up into BreedFirst, BreedMiddle, BreedLast so I know where to
   // check for the breed name. Entirely possible we don't need this and can just search
-  // the whole string. 
-  if (node.name=="BreedFirst"){
-    let val = values[0]
-    if (breedNames.includes(val)){
-      isValid = true
+  // the whole string.
+  if (node.name == 'BreedFirst') {
+    const val = values[0];
+    if (breedNames.includes(val)) {
+      isValid = true;
     }
-  } else if(node.name=="BreedLast"){
-    let val = values[values.length-1]
-    val = val.replace("?","")
-    if (breedNames.includes(val)){
-      isValid = true
+  } else if (node.name == 'BreedLast') {
+    let val = values[values.length - 1];
+    val = val.replace('?', '');
+    if (breedNames.includes(val)) {
+      isValid = true;
     }
-  } else if(node.name=="BreedMiddle"){
-    let val = values[1]
-    if (breedNames.includes(val)){
-      isValid = true
+  } else if (node.name == 'BreedMiddle') {
+    const val = values[1];
+    if (breedNames.includes(val)) {
+      isValid = true;
     }
   }
-  // some procedure names I've come across accidentally use the structure of a 
+  // some procedure names I've come across accidentally use the structure of a
   // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
   // before declaring it invalid
-  if (!isValid){
-    state.field(stateExtension)['Procedures'].map(procedure => {
-      if(value==procedure.Name){
-        isValid = true
+  if (!isValid) {
+    state.field(stateExtension).Procedures.map((procedure) => {
+      if (value == procedure.Name) {
+        isValid = true;
       }
-    })
+    });
   }
-  return isValid
-}
+  return isValid;
+};
 
-export { UnrecognizedGlobalLinter, IdentifierLinter ,BreedLinter};
+export { UnrecognizedGlobalLinter, IdentifierLinter, BreedLinter };

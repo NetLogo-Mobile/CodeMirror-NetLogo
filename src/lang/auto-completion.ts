@@ -58,7 +58,7 @@ export class AutoCompletion {
     VariableName: this.KeywordsToCompletions(
       [...turtleVars, ...patchVars, ...linkVars],
       'Variables'
-    ), //built-in variable names
+    ), // built-in variable names
   };
 
   /** ParentTypes: Types of keywords.  */
@@ -87,12 +87,12 @@ export class AutoCompletion {
     Context: CompletionContext
   ): CompletionResult | null | Promise<CompletionResult | null> {
     // Preparation
-    let node = syntaxTree(Context.state).resolveInner(Context.pos, -1);
-    let from = /\./.test(node.name) ? node.to : node.from;
-    var parentName = node.parent?.type.name ?? '';
-    var grandparentName = node.parent?.parent?.type.name ?? '';
-    var nodeName = node.type.name;
-    var state = Context.state.field(stateExtension);
+    const node = syntaxTree(Context.state).resolveInner(Context.pos, -1);
+    const from = /\./.test(node.name) ? node.to : node.from;
+    const parentName = node.parent?.type.name ?? '';
+    const grandparentName = node.parent?.parent?.type.name ?? '';
+    const nodeName = node.type.name;
+    const state = Context.state.field(stateExtension);
     console.log(grandparentName + ' / ' + parentName + ' / ' + nodeName);
     // If the parent/grand parent node is of a type specified in this.maps
     if (this.ParentTypes.indexOf(parentName) > -1) {
@@ -111,7 +111,7 @@ export class AutoCompletion {
     } else if (nodeName == 'Identifier') {
       let results = this.allIdentifiers;
       // Extensions
-      let extensions = Context.state.field(stateExtension).Extensions;
+      const extensions = Context.state.field(stateExtension).Extensions;
       if (extensions.length > 0) {
         results = results.concat(
           this.FilterExtensions(
@@ -121,9 +121,9 @@ export class AutoCompletion {
         );
       }
       // Breeds
-      let breeds = Context.state.field(stateExtension).Breeds;
+      const breeds = Context.state.field(stateExtension).Breeds;
       if (breeds.length > 0) {
-        for (let breed of breeds) {
+        for (const breed of breeds) {
           results.push(breed.Plural + '-own');
         }
       }

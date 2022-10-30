@@ -1,4 +1,4 @@
-import { ViewUpdate } from "@codemirror/view";
+import { ViewUpdate } from '@codemirror/view';
 
 /** Options: Options of an editor. */
 export interface EditorConfig {
