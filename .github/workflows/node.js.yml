@@ -5,10 +5,10 @@ name: Node.js CI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: ['master']
   pull_request:
-    branches: [ "master" ]
-    
+    branches: ['master']
+
 jobs:
   # Build Job
   build:
@@ -26,8 +26,14 @@ jobs:
           node-version: 16.x
       - name: Install NPM Dependencies
         run: npm i
+      - name: install lezer/generator
+        run: npm install @lezer/generator --global
+      - name: install rollup
+        run: npm install rollup --global
+      - name: Build language
+        run: lezer-generator ./src/lang/lang.grammar -o ./src/lang/lang.js
       - name: Build Project
-        run: npm run build
+        run: rollup -c
       - name: Upload artifact in order to deploy
         uses: actions/upload-artifact@v2
         with:

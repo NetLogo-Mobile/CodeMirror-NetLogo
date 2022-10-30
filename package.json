@@ -3,7 +3,8 @@
     "precommit": "pretty-quick --staged",
     "prepare": "husky install && chmod ug+x .husky/*",
     "check-types": "npx tsc --noEmit",
-    "lint": "npx eslint 'src/**/*.{js,jsx,ts,tsx}' --fix"
+    "lint": "npx eslint 'src/**/*.{js,jsx,ts,tsx}' --fix",
+    "prettier": "npx prettier --write ."
   },
   "dependencies": {
     "@codemirror/commands": "^6.1.1",
