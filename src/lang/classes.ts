@@ -11,11 +11,16 @@ export class Primitive {
   /** ReturnType: Return type of the primitive. */
   public ReturnType: NetLogoType;
 
-  public constructor(Extension: string,Name: string,ArgumentTypes: NetLogoType[],ReturnType:NetLogoType) {
+  public constructor(
+    Extension: string,
+    Name: string,
+    ArgumentTypes: NetLogoType[],
+    ReturnType: NetLogoType
+  ) {
     this.Extension = Extension;
-    this.Name=Name;
-    this.ArgumentTypes=ArgumentTypes;
-    this.ReturnType=ReturnType;
+    this.Name = Name;
+    this.ArgumentTypes = ArgumentTypes;
+    this.ReturnType = ReturnType;
   }
 }
 
@@ -39,10 +44,10 @@ export class Breed {
   /** Variables: Variables defined for the breed. */
   public Variables: string[];
 
-  public constructor(Singular: string,Plural:string,Variables:string[]){
-    this.Singular=Singular;
-    this.Plural=Plural;
-    this.Variables=Variables;
+  public constructor(Singular: string, Plural: string, Variables: string[]) {
+    this.Singular = Singular;
+    this.Plural = Plural;
+    this.Variables = Variables;
   }
 }
 
@@ -55,10 +60,14 @@ export class Procedure {
   /** Variables: local variables defined for the procedure. */
   public Variables: LocalVariable[];
 
-  public constructor(Name:string,Arguments:string[],Variables:LocalVariable[]){
-    this.Name=Name;
-    this.Arguments=Arguments;
-    this.Variables=Variables;
+  public constructor(
+    Name: string,
+    Arguments: string[],
+    Variables: LocalVariable[]
+  ) {
+    this.Name = Name;
+    this.Arguments = Arguments;
+    this.Variables = Variables;
   }
 }
 
@@ -71,9 +80,9 @@ export class LocalVariable {
   /** name: The position where the variable was created. */
   public CreationPos: number;
 
-  public constructor(Name:string,Type:NetLogoType,CreationPos:number){
-    this.Name=Name;
-    this.Type=Type;
-    this.CreationPos=CreationPos;
+  public constructor(Name: string, Type: NetLogoType, CreationPos: number) {
+    this.Name = Name;
+    this.Type = Type;
+    this.CreationPos = CreationPos;
   }
 }

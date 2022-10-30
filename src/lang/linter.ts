@@ -42,7 +42,12 @@ const acceptableIdentifiers = [
 ];
 
 // Checks identifiers for valid variable/procedure/breed names
-const checkValid = function (Node:SyntaxNode, value:string, state: EditorState, breedNames:string[]) {
+const checkValid = function (
+  Node: SyntaxNode,
+  value: string,
+  state: EditorState,
+  breedNames: string[]
+) {
   const parents: SyntaxNode[] = [];
   let curr_node = Node;
   let procedureName = '';
@@ -168,7 +173,12 @@ const BreedLinter = linter((view) => {
 
 // Checks if the term in the structure of a breed command/reporter is the name
 // of an actual breed
-const checkValidBreed = function (node:SyntaxNode, value:string, state:EditorState, breedNames:string[]) {
+const checkValidBreed = function (
+  node: SyntaxNode,
+  value: string,
+  state: EditorState,
+  breedNames: string[]
+) {
   let isValid = false;
   const values = value.split('-');
   // These are broken up into BreedFirst, BreedMiddle, BreedLast so I know where to

@@ -40,11 +40,8 @@ export class StateNetLogo {
         const Identifiers = Cursor.node.getChildren('Identifier');
         if (Identifiers.length == 2) {
           let plural = State.sliceDoc(Identifiers[0].from, Identifiers[0].to);
-          let singular = State.sliceDoc(
-            Identifiers[1].from,
-            Identifiers[1].to
-          );
-          let breed = new Breed(singular,plural,[]);
+          let singular = State.sliceDoc(Identifiers[1].from, Identifiers[1].to);
+          let breed = new Breed(singular, plural, []);
           this.Breeds.push(breed);
         }
       }
@@ -56,13 +53,13 @@ export class StateNetLogo {
           breedName = breedName.substring(0, breedName.length - 4);
           // these need to be always included but I haven't gotten there yet
           if (breedName == 'turtles') {
-            const newBreed = new Breed('turtle','turtles',[]);
+            const newBreed = new Breed('turtle', 'turtles', []);
             this.Breeds.push(newBreed);
           } else if (breedName == 'patches') {
-            const newBreed = new Breed( 'patch','patches',[]);
+            const newBreed = new Breed('patch', 'patches', []);
             this.Breeds.push(newBreed);
           } else if (breedName == 'links') {
-            const newBreed = new Breed('link','links',[]);
+            const newBreed = new Breed('link', 'links', []);
             this.Breeds.push(newBreed);
           }
         });
@@ -78,7 +75,7 @@ export class StateNetLogo {
       }
       // get procedures
       if (Cursor.node.name == 'Procedure') {
-        const procedure = new Procedure('',[],[]);
+        const procedure = new Procedure('', [], []);
         Cursor.node.getChildren('ProcedureName').map((Node) => {
           procedure.Name = State.sliceDoc(Node.from, Node.to);
         });
@@ -111,7 +108,11 @@ const getLocalVars = function (Node: SyntaxNode, State: EditorState) {
   Node.getChildren('VariableDeclaration').map((node) => {
     node.getChildren('NewVariableDeclaration').map((subnode) => {
       subnode.getChildren('Identifier').map((subsubnode) => {
-        const variable = new LocalVariable(State.sliceDoc(subsubnode.from, subsubnode.to),1,subsubnode.from);
+        const variable = new LocalVariable(
+          State.sliceDoc(subsubnode.from, subsubnode.to),
+          1,
+          subsubnode.from
+        );
         vars.push(variable);
       });
     });

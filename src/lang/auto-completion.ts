@@ -45,7 +45,7 @@ export class AutoCompletion {
       return { label: x, type: Type };
     });
   }
-  
+
   /** ParentMaps: Maps of keywords to parents.  */
   private ParentMaps = {
     Extensions: this.KeywordsToCompletions(extensions, 'Extension'),
