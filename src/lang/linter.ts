@@ -2,6 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { linter, Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { stateExtension } from '../codemirror/extension-state-netlogo';
+import { EditorState } from '@codemirror/state';
 
 // checks if something at the top layer isn't a procedure, global, etc.
 const UnrecognizedGlobalLinter = linter((view) => {
@@ -71,7 +72,7 @@ const checkValid = function (Node:SyntaxNode, value:string, state: EditorState, 
             vars.push(variable.Name);
           }
         });
-        procedureVars = vars + procedure.Arguments;
+        procedureVars = vars.concat(procedure.Arguments);
       }
     });
   }
@@ -167,7 +168,7 @@ const BreedLinter = linter((view) => {
 
 // Checks if the term in the structure of a breed command/reporter is the name
 // of an actual breed
-const checkValidBreed = function (node, value, state, breedNames) {
+const checkValidBreed = function (node:SyntaxNode, value:string, state:EditorState, breedNames:string[]) {
   let isValid = false;
   const values = value.split('-');
   // These are broken up into BreedFirst, BreedMiddle, BreedLast so I know where to
