@@ -2,6 +2,7 @@ import { StateField, Transaction, EditorState } from '@codemirror/state';
 
 import { syntaxTree } from '@codemirror/language';
 import { Breed, LocalVariable, Procedure } from '../lang/classes';
+import { SyntaxNode } from '@lezer/common';
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
@@ -36,15 +37,14 @@ export class StateNetLogo {
       }
       // get breeds
       if (Cursor.node.name == 'Breed') {
-        const breed = new Breed();
         const Identifiers = Cursor.node.getChildren('Identifier');
         if (Identifiers.length == 2) {
-          breed.Plural = State.sliceDoc(Identifiers[0].from, Identifiers[0].to);
-          breed.Singular = State.sliceDoc(
+          let plural = State.sliceDoc(Identifiers[0].from, Identifiers[0].to);
+          let singular = State.sliceDoc(
             Identifiers[1].from,
             Identifiers[1].to
           );
-          breed.Variables = [];
+          let breed = new Breed(singular,plural,[]);
           this.Breeds.push(breed);
         }
       }
@@ -56,19 +56,13 @@ export class StateNetLogo {
           breedName = breedName.substring(0, breedName.length - 4);
           // these need to be always included but I haven't gotten there yet
           if (breedName == 'turtles') {
-            const newBreed = new Breed();
-            newBreed.Singular = 'turtle';
-            newBreed.Plural = 'turtles';
+            const newBreed = new Breed('turtle','turtles',[]);
             this.Breeds.push(newBreed);
           } else if (breedName == 'patches') {
-            const newBreed = new Breed();
-            newBreed.Singular = 'patch';
-            newBreed.Plural = 'patches';
+            const newBreed = new Breed( 'patch','patches',[]);
             this.Breeds.push(newBreed);
           } else if (breedName == 'links') {
-            const newBreed = new Breed();
-            newBreed.Singular = 'link';
-            newBreed.Plural = 'links';
+            const newBreed = new Breed('link','links',[]);
             this.Breeds.push(newBreed);
           }
         });
@@ -84,10 +78,7 @@ export class StateNetLogo {
       }
       // get procedures
       if (Cursor.node.name == 'Procedure') {
-        const procedure = new Procedure();
-        procedure.Name = '';
-        procedure.Arguments = [];
-        procedure.Variables = [];
+        const procedure = new Procedure('',[],[]);
         Cursor.node.getChildren('ProcedureName').map((Node) => {
           procedure.Name = State.sliceDoc(Node.from, Node.to);
         });
@@ -115,14 +106,12 @@ export class StateNetLogo {
 }
 
 // get local variables for the procedure
-const getLocalVars = function (Node, State) {
+const getLocalVars = function (Node: SyntaxNode, State: EditorState) {
   const vars: LocalVariable[] = [];
   Node.getChildren('VariableDeclaration').map((node) => {
     node.getChildren('NewVariableDeclaration').map((subnode) => {
       subnode.getChildren('Identifier').map((subsubnode) => {
-        const variable = new LocalVariable();
-        variable.Name = State.sliceDoc(subsubnode.from, subsubnode.to);
-        variable.CreationPos = subsubnode.from;
+        const variable = new LocalVariable(State.sliceDoc(subsubnode.from, subsubnode.to),1,subsubnode.from);
         vars.push(variable);
       });
     });
@@ -131,7 +120,7 @@ const getLocalVars = function (Node, State) {
 };
 
 // get arguments for the procedure
-const getArgs = function (Node, State) {
+const getArgs = function (Node: SyntaxNode, State: EditorState) {
   const args: string[] = [];
   Node.getChildren('Arguments').map((node) => {
     node.getChildren('Identifier').map((subnode) => {

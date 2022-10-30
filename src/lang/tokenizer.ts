@@ -89,7 +89,7 @@ export const keyword = new ExternalTokenizer((input) => {
 });
 
 // Check if the character is valid for a keyword.
-function isValidKeyword(ch) {
+function isValidKeyword(ch:number) {
   // 0-9
   return (
     (ch >= 48 && ch <= 58) ||
@@ -111,7 +111,7 @@ function isValidKeyword(ch) {
 }
 
 // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
-function matchBreed(token) {
+function matchBreed(token:string) {
   let tag = 0;
   if (token.match(/\w+-own/)) {
     tag = Own;

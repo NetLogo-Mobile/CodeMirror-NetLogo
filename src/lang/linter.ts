@@ -1,7 +1,6 @@
 import { syntaxTree } from '@codemirror/language';
 import { linter, Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
-import nodeTest from 'node:test';
 import { stateExtension } from '../codemirror/extension-state-netlogo';
 
 // checks if something at the top layer isn't a procedure, global, etc.
@@ -42,7 +41,7 @@ const acceptableIdentifiers = [
 ];
 
 // Checks identifiers for valid variable/procedure/breed names
-const checkValid = function (Node, value, state, breedNames) {
+const checkValid = function (Node:SyntaxNode, value:string, state: EditorState, breedNames:string[]) {
   const parents: SyntaxNode[] = [];
   let curr_node = Node;
   let procedureName = '';
