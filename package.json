@@ -1,4 +1,4 @@
-{
+{ "type": "module",
   "scripts": {
     "precommit": "pretty-quick --staged",
     "prepare": "husky install && chmod ug+x .husky/*",
