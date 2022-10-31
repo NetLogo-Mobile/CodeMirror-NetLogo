@@ -111,12 +111,6 @@ Calculation {
     "+" | "-" | "/" | "*" | "^"
   }
 
-  ExtensionStr { "extension" }
-
-  GlobalStr { "globals" }
-
-  BreedStr { "breed" | "directed-link-breed" | "undirected-link-breed" }
-
   space { $[ \t\n\r]+ }
   
   OpenBracket { "[" }
@@ -139,4 +133,4 @@ expression {
   Unsupported
 }
 
-@external tokens keyword from "./tokenizer.js" { BreedFirst, BreedLast, BreedMiddle, Own, Set, Let, To, End, ValFirstPrimitive, ValLastPrimitive, Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
+@external tokens keyword from "./tokenizer.js" { GlobalStr, ExtensionStr, BreedStr, BreedFirst, BreedLast, BreedMiddle, Own, Set, Let, To, End, ValFirstPrimitive, ValLastPrimitive, Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
