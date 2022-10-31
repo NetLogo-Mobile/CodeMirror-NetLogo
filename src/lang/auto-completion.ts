@@ -47,7 +47,7 @@ export class AutoCompletion {
   }
 
   /** ParentMaps: Maps of keywords to parents.  */
-  private ParentMaps = {
+  private ParentMaps: Record<string, Completion[]> = {
     Extensions: this.KeywordsToCompletions(extensions, 'Extension'),
     Program: this.KeywordsToCompletions(directives, 'Extension'),
     Globals: [], // Names of global variables
