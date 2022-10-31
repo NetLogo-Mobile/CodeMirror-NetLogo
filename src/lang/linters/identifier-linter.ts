@@ -58,6 +58,7 @@ const checkValid = function (
   state: EditorState,
   breedNames: string[]
 ) {
+  value = value.toLowerCase();
   const parents: SyntaxNode[] = [];
   let curr_node = Node;
   let procedureName = '';
@@ -79,7 +80,7 @@ const checkValid = function (
   if (procedureName != '') {
     state.field(stateExtension).Procedures.map((procedure) => {
       procedureNames.push(procedure.Name);
-      if (procedure.Name == procedureName) {
+      if (procedure.Name.toLowerCase() == procedureName.toLowerCase()) {
         const vars: string[] = [];
         procedure.Variables.map((variable) => {
           // makes sure the variable has already been created

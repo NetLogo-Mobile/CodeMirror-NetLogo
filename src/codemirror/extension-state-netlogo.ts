@@ -25,22 +25,30 @@ export class StateNetLogo {
       if (Cursor.node.name == 'Extensions') {
         this.Extensions = [];
         Cursor.node.getChildren('Extension').map((Node) => {
-          this.Extensions.push(State.sliceDoc(Node.from, Node.to));
+          this.Extensions.push(
+            State.sliceDoc(Node.from, Node.to).toLowerCase()
+          );
         });
       }
       // get global variables
       if (Cursor.node.name == 'Globals') {
         this.Globals = [];
         Cursor.node.getChildren('Identifier').map((Node) => {
-          this.Globals.push(State.sliceDoc(Node.from, Node.to));
+          this.Globals.push(State.sliceDoc(Node.from, Node.to).toLowerCase());
         });
       }
       // get breeds
       if (Cursor.node.name == 'Breed') {
         const Identifiers = Cursor.node.getChildren('Identifier');
         if (Identifiers.length == 2) {
-          let plural = State.sliceDoc(Identifiers[0].from, Identifiers[0].to);
-          let singular = State.sliceDoc(Identifiers[1].from, Identifiers[1].to);
+          let plural = State.sliceDoc(
+            Identifiers[0].from,
+            Identifiers[0].to
+          ).toLowerCase();
+          let singular = State.sliceDoc(
+            Identifiers[1].from,
+            Identifiers[1].to
+          ).toLowerCase();
           let breed = new Breed(singular, plural, []);
           this.Breeds.push(breed);
         }
@@ -49,7 +57,7 @@ export class StateNetLogo {
       if (Cursor.node.name == 'BreedsOwn') {
         let breedName = '';
         Cursor.node.getChildren('Own').map((node) => {
-          breedName = State.sliceDoc(node.from, node.to);
+          breedName = State.sliceDoc(node.from, node.to).toLowerCase();
           breedName = breedName.substring(0, breedName.length - 4);
           // these need to be always included but I haven't gotten there yet
           if (breedName == 'turtles') {
@@ -65,7 +73,7 @@ export class StateNetLogo {
         });
         const breedVars: string[] = [];
         Cursor.node.getChildren('Identifier').map((node) => {
-          breedVars.push(State.sliceDoc(node.from, node.to));
+          breedVars.push(State.sliceDoc(node.from, node.to).toLowerCase());
         });
         this.Breeds.map((breed) => {
           if (breed.Plural == breedName) {
@@ -77,7 +85,7 @@ export class StateNetLogo {
       if (Cursor.node.name == 'Procedure') {
         const procedure = new Procedure('', [], []);
         Cursor.node.getChildren('ProcedureName').map((Node) => {
-          procedure.Name = State.sliceDoc(Node.from, Node.to);
+          procedure.Name = State.sliceDoc(Node.from, Node.to).toLowerCase();
         });
         procedure.Arguments = getArgs(Cursor.node, State);
         Cursor.node.getChildren('ProcedureContent').map((Node) => {
@@ -109,7 +117,7 @@ const getLocalVars = function (Node: SyntaxNode, State: EditorState) {
     node.getChildren('NewVariableDeclaration').map((subnode) => {
       subnode.getChildren('Identifier').map((subsubnode) => {
         const variable = new LocalVariable(
-          State.sliceDoc(subsubnode.from, subsubnode.to),
+          State.sliceDoc(subsubnode.from, subsubnode.to).toLowerCase(),
           1,
           subsubnode.from
         );
@@ -125,7 +133,7 @@ const getArgs = function (Node: SyntaxNode, State: EditorState) {
   const args: string[] = [];
   Node.getChildren('Arguments').map((node) => {
     node.getChildren('Identifier').map((subnode) => {
-      args.push(State.sliceDoc(subnode.from, subnode.to));
+      args.push(State.sliceDoc(subnode.from, subnode.to).toLowerCase());
     });
   });
   return args;
