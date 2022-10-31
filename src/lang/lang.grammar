@@ -4,9 +4,8 @@
 }
 
 @top Program { 
-  globalStatement*
-  Procedure*
-  Unrecognized*
+  globalorUnrecognized*
+  procedureorUnrecognized*
 }
 
 @detectDelim
@@ -15,6 +14,53 @@
 
 Unrecognized {
   expression
+}
+
+globalorUnrecognized {
+  globalorUnrecognized | globalStatement
+}
+
+globalStatement {
+  Extensions { "extensions" OpenBracket Extension* CloseBracket } |
+
+  Globals { "globals" OpenBracket  Identifier* CloseBracket  } |
+
+  Breed { 
+    "breed" OpenBracket Identifier Identifier CloseBracket |
+    "directed-link-breed" OpenBracket Identifier Identifier CloseBracket |
+    "undirected-link-breed" OpenBracket Identifier Identifier CloseBracket
+  } |
+
+  BreedsOwn {
+    Own OpenBracket Identifier* CloseBracket
+  }
+}
+
+procedureorUnrecognized {
+  globalorUnrecognized | global
+}
+
+Procedure {
+  To ProcedureName Arguments? ProcedureContent* End
+}
+
+ProcedureName {
+  Identifier | BreedProceduresReporters
+}
+
+Arguments {
+  OpenBracket Identifier* CloseBracket
+}
+
+ProcedureContent {
+  VariableDeclaration | 
+  Primitive |
+  BreedProceduresReporters | 
+  expression
+}
+
+AnonymousProcedure {
+  OpenBracket Arguments "->" ProcedureContent* CloseBracket
 }
 
 VariableDeclaration {
@@ -47,14 +93,6 @@ NumericValue {
   OpenBracket VariableName !open CloseBracket "of" Identifier
 }
 
-Procedure {
-  To ProcedureName Arguments? ProcedureContent* End
-}
-
-AnonymousProcedure {
-  OpenBracket Arguments "->" ProcedureContent* CloseBracket
-}
-
 Primitive {
   ValFirstPrimitive Value Reporters |
   ValLastPrimitive Reporters Value
@@ -68,42 +106,10 @@ BreedProceduresReporters {
   BreedFirst | BreedMiddle | BreedLast
 }
 
-ProcedureName {
-  Identifier | BreedProceduresReporters
-}
-
-Arguments {
-  OpenBracket Identifier* CloseBracket
-}
-
-ProcedureContent {
-  VariableDeclaration | 
-  Primitive |
-  BreedProceduresReporters | 
-  expression
-}
-
 Calculation {
   NumericValue |
   "(" Calculation ")" |
   Calculation !operation Operation Calculation 
-}
-
-
-globalStatement {
-  Extensions { "extensions" OpenBracket Extension* CloseBracket } |
-
-  Globals { "globals" OpenBracket  Identifier* CloseBracket  } |
-
-  Breed { 
-    "breed" OpenBracket Identifier Identifier CloseBracket |
-    "directed-link-breed" OpenBracket Identifier Identifier CloseBracket |
-    "undirected-link-breed" OpenBracket Identifier Identifier CloseBracket
-  } |
-
-  BreedsOwn {
-    Own OpenBracket Identifier* CloseBracket
-  }
 }
 
 @tokens {
