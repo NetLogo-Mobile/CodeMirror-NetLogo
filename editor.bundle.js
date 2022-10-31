@@ -25348,6 +25348,7 @@
        }
    }
 
+   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
    const parserWithMetadata = parser$3.configure({
        props: [
            styleTags({
@@ -27109,7 +27110,7 @@
    ];
    // Checks identifiers for valid variable/procedure/breed names
    const checkValid = function (Node, value, state, breedNames) {
-       var _a;
+       var _a, _b;
        const parents = [];
        let curr_node = Node;
        let procedureName = '';
@@ -27145,7 +27146,7 @@
        }
        return (
        // checks if parent is in a category that is always valid (e.g. 'Globals')
-       acceptableIdentifiers.includes((_a = Node.parent) === null || _a === void 0 ? void 0 : _a.name) ||
+       acceptableIdentifiers.includes((_b = (_a = Node.parent) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : "") ||
            // checks if identifier is a global variable
            state.field(stateExtension).Globals.includes(value) ||
            // checks if identifier is a breed name or variable
