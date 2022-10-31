@@ -17,15 +17,11 @@ Unrecognized {
 }
 
 globalStatement {
-  Extensions { "extensions" OpenBracket Extension* CloseBracket } |
+  Extensions { ExtensionStr OpenBracket Extension* CloseBracket } |
 
-  Globals { "globals" OpenBracket  Identifier* CloseBracket  } |
+  Globals { GlobalStr OpenBracket  Identifier* CloseBracket  } |
 
-  Breed { 
-    "breed" OpenBracket Identifier Identifier CloseBracket |
-    "directed-link-breed" OpenBracket Identifier Identifier CloseBracket |
-    "undirected-link-breed" OpenBracket Identifier Identifier CloseBracket
-  } |
+  Breed { BreedStr OpenBracket Identifier Identifier CloseBracket } |
 
   BreedsOwn {
     Own OpenBracket Identifier* CloseBracket
@@ -114,6 +110,12 @@ Calculation {
   Operation {
     "+" | "-" | "/" | "*" | "^"
   }
+
+  ExtensionStr { "extension" }
+
+  GlobalStr { "globals" }
+
+  BreedStr { "breed" | "directed-link-breed" | "undirected-link-breed" }
 
   space { $[ \t\n\r]+ }
   

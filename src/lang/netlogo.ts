@@ -32,10 +32,9 @@ const parserWithMetadata = parser.configure({
       Set: t.variableName,
       Let: t.variableName,
       // Global statements
-      Extensions: t.strong,
-      Globals: t.strong,
-      Breed: t.strong,
-      BreedsOwn: t.strong,
+      ExtensionStr: t.strong,
+      GlobalStr: t.strong,
+      BreedStr: t.strong,
       Own: t.strong,
       // Procedures
       To: t.strong,
