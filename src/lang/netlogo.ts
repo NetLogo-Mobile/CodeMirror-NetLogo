@@ -12,7 +12,7 @@ import {
 import { styleTags, tags as t } from '@lezer/highlight';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { AutoCompletion } from './auto-completion';
-
+ 
 const parserWithMetadata = parser.configure({
   props: [
     styleTags({
