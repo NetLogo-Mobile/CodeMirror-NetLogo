@@ -49,7 +49,7 @@ export const keyword = new ExternalTokenizer((input) => {
     input.advance();
   }
   if (token == '') return;
-  token=token.toLowerCase();
+  token = token.toLowerCase();
   // Find if the token belongs to any category
   // Check if token is a breed reporter/command
   const match = matchBreed(token);
@@ -62,12 +62,16 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(To);
   } else if (token == 'end') {
     input.acceptToken(End);
-  } else if (token =='globals'){
-    input.acceptToken(GlobalStr)
-  } else if (token =='extensions'){
-    input.acceptToken(ExtensionStr)
-  } else if (token =="breed" || token== "directed-link-breed" || token =="undirected-link-breed"){
-    input.acceptToken(BreedStr)
+  } else if (token == 'globals') {
+    input.acceptToken(GlobalStr);
+  } else if (token == 'extensions') {
+    input.acceptToken(ExtensionStr);
+  } else if (
+    token == 'breed' ||
+    token == 'directed-link-breed' ||
+    token == 'undirected-link-breed'
+  ) {
+    input.acceptToken(BreedStr);
   } else if (token == 'foreach' || token == 'n-values') {
     input.acceptToken(ValFirstPrimitive);
   } else if (
