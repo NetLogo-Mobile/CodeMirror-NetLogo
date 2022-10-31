@@ -18,7 +18,11 @@ export class StateNetLogo {
   public ParseState(State: EditorState): StateNetLogo {
     const Cursor = syntaxTree(State).cursor();
     if (!Cursor.firstChild()) return this;
-    this.Breeds = [];
+    this.Breeds = [
+      new Breed('turtle', 'turtles', []),
+      new Breed('patch', 'patches', []),
+      new Breed('link', 'links', []),
+    ];
     this.Procedures = [];
     while (true) {
       // get extensions
@@ -59,17 +63,6 @@ export class StateNetLogo {
         Cursor.node.getChildren('Own').map((node) => {
           breedName = State.sliceDoc(node.from, node.to).toLowerCase();
           breedName = breedName.substring(0, breedName.length - 4);
-          // these need to be always included but I haven't gotten there yet
-          if (breedName == 'turtles') {
-            const newBreed = new Breed('turtle', 'turtles', []);
-            this.Breeds.push(newBreed);
-          } else if (breedName == 'patches') {
-            const newBreed = new Breed('patch', 'patches', []);
-            this.Breeds.push(newBreed);
-          } else if (breedName == 'links') {
-            const newBreed = new Breed('link', 'links', []);
-            this.Breeds.push(newBreed);
-          }
         });
         const breedVars: string[] = [];
         Cursor.node.getChildren('Identifier').map((node) => {
