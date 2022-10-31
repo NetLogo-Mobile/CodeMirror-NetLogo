@@ -8,10 +8,12 @@
     <div id="Container"></div>
     <script type="module" src="editor.bundle.js"></script>
     <script>
-      var Editor = new GalapagosEditor(
-        document.getElementById('Container'),
-        {}
-      );
+      window.addEventListener('load', function () {
+        var Editor = new GalapagosEditor(
+          document.getElementById('Container'),
+          {}
+        );
+      });
     </script>
   </body>
 </html>

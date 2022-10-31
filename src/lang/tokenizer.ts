@@ -1,4 +1,5 @@
 import { ExternalTokenizer } from '@lezer/lr';
+
 import {
   directives,
   commands,
@@ -10,6 +11,7 @@ import {
   constants,
   unsupported,
 } from './keywords';
+
 import {
   Set,
   Let,
@@ -31,6 +33,8 @@ import {
   Unsupported,
   Identifier,
   Own,
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
 } from './lang.terms.js';
 
 // Keyword tokenizer

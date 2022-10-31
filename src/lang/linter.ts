@@ -84,7 +84,7 @@ const checkValid = function (
 
   return (
     // checks if parent is in a category that is always valid (e.g. 'Globals')
-    acceptableIdentifiers.includes(Node.parent?.name) ||
+    acceptableIdentifiers.includes(Node.parent?.name ?? '') ||
     // checks if identifier is a global variable
     state.field(stateExtension).Globals.includes(value) ||
     // checks if identifier is a breed name or variable
