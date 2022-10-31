@@ -27073,27 +27073,37 @@
        return true;
    });
 
-   // checks if something at the top layer isn't a procedure, global, etc.
-   const UnrecognizedGlobalLinter = linter((view) => {
+   // Checks anything labelled 'Identifier'
+   const IdentifierLinter = linter((view) => {
        const diagnostics = [];
+       let breedNames = [];
+       view.state.field(stateExtension).Breeds.map((breed) => {
+           breedNames.push(breed.Singular);
+           breedNames.push(breed.Plural);
+           breedNames = breedNames.concat(breed.Variables);
+       });
        syntaxTree(view.state)
            .cursor()
-           .iterate((node) => {
-           if (node.name == 'Unrecognized') {
-               diagnostics.push({
-                   from: node.from,
-                   to: node.to,
-                   severity: 'error',
-                   message: 'Unrecognized global statement',
-                   actions: [
-                       {
-                           name: 'Remove',
-                           apply(view, from, to) {
-                               view.dispatch({ changes: { from, to } });
+           .iterate((noderef) => {
+           if (noderef.name == 'Identifier') {
+               const Node = noderef.node;
+               const value = view.state.sliceDoc(noderef.from, noderef.to);
+               if (!checkValid(Node, value, view.state, breedNames)) {
+                   diagnostics.push({
+                       from: noderef.from,
+                       to: noderef.to,
+                       severity: 'error',
+                       message: 'Unrecognized identifier',
+                       actions: [
+                           {
+                               name: 'Remove',
+                               apply(view, from, to) {
+                                   view.dispatch({ changes: { from, to } });
+                               },
                            },
-                       },
-                   ],
-               });
+                       ],
+                   });
+               }
            }
        });
        return diagnostics;
@@ -27156,42 +27166,34 @@
            // checks if identifier is a procedure name
            procedureNames.includes(value));
    };
-   // Checks anything labelled 'Identifier'
-   const IdentifierLinter = linter((view) => {
+
+   // checks if something at the top layer isn't a procedure, global, etc.
+   const UnrecognizedGlobalLinter = linter((view) => {
        const diagnostics = [];
-       let breedNames = [];
-       view.state.field(stateExtension).Breeds.map((breed) => {
-           breedNames.push(breed.Singular);
-           breedNames.push(breed.Plural);
-           breedNames = breedNames.concat(breed.Variables);
-       });
        syntaxTree(view.state)
            .cursor()
-           .iterate((noderef) => {
-           if (noderef.name == 'Identifier') {
-               const Node = noderef.node;
-               const value = view.state.sliceDoc(noderef.from, noderef.to);
-               if (!checkValid(Node, value, view.state, breedNames)) {
-                   diagnostics.push({
-                       from: noderef.from,
-                       to: noderef.to,
-                       severity: 'error',
-                       message: 'Unrecognized identifier',
-                       actions: [
-                           {
-                               name: 'Remove',
-                               apply(view, from, to) {
-                                   view.dispatch({ changes: { from, to } });
-                               },
+           .iterate((node) => {
+           if (node.name == 'Unrecognized') {
+               diagnostics.push({
+                   from: node.from,
+                   to: node.to,
+                   severity: 'error',
+                   message: 'Unrecognized global statement',
+                   actions: [
+                       {
+                           name: 'Remove',
+                           apply(view, from, to) {
+                               view.dispatch({ changes: { from, to } });
                            },
-                       ],
-                   });
-               }
+                       },
+                   ],
+               });
            }
        });
        return diagnostics;
    });
-   // Purpose is to check breed commands/reporters for valid breed names
+
+   // BreedLinter: To check breed commands/reporters for valid breed names
    const BreedLinter = linter((view) => {
        const diagnostics = [];
        const breedNames = [];
@@ -27267,6 +27269,12 @@
        return isValid;
    };
 
+   const netlogoLinters = [
+       UnrecognizedGlobalLinter,
+       IdentifierLinter,
+       BreedLinter,
+   ];
+
    /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
    class GalapagosEditor {
        /** FindField: Records the find input of search panel. */
@@ -27287,9 +27295,6 @@
                updateExtension((Update) => this.onUpdate(Update)),
                highlight,
                indentExtension,
-               UnrecognizedGlobalLinter,
-               IdentifierLinter,
-               BreedLinter,
                keymap.of([indentWithTab]),
            ];
            // Language-specific
@@ -27306,6 +27311,7 @@
                default:
                    this.Language = NetLogo();
                    Extensions.push(stateExtension);
+                   Extensions.push(...netlogoLinters);
            }
            // Build the editor
            Extensions.push(this.Language);
