@@ -4,8 +4,8 @@
 }
 
 @top Program { 
-  globalorUnrecognized*
-  procedureorUnrecognized*
+  (globalStatement | Unrecognized)*
+  Procedure*
 }
 
 @detectDelim
@@ -14,10 +14,6 @@
 
 Unrecognized {
   expression
-}
-
-globalorUnrecognized {
-  globalorUnrecognized | globalStatement
 }
 
 globalStatement {
@@ -34,10 +30,6 @@ globalStatement {
   BreedsOwn {
     Own OpenBracket Identifier* CloseBracket
   }
-}
-
-procedureorUnrecognized {
-  globalorUnrecognized | global
 }
 
 Procedure {

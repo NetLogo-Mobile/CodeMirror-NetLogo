@@ -135,9 +135,10 @@ const getArgs = function (Node: SyntaxNode, State: EditorState) {
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),
   update: (Original: StateNetLogo, Transaction: Transaction) => {
-    console.log(Original);
     if (!Transaction.docChanged) return Original;
-    return Original.ParseState(Transaction.state);
+    Original.ParseState(Transaction.state);
+    console.log(Original);
+    return Original;
   },
 });
 
