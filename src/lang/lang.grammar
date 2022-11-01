@@ -44,6 +44,7 @@ ProcedureContent {
   VariableDeclaration | 
   Primitive |
   BreedProceduresReporters | 
+  Conditional |
   expression
 }
 
@@ -96,8 +97,20 @@ BreedProceduresReporters {
 
 Calculation {
   NumericValue |
-  "(" Calculation ")" |
-  Calculation !operation Operation Calculation 
+  Calculation !operation Operation Calculation |
+  "(" Calculation ")"
+}
+
+Boolean {
+  Value !operation Comparative Value |
+  "(" Boolean ")" |
+  Boolean !operation "and" Boolean |
+  Boolean !operation "or" Boolean
+}
+
+Conditional {
+  "if" Boolean OpenBracket ProcedureContent* CloseBracket |
+  "ifelse" Boolean OpenBracket ProcedureContent* CloseBracket OpenBracket ProcedureContent* CloseBracket
 }
 
 @tokens {
@@ -111,6 +124,10 @@ Calculation {
     "+" | "-" | "/" | "*" | "^"
   }
 
+  Comparative {
+    "=" | "!=" | "<" | ">" | "<=" | ">="
+  }
+
   space { $[ \t\n\r]+ }
   
   OpenBracket { "[" }
@@ -121,6 +138,7 @@ Calculation {
 }
 
 expression {
+  "(" expression ")" |
   Identifier |
   Command |
   Reporter |
