@@ -47,14 +47,16 @@
     </button>
     <div id="Container" style="height: 80vh"></div>
     <div id="Code"></div>
-    <script type="module" src="editor.bundle.js"></script>
+    <script src="editor.bundle.js"></script>
     <script>
+      var Editor;
       window.addEventListener('load', function () {
-        var Editor = new GalapagosEditor(
+        Editor = new GalapagosEditor(
           document.getElementById('Container'),
           {}
         );
       });
+      console.log(Editor);
     </script>
   </body>
 </html>
