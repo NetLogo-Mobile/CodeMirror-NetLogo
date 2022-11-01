@@ -25128,21 +25128,18 @@
            /** Globals: Globals in the model. */
            this.Globals = [];
            /** Breeds: Breeds in the model. */
-           this.Breeds = [];
+           this.Breeds = new Map();
            /** Procedures: Procedures in the model. */
-           this.Procedures = [];
+           this.Procedures = new Map();
        }
        /** ParseState: Parse the state from an editor state. */
        ParseState(State) {
            const Cursor = syntaxTree(State).cursor();
            if (!Cursor.firstChild())
                return this;
-           this.Breeds = [
-               new Breed('turtle', 'turtles', []),
-               new Breed('patch', 'patches', []),
-               new Breed('link', 'links', []),
-           ];
-           this.Procedures = [];
+           this.Breeds.set('turtle', new Breed('turtle', 'turtles', []));
+           this.Breeds.set('patch', new Breed('patch', 'patches', []));
+           this.Breeds.set('link', new Breed('link', 'links', []));
            while (true) {
                // get extensions
                if (Cursor.node.name == 'Extensions') {
@@ -25165,7 +25162,7 @@
                        let plural = State.sliceDoc(Identifiers[0].from, Identifiers[0].to).toLowerCase();
                        let singular = State.sliceDoc(Identifiers[1].from, Identifiers[1].to).toLowerCase();
                        let breed = new Breed(singular, plural, []);
-                       this.Breeds.push(breed);
+                       this.Breeds.set(singular, breed);
                    }
                }
                // get breed variables
@@ -25179,11 +25176,11 @@
                    Cursor.node.getChildren('Identifier').map((node) => {
                        breedVars.push(State.sliceDoc(node.from, node.to).toLowerCase());
                    });
-                   this.Breeds.map((breed) => {
+                   for (let breed of this.Breeds.values()) {
                        if (breed.Plural == breedName) {
                            breed.Variables = breedVars;
                        }
-                   });
+                   }
                }
                // get procedures
                if (Cursor.node.name == 'Procedure') {
@@ -25205,7 +25202,7 @@
                    //         })
                    //     })
                    // })
-                   this.Procedures.push(procedure);
+                   this.Procedures.set(procedure.Name, procedure);
                }
                if (!Cursor.nextSibling())
                    return this;
@@ -25327,8 +25324,8 @@
                }
                // Breeds
                const breeds = Context.state.field(stateExtension).Breeds;
-               if (breeds.length > 0) {
-                   for (const breed of breeds) {
+               if (breeds.size > 0) {
+                   for (const breed of breeds.values()) {
                        results.push(breed.Plural + '-own');
                    }
                }
@@ -27080,11 +27077,11 @@
    const IdentifierLinter = linter((view) => {
        const diagnostics = [];
        let breedNames = [];
-       view.state.field(stateExtension).Breeds.map((breed) => {
+       for (let breed of view.state.field(stateExtension).Breeds.values()) {
            breedNames.push(breed.Singular);
            breedNames.push(breed.Plural);
            breedNames = breedNames.concat(breed.Variables);
-       });
+       }
        syntaxTree(view.state)
            .cursor()
            .iterate((noderef) => {
@@ -27142,21 +27139,21 @@
        });
        // gets list of procedure variables from own procedure, as well as list of all procedure names
        let procedureVars = [];
-       const procedureNames = [];
+       const procedureNames = Array.from(state.field(stateExtension).Procedures.keys());
        if (procedureName != '') {
-           state.field(stateExtension).Procedures.map((procedure) => {
-               procedureNames.push(procedure.Name);
-               if (procedure.Name.toLowerCase() == procedureName.toLowerCase()) {
-                   const vars = [];
-                   procedure.Variables.map((variable) => {
-                       // makes sure the variable has already been created
-                       if (variable.CreationPos < Node.from) {
-                           vars.push(variable.Name);
-                       }
-                   });
-                   procedureVars = vars.concat(procedure.Arguments);
+           let procedure = state
+               .field(stateExtension)
+               .Procedures.get(procedureName.toLowerCase());
+           const vars = [];
+           procedure === null || procedure === void 0 ? void 0 : procedure.Variables.map((variable) => {
+               // makes sure the variable has already been created
+               if (variable.CreationPos < Node.from) {
+                   vars.push(variable.Name);
                }
            });
+           if (procedure === null || procedure === void 0 ? void 0 : procedure.Arguments) {
+               procedureVars = vars.concat(procedure.Arguments);
+           }
        }
        return (
        // checks if parent is in a category that is always valid (e.g. 'Globals')
@@ -27201,10 +27198,10 @@
    const BreedLinter = linter((view) => {
        const diagnostics = [];
        const breedNames = [];
-       view.state.field(stateExtension).Breeds.map((breed) => {
+       for (let breed of view.state.field(stateExtension).Breeds.values()) {
            breedNames.push(breed.Singular);
            breedNames.push(breed.Plural);
-       });
+       }
        syntaxTree(view.state)
            .cursor()
            .iterate((noderef) => {
@@ -27212,7 +27209,9 @@
                noderef.name == 'BreedMiddle' ||
                noderef.name == 'BreedLast') {
                const Node = noderef.node;
-               const value = view.state.sliceDoc(noderef.from, noderef.to);
+               const value = view.state
+                   .sliceDoc(noderef.from, noderef.to)
+                   .toLowerCase();
                if (!checkValidBreed(Node, value, view.state, breedNames)) {
                    diagnostics.push({
                        from: noderef.from,
@@ -27263,12 +27262,8 @@
        // some procedure names I've come across accidentally use the structure of a
        // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
        // before declaring it invalid
-       if (!isValid) {
-           state.field(stateExtension).Procedures.map((procedure) => {
-               if (value == procedure.Name) {
-                   isValid = true;
-               }
-           });
+       if (state.field(stateExtension).Procedures.get(value)) {
+           isValid = true;
        }
        return isValid;
    };
