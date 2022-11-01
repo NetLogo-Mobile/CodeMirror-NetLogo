@@ -1,8 +1,14 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
 
 import { syntaxTree } from '@codemirror/language';
-import { Breed, LocalVariable, Procedure } from '../lang/classes';
+import {
+  AnonymousProcedure,
+  Breed,
+  LocalVariable,
+  Procedure,
+} from '../lang/classes';
 import { SyntaxNode } from '@lezer/common';
+import nodeResolve from '@rollup/plugin-node-resolve';
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
@@ -73,26 +79,41 @@ export class StateNetLogo {
       }
       // get procedures
       if (Cursor.node.name == 'Procedure') {
-        const procedure = new Procedure('', [], []);
+        let procedure = new Procedure('', [], [], []);
         Cursor.node.getChildren('ProcedureName').map((Node) => {
           procedure.Name = State.sliceDoc(Node.from, Node.to).toLowerCase();
         });
         procedure.Arguments = getArgs(Cursor.node, State);
-        Cursor.node.getChildren('ProcedureContent').map((Node) => {
-          procedure.Variables = procedure.Variables.concat(
-            getLocalVars(Node, State)
-          );
+        procedure.Variables = getLocalVars(Cursor.node, State, false);
+
+        Cursor.node.cursor().iterate((noderef) => {
+          if (noderef.node.to > Cursor.node.to) {
+            return false;
+          }
+          if (noderef.name == 'AnonymousProcedure') {
+            let anonProc = new AnonymousProcedure(
+              noderef.from,
+              noderef.to,
+              [],
+              procedure.Variables
+            );
+            let args: string[] = [];
+            let Node = noderef.node;
+            Node.getChildren('AnonArguments').map((node) => {
+              node.getChildren('Identifier').map((subnode) => {
+                args.push(
+                  State.sliceDoc(subnode.from, subnode.to).toLowerCase()
+                );
+              });
+            });
+            anonProc.Arguments = args;
+            console.log(getLocalVars(Node, State, true));
+            anonProc.Variables = anonProc.Variables.concat(
+              getLocalVars(Node, State, true)
+            );
+            procedure.AnonymousProcedures.push(anonProc);
+          }
         });
-        // Cursor.node.getChildren("ProcedureContent").map(Node=>{
-        //     Node.getChildren("Primitive").map(node => {
-        //         node.getChildren("AnonymousProcedure").map(subnode => {
-        //             let anonProc=new Procedure()
-        //             anonProc.Name="Anonymous"+this.Procedures.length.toString()
-        //             anonProc.Arguments=getArgs(subnode,State)
-        //             anonProc.Variables=procedure.Variables.concat(getLocalVars(subnode,State))
-        //         })
-        //     })
-        // })
         this.Procedures.set(procedure.Name, procedure);
       }
       if (!Cursor.nextSibling()) return this;
@@ -101,21 +122,48 @@ export class StateNetLogo {
 }
 
 // get local variables for the procedure
-const getLocalVars = function (Node: SyntaxNode, State: EditorState) {
-  const vars: LocalVariable[] = [];
-  Node.getChildren('VariableDeclaration').map((node) => {
-    node.getChildren('NewVariableDeclaration').map((subnode) => {
-      subnode.getChildren('Identifier').map((subsubnode) => {
-        const variable = new LocalVariable(
-          State.sliceDoc(subsubnode.from, subsubnode.to).toLowerCase(),
-          1,
-          subsubnode.from
-        );
-        vars.push(variable);
+const getLocalVars = function (
+  Node: SyntaxNode,
+  State: EditorState,
+  isAnon: Boolean
+) {
+  let localVars: LocalVariable[] = [];
+  Node.cursor().iterate((noderef) => {
+    if (noderef.node.to > Node.to) {
+      return false;
+    }
+    if (noderef.name == 'ProcedureContent') {
+      noderef.node.getChildren('VariableDeclaration').map((node) => {
+        node.getChildren('NewVariableDeclaration').map((subnode) => {
+          subnode.getChildren('Identifier').map((subsubnode) => {
+            if (
+              !getParents(subsubnode).includes('AnonymousProcedure') ||
+              isAnon
+            ) {
+              const variable = new LocalVariable(
+                State.sliceDoc(subsubnode.from, subsubnode.to).toLowerCase(),
+                1,
+                subsubnode.from
+              );
+              localVars.push(variable);
+            }
+          });
+        });
       });
-    });
+    }
   });
-  return vars;
+
+  return localVars;
+};
+
+const getParents = function (Node: SyntaxNode) {
+  let parents: string[] = [];
+  let curr = Node;
+  while (curr.parent) {
+    parents.push(curr.parent.name);
+    curr = curr.parent;
+  }
+  return parents;
 };
 
 // get arguments for the procedure

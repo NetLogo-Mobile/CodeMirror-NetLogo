@@ -83,11 +83,20 @@ const checkValid = function (
     let procedure = state
       .field(stateExtension)
       .Procedures.get(procedureName.toLowerCase());
-    const vars: string[] = [];
+    let vars: string[] = [];
     procedure?.Variables.map((variable) => {
       // makes sure the variable has already been created
       if (variable.CreationPos < Node.from) {
         vars.push(variable.Name);
+      }
+    });
+
+    procedure?.AnonymousProcedures.map((anonProc) => {
+      if (Node.from >= anonProc.From && Node.to <= anonProc.To) {
+        anonProc.Variables.map((variable) => {
+          vars.push(variable.Name);
+        });
+        vars = vars.concat(anonProc.Arguments);
       }
     });
     if (procedure?.Arguments) {

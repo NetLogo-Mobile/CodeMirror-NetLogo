@@ -59,13 +59,41 @@ export class Procedure {
   public Arguments: string[];
   /** Variables: local variables defined for the procedure. */
   public Variables: LocalVariable[];
+  /** AnonymousProcedures: anonymous procedures defined for the procedure. */
+  public AnonymousProcedures: AnonymousProcedure[];
 
   public constructor(
     Name: string,
     Arguments: string[],
-    Variables: LocalVariable[]
+    Variables: LocalVariable[],
+    AnonymousProcedures: AnonymousProcedure[]
   ) {
     this.Name = Name;
+    this.Arguments = Arguments;
+    this.Variables = Variables;
+    this.AnonymousProcedures = AnonymousProcedures;
+  }
+}
+
+/** Procedure: Dynamic metadata of an anonymous procedure. */
+export class AnonymousProcedure {
+  /** From: The position at the start of the procedure */
+  public From: number;
+  /** To: The position at the end of the procedure */
+  public To: number;
+  /** Arguments: The arguments of the procedure. */
+  public Arguments: string[];
+  /** Variables: local variables defined for the procedure. */
+  public Variables: LocalVariable[];
+
+  public constructor(
+    From: number,
+    To: number,
+    Arguments: string[],
+    Variables: LocalVariable[]
+  ) {
+    this.From = From;
+    this.To = To;
     this.Arguments = Arguments;
     this.Variables = Variables;
   }

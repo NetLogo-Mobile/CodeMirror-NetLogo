@@ -48,8 +48,12 @@ ProcedureContent {
   expression
 }
 
+AnonArguments{
+  Arguments | Identifier
+}
+
 AnonymousProcedure {
-  OpenBracket Arguments "->" ProcedureContent* CloseBracket
+  OpenBracket AnonArguments "->" ProcedureContent* CloseBracket
 }
 
 VariableDeclaration {
