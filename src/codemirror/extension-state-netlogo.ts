@@ -11,19 +11,16 @@ export class StateNetLogo {
   /** Globals: Globals in the model. */
   public Globals: string[] = [];
   /** Breeds: Breeds in the model. */
-  public Breeds: Breed[] = [];
+  public Breeds: Map<string, Breed> = new Map<string, Breed>();
   /** Procedures: Procedures in the model. */
-  public Procedures: Procedure[] = [];
+  public Procedures: Map<string, Procedure> = new Map<string, Procedure>();
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StateNetLogo {
     const Cursor = syntaxTree(State).cursor();
     if (!Cursor.firstChild()) return this;
-    this.Breeds = [
-      new Breed('turtle', 'turtles', []),
-      new Breed('patch', 'patches', []),
-      new Breed('link', 'links', []),
-    ];
-    this.Procedures = [];
+    this.Breeds.set('turtle', new Breed('turtle', 'turtles', []));
+    this.Breeds.set('patch', new Breed('patch', 'patches', []));
+    this.Breeds.set('link', new Breed('link', 'links', []));
     while (true) {
       // get extensions
       if (Cursor.node.name == 'Extensions') {
@@ -54,7 +51,7 @@ export class StateNetLogo {
             Identifiers[1].to
           ).toLowerCase();
           let breed = new Breed(singular, plural, []);
-          this.Breeds.push(breed);
+          this.Breeds.set(singular, breed);
         }
       }
       // get breed variables
@@ -68,11 +65,11 @@ export class StateNetLogo {
         Cursor.node.getChildren('Identifier').map((node) => {
           breedVars.push(State.sliceDoc(node.from, node.to).toLowerCase());
         });
-        this.Breeds.map((breed) => {
+        for (let breed of this.Breeds.values()) {
           if (breed.Plural == breedName) {
             breed.Variables = breedVars;
           }
-        });
+        }
       }
       // get procedures
       if (Cursor.node.name == 'Procedure') {
@@ -96,7 +93,7 @@ export class StateNetLogo {
         //         })
         //     })
         // })
-        this.Procedures.push(procedure);
+        this.Procedures.set(procedure.Name, procedure);
       }
       if (!Cursor.nextSibling()) return this;
     }

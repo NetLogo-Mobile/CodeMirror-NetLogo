@@ -122,8 +122,8 @@ export class AutoCompletion {
       }
       // Breeds
       const breeds = Context.state.field(stateExtension).Breeds;
-      if (breeds.length > 0) {
-        for (const breed of breeds) {
+      if (breeds.size > 0) {
+        for (const breed of breeds.values()) {
           results.push(breed.Plural + '-own');
         }
       }

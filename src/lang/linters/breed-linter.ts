@@ -8,10 +8,10 @@ import { stateExtension } from '../../codemirror/extension-state-netlogo';
 export const BreedLinter = linter((view) => {
   const diagnostics: Diagnostic[] = [];
   const breedNames: string[] = [];
-  view.state.field(stateExtension).Breeds.map((breed) => {
+  for (let breed of view.state.field(stateExtension).Breeds.values()) {
     breedNames.push(breed.Singular);
     breedNames.push(breed.Plural);
-  });
+  }
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
@@ -21,7 +21,9 @@ export const BreedLinter = linter((view) => {
         noderef.name == 'BreedLast'
       ) {
         const Node = noderef.node;
-        const value = view.state.sliceDoc(noderef.from, noderef.to);
+        const value = view.state
+          .sliceDoc(noderef.from, noderef.to)
+          .toLowerCase();
         if (!checkValidBreed(Node, value, view.state, breedNames)) {
           diagnostics.push({
             from: noderef.from,
@@ -76,12 +78,8 @@ const checkValidBreed = function (
   // some procedure names I've come across accidentally use the structure of a
   // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
   // before declaring it invalid
-  if (!isValid) {
-    state.field(stateExtension).Procedures.map((procedure) => {
-      if (value == procedure.Name) {
-        isValid = true;
-      }
-    });
+  if (state.field(stateExtension).Procedures.get(value)) {
+    isValid = true;
   }
   return isValid;
 };

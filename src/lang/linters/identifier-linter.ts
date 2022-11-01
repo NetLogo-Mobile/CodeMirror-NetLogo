@@ -8,11 +8,11 @@ import { stateExtension } from '../../codemirror/extension-state-netlogo';
 export const IdentifierLinter = linter((view) => {
   const diagnostics: Diagnostic[] = [];
   let breedNames: string[] = [];
-  view.state.field(stateExtension).Breeds.map((breed) => {
+  for (let breed of view.state.field(stateExtension).Breeds.values()) {
     breedNames.push(breed.Singular);
     breedNames.push(breed.Plural);
     breedNames = breedNames.concat(breed.Variables);
-  });
+  }
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
@@ -76,21 +76,23 @@ const checkValid = function (
   });
   // gets list of procedure variables from own procedure, as well as list of all procedure names
   let procedureVars: string[] = [];
-  const procedureNames: string[] = [];
+  const procedureNames = Array.from(
+    state.field(stateExtension).Procedures.keys()
+  );
   if (procedureName != '') {
-    state.field(stateExtension).Procedures.map((procedure) => {
-      procedureNames.push(procedure.Name);
-      if (procedure.Name.toLowerCase() == procedureName.toLowerCase()) {
-        const vars: string[] = [];
-        procedure.Variables.map((variable) => {
-          // makes sure the variable has already been created
-          if (variable.CreationPos < Node.from) {
-            vars.push(variable.Name);
-          }
-        });
-        procedureVars = vars.concat(procedure.Arguments);
+    let procedure = state
+      .field(stateExtension)
+      .Procedures.get(procedureName.toLowerCase());
+    const vars: string[] = [];
+    procedure?.Variables.map((variable) => {
+      // makes sure the variable has already been created
+      if (variable.CreationPos < Node.from) {
+        vars.push(variable.Name);
       }
     });
+    if (procedure?.Arguments) {
+      procedureVars = vars.concat(procedure.Arguments);
+    }
   }
 
   return (
