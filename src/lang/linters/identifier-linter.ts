@@ -52,7 +52,7 @@ const acceptableIdentifiers = [
 ];
 
 // Checks identifiers for valid variable/procedure/breed names
-const checkValid = function (
+export const checkValid = function (
   Node: SyntaxNode,
   value: string,
   state: EditorState,

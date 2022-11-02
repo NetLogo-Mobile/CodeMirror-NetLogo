@@ -24,6 +24,8 @@ export class StateNetLogo {
   public ParseState(State: EditorState): StateNetLogo {
     const Cursor = syntaxTree(State).cursor();
     if (!Cursor.firstChild()) return this;
+    this.Breeds = new Map<string, Breed>();
+    this.Procedures = new Map<string, Procedure>();
     this.Breeds.set('turtle', new Breed('turtle', 'turtles', []));
     this.Breeds.set('patch', new Breed('patch', 'patches', []));
     this.Breeds.set('link', new Breed('link', 'links', []));
@@ -39,10 +41,11 @@ export class StateNetLogo {
       }
       // get global variables
       if (Cursor.node.name == 'Globals') {
-        this.Globals = [];
-        Cursor.node.getChildren('Identifier').map((Node) => {
-          this.Globals.push(State.sliceDoc(Node.from, Node.to).toLowerCase());
-        });
+        this.Globals = getVariables(Cursor.node, State);
+        // this.Globals = [];
+        // Cursor.node.getChildren('Identifier').map((Node) => {
+        //   this.Globals.push(State.sliceDoc(Node.from, Node.to).toLowerCase());
+        // });
       }
       // get breeds
       if (Cursor.node.name == 'Breed') {
@@ -67,10 +70,11 @@ export class StateNetLogo {
           breedName = State.sliceDoc(node.from, node.to).toLowerCase();
           breedName = breedName.substring(0, breedName.length - 4);
         });
-        const breedVars: string[] = [];
-        Cursor.node.getChildren('Identifier').map((node) => {
-          breedVars.push(State.sliceDoc(node.from, node.to).toLowerCase());
-        });
+        let breedVars = getVariables(Cursor.node, State);
+        // const breedVars: string[] = [];
+        // Cursor.node.getChildren('Identifier').map((node) => {
+        //   breedVars.push(State.sliceDoc(node.from, node.to).toLowerCase());
+        // });
         for (let breed of this.Breeds.values()) {
           if (breed.Plural == breedName) {
             breed.Variables = breedVars;
@@ -107,7 +111,6 @@ export class StateNetLogo {
               });
             });
             anonProc.Arguments = args;
-            console.log(getLocalVars(Node, State, true));
             anonProc.Variables = anonProc.Variables.concat(
               getLocalVars(Node, State, true)
             );
@@ -152,7 +155,6 @@ const getLocalVars = function (
       });
     }
   });
-
   return localVars;
 };
 
@@ -164,6 +166,23 @@ const getParents = function (Node: SyntaxNode) {
     curr = curr.parent;
   }
   return parents;
+};
+
+const getVariables = function (Node: SyntaxNode, state: EditorState) {
+  let vars: string[] = [];
+  Node.cursor().iterate((noderef) => {
+    if (noderef.node.to > Node.to) {
+      return false;
+    }
+    if (
+      ['Identifier', 'BreedFirst', 'BreedMiddle', 'BreedLast'].includes(
+        noderef.name
+      )
+    ) {
+      vars.push(state.sliceDoc(noderef.from, noderef.to).toLowerCase());
+    }
+  });
+  return vars;
 };
 
 // get arguments for the procedure

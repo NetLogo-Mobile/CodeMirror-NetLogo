@@ -3,14 +3,17 @@ import { linter, Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { stateExtension } from '../../codemirror/extension-state-netlogo';
+import { checkValid } from './identifier-linter';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter = linter((view) => {
   const diagnostics: Diagnostic[] = [];
   const breedNames: string[] = [];
+  let breedVars: string[] = [];
   for (let breed of view.state.field(stateExtension).Breeds.values()) {
     breedNames.push(breed.Singular);
     breedNames.push(breed.Plural);
+    breedVars = breedVars.concat(breed.Variables);
   }
   syntaxTree(view.state)
     .cursor()
@@ -24,7 +27,7 @@ export const BreedLinter = linter((view) => {
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
-        if (!checkValidBreed(Node, value, view.state, breedNames)) {
+        if (!checkValidBreed(Node, value, view.state, breedNames, breedVars)) {
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
@@ -51,7 +54,8 @@ const checkValidBreed = function (
   node: SyntaxNode,
   value: string,
   state: EditorState,
-  breedNames: string[]
+  breedNames: string[],
+  breedVars: string[]
 ) {
   let isValid = false;
   const values = value.split('-');
@@ -80,6 +84,9 @@ const checkValidBreed = function (
   // before declaring it invalid
   if (state.field(stateExtension).Procedures.get(value)) {
     isValid = true;
+  }
+  if (!isValid) {
+    isValid = checkValid(node, value, state, breedNames.concat(breedVars));
   }
   return isValid;
 };

@@ -17,6 +17,8 @@ import {
   Let,
   To,
   End,
+  And,
+  Or,
   ValFirstPrimitive,
   ValLastPrimitive,
   BreedFirst,
@@ -62,6 +64,10 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(To);
   } else if (token == 'end') {
     input.acceptToken(End);
+  } else if (token == 'and') {
+    input.acceptToken(And);
+  } else if (token == 'or') {
+    input.acceptToken(Or);
   } else if (token == 'globals') {
     input.acceptToken(GlobalStr);
   } else if (token == 'extensions') {

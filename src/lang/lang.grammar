@@ -74,6 +74,7 @@ VariableName {
 }
 
 Value {
+  Reporter
   Calculation |
   String |
   OpenBracket Value* CloseBracket 
@@ -108,8 +109,8 @@ Calculation {
 Boolean {
   Value !operation Comparative Value |
   "(" Boolean ")" |
-  Boolean !operation "and" Boolean |
-  Boolean !operation "or" Boolean
+  Boolean !operation And Boolean |
+  Boolean !operation Or Boolean
 }
 
 Conditional {
@@ -155,4 +156,4 @@ expression {
   Unsupported
 }
 
-@external tokens keyword from "./tokenizer.js" { GlobalStr, ExtensionStr, BreedStr, BreedFirst, BreedLast, BreedMiddle, Own, Set, Let, To, End, ValFirstPrimitive, ValLastPrimitive, Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
+@external tokens keyword from "./tokenizer.js" { And, Or, GlobalStr, ExtensionStr, BreedStr, BreedFirst, BreedLast, BreedMiddle, Own, Set, Let, To, End, ValFirstPrimitive, ValLastPrimitive, Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
