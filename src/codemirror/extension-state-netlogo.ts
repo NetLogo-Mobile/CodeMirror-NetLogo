@@ -8,7 +8,6 @@ import {
   Procedure,
 } from '../lang/classes';
 import { SyntaxNode } from '@lezer/common';
-import nodeResolve from '@rollup/plugin-node-resolve';
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
@@ -23,6 +22,7 @@ export class StateNetLogo {
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StateNetLogo {
     const Cursor = syntaxTree(State).cursor();
+
     if (!Cursor.firstChild()) return this;
     this.Breeds = new Map<string, Breed>();
     this.Procedures = new Map<string, Procedure>();
@@ -119,7 +119,9 @@ export class StateNetLogo {
         });
         this.Procedures.set(procedure.Name, procedure);
       }
-      if (!Cursor.nextSibling()) return this;
+      if (!Cursor.nextSibling()) {
+        return this;
+      }
     }
   }
 }

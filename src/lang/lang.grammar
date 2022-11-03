@@ -45,7 +45,9 @@ ProcedureContent {
   Primitive |
   BreedProceduresReporters | 
   Conditional |
-  expression
+  Commands |
+  Reporters |
+  Identifier
 }
 
 AnonArguments{
@@ -70,21 +72,23 @@ SetVariable {
 }
 
 VariableName {
-  Identifier | PatchVar | TurtleVar | LinkVar
+  !operation Identifier | !operation PatchVar | !operation TurtleVar | !operation LinkVar
 }
 
 Value {
-  Reporter
+  Reporters
   Calculation |
   String |
+  Constant |
+  VariableName |
   OpenBracket Value* CloseBracket 
 }
 
 NumericValue {
-  Constant |
-  Numeric |
-  VariableName |
-  OpenBracket VariableName !open CloseBracket "of" Identifier
+  !operation Constant |
+  !operation Numeric |
+  !operation VariableName ~statement |
+  !operation OpenBracket VariableName !open CloseBracket "of" Identifier
 }
 
 Primitive {
@@ -93,7 +97,34 @@ Primitive {
 }
 
 Reporters {
-  Reporter | AnonymousProcedure
+  Reporter | 
+  Reporter0Args |
+  Reporter1Args Arg |
+  Reporter2Args Arg Arg |
+  Reporter3Args Arg Arg Arg |
+  Reporter4Args Arg Arg Arg Arg
+}
+
+Commands {
+  Command |
+  Command0Args |
+  Command1Args Arg |
+  Command2Args Arg Arg |
+  Command3Args Arg Arg Arg |
+  Command4Args Arg Arg Arg Arg
+}
+
+Arg {   
+  Boolean |
+  Calculation |
+  Value |
+  NumericValue ~statement |
+  Primitive |
+  AnonymousProcedure |
+  VariableName ~statement | 
+  Reporters |
+  Commands |
+  OpenBracket ProcedureContent+ CloseBracket
 }
 
 BreedProceduresReporters {
@@ -101,21 +132,33 @@ BreedProceduresReporters {
 }
 
 Calculation {
-  NumericValue |
+  NumericValue ~statement |
   Calculation !operation Operation Calculation |
-  "(" Calculation ")"
+  !operation "(" Calculation ")"
 }
 
 Boolean {
   Value !operation Comparative Value |
   "(" Boolean ")" |
   Boolean !operation And Boolean |
-  Boolean !operation Or Boolean
+  Boolean !operation Or Boolean |
+  VariableName |
+  "not" Value
 }
 
 Conditional {
   "if" Boolean OpenBracket ProcedureContent* CloseBracket |
+  "(" "ifelse-value" IfValue+ ElseValue ")" |
+  "ifelse-value" IfValue ElseValue |
   "ifelse" Boolean OpenBracket ProcedureContent* CloseBracket OpenBracket ProcedureContent* CloseBracket
+}
+
+IfValue {
+  Boolean OpenBracket Value CloseBracket
+}
+
+ElseValue {
+  OpenBracket  Value !operation CloseBracket
 }
 
 @tokens {
@@ -156,4 +199,40 @@ expression {
   Unsupported
 }
 
-@external tokens keyword from "./tokenizer.js" { And, Or, GlobalStr, ExtensionStr, BreedStr, BreedFirst, BreedLast, BreedMiddle, Own, Set, Let, To, End, ValFirstPrimitive, ValLastPrimitive, Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
+@external tokens keyword from "./tokenizer.js" { 
+  Command0Args,
+  Command1Args, 
+  Command2Args, 
+  Command3Args, 
+  Command4Args, 
+  Reporter0Args,
+  Reporter1Args, 
+  Reporter2Args, 
+  Reporter3Args, 
+  Reporter4Args, 
+  And, 
+  Or, 
+  GlobalStr, 
+  ExtensionStr, 
+  BreedStr, 
+  BreedFirst, 
+  BreedLast, 
+  BreedMiddle, 
+  Own, 
+  Set, 
+  Let, 
+  To, 
+  End, 
+  ValFirstPrimitive, 
+  ValLastPrimitive, 
+  Identifier, 
+  Directive, 
+  Command, 
+  Reporter, 
+  Extension, 
+  TurtleVar, 
+  PatchVar, 
+  LinkVar, 
+  Constant, 
+  Unsupported
+}
