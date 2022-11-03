@@ -38,6 +38,7 @@ import {
   GlobalStr,
   ExtensionStr,
   BreedStr,
+  Reporter11Args,
   Reporter0Args,
   Reporter1Args,
   Reporter2Args,
@@ -77,10 +78,6 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(To);
   } else if (token == 'end') {
     input.acceptToken(End);
-  } else if (token == 'and') {
-    input.acceptToken(And);
-  } else if (token == 'or') {
-    input.acceptToken(Or);
   } else if (token == 'globals') {
     input.acceptToken(GlobalStr);
   } else if (token == 'extensions') {
@@ -91,15 +88,6 @@ export const keyword = new ExternalTokenizer((input) => {
     token == 'undirected-link-breed'
   ) {
     input.acceptToken(BreedStr);
-  } else if (token == 'foreach' || token == 'n-values') {
-    input.acceptToken(ValFirstPrimitive);
-  } else if (
-    token == 'map' ||
-    token == 'reduce' ||
-    token == 'filter' ||
-    token == 'sort-by'
-  ) {
-    input.acceptToken(ValLastPrimitive);
   } else if (directives.indexOf(token) != -1) {
     input.acceptToken(Directive);
   } else if (extensions.indexOf(token) != -1) {
@@ -129,13 +117,13 @@ export const keyword = new ExternalTokenizer((input) => {
 function isValidKeyword(ch: number) {
   // 0-9
   return (
-    (ch >= 48 && ch <= 58) ||
+    (ch >= 42 && ch <= 58) ||
     // -
     ch == 45 ||
     // _
     ch == 95 ||
     // A-Z
-    (ch >= 63 && ch <= 90) ||
+    (ch >= 60 && ch <= 90) ||
     // a-z
     (ch >= 97 && ch <= 122) ||
     // non-English characters
@@ -171,7 +159,9 @@ function getArgs(token: string, type: string) {
     REPORTERS.map((reporter) => {
       if (reporter.name.toLowerCase() == token) {
         numArgs = reporter.syntax.right.length;
-        if (numArgs == 0) {
+        if (reporter.syntax.left != 'unit') {
+          tag = Reporter11Args;
+        } else if (numArgs == 0) {
           tag = Reporter0Args;
         } else if (numArgs == 1) {
           tag = Reporter1Args;

@@ -8,6 +8,13 @@ export const UnrecognizedLinter = linter((view) => {
     .cursor()
     .iterate((node) => {
       if (node.name == '⚠' && node.to != node.from) {
+        // let curr = node.node
+        // let parents: string []=[]
+        // while (curr.parent){
+        //   parents.push(curr.parent.name)
+        //   curr = curr.parent
+        // }
+        // console.log(parents)
         diagnostics.push({
           from: node.from,
           to: node.to,
