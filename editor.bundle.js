@@ -27395,6 +27395,9 @@
                extensions: Extensions,
                parent: Parent,
            });
+           // disable Grammarly
+           const el = this.Parent.getElementsByClassName('cm-content')[0];
+           el.setAttribute('data-enable-grammarly', 'false');
        }
        /** Highlight: Highlight a given snippet of code. */
        Highlight(Content) {
