@@ -120,6 +120,7 @@ function isValidKeyword(ch: number) {
     (ch >= 42 && ch <= 58) ||
     // -
     ch == 45 ||
+    ch == 94 ||
     // _
     ch == 95 ||
     // A-Z

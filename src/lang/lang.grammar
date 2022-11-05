@@ -37,18 +37,18 @@ ProcedureName {
 }
 
 Arguments {
-  OpenBracket Identifier* CloseBracket
+  !operation OpenBracket Identifier* ~statement CloseBracket 
 }
 
 ProcedureContent {
   VariableDeclaration | 
   BreedProceduresReporters | 
   Commands |
-  Reporters ~statement|
-  Identifier
+  Reporters ~statement |
+  Identifier ~statement
 }
 
-AnonArguments{
+AnonArguments {
   Arguments | Identifier
 }
 
@@ -62,11 +62,11 @@ VariableDeclaration {
 }
 
 NewVariableDeclaration {
-  Let Identifier Boolean
+  Let Identifier Value
 }
 
 SetVariable {
-  Set VariableName Boolean
+  Set VariableName Value
 }
 
 VariableName {
@@ -77,21 +77,26 @@ VariableName {
 }
 
 Value {
+  "(" Value ")" |
   Reporters ~statement |
   String |
   Constant |
   VariableName |
   List |
+  Numeric
+}
+
+SimpleVal {
   Numeric |
-  Property
+  String
 }
 
 List {
-  OpenBracket Value* CloseBracket ~statement  
+  OpenBracket SimpleVal+ CloseBracket 
 }
 
-Property {
-  OpenBracket VariableName !operation CloseBracket "of" Identifier
+CodeBlock {
+  OpenBracket ProcedureContent* CloseBracket
 }
 
 Reporters {
@@ -114,11 +119,9 @@ Commands {
 }
 
 Arg {   
-  Boolean ~statement |
   AnonymousProcedure |
-  VariableName ~statement | 
+  CodeBlock | 
   Commands |
-  OpenBracket ProcedureContent+ CloseBracket |
   Value ~statement
 }
 
@@ -126,12 +129,6 @@ BreedProceduresReporters {
   BreedFirst | BreedMiddle | BreedLast
 }
 
-
-Boolean {
-  Value ~statement |
-  "(" Boolean ")" |
-  Reporters
-}
 
 @tokens {
   Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* }
@@ -187,7 +184,7 @@ expression {
   To, 
   End, 
   Identifier, 
-  Directive, 
+  Directive,
   Command, 
   Reporter, 
   Extension, 

@@ -94,6 +94,15 @@ export class AutoCompletion {
     const nodeName = node.type.name;
     const state = Context.state.field(stateExtension);
     console.log(grandparentName + ' / ' + parentName + ' / ' + nodeName);
+
+    let curr = node;
+    let parents = [];
+    while (curr.parent) {
+      parents.push(curr.parent.name);
+      curr = curr.parent;
+    }
+    console.log(node.name, parents);
+
     // If the parent/grand parent node is of a type specified in this.maps
     if (this.ParentTypes.indexOf(parentName) > -1) {
       return {
