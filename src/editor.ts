@@ -1,6 +1,11 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { undo, redo, selectAll, indentWithTab } from '@codemirror/commands';
-import { LanguageSupport } from '@codemirror/language';
+import {
+  forceParsing,
+  LanguageSupport,
+  ParseContext,
+  syntaxParserRunning,
+} from '@codemirror/language';
 import {
   replaceAll,
   selectMatches,
@@ -365,6 +370,7 @@ export class GalapagosEditor {
   // #region "Event Handling"
   /** onUpdate: Handle the Update event. */
   private onUpdate(update: ViewUpdate) {
+    // forceParsing(update.view)
     if (this.Options.OnUpdate != null) {
       this.Options.OnUpdate(update.docChanged, update);
     }

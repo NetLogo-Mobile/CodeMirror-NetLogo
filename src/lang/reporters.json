@@ -1,0 +1,4074 @@
+[
+  {
+    "name": "LINK-SHAPES",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "STANDARD-DEVIATION",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        { "type:": "wildcard", "isRepeatable": true, "isOptional": false }
+      ],
+      "ret": "list",
+      "defaultOption": 2,
+      "minimumOption": 0,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RGB",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number", "number"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "REPLACE-ITEM",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "number",
+        { "types": ["string", "list"], "isRepeatable": false },
+        "wildcard"
+      ],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "FILE-READ-CHARACTERS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BUT-LAST",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__BLOCK",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["codeblock"],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MODES",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM-PXCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANGE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        { "type:": "number", "isRepeatable": true, "isOptional": false }
+      ],
+      "ret": "list",
+      "defaultOption": 1,
+      "minimumOption": 1,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LINK-LENGTH",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "---L",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "HUBNET-EXIT-MESSAGE?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MAX",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BL",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TOWARDSXY",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LIST",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        { "type:": "wildcard", "isRepeatable": true, "isOptional": false }
+      ],
+      "ret": "list",
+      "defaultOption": 2,
+      "minimumOption": 0,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "EXP",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__CHECK-SYNTAX",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["string"],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SHADE-OF?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCH",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "patch",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "WITH-MAX",
+    "syntax": {
+      "precedence": 12,
+      "left": "agentset",
+      "right": ["numberblock"],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-TURTLE-SET?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__APPLY-RESULT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["reporter", "list"],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IN-LINK-FROM",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agent"],
+      "ret": "agent",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "HSB",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number", "number"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NETLOGO-VERSION",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM-NORMAL",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TOWARDS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["turtle", "patch"], "isRepeatable": false }],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ATAN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MEAN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__RANDOM-STATE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCH-HERE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "patch",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "+",
+    "syntax": {
+      "precedence": 7,
+      "left": "number",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "FIRST",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "OUT-LINK-TO",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agent"],
+      "ret": "agent",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "FILE-READ-LINE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SUBSTRING",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["string", "number", "number"],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PLOT-NAME",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "REMOVE-DUPLICATES",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PRECISION",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TURTLES",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "turtle agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-AGENTSET?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NO-TURTLES",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "turtle agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCH-SET",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        { "types": ["list", "patch agentset", "patch"], "isRepeatable": true }
+      ],
+      "ret": "patch agentset",
+      "defaultOption": 1,
+      "minimumOption": 0,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-DIRECTED-LINK?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "AT-POINTS",
+    "syntax": {
+      "precedence": 12,
+      "left": {
+        "types": ["turtle agentset", "patch agentset"],
+        "isRepeatable": false
+      },
+      "right": ["list"],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ASIN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "REMAINDER",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IN-CONE",
+    "syntax": {
+      "precedence": 12,
+      "left": {
+        "types": ["turtle agentset", "patch agentset"],
+        "isRepeatable": false
+      },
+      "right": ["number", "number"],
+      "ret": {
+        "types": ["turtle agentset", "patch agentset"],
+        "isRepeatable": false
+      },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BUTFIRST",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "/",
+    "syntax": {
+      "precedence": 8,
+      "left": "number",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-AGENT?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "REMOVE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "wildcard",
+        { "types": ["string", "list"], "isRepeatable": false }
+      ],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "AND",
+    "syntax": {
+      "precedence": 4,
+      "left": "boolean",
+      "right": ["boolean"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MIN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SELF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "agent",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IN-LINK-NEIGHBOR?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agent"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-LINK-SET?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "DISTANCE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["turtle", "patch"], "isRepeatable": false }],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PLOT-X-MAX",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SENTENCE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        { "type:": "wildcard", "isRepeatable": true, "isOptional": false }
+      ],
+      "ret": "list",
+      "defaultOption": 2,
+      "minimumOption": 0,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LOG",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__REFERENCE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["symbol"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NEW-SEED",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MOD",
+    "syntax": {
+      "precedence": 8,
+      "left": "number",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LINK-NEIGHBORS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MIN-ONE-OF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agentset", "numberblock"],
+      "ret": "agent",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "^",
+    "syntax": {
+      "precedence": 9,
+      "left": "number",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "WITH-MIN",
+    "syntax": {
+      "precedence": 12,
+      "left": "agentset",
+      "right": ["numberblock"],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "DISTANCEXY",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SORT-BY",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "reporter",
+        { "types": ["list", "agentset"], "isRepeatable": false }
+      ],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ITEM",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "number",
+        { "types": ["string", "list"], "isRepeatable": false }
+      ],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "*",
+    "syntax": {
+      "precedence": 8,
+      "left": "number",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "FILTER",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["reporter", "list"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__SYMBOL",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["symbol"],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM-YCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "VARIANCE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IN-RADIUS",
+    "syntax": {
+      "precedence": 12,
+      "left": {
+        "types": ["turtle agentset", "patch agentset"],
+        "isRepeatable": false
+      },
+      "right": ["number"],
+      "ret": {
+        "types": ["turtle agentset", "patch agentset"],
+        "isRepeatable": false
+      },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PLOT-X-MIN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NO-PATCHES",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "patch agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCH-RIGHT-AND-AHEAD",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "patch",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM-EXPONENTIAL",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "<=",
+    "syntax": {
+      "precedence": 6,
+      "left": { "types": ["agent", "number", "string"], "isRepeatable": false },
+      "right": [
+        { "types": ["agent", "number", "string"], "isRepeatable": false }
+      ],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TURTLES-HERE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "turtle agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-NUMBER?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ERROR-MESSAGE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NOT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["boolean"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__DUMP",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "O---",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "USER-INPUT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCH-LEFT-AND-AHEAD",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "patch",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MEMBER?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "wildcard",
+        { "types": ["string", "list", "agentset"], "isRepeatable": false }
+      ],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-PATCH?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SHUFFLE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MOUSE-XCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MIN-N-OF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "agentset", "numberblock"],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LINKS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "linkset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__STACK-TRACE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__TO-STRING",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "WORLD-HEIGHT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MY-OUT-LINKS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "linkset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IN-LINK-NEIGHBORS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ONE-OF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["list", "agentset"], "isRepeatable": false }],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM-PYCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MIN-PYCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MOUSE-INSIDE?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "EMPTY?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SUBJECT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "agent",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "N-VALUES",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "reporter"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NEIGHBORS4",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "patch agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-ANONYMOUS-REPORTER?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SCALE-COLOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number", "number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TURTLES-ON",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["agent", "agentset"], "isRepeatable": false }],
+      "ret": "turtle agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCH-AT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "patch",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MOUSE-DOWN?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "OTHER-END",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "agent",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T-L",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IFELSE-VALUE",
+    "syntax": {
+      "precedence": 3,
+      "left": "unit",
+      "right": [
+        "boolean",
+        "reporterblock",
+        { "types": ["boolean", "reporterblock"], "isRepeatable": true }
+      ],
+      "ret": "wildcard",
+      "defaultOption": 3,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ROUND",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "POSITION",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "wildcard",
+        { "types": ["string", "list"], "isRepeatable": false }
+      ],
+      "ret": { "types": ["number", "boolean"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TURTLES-AT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "turtle agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SORT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["list", "agentset"], "isRepeatable": false }],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "INSERT-ITEM",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "number",
+        { "types": ["string", "list"], "isRepeatable": false },
+        "wildcard"
+      ],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MAX-ONE-OF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agentset", "numberblock"],
+      "ret": "agent",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ABS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "FILE-AT-END?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "WORD",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        { "type:": "wildcard", "isRepeatable": true, "isOptional": false }
+      ],
+      "ret": "string",
+      "defaultOption": 2,
+      "minimumOption": 0,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MOUSE-YCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "UP-TO-N-OF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "number",
+        { "types": ["list", "agentset"], "isRepeatable": false }
+      ],
+      "ret": { "types": ["list", "agentset"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TICKS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MIN-PXCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-LIST?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MY-IN-LINKS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "linkset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LINK-WITH",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agent"],
+      "ret": "link",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SUBTRACT-HEADINGS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__PROCESSORS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SHAPES",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SIN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BUTLAST",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "COUNT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agentset"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RUNRESULT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        { "types": ["string", "reporter"], "isRepeatable": false },
+        { "type:": "wildcard", "isRepeatable": true, "isOptional": false }
+      ],
+      "ret": "wildcard",
+      "defaultOption": 1,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TIMER",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCHES",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "patch agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__NANO-TIME",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "EXTRACT-HSB",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["number", "list"], "isRepeatable": false }],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RUN-RESULT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        { "types": ["string", "reporter"], "isRepeatable": false },
+        { "type:": "wildcard", "isRepeatable": true, "isOptional": false }
+      ],
+      "ret": "wildcard",
+      "defaultOption": 1,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "CEILING",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM-POISSON",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PLOT-PEN-EXISTS?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["string"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PLOT-Y-MIN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": ">",
+    "syntax": {
+      "precedence": 6,
+      "left": { "types": ["agent", "number", "string"], "isRepeatable": false },
+      "right": [
+        { "types": ["agent", "number", "string"], "isRepeatable": false }
+      ],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "XOR",
+    "syntax": {
+      "precedence": 4,
+      "left": "boolean",
+      "right": ["boolean"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-UNDIRECTED-LINK?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "DY",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "AUTOPLOT?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "HUBNET-CLIENTS-LIST",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "REDUCE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["reporter", "list"],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "USER-FILE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": { "types": ["boolean", "string"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "EXTRACT-RGB",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["number", "list"], "isRepeatable": false }],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-LINK?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "USER-YES-OR-NO?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-STRING?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "REVERSE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PLOT-Y-MAX",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MAX-N-OF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "agentset", "numberblock"],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "HUBNET-MESSAGE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LENGTH",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BEHAVIORSPACE-RUN-NUMBER",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BEHAVIORSPACE-EXPERIMENT-NAME",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "READ-FROM-STRING",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["string"],
+      "ret": {
+        "types": ["number", "boolean", "string", "list", "nobody"],
+        "isRepeatable": false
+      },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__DUMP-EXTENSIONS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NETLOGO-APPLET?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TAN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "OTHER",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agentset"],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NEIGHBORS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "patch agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "APPROXIMATE-HSB",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "INT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "HUBNET-MESSAGE-TAG",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "REMOVE-ITEM",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "number",
+        { "types": ["string", "list"], "isRepeatable": false }
+      ],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "OUT-LINK-NEIGHBORS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BOTH-ENDS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "---L",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "DX",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "FLOOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCH-AHEAD",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "patch",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "WORLD-WIDTH",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LINK-NEIGHBOR?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agent"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MAX-PYCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SUM",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MY-LINKS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "linkset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "APPROXIMATE-RGB",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "USER-NEW-FILE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": { "types": ["boolean", "string"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "<",
+    "syntax": {
+      "precedence": 6,
+      "left": { "types": ["agent", "number", "string"], "isRepeatable": false },
+      "right": [
+        { "types": ["agent", "number", "string"], "isRepeatable": false }
+      ],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "-",
+    "syntax": {
+      "precedence": 7,
+      "left": "number",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "FILE-EXISTS?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["string"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "WRAP-COLOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LINK",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "link",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-ANONYMOUS-COMMAND?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM-FLOAT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "OR",
+    "syntax": {
+      "precedence": 4,
+      "left": "boolean",
+      "right": ["boolean"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NETLOGO-WEB?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "COS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SORT-ON",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["reporterblock", "agentset"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LPUT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard", "list"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "OUT-LINK-NEIGHBOR?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agent"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MEDIAN",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ACOS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "=",
+    "syntax": {
+      "precedence": 5,
+      "left": "wildcard",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ALL?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agentset", "booleanblock"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__DUMP-EXTENSION-PRIMS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM-GAMMA",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCH-SIZE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "USER-ONE-OF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard", "list"],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "ANY?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["agentset"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TURTLE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "turtle",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "HUBNET-MESSAGE-SOURCE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-BOOLEAN?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__CHECKSUM",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "O---",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__DUMP1",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "N-OF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "number",
+        { "types": ["list", "agentset"], "isRepeatable": false }
+      ],
+      "ret": { "types": ["list", "agentset"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "DATE-AND-TIME",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "string",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "CAN-MOVE?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-T--",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BUT-FIRST",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": { "types": ["string", "list"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "BASE-COLORS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": ">=",
+    "syntax": {
+      "precedence": 6,
+      "left": { "types": ["agent", "number", "string"], "isRepeatable": false },
+      "right": [
+        { "types": ["agent", "number", "string"], "isRepeatable": false }
+      ],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "__BOOM",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LINK-HEADING",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "---L",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-PATCH-SET?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "IS-TURTLE?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SQRT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number"],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LINK-SET",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["list", "linkset", "link"], "isRepeatable": true }],
+      "ret": "linkset",
+      "defaultOption": 1,
+      "minimumOption": 0,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "FILE-READ",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": {
+        "types": ["number", "boolean", "string", "list", "nobody"],
+        "isRepeatable": false
+      },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "USER-DIRECTORY",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": { "types": ["boolean", "string"], "isRepeatable": false },
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "SUBLIST",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["list", "number", "number"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MAX-PXCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "TURTLE-SET",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        { "types": ["list", "turtle agentset", "turtle"], "isRepeatable": true }
+      ],
+      "ret": "turtle agentset",
+      "defaultOption": 1,
+      "minimumOption": 0,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MAP",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [
+        "reporter",
+        { "type:": "list", "isRepeatable": true, "isOptional": false }
+      ],
+      "ret": "list",
+      "defaultOption": 2,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "HUBNET-MESSAGE-WAITING?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "!=",
+    "syntax": {
+      "precedence": 5,
+      "left": "wildcard",
+      "right": ["wildcard"],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "FPUT",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["wildcard", "list"],
+      "ret": "list",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "NO-LINKS",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "linkset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "LAST",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [{ "types": ["string", "list"], "isRepeatable": false }],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "MYSELF",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "agent",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "PATCH-AT-HEADING-AND-DISTANCE",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": ["number", "number"],
+      "ret": "patch",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "-TP-",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "RANDOM-XCOR",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "number",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "WITH",
+    "syntax": {
+      "precedence": 12,
+      "left": "agentset",
+      "right": ["booleanblock"],
+      "ret": "agentset",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "OF",
+    "syntax": {
+      "precedence": 11,
+      "left": "reporterblock",
+      "right": [{ "types": ["agent", "agentset"], "isRepeatable": false }],
+      "ret": "wildcard",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": true,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "?",
+      "introducesContext": "true",
+      "canBeConcise": true
+    }
+  },
+  {
+    "name": "HUBNET-ENTER-MESSAGE?",
+    "syntax": {
+      "precedence": 10,
+      "left": "unit",
+      "right": [],
+      "ret": "boolean",
+      "defaultOption": null,
+      "minimumOption": null,
+      "isRightAssociative": false,
+      "agentClassString": "OTPL",
+      "blockAgentClassString": "null",
+      "introducesContext": "false",
+      "canBeConcise": true
+    }
+  }
+]

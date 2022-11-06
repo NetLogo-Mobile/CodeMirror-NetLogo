@@ -37,18 +37,18 @@ ProcedureName {
 }
 
 Arguments {
-  OpenBracket Identifier* CloseBracket
+  !operation OpenBracket Identifier* ~statement CloseBracket 
 }
 
 ProcedureContent {
   VariableDeclaration | 
-  Primitive |
   BreedProceduresReporters | 
-  Conditional |
-  expression
+  Commands |
+  Reporters ~statement |
+  Identifier ~statement
 }
 
-AnonArguments{
+AnonArguments {
   Arguments | Identifier
 }
 
@@ -70,68 +70,72 @@ SetVariable {
 }
 
 VariableName {
-  Identifier | PatchVar | TurtleVar | LinkVar
+  !operation Identifier | 
+  !operation PatchVar | 
+  !operation TurtleVar | 
+  !operation LinkVar
 }
 
 Value {
-  Reporter
-  Calculation |
+  "(" Value ")" |
+  Reporters ~statement |
   String |
-  OpenBracket Value* CloseBracket 
-}
-
-NumericValue {
   Constant |
-  Numeric |
   VariableName |
-  OpenBracket VariableName !open CloseBracket "of" Identifier
+  List |
+  Numeric
 }
 
-Primitive {
-  ValFirstPrimitive Value Reporters |
-  ValLastPrimitive Reporters Value
+SimpleVal {
+  Numeric |
+  String
+}
+
+List {
+  OpenBracket SimpleVal+ CloseBracket 
+}
+
+CodeBlock {
+  OpenBracket ProcedureContent* CloseBracket
 }
 
 Reporters {
-  Reporter | AnonymousProcedure
+  !operation Reporter | 
+  Arg !operation Reporter11Args Arg |
+  !operation Reporter0Args |
+  !operation Reporter1Args Arg |
+  !operation Reporter2Args Arg Arg |
+  !operation Reporter3Args Arg Arg Arg |
+  !operation Reporter4Args Arg Arg Arg Arg
+}
+
+Commands {
+  Command |
+  Command0Args |
+  Command1Args Arg |
+  Command2Args Arg Arg |
+  Command3Args Arg Arg Arg |
+  Command4Args Arg Arg Arg Arg
+}
+
+Arg {   
+  AnonymousProcedure |
+  CodeBlock | 
+  Commands |
+  Value ~statement
 }
 
 BreedProceduresReporters {
   BreedFirst | BreedMiddle | BreedLast
 }
 
-Calculation {
-  NumericValue |
-  Calculation !operation Operation Calculation |
-  "(" Calculation ")"
-}
-
-Boolean {
-  Value !operation Comparative Value |
-  "(" Boolean ")" |
-  Boolean !operation And Boolean |
-  Boolean !operation Or Boolean
-}
-
-Conditional {
-  "if" Boolean OpenBracket ProcedureContent* CloseBracket |
-  "ifelse" Boolean OpenBracket ProcedureContent* CloseBracket OpenBracket ProcedureContent* CloseBracket
-}
 
 @tokens {
-  Numeric { $[0-9]+ $[\.]? $[0-9]* }
+  Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* }
   
   String { '"' (!["\\] | "\\" _)* '"' }
 
   LineComment { ";" ![\n]* }
-
-  Operation {
-    "+" | "-" | "/" | "*" | "^"
-  }
-
-  Comparative {
-    "=" | "!=" | "<" | ">" | "<=" | ">="
-  }
 
   space { $[ \t\n\r]+ }
   
@@ -156,4 +160,37 @@ expression {
   Unsupported
 }
 
-@external tokens keyword from "./tokenizer.js" { And, Or, GlobalStr, ExtensionStr, BreedStr, BreedFirst, BreedLast, BreedMiddle, Own, Set, Let, To, End, ValFirstPrimitive, ValLastPrimitive, Identifier, Directive, Command, Reporter, Extension, TurtleVar, PatchVar, LinkVar, Constant, Unsupported }
+@external tokens keyword from "./tokenizer.js" { 
+  Command0Args,
+  Command1Args, 
+  Command2Args, 
+  Command3Args, 
+  Command4Args, 
+  Reporter11Args,
+  Reporter0Args,
+  Reporter1Args, 
+  Reporter2Args, 
+  Reporter3Args, 
+  Reporter4Args, 
+  GlobalStr, 
+  ExtensionStr, 
+  BreedStr, 
+  BreedFirst, 
+  BreedLast, 
+  BreedMiddle, 
+  Own, 
+  Set, 
+  Let, 
+  To, 
+  End, 
+  Identifier, 
+  Directive,
+  Command, 
+  Reporter, 
+  Extension, 
+  TurtleVar, 
+  PatchVar, 
+  LinkVar, 
+  Constant, 
+  Unsupported
+}

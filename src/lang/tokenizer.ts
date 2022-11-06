@@ -38,9 +38,23 @@ import {
   GlobalStr,
   ExtensionStr,
   BreedStr,
+  Reporter11Args,
+  Reporter0Args,
+  Reporter1Args,
+  Reporter2Args,
+  Reporter3Args,
+  Reporter4Args,
+  Command0Args,
+  Command1Args,
+  Command2Args,
+  Command3Args,
+  Command4Args,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
+
+import { REPORTERS } from './reporters.js';
+import { COMMANDS } from './commands.js';
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer((input) => {
@@ -64,10 +78,6 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(To);
   } else if (token == 'end') {
     input.acceptToken(End);
-  } else if (token == 'and') {
-    input.acceptToken(And);
-  } else if (token == 'or') {
-    input.acceptToken(Or);
   } else if (token == 'globals') {
     input.acceptToken(GlobalStr);
   } else if (token == 'extensions') {
@@ -78,23 +88,10 @@ export const keyword = new ExternalTokenizer((input) => {
     token == 'undirected-link-breed'
   ) {
     input.acceptToken(BreedStr);
-  } else if (token == 'foreach' || token == 'n-values') {
-    input.acceptToken(ValFirstPrimitive);
-  } else if (
-    token == 'map' ||
-    token == 'reduce' ||
-    token == 'filter' ||
-    token == 'sort-by'
-  ) {
-    input.acceptToken(ValLastPrimitive);
   } else if (directives.indexOf(token) != -1) {
     input.acceptToken(Directive);
-  } else if (commands.indexOf(token) != -1) {
-    input.acceptToken(Command);
   } else if (extensions.indexOf(token) != -1) {
     input.acceptToken(Extension);
-  } else if (reporters.indexOf(token) != -1) {
-    input.acceptToken(Reporter);
   } else if (turtleVars.indexOf(token) != -1) {
     input.acceptToken(TurtleVar);
   } else if (patchVars.indexOf(token) != -1) {
@@ -105,6 +102,10 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(Constant);
   } else if (unsupported.indexOf(token) != -1) {
     input.acceptToken(Unsupported);
+  } else if (commands.indexOf(token) != -1) {
+    input.acceptToken(getArgs(token, 'Command'));
+  } else if (reporters.indexOf(token) != -1) {
+    input.acceptToken(getArgs(token, 'Reporter'));
   } else if (match != 0) {
     input.acceptToken(match);
   } else {
@@ -116,13 +117,14 @@ export const keyword = new ExternalTokenizer((input) => {
 function isValidKeyword(ch: number) {
   // 0-9
   return (
-    (ch >= 48 && ch <= 58) ||
+    (ch >= 42 && ch <= 58) ||
     // -
     ch == 45 ||
+    ch == 94 ||
     // _
     ch == 95 ||
     // A-Z
-    (ch >= 63 && ch <= 90) ||
+    (ch >= 60 && ch <= 90) ||
     // a-z
     (ch >= 97 && ch <= 122) ||
     // non-English characters
@@ -132,6 +134,49 @@ function isValidKeyword(ch: number) {
     (ch >= 210 && ch <= 216) ||
     (ch >= 224 && ch <= 237)
   );
+}
+
+function getArgs(token: string, type: string) {
+  let numArgs = 0;
+  let tag = Command ? type == 'Command' : Reporter;
+  if (type == 'Command') {
+    COMMANDS.map((command) => {
+      if (command.name.toLowerCase() == token) {
+        numArgs = command.syntax.right.length;
+        if (numArgs == 0) {
+          tag = Command0Args;
+        } else if (numArgs == 1) {
+          tag = Command1Args;
+        } else if (numArgs == 2) {
+          tag = Command2Args;
+        } else if (numArgs == 3) {
+          tag = Command3Args;
+        } else {
+          tag = Command4Args;
+        }
+      }
+    });
+  } else if (type == 'Reporter') {
+    REPORTERS.map((reporter) => {
+      if (reporter.name.toLowerCase() == token) {
+        numArgs = reporter.syntax.right.length;
+        if (reporter.syntax.left != 'unit') {
+          tag = Reporter11Args;
+        } else if (numArgs == 0) {
+          tag = Reporter0Args;
+        } else if (numArgs == 1) {
+          tag = Reporter1Args;
+        } else if (numArgs == 2) {
+          tag = Reporter2Args;
+        } else if (numArgs == 3) {
+          tag = Reporter3Args;
+        } else {
+          tag = Reporter4Args;
+        }
+      }
+    });
+  }
+  return tag;
 }
 
 // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
