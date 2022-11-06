@@ -32186,6 +32186,7 @@
        token = token.toLowerCase();
        // Find if the token belongs to any category
        // Check if token is a breed reporter/command
+       // JC: Match should be done only when needed to booster the performance.
        const match = matchBreed(token);
        // When these were under the regular tokenizer, they matched to word parts rather than whole words
        if (token == 'set') {
@@ -32317,6 +32318,7 @@
        }
        return tag;
    }
+   // JC: Two issues with this approach: first, CJK breed names won't work; second, you can potentially do /\w+-(own|at|here)/ without doing many times
    // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
    function matchBreed(token) {
        let tag = 0;
