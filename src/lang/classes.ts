@@ -4,21 +4,69 @@ export class Primitive {
   public Extension: string;
   /** Name: Name of the primitive. */
   public Name: string;
-  /** ArgumentTypes: Argument types of the primitive. */
-  public ArgumentTypes: NetLogoType[];
+  /** Type: 'Command' or 'Reporter' */
+  public Type: string;
+  /** LeftArgumentType: Type of the argument to the left of the primitive. */
+  public LeftArgumentType: Argument;
+  /** RightArgumentTypes: Type of the argument to the right of the primitive. */
+  public RightArgumentTypes: Argument[];
   /** ReturnType: Return type of the primitive. */
-  public ReturnType: NetLogoType;
+  public ReturnType: Argument;
+  public Precedence: number;
+  public AgentContext: AgentTypes;
+  public BlockContext: AgentTypes;
+  public DefaultOption: number | null;
+  public MinimumOption: number | null;
+  public RightAssociative: boolean;
+  public IntroducesContext: boolean;
+  public CanBeConcise: boolean;
 
   public constructor(
     Extension: string,
     Name: string,
-    ArgumentTypes: NetLogoType[],
-    ReturnType: NetLogoType
+    Type: string,
+    LeftArgumentType: Argument,
+    RightArgumentTypes: Argument[],
+    ReturnType: Argument,
+    Precedence: number,
+    AgentContext: AgentTypes,
+    BlockContext: AgentTypes,
+    DefaultOption: number | null,
+    MinimumOption: number | null,
+    RightAssociative: boolean,
+    IntroducesContext: boolean,
+    CanBeConcise: boolean
   ) {
     this.Extension = Extension;
     this.Name = Name;
-    this.ArgumentTypes = ArgumentTypes;
+    this.Type = Type;
+    this.LeftArgumentType = LeftArgumentType;
+    this.RightArgumentTypes = RightArgumentTypes;
     this.ReturnType = ReturnType;
+    this.Precedence = Precedence;
+    this.AgentContext = AgentContext;
+    this.BlockContext = BlockContext;
+    this.DefaultOption = DefaultOption;
+    this.MinimumOption = MinimumOption;
+    this.RightAssociative = RightAssociative;
+    this.IntroducesContext = IntroducesContext;
+    this.CanBeConcise = CanBeConcise;
+  }
+}
+
+export class Argument {
+  public Types: NetLogoType[];
+  public CanRepeat: boolean;
+  public Optional: boolean;
+
+  public constructor(
+    types: NetLogoType[],
+    canRepeat: boolean,
+    optional: boolean
+  ) {
+    this.Types = types;
+    this.CanRepeat = canRepeat;
+    this.Optional = optional;
   }
 }
 
@@ -31,6 +79,41 @@ export enum NetLogoType {
   Number = 3,
   List = 4,
   Boolean = 5,
+  Agent = 6,
+  AgentSet = 7,
+  CommandBlock = 8,
+  Nobody = 9,
+  CodeBlock = 10,
+  NumberBlock = 11,
+  Reporter = 12,
+  Turtle = 13,
+  Patch = 14,
+  Symbol = 15,
+  Other = 16,
+}
+
+export class AgentTypes {
+  public Observer: boolean;
+  public Turtle: boolean;
+  public Patch: boolean;
+  public Link: boolean;
+  public constructor(input: string) {
+    this.Observer = false;
+    this.Turtle = false;
+    this.Patch = false;
+    this.Link = false;
+    if (input != 'null') {
+      if (input.indexOf('O') > -1) {
+        this.Observer = true;
+      } else if (input.indexOf('T') > -1) {
+        this.Turtle = true;
+      } else if (input.indexOf('P') > -1) {
+        this.Patch = true;
+      } else if (input.indexOf('L') > -1) {
+        this.Link = true;
+      }
+    }
+  }
 }
 
 /** Breed: Dynamic metadata of a single breed. */
