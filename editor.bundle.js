@@ -32425,6 +32425,17 @@
        NetLogoType[NetLogoType["Number"] = 3] = "Number";
        NetLogoType[NetLogoType["List"] = 4] = "List";
        NetLogoType[NetLogoType["Boolean"] = 5] = "Boolean";
+       NetLogoType[NetLogoType["Agent"] = 6] = "Agent";
+       NetLogoType[NetLogoType["AgentSet"] = 7] = "AgentSet";
+       NetLogoType[NetLogoType["CommandBlock"] = 8] = "CommandBlock";
+       NetLogoType[NetLogoType["Nobody"] = 9] = "Nobody";
+       NetLogoType[NetLogoType["CodeBlock"] = 10] = "CodeBlock";
+       NetLogoType[NetLogoType["NumberBlock"] = 11] = "NumberBlock";
+       NetLogoType[NetLogoType["Reporter"] = 12] = "Reporter";
+       NetLogoType[NetLogoType["Turtle"] = 13] = "Turtle";
+       NetLogoType[NetLogoType["Patch"] = 14] = "Patch";
+       NetLogoType[NetLogoType["Symbol"] = 15] = "Symbol";
+       NetLogoType[NetLogoType["Other"] = 16] = "Other";
    })(NetLogoType || (NetLogoType = {}));
    /** Breed: Dynamic metadata of a single breed. */
    class Breed {
