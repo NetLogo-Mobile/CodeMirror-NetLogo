@@ -1,6 +1,4 @@
 /** Primitive: Static metadata of a single NetLogo primitive. */
-
-// Seems that there are some exceptions such as
 export class Primitive {
   /** Extension: Where the primitive belongs to. */
   public Extension: string;
