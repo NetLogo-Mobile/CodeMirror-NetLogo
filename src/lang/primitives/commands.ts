@@ -1,6 +1,6 @@
-import { Primitives } from '../primitives';
+import { NLPrimitive } from './nlstructures';
 
-const COMMANDS_unprocessed = [
+const Commands: NLPrimitive[] = [
   {
     name: 'SHOW',
     syntax: {
@@ -3242,7 +3242,4 @@ const COMMANDS_unprocessed = [
   },
 ];
 
-let COMMANDS = new Primitives();
-COMMANDS.ImportNL('null', 'Command', COMMANDS_unprocessed);
-
-export { COMMANDS };
+export { Commands };

@@ -53,8 +53,8 @@ import {
   // @ts-ignore
 } from './lang.terms.js';
 
-import { REPORTERS } from './primitives/reporters.js';
-import { COMMANDS } from './primitives/commands.js';
+import { Reporters } from './primitives/reporters.js';
+import { Commands } from './primitives/commands.js';
 import { NetLogoType, Primitive } from './classes';
 
 // Keyword tokenizer
@@ -105,9 +105,9 @@ export const keyword = new ExternalTokenizer((input) => {
   } else if (unsupported.indexOf(token) != -1) {
     input.acceptToken(Unsupported);
   } else if (commands.indexOf(token) != -1) {
-    input.acceptToken(getArgs(token, 'Command'));
+    input.acceptToken(Command);
   } else if (reporters.indexOf(token) != -1) {
-    input.acceptToken(getArgs(token, 'Reporter'));
+    input.acceptToken(Reporter);
   } else if (match != 0) {
     input.acceptToken(match);
   } else {
@@ -136,49 +136,6 @@ function isValidKeyword(ch: number) {
     (ch >= 210 && ch <= 216) ||
     (ch >= 224 && ch <= 237)
   );
-}
-
-function getArgs(token: string, type: string) {
-  let numArgs = 0;
-  let tag = Command ? type == 'Command' : Reporter;
-  if (type == 'Command') {
-    COMMANDS.Metadata.forEach((command) => {
-      if (command.Name.toLowerCase() == token) {
-        numArgs = command.RightArgumentTypes.length;
-        if (numArgs == 0) {
-          tag = Command0Args;
-        } else if (numArgs == 1) {
-          tag = Command1Args;
-        } else if (numArgs == 2) {
-          tag = Command2Args;
-        } else if (numArgs == 3) {
-          tag = Command3Args;
-        } else {
-          tag = Command4Args;
-        }
-      }
-    });
-  } else if (type == 'Reporter') {
-    REPORTERS.Metadata.forEach((reporter) => {
-      if (reporter.Name.toLowerCase() == token) {
-        numArgs = reporter.RightArgumentTypes.length;
-        if (reporter.LeftArgumentType.Types[0] != NetLogoType.Unit) {
-          tag = Reporter11Args;
-        } else if (numArgs == 0) {
-          tag = Reporter0Args;
-        } else if (numArgs == 1) {
-          tag = Reporter1Args;
-        } else if (numArgs == 2) {
-          tag = Reporter2Args;
-        } else if (numArgs == 3) {
-          tag = Reporter3Args;
-        } else {
-          tag = Reporter4Args;
-        }
-      }
-    });
-  }
-  return tag;
 }
 
 // JC: Two issues with this approach: first, CJK breed names won't work; second, you can potentially do /\w+-(own|at|here)/ without doing many times

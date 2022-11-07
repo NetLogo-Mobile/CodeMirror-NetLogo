@@ -1,73 +1,38 @@
 /** Primitive: Static metadata of a single NetLogo primitive. */
-export class Primitive {
+export interface Primitive {
   /** Extension: Where the primitive belongs to. */
-  public Extension: string;
+  Extension: string;
   /** Name: Name of the primitive. */
-  public Name: string;
-  /** Type: 'Command' or 'Reporter' */
-  public Type: string;
+  Name: string;
   /** LeftArgumentType: Type of the argument to the left of the primitive. */
-  public LeftArgumentType: Argument;
+  LeftArgumentType: Argument | null;
   /** RightArgumentTypes: Type of the argument to the right of the primitive. */
-  public RightArgumentTypes: Argument[];
+  RightArgumentTypes: Argument[];
   /** ReturnType: Return type of the primitive. */
-  public ReturnType: Argument;
-  public Precedence: number;
-  public AgentContext: AgentTypes;
-  public BlockContext: AgentTypes;
-  public DefaultOption: number | null;
-  public MinimumOption: number | null;
-  public RightAssociative: boolean;
-  public IntroducesContext: boolean;
-  public CanBeConcise: boolean;
-
-  public constructor(
-    Extension: string,
-    Name: string,
-    Type: string,
-    LeftArgumentType: Argument,
-    RightArgumentTypes: Argument[],
-    ReturnType: Argument,
-    Precedence: number,
-    AgentContext: AgentTypes,
-    BlockContext: AgentTypes,
-    DefaultOption: number | null,
-    MinimumOption: number | null,
-    RightAssociative: boolean,
-    IntroducesContext: boolean,
-    CanBeConcise: boolean
-  ) {
-    this.Extension = Extension;
-    this.Name = Name;
-    this.Type = Type;
-    this.LeftArgumentType = LeftArgumentType;
-    this.RightArgumentTypes = RightArgumentTypes;
-    this.ReturnType = ReturnType;
-    this.Precedence = Precedence;
-    this.AgentContext = AgentContext;
-    this.BlockContext = BlockContext;
-    this.DefaultOption = DefaultOption;
-    this.MinimumOption = MinimumOption;
-    this.RightAssociative = RightAssociative;
-    this.IntroducesContext = IntroducesContext;
-    this.CanBeConcise = CanBeConcise;
-  }
+  ReturnType: Argument;
+  /** Precedence: Precedence of the primitive. */
+  Precedence: number;
+  /** AgentContext: Acceptable context for the primitive. */
+  AgentContext: AgentContexts;
+  /** AgentContext: Context in the command block of the primitive. */
+  BlockContext?: AgentContexts;
+  /** DefaultOption: Unsure what this is for. */
+  DefaultOption?: number | null;
+  /** MinimumOption: Unsure what this is for. */
+  MinimumOption?: number | null;
+  /** IsRightAssociative: Unsure what this is for. */
+  IsRightAssociative?: boolean;
+  /** IntroducesContext: If this primitive introduces a new context. */
+  IntroducesContext?: boolean;
+  /** CanBeConcise: Unsure what this is for. */
+  CanBeConcise?: boolean;
 }
 
-export class Argument {
-  public Types: NetLogoType[];
-  public CanRepeat: boolean;
-  public Optional: boolean;
-
-  public constructor(
-    types: NetLogoType[],
-    canRepeat: boolean,
-    optional: boolean
-  ) {
-    this.Types = types;
-    this.CanRepeat = canRepeat;
-    this.Optional = optional;
-  }
+/** Argument: Static metadata of a NetLogo primitive's argument. */
+export interface Argument {
+  Types: NetLogoType[];
+  CanRepeat: boolean;
+  Optional: boolean;
 }
 
 /** NetLogoType: Types that are available in NetLogo. */
@@ -81,38 +46,35 @@ export enum NetLogoType {
   Boolean = 5,
   Agent = 6,
   AgentSet = 7,
-  CommandBlock = 8,
-  Nobody = 9,
-  CodeBlock = 10,
-  NumberBlock = 11,
-  Reporter = 12,
-  Turtle = 13,
-  Patch = 14,
-  Symbol = 15,
-  Other = 16,
+  Nobody = 8,
+  Turtle = 9,
+  Patch = 10,
+  Link = 11,
+  CommandBlock = 12,
+  CodeBlock = 13,
+  NumberBlock = 14,
+  Reporter = 15,
+  Symbol = 16,
+  Other = 17,
 }
 
-export class AgentTypes {
+/** AgentContexts: Agent contexts of a primitive. */
+export class AgentContexts {
   public Observer: boolean;
   public Turtle: boolean;
   public Patch: boolean;
   public Link: boolean;
-  public constructor(input: string) {
-    this.Observer = false;
-    this.Turtle = false;
-    this.Patch = false;
-    this.Link = false;
-    if (input != 'null') {
-      if (input.indexOf('O') > -1) {
-        this.Observer = true;
-      } else if (input.indexOf('T') > -1) {
-        this.Turtle = true;
-      } else if (input.indexOf('P') > -1) {
-        this.Patch = true;
-      } else if (input.indexOf('L') > -1) {
-        this.Link = true;
-      }
-    }
+  /** Parse an agent-context string. */
+  public constructor(Input?: string) {
+    this.Observer = true;
+    this.Turtle = true;
+    this.Patch = true;
+    this.Link = true;
+    if (!Input) return;
+    if (Input[0] != 'O') this.Observer = false;
+    if (Input[1] != 'T') this.Turtle = false;
+    if (Input[2] != 'P') this.Patch = false;
+    if (Input[3] != 'L') this.Patch = false;
   }
 }
 
@@ -124,7 +86,7 @@ export class Breed {
   public Plural: string;
   /** Variables: Variables defined for the breed. */
   public Variables: string[];
-
+  /** Build a breed. */
   public constructor(Singular: string, Plural: string, Variables: string[]) {
     this.Singular = Singular;
     this.Plural = Plural;
@@ -142,7 +104,7 @@ export class Procedure {
   public Variables: LocalVariable[];
   /** AnonymousProcedures: anonymous procedures defined for the procedure. */
   public AnonymousProcedures: AnonymousProcedure[];
-
+  /** Build a procedure. */
   public constructor(
     Name: string,
     Arguments: string[],
@@ -166,7 +128,7 @@ export class AnonymousProcedure {
   public Arguments: string[];
   /** Variables: local variables defined for the procedure. */
   public Variables: LocalVariable[];
-
+  /** Build an anonymous procedure. */
   public constructor(
     From: number,
     To: number,
@@ -182,13 +144,13 @@ export class AnonymousProcedure {
 
 /** LocalVariable: metadata for local variables */
 export class LocalVariable {
-  /** name: The name of the variable. */
+  /** Name: The name of the variable. */
   public Name: string;
-  /** type: The type of the variable. */
+  /** Type: The type of the variable. */
   public Type: NetLogoType;
-  /** name: The position where the variable was created. */
+  /** CreationPos: The position where the variable was created. */
   public CreationPos: number;
-
+  /** Build a local variable. */
   public constructor(Name: string, Type: NetLogoType, CreationPos: number) {
     this.Name = Name;
     this.Type = Type;

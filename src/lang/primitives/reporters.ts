@@ -1,6 +1,6 @@
-import { Primitives } from '../primitives';
+import { NLPrimitive } from './nlstructures';
 
-const REPORTERS_unprocessed = [
+const Reporters: NLPrimitive[] = [
   {
     name: 'LINK-SHAPES',
     syntax: {
@@ -4036,7 +4036,4 @@ const REPORTERS_unprocessed = [
   },
 ];
 
-let REPORTERS = new Primitives();
-REPORTERS.ImportNL('null', 'Reporter', REPORTERS_unprocessed);
-
-export { REPORTERS };
+export { Reporters };
