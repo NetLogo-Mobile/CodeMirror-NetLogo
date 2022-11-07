@@ -3019,7 +3019,7 @@
    /**
    A range associates a value with a range of positions.
    */
-   let Range$1 = class Range {
+   class Range$1 {
        constructor(
        /**
        The range's start position.
@@ -3043,7 +3043,7 @@
        static create(from, to, value) {
            return new Range$1(from, to, value);
        }
-   };
+   }
    function cmpRange(a, b) {
        return a.from - b.from || a.value.startSide - b.value.startSide;
    }
@@ -15019,7 +15019,7 @@
            return false;
        }
    }
-   let FragmentCursor$1 = class FragmentCursor {
+   class FragmentCursor$1 {
        constructor(fragments) {
            var _a;
            this.fragments = fragments;
@@ -15075,7 +15075,7 @@
            }
            return result;
        }
-   };
+   }
    function punchRanges(outer, ranges) {
        let copy = null, current = ranges;
        for (let i = 1, j = 0; i < outer.length; i++) {
@@ -27694,6 +27694,8 @@
    catch (error) { }
 
    exports.GalapagosEditor = GalapagosEditor;
+
+   Object.defineProperty(exports, '__esModule', { value: true });
 
    return exports;
 
