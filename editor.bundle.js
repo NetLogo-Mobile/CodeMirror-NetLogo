@@ -27421,7 +27421,6 @@
        /** Constructor: Create an editor instance. */
        constructor(Parent, Options) {
            this.Editable = new Compartment();
-           this.LanguageCompartment = new Compartment();
            this.Parent = Parent;
            this.Options = Options;
            // Extensions
@@ -27632,6 +27631,7 @@
        // #region "Editor Interfaces"
        /** ShowFind: Show the finding interface. */
        ShowFind() {
+           this.HideAllInterfaces();
            openSearchPanel(this.CodeMirror);
            // hide inputs related to replace for find interface
            const input = this.Parent.querySelector('.cm-textfield[name="replace"]');
@@ -27643,10 +27643,10 @@
            const button2 = this.Parent.querySelector('.cm-button[name="replaceAll"]');
            if (button2)
                button2.style.display = 'none';
-           this.HideJumpToDialog();
        }
        /** ShowReplace: Show the replace interface. */
        ShowReplace() {
+           this.HideAllInterfaces();
            openSearchPanel(this.CodeMirror);
            // show inputs related to replace
            const input = this.Parent.querySelector('.cm-textfield[name="replace"]');
@@ -27658,7 +27658,6 @@
            const button2 = this.Parent.querySelector('.cm-button[name="replaceAll"]');
            if (button2)
                button2.style.display = 'inline-block';
-           this.HideJumpToDialog();
        }
        /** ShowJumpTo: Show the jump-to-line interface. */
        // TODO: clear other interfaces
@@ -27667,16 +27666,16 @@
            const jumpElm = this.Parent.querySelector('.cm-gotoLine');
            jumpElm ? (jumpElm.style.display = 'flex') : gotoLine(this.CodeMirror);
        }
-       // HideJumpToDialog: Hide line interface
-       HideJumpToDialog() {
+       /** HideJumpTo: Hide line interface. */
+       HideJumpTo() {
            const jumpElm = this.Parent.querySelector('.cm-gotoLine');
            if (jumpElm)
                jumpElm.style.display = 'none';
        }
-       // HideAllInterfaces: Hide all interfaces available.
+       /** HideAllInterfaces: Hide all interfaces available. */
        HideAllInterfaces() {
            closeSearchPanel(this.CodeMirror);
-           this.HideJumpToDialog();
+           this.HideJumpTo();
        }
        // #endregion
        // #region "Event Handling"
