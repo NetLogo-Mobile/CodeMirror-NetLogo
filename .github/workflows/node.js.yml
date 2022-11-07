@@ -26,14 +26,12 @@ jobs:
           node-version: 16.x
       - name: Install NPM Dependencies
         run: npm i
-      - name: install lezer/generator
+      - name: Install lezer/generator
         run: npm install @lezer/generator --global
-      - name: install rollup
+      - name: Install rollup
         run: npm install rollup --global
-      - name: Build language
-        run: lezer-generator ./src/lang/lang.grammar -o ./src/lang/lang.js
-      - name: Build Project
-        run: rollup -c
+      - name: Build the project
+        run: npm run build
       - name: Upload artifact in order to deploy
         uses: actions/upload-artifact@v2
         with:

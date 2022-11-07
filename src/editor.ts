@@ -42,8 +42,6 @@ export class GalapagosEditor {
   public readonly Options: EditorConfig;
   /** Editable: Compartment of the EditorView. */
   private readonly Editable: Compartment;
-  /** LanguageCompartment: Compartment of the EditorView. */
-  private readonly LanguageCompartment: Compartment;
   /** Language: Language of the EditorView. */
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
@@ -53,7 +51,6 @@ export class GalapagosEditor {
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
     this.Editable = new Compartment();
-    this.LanguageCompartment = new Compartment();
     this.Parent = Parent;
     this.Options = Options;
     // Extensions
@@ -310,6 +307,7 @@ export class GalapagosEditor {
   // #region "Editor Interfaces"
   /** ShowFind: Show the finding interface. */
   ShowFind() {
+    this.HideAllInterfaces();
     openSearchPanel(this.CodeMirror);
     // hide inputs related to replace for find interface
     const input = this.Parent.querySelector<HTMLElement>(
@@ -324,11 +322,11 @@ export class GalapagosEditor {
       '.cm-button[name="replaceAll"]'
     );
     if (button2) button2.style.display = 'none';
-    this.HideJumpToDialog();
   }
 
   /** ShowReplace: Show the replace interface. */
   ShowReplace() {
+    this.HideAllInterfaces();
     openSearchPanel(this.CodeMirror);
     // show inputs related to replace
     const input = this.Parent.querySelector<HTMLElement>(
@@ -343,7 +341,6 @@ export class GalapagosEditor {
       '.cm-button[name="replaceAll"]'
     );
     if (button2) button2.style.display = 'inline-block';
-    this.HideJumpToDialog();
   }
 
   /** ShowJumpTo: Show the jump-to-line interface. */
@@ -354,16 +351,16 @@ export class GalapagosEditor {
     jumpElm ? (jumpElm.style.display = 'flex') : gotoLine(this.CodeMirror);
   }
 
-  // HideJumpToDialog: Hide line interface
-  HideJumpToDialog() {
+  /** HideJumpTo: Hide line interface. */
+  HideJumpTo() {
     const jumpElm = this.Parent.querySelector<HTMLElement>('.cm-gotoLine');
     if (jumpElm) jumpElm.style.display = 'none';
   }
 
-  // HideAllInterfaces: Hide all interfaces available.
+  /** HideAllInterfaces: Hide all interfaces available. */
   HideAllInterfaces() {
     closeSearchPanel(this.CodeMirror);
-    this.HideJumpToDialog();
+    this.HideJumpTo();
   }
   // #endregion
 
