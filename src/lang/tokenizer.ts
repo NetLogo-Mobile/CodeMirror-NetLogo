@@ -17,10 +17,6 @@ import {
   Let,
   To,
   End,
-  And,
-  Or,
-  ValFirstPrimitive,
-  ValLastPrimitive,
   BreedFirst,
   BreedLast,
   BreedMiddle,
@@ -117,8 +113,9 @@ export const keyword = new ExternalTokenizer((input) => {
 
 // Check if the character is valid for a keyword.
 function isValidKeyword(ch: number) {
-  // 0-9
   return (
+    ch == 33 ||
+    // 0-9
     (ch >= 42 && ch <= 58) ||
     // -
     ch == 45 ||
@@ -127,6 +124,8 @@ function isValidKeyword(ch: number) {
     ch == 95 ||
     // A-Z
     (ch >= 60 && ch <= 90) ||
+    ch == 94 ||
+    ch == 95 ||
     // a-z
     (ch >= 97 && ch <= 122) ||
     // non-English characters

@@ -24,8 +24,12 @@ globalStatement {
   Breed { BreedStr OpenBracket Identifier Identifier CloseBracket } |
 
   BreedsOwn {
-    Own OpenBracket Identifier* CloseBracket
+    Own OpenBracket BreedVars* CloseBracket
   }
+}
+
+BreedVars {
+  Identifier | BreedFirst | BreedMiddle | BreedLast
 }
 
 Procedure {
@@ -70,10 +74,10 @@ SetVariable {
 }
 
 VariableName {
-  !operation Identifier | 
-  !operation PatchVar | 
-  !operation TurtleVar | 
-  !operation LinkVar
+  Identifier | 
+  PatchVar | 
+  TurtleVar | 
+  LinkVar
 }
 
 Value {

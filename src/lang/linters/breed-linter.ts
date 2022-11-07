@@ -84,6 +84,8 @@ const checkValidBreed = function (
   // before declaring it invalid
   if (state.field(stateExtension).Procedures.get(value)) {
     isValid = true;
+  } else if (node.parent?.name == 'Own') {
+    isValid = true;
   }
   if (!isValid) {
     isValid = checkValid(node, value, state, breedNames.concat(breedVars));
