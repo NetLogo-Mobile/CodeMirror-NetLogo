@@ -1,4 +1,6 @@
-const REPORTERS = [
+import { Primitives } from '../primitives';
+
+const REPORTERS_unprocessed = [
   {
     name: 'LINK-SHAPES',
     syntax: {
@@ -36,7 +38,7 @@ const REPORTERS = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [{ 'type:': 'wildcard', isRepeatable: true, isOptional: false }],
+      right: [{ type: 'wildcard', isRepeatable: true, isOptional: false }],
       ret: 'list',
       defaultOption: 2,
       minimumOption: 0,
@@ -168,7 +170,7 @@ const REPORTERS = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [{ 'type:': 'number', isRepeatable: true, isOptional: false }],
+      right: [{ type: 'number', isRepeatable: true, isOptional: false }],
       ret: 'list',
       defaultOption: 1,
       minimumOption: 1,
@@ -280,7 +282,7 @@ const REPORTERS = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [{ 'type:': 'wildcard', isRepeatable: true, isOptional: false }],
+      right: [{ type: 'wildcard', isRepeatable: true, isOptional: false }],
       ret: 'list',
       defaultOption: 2,
       minimumOption: 0,
@@ -1027,7 +1029,7 @@ const REPORTERS = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [{ 'type:': 'wildcard', isRepeatable: true, isOptional: false }],
+      right: [{ type: 'wildcard', isRepeatable: true, isOptional: false }],
       ret: 'list',
       defaultOption: 2,
       minimumOption: 0,
@@ -2068,7 +2070,7 @@ const REPORTERS = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [{ 'type:': 'wildcard', isRepeatable: true, isOptional: false }],
+      right: [{ type: 'wildcard', isRepeatable: true, isOptional: false }],
       ret: 'string',
       defaultOption: 2,
       minimumOption: 0,
@@ -2294,7 +2296,7 @@ const REPORTERS = [
       left: 'unit',
       right: [
         { types: ['string', 'reporter'], isRepeatable: false },
-        { 'type:': 'wildcard', isRepeatable: true, isOptional: false },
+        { type: 'wildcard', isRepeatable: true, isOptional: false },
       ],
       ret: 'wildcard',
       defaultOption: 1,
@@ -2377,7 +2379,7 @@ const REPORTERS = [
       left: 'unit',
       right: [
         { types: ['string', 'reporter'], isRepeatable: false },
-        { 'type:': 'wildcard', isRepeatable: true, isOptional: false },
+        { type: 'wildcard', isRepeatable: true, isOptional: false },
       ],
       ret: 'wildcard',
       defaultOption: 1,
@@ -3844,7 +3846,7 @@ const REPORTERS = [
       left: 'unit',
       right: [
         'reporter',
-        { 'type:': 'list', isRepeatable: true, isOptional: false },
+        { type: 'list', isRepeatable: true, isOptional: false },
       ],
       ret: 'list',
       defaultOption: 2,
@@ -4033,4 +4035,8 @@ const REPORTERS = [
     },
   },
 ];
+
+let REPORTERS = new Primitives();
+REPORTERS.ImportNL('null', 'Reporter', REPORTERS_unprocessed);
+
 export { REPORTERS };

@@ -1,4 +1,6 @@
-const COMMANDS = [
+import { Primitives } from '../primitives';
+
+const COMMANDS_unprocessed = [
   {
     name: 'SHOW',
     syntax: {
@@ -105,7 +107,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'turtle agentset',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -336,7 +338,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'number',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -728,7 +730,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'turtle',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -1134,7 +1136,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'number',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -1441,7 +1443,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'number',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -2137,7 +2139,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'turtle',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -2273,7 +2275,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         { types: ['string', 'command'], isRepeatable: false },
-        { 'type:': 'wildcard', isRepeatable: true, isOptional: false },
+        { type: 'wildcard', isRepeatable: true, isOptional: false },
       ],
       ret: 'unit',
       defaultOption: 1,
@@ -2356,7 +2358,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'turtle agentset',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -2608,7 +2610,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'turtle',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -2694,7 +2696,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'turtle agentset',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -2873,7 +2875,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'number',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -2907,7 +2909,7 @@ const COMMANDS = [
       precedence: 0,
       left: 'unit',
       right: [
-        { 'type:': 'list', isRepeatable: true, isOptional: false },
+        { type: 'list', isRepeatable: true, isOptional: false },
         'command',
       ],
       ret: 'unit',
@@ -3191,7 +3193,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'number',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -3226,7 +3228,7 @@ const COMMANDS = [
       left: 'unit',
       right: [
         'number',
-        { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+        { type: 'commandblock', isRepeatable: false, isOptional: true },
       ],
       ret: 'unit',
       defaultOption: null,
@@ -3239,5 +3241,8 @@ const COMMANDS = [
     },
   },
 ];
+
+let COMMANDS = new Primitives();
+COMMANDS.ImportNL('null', 'Command', COMMANDS_unprocessed);
 
 export { COMMANDS };

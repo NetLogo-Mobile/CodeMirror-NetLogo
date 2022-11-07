@@ -2,9 +2,9 @@ import { Primitive, NetLogoType, AgentTypes, Argument } from './classes';
 
 /** Primitives: Managing all primitives.  */
 export class Primitives {
-  private Metadata: Map<string, Primitive> = new Map<string, Primitive>();
+  public Metadata: Map<string, Primitive> = new Map<string, Primitive>();
   /** ImportNLW: Import primitive metadatas from NLW. */
-  public ImportNLW(Extension: string, Type: string, Source: NLWPrimitive) {
+  public ImportNL(Extension: string, Type: string, Source: NLPrimitive) {
     this.Metadata.set(
       Source.name,
       new Primitive(
@@ -27,7 +27,7 @@ export class Primitives {
   }
 }
 
-const convertToArgument = function (item: string | NLWArgument) {
+const convertToArgument = function (item: string | NLArgument) {
   if (typeof item == 'string') {
     return new Argument([convertToType(item)], false, false);
   } else if (item.type) {
@@ -83,7 +83,7 @@ const convertToType = function (type: string) {
   }
 };
 
-export interface NLWArgument {
+export interface NLArgument {
   type?: string;
   types?: string[];
   isRepeatable: boolean;
@@ -91,13 +91,13 @@ export interface NLWArgument {
 }
 
 /** NLWPrimitive: Metadata structure for NetLogo Web primitives. */
-export interface NLWPrimitive {
+export interface NLPrimitive {
   name: string;
   syntax: {
     precedence: number;
-    left: string | NLWArgument;
-    right: (string | NLWArgument)[];
-    ret: string | NLWArgument;
+    left: string | NLArgument;
+    right: (string | NLArgument)[];
+    ret: string | NLArgument;
     defaultOption: null | number;
     minimumOption: null | number;
     isRightAssociative: boolean;

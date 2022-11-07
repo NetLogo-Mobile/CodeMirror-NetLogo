@@ -55,6 +55,7 @@ import {
 
 import { REPORTERS } from './primitives/reporters.js';
 import { COMMANDS } from './primitives/commands.js';
+import { NetLogoType, Primitive } from './classes';
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer((input) => {
@@ -141,9 +142,9 @@ function getArgs(token: string, type: string) {
   let numArgs = 0;
   let tag = Command ? type == 'Command' : Reporter;
   if (type == 'Command') {
-    COMMANDS.map((command) => {
-      if (command.name.toLowerCase() == token) {
-        numArgs = command.syntax.right.length;
+    COMMANDS.Metadata.forEach((command) => {
+      if (command.Name.toLowerCase() == token) {
+        numArgs = command.RightArgumentTypes.length;
         if (numArgs == 0) {
           tag = Command0Args;
         } else if (numArgs == 1) {
@@ -158,10 +159,10 @@ function getArgs(token: string, type: string) {
       }
     });
   } else if (type == 'Reporter') {
-    REPORTERS.map((reporter) => {
-      if (reporter.name.toLowerCase() == token) {
-        numArgs = reporter.syntax.right.length;
-        if (reporter.syntax.left != 'unit') {
+    REPORTERS.Metadata.forEach((reporter) => {
+      if (reporter.Name.toLowerCase() == token) {
+        numArgs = reporter.RightArgumentTypes.length;
+        if (reporter.LeftArgumentType.Types[0] != NetLogoType.Unit) {
           tag = Reporter11Args;
         } else if (numArgs == 0) {
           tag = Reporter0Args;
