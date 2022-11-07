@@ -24895,7 +24895,188 @@
      Constant = 31,
      Unsupported = 32;
 
-   const REPORTERS = [
+   /** Primitive: Static metadata of a single NetLogo primitive. */
+   class Primitive {
+       constructor(Extension, Name, Type, LeftArgumentType, RightArgumentTypes, ReturnType, Precedence, AgentContext, BlockContext, DefaultOption, MinimumOption, RightAssociative, IntroducesContext, CanBeConcise) {
+           this.Extension = Extension;
+           this.Name = Name;
+           this.Type = Type;
+           this.LeftArgumentType = LeftArgumentType;
+           this.RightArgumentTypes = RightArgumentTypes;
+           this.ReturnType = ReturnType;
+           this.Precedence = Precedence;
+           this.AgentContext = AgentContext;
+           this.BlockContext = BlockContext;
+           this.DefaultOption = DefaultOption;
+           this.MinimumOption = MinimumOption;
+           this.RightAssociative = RightAssociative;
+           this.IntroducesContext = IntroducesContext;
+           this.CanBeConcise = CanBeConcise;
+       }
+   }
+   class Argument {
+       constructor(types, canRepeat, optional) {
+           this.Types = types;
+           this.CanRepeat = canRepeat;
+           this.Optional = optional;
+       }
+   }
+   /** NetLogoType: Types that are available in NetLogo. */
+   // Maybe we need to add command blocks & anonymous procedures
+   var NetLogoType;
+   (function (NetLogoType) {
+       NetLogoType[NetLogoType["Unit"] = 0] = "Unit";
+       NetLogoType[NetLogoType["Wildcard"] = 1] = "Wildcard";
+       NetLogoType[NetLogoType["String"] = 2] = "String";
+       NetLogoType[NetLogoType["Number"] = 3] = "Number";
+       NetLogoType[NetLogoType["List"] = 4] = "List";
+       NetLogoType[NetLogoType["Boolean"] = 5] = "Boolean";
+       NetLogoType[NetLogoType["Agent"] = 6] = "Agent";
+       NetLogoType[NetLogoType["AgentSet"] = 7] = "AgentSet";
+       NetLogoType[NetLogoType["CommandBlock"] = 8] = "CommandBlock";
+       NetLogoType[NetLogoType["Nobody"] = 9] = "Nobody";
+       NetLogoType[NetLogoType["CodeBlock"] = 10] = "CodeBlock";
+       NetLogoType[NetLogoType["NumberBlock"] = 11] = "NumberBlock";
+       NetLogoType[NetLogoType["Reporter"] = 12] = "Reporter";
+       NetLogoType[NetLogoType["Turtle"] = 13] = "Turtle";
+       NetLogoType[NetLogoType["Patch"] = 14] = "Patch";
+       NetLogoType[NetLogoType["Symbol"] = 15] = "Symbol";
+       NetLogoType[NetLogoType["Other"] = 16] = "Other";
+   })(NetLogoType || (NetLogoType = {}));
+   class AgentTypes {
+       constructor(input) {
+           this.Observer = false;
+           this.Turtle = false;
+           this.Patch = false;
+           this.Link = false;
+           if (input != 'null') {
+               if (input.indexOf('O') > -1) {
+                   this.Observer = true;
+               }
+               else if (input.indexOf('T') > -1) {
+                   this.Turtle = true;
+               }
+               else if (input.indexOf('P') > -1) {
+                   this.Patch = true;
+               }
+               else if (input.indexOf('L') > -1) {
+                   this.Link = true;
+               }
+           }
+       }
+   }
+   /** Breed: Dynamic metadata of a single breed. */
+   class Breed {
+       constructor(Singular, Plural, Variables) {
+           this.Singular = Singular;
+           this.Plural = Plural;
+           this.Variables = Variables;
+       }
+   }
+   /** Procedure: Dynamic metadata of a procedure. */
+   class Procedure {
+       constructor(Name, Arguments, Variables, AnonymousProcedures) {
+           this.Name = Name;
+           this.Arguments = Arguments;
+           this.Variables = Variables;
+           this.AnonymousProcedures = AnonymousProcedures;
+       }
+   }
+   /** Procedure: Dynamic metadata of an anonymous procedure. */
+   class AnonymousProcedure {
+       constructor(From, To, Arguments, Variables) {
+           this.From = From;
+           this.To = To;
+           this.Arguments = Arguments;
+           this.Variables = Variables;
+       }
+   }
+   /** LocalVariable: metadata for local variables */
+   class LocalVariable {
+       constructor(Name, Type, CreationPos) {
+           this.Name = Name;
+           this.Type = Type;
+           this.CreationPos = CreationPos;
+       }
+   }
+
+   /** Primitives: Managing all primitives.  */
+   class Primitives {
+       constructor() {
+           this.Metadata = new Map();
+       }
+       /** ImportNLW: Import primitive metadatas from NLW. */
+       ImportNL(Extension, Type, Source) {
+           this.Metadata.set(Source.name, new Primitive(Extension, Source.name, Type, convertToArgument(Source.syntax.left), Source.syntax.right.map((item) => convertToArgument(item)), convertToArgument(Source.syntax.ret), Source.syntax.precedence, new AgentTypes(Source.syntax.agentClassString), new AgentTypes(Source.syntax.blockAgentClassString), Source.syntax.defaultOption, Source.syntax.minimumOption, Source.syntax.isRightAssociative, Source.syntax.introducesContext == 'true', Source.syntax.canBeConcise));
+       }
+   }
+   const convertToArgument = function (item) {
+       var _a, _b, _c, _d;
+       if (typeof item == 'string') {
+           return new Argument([convertToType(item)], false, false);
+       }
+       else if (item.type) {
+           return new Argument([convertToType(item.type)], item.isRepeatable, (_a = item.isOptional) !== null && _a !== void 0 ? _a : false);
+       }
+       else {
+           return new Argument((_c = (_b = item.types) === null || _b === void 0 ? void 0 : _b.map((i) => convertToType(i))) !== null && _c !== void 0 ? _c : [], item.isRepeatable, (_d = item.isOptional) !== null && _d !== void 0 ? _d : false);
+       }
+   };
+   const convertToType = function (type) {
+       if (type == 'unit') {
+           return NetLogoType.Unit;
+       }
+       else if (type == 'wildcard') {
+           return NetLogoType.Wildcard;
+       }
+       else if (type == 'string') {
+           return NetLogoType.String;
+       }
+       else if (type == 'number') {
+           return NetLogoType.Number;
+       }
+       else if (type == 'list') {
+           return NetLogoType.List;
+       }
+       else if (type == 'boolean') {
+           return NetLogoType.Boolean;
+       }
+       else if (type == 'agent') {
+           return NetLogoType.Agent;
+       }
+       else if (type == 'agentset' || type.indexOf('agentset') > -1) {
+           return NetLogoType.AgentSet;
+       }
+       else if (type == 'commandblock') {
+           return NetLogoType.CommandBlock;
+       }
+       else if (type == 'nobody') {
+           return NetLogoType.Nobody;
+       }
+       else if (type == 'codeblock') {
+           return NetLogoType.CodeBlock;
+       }
+       else if (type == 'numberblock') {
+           return NetLogoType.NumberBlock;
+       }
+       else if (type == 'reporter') {
+           return NetLogoType.Reporter;
+       }
+       else if (type == 'turtle') {
+           return NetLogoType.Turtle;
+       }
+       else if (type == 'patch') {
+           return NetLogoType.Patch;
+       }
+       else if (type == 'symbol') {
+           return NetLogoType.Symbol;
+       }
+       else {
+           return NetLogoType.Other;
+       }
+   };
+
+   const REPORTERS_unprocessed = [
        {
            name: 'LINK-SHAPES',
            syntax: {
@@ -24933,7 +25114,7 @@
            syntax: {
                precedence: 10,
                left: 'unit',
-               right: [{ 'type:': 'wildcard', isRepeatable: true, isOptional: false }],
+               right: [{ type: 'wildcard', isRepeatable: true, isOptional: false }],
                ret: 'list',
                defaultOption: 2,
                minimumOption: 0,
@@ -25065,7 +25246,7 @@
            syntax: {
                precedence: 10,
                left: 'unit',
-               right: [{ 'type:': 'number', isRepeatable: true, isOptional: false }],
+               right: [{ type: 'number', isRepeatable: true, isOptional: false }],
                ret: 'list',
                defaultOption: 1,
                minimumOption: 1,
@@ -25177,7 +25358,7 @@
            syntax: {
                precedence: 10,
                left: 'unit',
-               right: [{ 'type:': 'wildcard', isRepeatable: true, isOptional: false }],
+               right: [{ type: 'wildcard', isRepeatable: true, isOptional: false }],
                ret: 'list',
                defaultOption: 2,
                minimumOption: 0,
@@ -25924,7 +26105,7 @@
            syntax: {
                precedence: 10,
                left: 'unit',
-               right: [{ 'type:': 'wildcard', isRepeatable: true, isOptional: false }],
+               right: [{ type: 'wildcard', isRepeatable: true, isOptional: false }],
                ret: 'list',
                defaultOption: 2,
                minimumOption: 0,
@@ -26965,7 +27146,7 @@
            syntax: {
                precedence: 10,
                left: 'unit',
-               right: [{ 'type:': 'wildcard', isRepeatable: true, isOptional: false }],
+               right: [{ type: 'wildcard', isRepeatable: true, isOptional: false }],
                ret: 'string',
                defaultOption: 2,
                minimumOption: 0,
@@ -27191,7 +27372,7 @@
                left: 'unit',
                right: [
                    { types: ['string', 'reporter'], isRepeatable: false },
-                   { 'type:': 'wildcard', isRepeatable: true, isOptional: false },
+                   { type: 'wildcard', isRepeatable: true, isOptional: false },
                ],
                ret: 'wildcard',
                defaultOption: 1,
@@ -27274,7 +27455,7 @@
                left: 'unit',
                right: [
                    { types: ['string', 'reporter'], isRepeatable: false },
-                   { 'type:': 'wildcard', isRepeatable: true, isOptional: false },
+                   { type: 'wildcard', isRepeatable: true, isOptional: false },
                ],
                ret: 'wildcard',
                defaultOption: 1,
@@ -28741,7 +28922,7 @@
                left: 'unit',
                right: [
                    'reporter',
-                   { 'type:': 'list', isRepeatable: true, isOptional: false },
+                   { type: 'list', isRepeatable: true, isOptional: false },
                ],
                ret: 'list',
                defaultOption: 2,
@@ -28930,8 +29111,10 @@
            },
        },
    ];
+   let REPORTERS = new Primitives();
+   REPORTERS.ImportNL('null', 'Reporter', REPORTERS_unprocessed);
 
-   const COMMANDS = [
+   const COMMANDS_unprocessed = [
        {
            name: 'SHOW',
            syntax: {
@@ -29038,7 +29221,7 @@
                left: 'unit',
                right: [
                    'turtle agentset',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -29269,7 +29452,7 @@
                left: 'unit',
                right: [
                    'number',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -29661,7 +29844,7 @@
                left: 'unit',
                right: [
                    'turtle',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -30067,7 +30250,7 @@
                left: 'unit',
                right: [
                    'number',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -30374,7 +30557,7 @@
                left: 'unit',
                right: [
                    'number',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -31070,7 +31253,7 @@
                left: 'unit',
                right: [
                    'turtle',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -31206,7 +31389,7 @@
                left: 'unit',
                right: [
                    { types: ['string', 'command'], isRepeatable: false },
-                   { 'type:': 'wildcard', isRepeatable: true, isOptional: false },
+                   { type: 'wildcard', isRepeatable: true, isOptional: false },
                ],
                ret: 'unit',
                defaultOption: 1,
@@ -31289,7 +31472,7 @@
                left: 'unit',
                right: [
                    'turtle agentset',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -31541,7 +31724,7 @@
                left: 'unit',
                right: [
                    'turtle',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -31627,7 +31810,7 @@
                left: 'unit',
                right: [
                    'turtle agentset',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -31806,7 +31989,7 @@
                left: 'unit',
                right: [
                    'number',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -31840,7 +32023,7 @@
                precedence: 0,
                left: 'unit',
                right: [
-                   { 'type:': 'list', isRepeatable: true, isOptional: false },
+                   { type: 'list', isRepeatable: true, isOptional: false },
                    'command',
                ],
                ret: 'unit',
@@ -32124,7 +32307,7 @@
                left: 'unit',
                right: [
                    'number',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -32159,7 +32342,7 @@
                left: 'unit',
                right: [
                    'number',
-                   { 'type:': 'commandblock', isRepeatable: false, isOptional: true },
+                   { type: 'commandblock', isRepeatable: false, isOptional: true },
                ],
                ret: 'unit',
                defaultOption: null,
@@ -32172,6 +32355,8 @@
            },
        },
    ];
+   let COMMANDS = new Primitives();
+   COMMANDS.ImportNL('null', 'Command', COMMANDS_unprocessed);
 
    // Keyword tokenizer
    const keyword = new ExternalTokenizer((input) => {
@@ -32270,9 +32455,9 @@
        let numArgs = 0;
        let tag = type == 'Command' ;
        if (type == 'Command') {
-           COMMANDS.map((command) => {
-               if (command.name.toLowerCase() == token) {
-                   numArgs = command.syntax.right.length;
+           COMMANDS.Metadata.forEach((command) => {
+               if (command.Name.toLowerCase() == token) {
+                   numArgs = command.RightArgumentTypes.length;
                    if (numArgs == 0) {
                        tag = Command0Args;
                    }
@@ -32292,10 +32477,10 @@
            });
        }
        else if (type == 'Reporter') {
-           REPORTERS.map((reporter) => {
-               if (reporter.name.toLowerCase() == token) {
-                   numArgs = reporter.syntax.right.length;
-                   if (reporter.syntax.left != 'unit') {
+           REPORTERS.Metadata.forEach((reporter) => {
+               if (reporter.Name.toLowerCase() == token) {
+                   numArgs = reporter.RightArgumentTypes.length;
+                   if (reporter.LeftArgumentType.Types[0] != NetLogoType.Unit) {
                        tag = Reporter11Args;
                    }
                    else if (numArgs == 0) {
@@ -32413,64 +32598,6 @@
      topRules: {"Program":[0,34]},
      tokenPrec: 0
    });
-
-   /** Primitive: Static metadata of a single NetLogo primitive. */
-   /** NetLogoType: Types that are available in NetLogo. */
-   // Maybe we need to add command blocks & anonymous procedures
-   var NetLogoType;
-   (function (NetLogoType) {
-       NetLogoType[NetLogoType["Unit"] = 0] = "Unit";
-       NetLogoType[NetLogoType["Wildcard"] = 1] = "Wildcard";
-       NetLogoType[NetLogoType["String"] = 2] = "String";
-       NetLogoType[NetLogoType["Number"] = 3] = "Number";
-       NetLogoType[NetLogoType["List"] = 4] = "List";
-       NetLogoType[NetLogoType["Boolean"] = 5] = "Boolean";
-       NetLogoType[NetLogoType["Agent"] = 6] = "Agent";
-       NetLogoType[NetLogoType["AgentSet"] = 7] = "AgentSet";
-       NetLogoType[NetLogoType["CommandBlock"] = 8] = "CommandBlock";
-       NetLogoType[NetLogoType["Nobody"] = 9] = "Nobody";
-       NetLogoType[NetLogoType["CodeBlock"] = 10] = "CodeBlock";
-       NetLogoType[NetLogoType["NumberBlock"] = 11] = "NumberBlock";
-       NetLogoType[NetLogoType["Reporter"] = 12] = "Reporter";
-       NetLogoType[NetLogoType["Turtle"] = 13] = "Turtle";
-       NetLogoType[NetLogoType["Patch"] = 14] = "Patch";
-       NetLogoType[NetLogoType["Symbol"] = 15] = "Symbol";
-       NetLogoType[NetLogoType["Other"] = 16] = "Other";
-   })(NetLogoType || (NetLogoType = {}));
-   /** Breed: Dynamic metadata of a single breed. */
-   class Breed {
-       constructor(Singular, Plural, Variables) {
-           this.Singular = Singular;
-           this.Plural = Plural;
-           this.Variables = Variables;
-       }
-   }
-   /** Procedure: Dynamic metadata of a procedure. */
-   class Procedure {
-       constructor(Name, Arguments, Variables, AnonymousProcedures) {
-           this.Name = Name;
-           this.Arguments = Arguments;
-           this.Variables = Variables;
-           this.AnonymousProcedures = AnonymousProcedures;
-       }
-   }
-   /** Procedure: Dynamic metadata of an anonymous procedure. */
-   class AnonymousProcedure {
-       constructor(From, To, Arguments, Variables) {
-           this.From = From;
-           this.To = To;
-           this.Arguments = Arguments;
-           this.Variables = Variables;
-       }
-   }
-   /** LocalVariable: metadata for local variables */
-   class LocalVariable {
-       constructor(Name, Type, CreationPos) {
-           this.Name = Name;
-           this.Type = Type;
-           this.CreationPos = CreationPos;
-       }
-   }
 
    /** StateNetLogo: Editor state for the NetLogo Language. */
    class StateNetLogo {
