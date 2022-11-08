@@ -17,10 +17,6 @@ import {
   Let,
   To,
   End,
-  And,
-  Or,
-  ValFirstPrimitive,
-  ValLastPrimitive,
   BreedFirst,
   BreedLast,
   BreedMiddle,
@@ -49,8 +45,9 @@ import {
   // @ts-ignore
 } from './lang.terms.js';
 
-import { REPORTERS } from './reporters.js';
-import { COMMANDS } from './commands.js';
+import { Reporters } from './primitives/reporters.js';
+import { Commands } from './primitives/commands.js';
+import { NetLogoType, Primitive } from './classes';
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer((input) => {
@@ -64,6 +61,7 @@ export const keyword = new ExternalTokenizer((input) => {
   token = token.toLowerCase();
   // Find if the token belongs to any category
   // Check if token is a breed reporter/command
+  // JC: Match should be done only when needed to booster the performance.
   const match = matchBreed(token);
   // When these were under the regular tokenizer, they matched to word parts rather than whole words
   if (token == 'set') {
@@ -122,8 +120,9 @@ export const keyword = new ExternalTokenizer((input) => {
 
 // Check if the character is valid for a keyword.
 function isValidKeyword(ch: number) {
-  // 0-9
   return (
+    ch == 33 ||
+    // 0-9
     (ch >= 42 && ch <= 58) ||
     // -
     ch == 45 ||
@@ -132,6 +131,8 @@ function isValidKeyword(ch: number) {
     ch == 95 ||
     // A-Z
     (ch >= 60 && ch <= 90) ||
+    ch == 94 ||
+    ch == 95 ||
     // a-z
     (ch >= 97 && ch <= 122) ||
     // non-English characters
@@ -143,6 +144,7 @@ function isValidKeyword(ch: number) {
   );
 }
 
+// JC: Two issues with this approach: first, CJK breed names won't work; second, you can potentially do /\w+-(own|at|here)/ without doing many times
 // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
 function matchBreed(token: string) {
   let tag = 0;

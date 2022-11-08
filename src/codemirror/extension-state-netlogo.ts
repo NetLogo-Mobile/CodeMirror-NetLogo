@@ -41,7 +41,7 @@ export class StateNetLogo {
       }
       // get global variables
       if (Cursor.node.name == 'Globals') {
-        this.Globals = getVariables(Cursor.node, State);
+        this.Globals = this.getVariables(Cursor.node, State);
         // this.Globals = [];
         // Cursor.node.getChildren('Identifier').map((Node) => {
         //   this.Globals.push(State.sliceDoc(Node.from, Node.to).toLowerCase());
@@ -70,7 +70,7 @@ export class StateNetLogo {
           breedName = State.sliceDoc(node.from, node.to).toLowerCase();
           breedName = breedName.substring(0, breedName.length - 4);
         });
-        let breedVars = getVariables(Cursor.node, State);
+        let breedVars = this.getVariables(Cursor.node, State);
         // const breedVars: string[] = [];
         // Cursor.node.getChildren('Identifier').map((node) => {
         //   breedVars.push(State.sliceDoc(node.from, node.to).toLowerCase());
@@ -83,12 +83,19 @@ export class StateNetLogo {
       }
       // get procedures
       if (Cursor.node.name == 'Procedure') {
-        let procedure = new Procedure('', [], [], []);
+        let procedure = new Procedure(
+          '',
+          [],
+          [],
+          [],
+          Cursor.node.from,
+          Cursor.node.to
+        );
         Cursor.node.getChildren('ProcedureName').map((Node) => {
           procedure.Name = State.sliceDoc(Node.from, Node.to).toLowerCase();
         });
-        procedure.Arguments = getArgs(Cursor.node, State);
-        procedure.Variables = getLocalVars(Cursor.node, State, false);
+        procedure.Arguments = this.getArgs(Cursor.node, State);
+        procedure.Variables = this.getLocalVars(Cursor.node, State, false);
 
         Cursor.node.cursor().iterate((noderef) => {
           if (noderef.node.to > Cursor.node.to) {
@@ -112,7 +119,7 @@ export class StateNetLogo {
             });
             anonProc.Arguments = args;
             anonProc.Variables = anonProc.Variables.concat(
-              getLocalVars(Node, State, true)
+              this.getLocalVars(Node, State, true)
             );
             procedure.AnonymousProcedures.push(anonProc);
           }
@@ -124,80 +131,75 @@ export class StateNetLogo {
       }
     }
   }
-}
 
-// get local variables for the procedure
-const getLocalVars = function (
-  Node: SyntaxNode,
-  State: EditorState,
-  isAnon: Boolean
-) {
-  let localVars: LocalVariable[] = [];
-  Node.cursor().iterate((noderef) => {
-    if (noderef.node.to > Node.to) {
-      return false;
-    }
-    if (noderef.name == 'CommandStatement') {
-      noderef.node.getChildren('VariableDeclaration').map((node) => {
-        node.getChildren('NewVariableDeclaration').map((subnode) => {
-          subnode.getChildren('Identifier').map((subsubnode) => {
-            if (
-              !getParents(subsubnode).includes('AnonymousProcedure') ||
-              isAnon
-            ) {
-              const variable = new LocalVariable(
-                State.sliceDoc(subsubnode.from, subsubnode.to).toLowerCase(),
-                1,
-                subsubnode.from
-              );
-              localVars.push(variable);
-            }
+  // get local variables for the procedure
+  public getLocalVars(Node: SyntaxNode, State: EditorState, isAnon: Boolean) {
+    let localVars: LocalVariable[] = [];
+    Node.cursor().iterate((noderef) => {
+      if (noderef.node.to > Node.to) {
+        return false;
+      }
+      if (noderef.name == 'ProcedureContent') {
+        noderef.node.getChildren('VariableDeclaration').map((node) => {
+          node.getChildren('NewVariableDeclaration').map((subnode) => {
+            subnode.getChildren('Identifier').map((subsubnode) => {
+              if (
+                !this.getParents(subsubnode).includes('AnonymousProcedure') ||
+                isAnon
+              ) {
+                const variable = new LocalVariable(
+                  State.sliceDoc(subsubnode.from, subsubnode.to).toLowerCase(),
+                  1,
+                  subsubnode.from
+                );
+                localVars.push(variable);
+              }
+            });
           });
         });
-      });
-    }
-  });
-  return localVars;
-};
-
-const getParents = function (Node: SyntaxNode) {
-  let parents: string[] = [];
-  let curr = Node;
-  while (curr.parent) {
-    parents.push(curr.parent.name);
-    curr = curr.parent;
-  }
-  return parents;
-};
-
-const getVariables = function (Node: SyntaxNode, state: EditorState) {
-  let vars: string[] = [];
-  Node.cursor().iterate((noderef) => {
-    if (noderef.node.to > Node.to) {
-      return false;
-    }
-    if (
-      ['Identifier', 'BreedFirst', 'BreedMiddle', 'BreedLast'].includes(
-        noderef.name
-      )
-    ) {
-      vars.push(state.sliceDoc(noderef.from, noderef.to).toLowerCase());
-    }
-  });
-  return vars;
-};
-
-// get arguments for the procedure
-const getArgs = function (Node: SyntaxNode, State: EditorState) {
-  const args: string[] = [];
-  Node.getChildren('Arguments').map((node) => {
-    node.getChildren('Identifier').map((subnode) => {
-      args.push(State.sliceDoc(subnode.from, subnode.to).toLowerCase());
+      }
     });
-  });
-  return args;
-};
+    return localVars;
+  }
 
+  public getParents(Node: SyntaxNode) {
+    let parents: string[] = [];
+    let curr = Node;
+    while (curr.parent) {
+      parents.push(curr.parent.name);
+      curr = curr.parent;
+    }
+    return parents;
+  }
+
+  public getVariables(Node: SyntaxNode, state: EditorState) {
+    let vars: string[] = [];
+    Node.cursor().iterate((noderef) => {
+      if (noderef.node.to > Node.to) {
+        return false;
+      }
+      if (
+        ['Identifier', 'BreedFirst', 'BreedMiddle', 'BreedLast'].includes(
+          noderef.name
+        )
+      ) {
+        vars.push(state.sliceDoc(noderef.from, noderef.to).toLowerCase());
+      }
+    });
+    return vars;
+  }
+
+  // get arguments for the procedure
+  public getArgs(Node: SyntaxNode, State: EditorState) {
+    const args: string[] = [];
+    Node.getChildren('Arguments').map((node) => {
+      node.getChildren('Identifier').map((subnode) => {
+        args.push(State.sliceDoc(subnode.from, subnode.to).toLowerCase());
+      });
+    });
+    return args;
+  }
+}
 /** StateExtension: Extension for managing the editor state.  */
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),

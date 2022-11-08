@@ -28,8 +28,12 @@ globalStatement {
   Breed { BreedStr OpenBracket Identifier Identifier CloseBracket } |
 
   BreedsOwn {
-    Own OpenBracket Identifier* CloseBracket
+    Own OpenBracket BreedVars* CloseBracket
   }
+}
+
+BreedVars {
+  Identifier | BreedFirst | BreedMiddle | BreedLast
 }
 
 Procedure {

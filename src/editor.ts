@@ -24,7 +24,10 @@ import { EditorConfig, EditorLanguage } from './editor-config';
 import { highlight, highlightStyle } from './codemirror/style-highlight';
 import { indentExtension } from './codemirror/extension-indent';
 import { updateExtension } from './codemirror/extension-update';
-import { stateExtension } from './codemirror/extension-state-netlogo';
+import {
+  stateExtension,
+  StateNetLogo,
+} from './codemirror/extension-state-netlogo';
 import { lightTheme } from './codemirror/theme-light';
 
 import { highlightTree } from '@lezer/highlight';
@@ -42,8 +45,6 @@ export class GalapagosEditor {
   public readonly Options: EditorConfig;
   /** Editable: Compartment of the EditorView. */
   private readonly Editable: Compartment;
-  /** LanguageCompartment: Compartment of the EditorView. */
-  private readonly LanguageCompartment: Compartment;
   /** Language: Language of the EditorView. */
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
@@ -53,7 +54,6 @@ export class GalapagosEditor {
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
     this.Editable = new Compartment();
-    this.LanguageCompartment = new Compartment();
     this.Parent = Parent;
     this.Options = Options;
     // Extensions
@@ -104,6 +104,10 @@ export class GalapagosEditor {
       extensions: Extensions,
       parent: Parent,
     });
+
+    // disable Grammarly
+    const el = this.Parent.getElementsByClassName('cm-content')[0];
+    el.setAttribute('data-enable-grammarly', 'false');
   }
 
   /** Highlight: Highlight a given snippet of code. */
@@ -157,6 +161,11 @@ export class GalapagosEditor {
     this.CodeMirror.dispatch({
       effects: this.Editable.reconfigure(EditorView.editable.of(!status)),
     });
+  }
+
+  /** GetState: Get the current parser state of the NetLogo code. */
+  GetState(): StateNetLogo {
+    return this.CodeMirror.state.field(stateExtension);
   }
   // #endregion
 
@@ -301,11 +310,17 @@ export class GalapagosEditor {
   SelectAll() {
     selectAll(this.CodeMirror);
   }
+
+  /** Select: Select and scroll to a given range in the editor. */
+  Select(Start: number, End: number) {
+    // Stub
+  }
   // #endregion
 
   // #region "Editor Interfaces"
   /** ShowFind: Show the finding interface. */
   ShowFind() {
+    this.HideAllInterfaces();
     openSearchPanel(this.CodeMirror);
     // hide inputs related to replace for find interface
     const input = this.Parent.querySelector<HTMLElement>(
@@ -320,11 +335,11 @@ export class GalapagosEditor {
       '.cm-button[name="replaceAll"]'
     );
     if (button2) button2.style.display = 'none';
-    this.HideJumpToDialog();
   }
 
   /** ShowReplace: Show the replace interface. */
   ShowReplace() {
+    this.HideAllInterfaces();
     openSearchPanel(this.CodeMirror);
     // show inputs related to replace
     const input = this.Parent.querySelector<HTMLElement>(
@@ -339,7 +354,6 @@ export class GalapagosEditor {
       '.cm-button[name="replaceAll"]'
     );
     if (button2) button2.style.display = 'inline-block';
-    this.HideJumpToDialog();
   }
 
   /** ShowJumpTo: Show the jump-to-line interface. */
@@ -350,16 +364,16 @@ export class GalapagosEditor {
     jumpElm ? (jumpElm.style.display = 'flex') : gotoLine(this.CodeMirror);
   }
 
-  // HideJumpToDialog: Hide line interface
-  HideJumpToDialog() {
+  /** HideJumpTo: Hide line interface. */
+  HideJumpTo() {
     const jumpElm = this.Parent.querySelector<HTMLElement>('.cm-gotoLine');
     if (jumpElm) jumpElm.style.display = 'none';
   }
 
-  // HideAllInterfaces: Hide all interfaces available.
+  /** HideAllInterfaces: Hide all interfaces available. */
   HideAllInterfaces() {
     closeSearchPanel(this.CodeMirror);
-    this.HideJumpToDialog();
+    this.HideJumpTo();
   }
   // #endregion
 

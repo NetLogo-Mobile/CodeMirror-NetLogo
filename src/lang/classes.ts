@@ -1,27 +1,38 @@
 /** Primitive: Static metadata of a single NetLogo primitive. */
-
-// Seems that there are some exceptions such as
-export class Primitive {
+export interface Primitive {
   /** Extension: Where the primitive belongs to. */
-  public Extension: string;
+  Extension: string;
   /** Name: Name of the primitive. */
-  public Name: string;
-  /** ArgumentTypes: Argument types of the primitive. */
-  public ArgumentTypes: NetLogoType[];
+  Name: string;
+  /** LeftArgumentType: Type of the argument to the left of the primitive. */
+  LeftArgumentType: Argument | null;
+  /** RightArgumentTypes: Type of the argument to the right of the primitive. */
+  RightArgumentTypes: Argument[];
   /** ReturnType: Return type of the primitive. */
-  public ReturnType: NetLogoType;
+  ReturnType: Argument;
+  /** Precedence: Precedence of the primitive. */
+  Precedence: number;
+  /** AgentContext: Acceptable context for the primitive. */
+  AgentContext: AgentContexts;
+  /** AgentContext: Context in the command block of the primitive. */
+  BlockContext?: AgentContexts;
+  /** DefaultOption: Unsure what this is for. */
+  DefaultOption?: number | null;
+  /** MinimumOption: Unsure what this is for. */
+  MinimumOption?: number | null;
+  /** IsRightAssociative: Unsure what this is for. */
+  IsRightAssociative?: boolean;
+  /** IntroducesContext: If this primitive introduces a new context. */
+  IntroducesContext?: boolean;
+  /** CanBeConcise: Unsure what this is for. */
+  CanBeConcise?: boolean;
+}
 
-  public constructor(
-    Extension: string,
-    Name: string,
-    ArgumentTypes: NetLogoType[],
-    ReturnType: NetLogoType
-  ) {
-    this.Extension = Extension;
-    this.Name = Name;
-    this.ArgumentTypes = ArgumentTypes;
-    this.ReturnType = ReturnType;
-  }
+/** Argument: Static metadata of a NetLogo primitive's argument. */
+export interface Argument {
+  Types: NetLogoType[];
+  CanRepeat: boolean;
+  Optional: boolean;
 }
 
 /** NetLogoType: Types that are available in NetLogo. */
@@ -33,6 +44,38 @@ export enum NetLogoType {
   Number = 3,
   List = 4,
   Boolean = 5,
+  Agent = 6,
+  AgentSet = 7,
+  Nobody = 8,
+  Turtle = 9,
+  Patch = 10,
+  Link = 11,
+  CommandBlock = 12,
+  CodeBlock = 13,
+  NumberBlock = 14,
+  Reporter = 15,
+  Symbol = 16,
+  Other = 17,
+}
+
+/** AgentContexts: Agent contexts of a primitive. */
+export class AgentContexts {
+  public Observer: boolean;
+  public Turtle: boolean;
+  public Patch: boolean;
+  public Link: boolean;
+  /** Parse an agent-context string. */
+  public constructor(Input?: string) {
+    this.Observer = true;
+    this.Turtle = true;
+    this.Patch = true;
+    this.Link = true;
+    if (!Input) return;
+    if (Input[0] != 'O') this.Observer = false;
+    if (Input[1] != 'T') this.Turtle = false;
+    if (Input[2] != 'P') this.Patch = false;
+    if (Input[3] != 'L') this.Patch = false;
+  }
 }
 
 /** Breed: Dynamic metadata of a single breed. */
@@ -43,7 +86,7 @@ export class Breed {
   public Plural: string;
   /** Variables: Variables defined for the breed. */
   public Variables: string[];
-
+  /** Build a breed. */
   public constructor(Singular: string, Plural: string, Variables: string[]) {
     this.Singular = Singular;
     this.Plural = Plural;
@@ -61,17 +104,25 @@ export class Procedure {
   public Variables: LocalVariable[];
   /** AnonymousProcedures: anonymous procedures defined for the procedure. */
   public AnonymousProcedures: AnonymousProcedure[];
-
+  /** PositionStart: The starting position of the procedure in the document. */
+  public PositionStart: number;
+  /** PositionEnd: The end position of the procedure in the document. */
+  public PositionEnd: number;
+  /** Build a procedure. */
   public constructor(
     Name: string,
     Arguments: string[],
     Variables: LocalVariable[],
-    AnonymousProcedures: AnonymousProcedure[]
+    AnonymousProcedures: AnonymousProcedure[],
+    PositionStart: number,
+    PositionEnd: number
   ) {
     this.Name = Name;
     this.Arguments = Arguments;
     this.Variables = Variables;
     this.AnonymousProcedures = AnonymousProcedures;
+    this.PositionStart = PositionStart;
+    this.PositionEnd = PositionEnd;
   }
 }
 
@@ -85,7 +136,7 @@ export class AnonymousProcedure {
   public Arguments: string[];
   /** Variables: local variables defined for the procedure. */
   public Variables: LocalVariable[];
-
+  /** Build an anonymous procedure. */
   public constructor(
     From: number,
     To: number,
@@ -101,13 +152,13 @@ export class AnonymousProcedure {
 
 /** LocalVariable: metadata for local variables */
 export class LocalVariable {
-  /** name: The name of the variable. */
+  /** Name: The name of the variable. */
   public Name: string;
-  /** type: The type of the variable. */
+  /** Type: The type of the variable. */
   public Type: NetLogoType;
-  /** name: The position where the variable was created. */
+  /** CreationPos: The position where the variable was created. */
   public CreationPos: number;
-
+  /** Build a local variable. */
   public constructor(Name: string, Type: NetLogoType, CreationPos: number) {
     this.Name = Name;
     this.Type = Type;
