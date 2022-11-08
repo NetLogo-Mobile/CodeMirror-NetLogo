@@ -24,7 +24,10 @@ import { EditorConfig, EditorLanguage } from './editor-config';
 import { highlight, highlightStyle } from './codemirror/style-highlight';
 import { indentExtension } from './codemirror/extension-indent';
 import { updateExtension } from './codemirror/extension-update';
-import { stateExtension } from './codemirror/extension-state-netlogo';
+import {
+  stateExtension,
+  StateNetLogo,
+} from './codemirror/extension-state-netlogo';
 import { lightTheme } from './codemirror/theme-light';
 
 import { highlightTree } from '@lezer/highlight';
@@ -158,6 +161,11 @@ export class GalapagosEditor {
     this.CodeMirror.dispatch({
       effects: this.Editable.reconfigure(EditorView.editable.of(!status)),
     });
+  }
+
+  /** GetState: Get the current parser state of the NetLogo code. */
+  GetState(): StateNetLogo {
+    return this.CodeMirror.state.field(stateExtension);
   }
   // #endregion
 
@@ -301,6 +309,11 @@ export class GalapagosEditor {
   /** SelectAll: Select all text in the editor. */
   SelectAll() {
     selectAll(this.CodeMirror);
+  }
+
+  /** Select: Select and scroll to a given range in the editor. */
+  Select(Start: number, End: number) {
+    // Stub
   }
   // #endregion
 

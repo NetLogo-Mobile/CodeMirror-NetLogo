@@ -104,17 +104,25 @@ export class Procedure {
   public Variables: LocalVariable[];
   /** AnonymousProcedures: anonymous procedures defined for the procedure. */
   public AnonymousProcedures: AnonymousProcedure[];
+  /** PositionStart: The starting position of the procedure in the document. */
+  public PositionStart: number;
+  /** PositionEnd: The end position of the procedure in the document. */
+  public PositionEnd: number;
   /** Build a procedure. */
   public constructor(
     Name: string,
     Arguments: string[],
     Variables: LocalVariable[],
-    AnonymousProcedures: AnonymousProcedure[]
+    AnonymousProcedures: AnonymousProcedure[],
+    PositionStart: number,
+    PositionEnd: number
   ) {
     this.Name = Name;
     this.Arguments = Arguments;
     this.Variables = Variables;
     this.AnonymousProcedures = AnonymousProcedures;
+    this.PositionStart = PositionStart;
+    this.PositionEnd = PositionEnd;
   }
 }
 
