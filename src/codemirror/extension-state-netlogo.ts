@@ -137,7 +137,7 @@ const getLocalVars = function (
     if (noderef.node.to > Node.to) {
       return false;
     }
-    if (noderef.name == 'ProcedureContent') {
+    if (noderef.name == 'CommandStatement') {
       noderef.node.getChildren('VariableDeclaration').map((node) => {
         node.getChildren('NewVariableDeclaration').map((subnode) => {
           subnode.getChildren('Identifier').map((subsubnode) => {

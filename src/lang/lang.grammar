@@ -1,5 +1,9 @@
 @precedence {
-  operation @left,
+  exponent @right,
+  times @left,
+  plus @left,
+  comparative @left,
+  leftArgs @left,
   open @left
 }
 
@@ -37,15 +41,11 @@ ProcedureName {
 }
 
 Arguments {
-  !operation OpenBracket Identifier* ~statement CloseBracket 
+  OpenBracket Identifier* ~statement CloseBracket 
 }
 
 ProcedureContent {
-  VariableDeclaration | 
-  BreedProceduresReporters | 
-  Commands |
-  Reporters ~statement |
-  Identifier ~statement
+  CommandStatement
 }
 
 AnonArguments {
@@ -70,10 +70,10 @@ SetVariable {
 }
 
 VariableName {
-  !operation Identifier | 
-  !operation PatchVar | 
-  !operation TurtleVar | 
-  !operation LinkVar
+  Identifier | 
+  PatchVar | 
+  TurtleVar | 
+  LinkVar
 }
 
 Value {
@@ -86,13 +86,14 @@ Value {
   Numeric
 }
 
-SimpleVal {
+Literal {
   Numeric |
-  String
+  String |
+  Constant
 }
 
 List {
-  OpenBracket SimpleVal+ CloseBracket 
+  OpenBracket Literal+ CloseBracket 
 }
 
 CodeBlock {
@@ -100,28 +101,42 @@ CodeBlock {
 }
 
 Reporters {
-  !operation Reporter | 
-  Arg !operation Reporter11Args Arg |
-  !operation Reporter0Args |
-  !operation Reporter1Args Arg |
-  !operation Reporter2Args Arg Arg |
-  !operation Reporter3Args Arg Arg Arg |
-  !operation Reporter4Args Arg Arg Arg Arg
+  Reporter | 
+  Operation |
+  Arg !leftArgs ReporterLeftArgs Arg |
+  ReportersAll |
+  Reporter0Args |
+  Reporter1Args Arg |
+  Reporter2Args Arg Arg |
+  Reporter3Args Arg Arg Arg |
+  Reporter4Args Arg Arg Arg Arg
 }
 
-Commands {
-  Command |
-  Command0Args |
-  Command1Args Arg |
-  Command2Args Arg Arg |
-  Command3Args Arg Arg Arg |
-  Command4Args Arg Arg Arg Arg
+CommandStatement {
+  Command Arg* |
+  VariableDeclaration
+}
+
+Operation {
+  Value !plus "+" Value |
+  Value !plus Minus Value |
+  Value !times "*" Value |
+  Value !times "/" Value |
+  Value !exponent "^" Value |
+  Value !comparative "=" Value |
+  Value !comparative "!=" Value |
+  Value !comparative ">" Value |
+  Value !comparative "<" Value |
+  Value !comparative "<=" Value |
+  Value !comparative ">=" Value |
+  Value !comparative And Value |
+  Value !comparative Or Value |
+  Minus Value
 }
 
 Arg {   
   AnonymousProcedure |
   CodeBlock | 
-  Commands |
   Value ~statement
 }
 
@@ -131,7 +146,10 @@ BreedProceduresReporters {
 
 
 @tokens {
-  Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* }
+
+  Minus { "-" }
+
+  Numeric { $[0-9]+ $[\.]? $[0-9]* }
   
   String { '"' (!["\\] | "\\" _)* '"' }
 
@@ -161,12 +179,7 @@ expression {
 }
 
 @external tokens keyword from "./tokenizer.js" { 
-  Command0Args,
-  Command1Args, 
-  Command2Args, 
-  Command3Args, 
-  Command4Args, 
-  Reporter11Args,
+  ReporterLeftArgs,
   Reporter0Args,
   Reporter1Args, 
   Reporter2Args, 
@@ -183,6 +196,8 @@ expression {
   Let, 
   To, 
   End, 
+  And,
+  Or
   Identifier, 
   Directive,
   Command, 
@@ -193,4 +208,8 @@ expression {
   LinkVar, 
   Constant, 
   Unsupported
+}
+
+@external specialize {Reporter} specializeReporter from './specializer' {
+  ReportersAll
 }

@@ -44,11 +44,7 @@ import {
   Reporter2Args,
   Reporter3Args,
   Reporter4Args,
-  Command0Args,
-  Command1Args,
-  Command2Args,
-  Command3Args,
-  Command4Args,
+  ReporterLeftArgs,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -78,10 +74,21 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(To);
   } else if (token == 'end') {
     input.acceptToken(End);
+  } else if (token == 'and') {
+    input.acceptToken(And);
+  } else if (token == 'or') {
+    input.acceptToken(Or);
   } else if (token == 'globals') {
     input.acceptToken(GlobalStr);
   } else if (token == 'extensions') {
     input.acceptToken(ExtensionStr);
+  } else if (
+    token == 'mod' ||
+    token == 'in-radius' ||
+    token == 'in-cone' ||
+    token == 'at-points'
+  ) {
+    input.acceptToken(ReporterLeftArgs);
   } else if (
     token == 'breed' ||
     token == 'directed-link-breed' ||
@@ -103,9 +110,9 @@ export const keyword = new ExternalTokenizer((input) => {
   } else if (unsupported.indexOf(token) != -1) {
     input.acceptToken(Unsupported);
   } else if (commands.indexOf(token) != -1) {
-    input.acceptToken(getArgs(token, 'Command'));
+    input.acceptToken(Command);
   } else if (reporters.indexOf(token) != -1) {
-    input.acceptToken(getArgs(token, 'Reporter'));
+    input.acceptToken(Reporter);
   } else if (match != 0) {
     input.acceptToken(match);
   } else {
@@ -134,49 +141,6 @@ function isValidKeyword(ch: number) {
     (ch >= 210 && ch <= 216) ||
     (ch >= 224 && ch <= 237)
   );
-}
-
-function getArgs(token: string, type: string) {
-  let numArgs = 0;
-  let tag = Command ? type == 'Command' : Reporter;
-  if (type == 'Command') {
-    COMMANDS.map((command) => {
-      if (command.name.toLowerCase() == token) {
-        numArgs = command.syntax.right.length;
-        if (numArgs == 0) {
-          tag = Command0Args;
-        } else if (numArgs == 1) {
-          tag = Command1Args;
-        } else if (numArgs == 2) {
-          tag = Command2Args;
-        } else if (numArgs == 3) {
-          tag = Command3Args;
-        } else {
-          tag = Command4Args;
-        }
-      }
-    });
-  } else if (type == 'Reporter') {
-    REPORTERS.map((reporter) => {
-      if (reporter.name.toLowerCase() == token) {
-        numArgs = reporter.syntax.right.length;
-        if (reporter.syntax.left != 'unit') {
-          tag = Reporter11Args;
-        } else if (numArgs == 0) {
-          tag = Reporter0Args;
-        } else if (numArgs == 1) {
-          tag = Reporter1Args;
-        } else if (numArgs == 2) {
-          tag = Reporter2Args;
-        } else if (numArgs == 3) {
-          tag = Reporter3Args;
-        } else {
-          tag = Reporter4Args;
-        }
-      }
-    });
-  }
-  return tag;
 }
 
 // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
