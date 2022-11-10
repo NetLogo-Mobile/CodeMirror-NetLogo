@@ -55,7 +55,11 @@ export enum NetLogoType {
   NumberBlock = 14,
   Reporter = 15,
   Symbol = 16,
-  Other = 17,
+  LinkSet = 17,
+  ReporterBlock = 18,
+  BooleanBlock = 19,
+  Command = 20,
+  Other = 21,
 }
 
 /** AgentContexts: Agent contexts of a primitive. */

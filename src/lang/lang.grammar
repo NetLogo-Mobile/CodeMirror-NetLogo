@@ -28,12 +28,12 @@ globalStatement {
   Breed { BreedStr OpenBracket Identifier Identifier CloseBracket } |
 
   BreedsOwn {
-    Own OpenBracket BreedVars* CloseBracket
+    Own OpenBracket Identifier* CloseBracket
   }
 }
 
 BreedVars {
-  Identifier | BreedFirst | BreedMiddle | BreedLast
+  BreedFirst | BreedMiddle | BreedLast
 }
 
 Procedure {
@@ -57,7 +57,7 @@ AnonArguments {
 }
 
 AnonymousProcedure {
-  OpenBracket AnonArguments "->" ProcedureContent* CloseBracket
+  OpenBracket AnonArguments Arrow ProcedureContent* CloseBracket
 }
 
 VariableDeclaration {
@@ -74,20 +74,21 @@ SetVariable {
 }
 
 VariableName {
-  Identifier | 
+  !leftArgs Identifier | 
   PatchVar | 
   TurtleVar | 
-  LinkVar
+  LinkVar |
+  BreedVars
 }
 
 Value {
-  "(" Value ")" |
   Reporters ~statement |
   String |
   Constant |
-  VariableName |
+  VariableName ~statement|
   List |
-  Numeric
+  Numeric |
+  "(" Value ")"
 }
 
 Literal {
@@ -106,42 +107,39 @@ CodeBlock {
 
 Reporters {
   Reporter | 
+  "(" Reporter Arg+ ")" | 
   Operation |
   Arg !leftArgs ReporterLeftArgs Arg |
-  ReportersAll |
   Reporter0Args |
   Reporter1Args Arg |
   Reporter2Args Arg Arg |
   Reporter3Args Arg Arg Arg |
-  Reporter4Args Arg Arg Arg Arg
+  Reporter4Args Arg Arg Arg Arg |
+  Reporter5Args Arg Arg Arg Arg Arg |
+  Reporter6Args Arg Arg Arg Arg Arg Arg
 }
 
 CommandStatement {
   Command Arg* |
+  Identifier |
   VariableDeclaration
 }
 
 Operation {
-  Value !plus "+" Value |
-  Value !plus Minus Value |
-  Value !times "*" Value |
-  Value !times "/" Value |
-  Value !exponent "^" Value |
-  Value !comparative "=" Value |
-  Value !comparative "!=" Value |
-  Value !comparative ">" Value |
-  Value !comparative "<" Value |
-  Value !comparative "<=" Value |
-  Value !comparative ">=" Value |
+  Value !plus PlusMinus Value |
+  Value !plus PlusMinus Value |
+  Value !times MultiplyDivide Value |
+  Value !times MultiplyDivide Value |
+  Value !exponent Exponent Value |
+  Value !comparative Comparative Value |
   Value !comparative And Value |
-  Value !comparative Or Value |
-  Minus Value
+  Value !comparative Or Value
 }
 
 Arg {   
-  AnonymousProcedure |
   CodeBlock | 
-  Value ~statement
+  Value ~statement |
+  AnonymousProcedure
 }
 
 BreedProceduresReporters {
@@ -151,9 +149,13 @@ BreedProceduresReporters {
 
 @tokens {
 
-  Minus { "-" }
+  PlusMinus { "+" | "-" }
 
-  Numeric { $[0-9]+ $[\.]? $[0-9]* }
+  MultiplyDivide {"*" |"/"}
+
+  Exponent {"^"}
+
+  Numeric { $[0-9]+ $[\.]? $[0-9]* | $[0-9]* $[\.] $[0-9]+}
   
   String { '"' (!["\\] | "\\" _)* '"' }
 
@@ -164,6 +166,10 @@ BreedProceduresReporters {
   OpenBracket { "[" }
   
   CloseBracket { "]" }
+
+  Arrow { "->" }
+
+  Comparative { "=" | "!=" | ">" | "<" | "<=" | ">="}
 
   "[" "]"
 }
@@ -183,12 +189,8 @@ expression {
 }
 
 @external tokens keyword from "./tokenizer.js" { 
-  ReporterLeftArgs,
-  Reporter0Args,
-  Reporter1Args, 
-  Reporter2Args, 
-  Reporter3Args, 
-  Reporter4Args, 
+  ReporterLeftArgs,  
+  SpecialPrimitive,
   GlobalStr, 
   ExtensionStr, 
   BreedStr, 
@@ -215,5 +217,11 @@ expression {
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {
-  ReportersAll
+  Reporter0Args,
+  Reporter1Args, 
+  Reporter2Args, 
+  Reporter3Args, 
+  Reporter4Args,
+  Reporter5Args,
+  Reporter6Args
 }

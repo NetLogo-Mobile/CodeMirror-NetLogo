@@ -17,6 +17,8 @@ import {
   Let,
   To,
   End,
+  And,
+  Or,
   BreedFirst,
   BreedLast,
   BreedMiddle,
@@ -41,6 +43,7 @@ import {
   Reporter3Args,
   Reporter4Args,
   ReporterLeftArgs,
+  SpecialPrimitive,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -85,6 +88,7 @@ export const keyword = new ExternalTokenizer((input) => {
     token == 'in-radius' ||
     token == 'in-cone' ||
     token == 'at-points'
+    // ["+","-","*","/","^","=","!=",">","<","<=",">=","and","or"].indexOf(token)>-1
   ) {
     input.acceptToken(ReporterLeftArgs);
   } else if (
