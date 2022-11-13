@@ -83,7 +83,8 @@ Value {
   VariableName ~statement|
   List |
   Numeric |
-  "(" Value ")"
+  "(" Value ")" |
+  AnonymousProcedure
 }
 
 Literal {
@@ -109,7 +110,8 @@ Reporters {
   BreedReporters |
   "(" Reporter Arg+ ")" | 
   Operation |
-  Arg !leftArgs ReporterLeftArgs Arg |
+  Arg !leftArgs ReporterLeftArgs1 Arg |
+  Arg !leftArgs ReporterLeftArgs2 Arg Arg |
   Reporter0Args |
   Reporter1Args Arg |
   Reporter2Args Arg Arg |
@@ -128,8 +130,6 @@ CommandStatement {
 
 Operation {
   Value !plus PlusMinus Value |
-  Value !plus PlusMinus Value |
-  Value !times MultiplyDivide Value |
   Value !times MultiplyDivide Value |
   Value !exponent Exponent Value |
   Value !comparative Comparative Value |
@@ -140,7 +140,6 @@ Operation {
 Arg {   
   CodeBlock | 
   Value ~statement |
-  AnonymousProcedure |
   ReporterBlock
 }
 
@@ -193,7 +192,8 @@ expression {
 }
 
 @external tokens keyword from "./tokenizer.js" { 
-  ReporterLeftArgs,  
+  ReporterLeftArgs1,
+  ReporterLeftArgs2,  
   SpecialPrimitive,
   GlobalStr, 
   ExtensionStr, 

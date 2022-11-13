@@ -39,7 +39,8 @@ import {
   GlobalStr,
   ExtensionStr,
   BreedStr,
-  ReporterLeftArgs,
+  ReporterLeftArgs1,
+  ReporterLeftArgs2,
   PlusMinus,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
@@ -83,12 +84,14 @@ export const keyword = new ExternalTokenizer((input) => {
   } else if (
     token == 'mod' ||
     token == 'in-radius' ||
-    token == 'in-cone' ||
     token == 'at-points' ||
-    token == 'of'
+    token == 'of' ||
+    token == 'with'
     // ["+","-","*","/","^","=","!=",">","<","<=",">=","and","or"].indexOf(token)>-1
   ) {
-    input.acceptToken(ReporterLeftArgs);
+    input.acceptToken(ReporterLeftArgs1);
+  } else if (token == 'in-cone') {
+    input.acceptToken(ReporterLeftArgs2);
   } else if (token == '-' || token == '+') {
     input.acceptToken(PlusMinus);
   } else if (
