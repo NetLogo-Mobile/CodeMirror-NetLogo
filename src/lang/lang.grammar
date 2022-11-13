@@ -32,16 +32,12 @@ globalStatement {
   }
 }
 
-BreedVars {
-  BreedFirst | BreedMiddle | BreedLast
-}
-
 Procedure {
   To ProcedureName Arguments? ProcedureContent* End
 }
 
 ProcedureName {
-  Identifier | BreedProceduresReporters
+  Identifier | BreedReporters
 }
 
 Arguments {
@@ -53,7 +49,7 @@ ProcedureContent {
 }
 
 AnonArguments {
-  Arguments | Identifier
+  Arguments | Identifier* ~statement
 }
 
 AnonymousProcedure {
@@ -77,8 +73,7 @@ VariableName {
   !leftArgs Identifier | 
   PatchVar | 
   TurtleVar | 
-  LinkVar |
-  BreedVars
+  LinkVar
 }
 
 Value {
@@ -105,8 +100,13 @@ CodeBlock {
   OpenBracket ProcedureContent* CloseBracket
 }
 
+ReporterBlock{
+  OpenBracket Reporters CloseBracket
+}
+
 Reporters {
   Reporter | 
+  BreedReporters |
   "(" Reporter Arg+ ")" | 
   Operation |
   Arg !leftArgs ReporterLeftArgs Arg |
@@ -121,8 +121,9 @@ Reporters {
 
 CommandStatement {
   Command Arg* |
-  Identifier |
-  VariableDeclaration
+  Identifier ~statement |
+  VariableDeclaration |
+  BreedCommands Arg*
 }
 
 Operation {
@@ -139,23 +140,26 @@ Operation {
 Arg {   
   CodeBlock | 
   Value ~statement |
-  AnonymousProcedure
+  AnonymousProcedure |
+  ReporterBlock
 }
 
-BreedProceduresReporters {
-  BreedFirst | BreedMiddle | BreedLast
+BreedReporters {
+  BreedFirstReporter | BreedMiddleReporter | BreedLastReporter
+}
+
+BreedCommands {
+  BreedFirstCommand | BreedMiddleCommand | BreedLastCommand
 }
 
 
 @tokens {
 
-  PlusMinus { "+" | "-" }
-
   MultiplyDivide {"*" |"/"}
 
   Exponent {"^"}
 
-  Numeric { $[0-9]+ $[\.]? $[0-9]* | $[0-9]* $[\.] $[0-9]+}
+  Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* | $[0-9]* $[\.] $[0-9]+}
   
   String { '"' (!["\\] | "\\" _)* '"' }
 
@@ -194,9 +198,13 @@ expression {
   GlobalStr, 
   ExtensionStr, 
   BreedStr, 
-  BreedFirst, 
-  BreedLast, 
-  BreedMiddle, 
+  BreedFirstCommand,
+  BreedLastCommand,
+  BreedMiddleCommand,
+  BreedFirstReporter,
+  BreedLastReporter,
+  BreedMiddleReporter, 
+  PlusMinus,
   Own, 
   Set, 
   Let, 
