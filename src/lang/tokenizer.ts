@@ -42,6 +42,8 @@ import {
   ReporterLeftArgs1,
   ReporterLeftArgs2,
   PlusMinus,
+  SpecialCommand,
+  SpecialReporter,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -49,6 +51,8 @@ import {
 import { Reporters } from './primitives/reporters.js';
 import { Commands } from './primitives/commands.js';
 import { NetLogoType, Primitive } from './classes';
+import { ParseContext } from '@codemirror/language';
+import { basicStateExtension } from '../codemirror/extension-regex-state';
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer((input) => {
@@ -123,7 +127,12 @@ export const keyword = new ExternalTokenizer((input) => {
     if (match != 0) {
       input.acceptToken(match);
     } else {
-      input.acceptToken(Identifier);
+      const customMatch = matchCustomProcedure(token);
+      if (customMatch != 0) {
+        input.acceptToken(customMatch);
+      } else {
+        input.acceptToken(Identifier);
+      }
     }
   }
 });
@@ -158,24 +167,55 @@ function isValidKeyword(ch: number) {
 // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
 function matchBreed(token: string) {
   let tag = 0;
+  let parseContext = ParseContext.get();
+  let breedNames =
+    parseContext?.state
+      .field(basicStateExtension)
+      .PluralBreeds.concat(
+        parseContext?.state.field(basicStateExtension).SingularBreeds
+      ) ?? [];
+  let foundMatch = false;
+
+  for (let b of breedNames) {
+    if (token.includes(b)) {
+      foundMatch = true;
+    }
+  }
+  if (!foundMatch) {
+    return tag;
+  }
   if (token.match(/\w+-own/)) {
     tag = Own;
   } else if (token.match(/\w+-(at|here|on|with|neighbor\\?|neighbors)$/)) {
-    tag = BreedFirstReporter;
+    tag = SpecialReporter;
   } else if (token.match(/^(my-in|my-out)-\w+/)) {
-    tag = BreedLastReporter;
+    tag = SpecialReporter;
   } else if (token.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
-    tag = BreedLastCommand;
+    tag = SpecialCommand;
   } else if (token.match(/^is-\w+\\?$/)) {
-    tag = BreedLastReporter;
+    tag = SpecialReporter;
   } else if (token.match(/^in-\w+-from$/)) {
-    tag = BreedMiddleReporter;
+    tag = SpecialReporter;
   } else if (token.match(/^(in|out)-\w+-(neighbor\\?|neighbors)$/)) {
-    tag = BreedMiddleReporter;
+    tag = SpecialReporter;
   } else if (token.match(/^out-\w+-to$/)) {
-    tag = BreedMiddleReporter;
+    tag = SpecialReporter;
   } else if (token.match(/^create-\w+-(to|from|with)$/)) {
-    tag = BreedMiddleCommand;
+    tag = SpecialCommand;
   }
   return tag;
+}
+
+function matchCustomProcedure(token: string) {
+  let parseContext = ParseContext.get();
+  let commands = parseContext?.state.field(basicStateExtension).Commands ?? {};
+  let reporters =
+    parseContext?.state.field(basicStateExtension).Reporters ?? {};
+  if (commands[token]) {
+    return SpecialCommand;
+  }
+  if (reporters[token]) {
+    return SpecialReporter;
+  }
+  return 0;
 }

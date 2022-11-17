@@ -1,3 +1,5 @@
+import { ParseContext } from '@codemirror/language';
+import { basicStateExtension } from '../codemirror/extension-regex-state.js';
 import {
   ReportersAll,
   ReporterVarArgs,
@@ -8,6 +10,13 @@ import {
   Reporter4Args,
   Reporter5Args,
   Reporter6Args,
+  SpecialReporter0Args,
+  SpecialReporter1Args,
+  SpecialReporter2Args,
+  SpecialReporter3Args,
+  SpecialReporter4Args,
+  SpecialReporter5Args,
+  SpecialReporter6Args,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -46,9 +55,58 @@ const specializeReporter = function (token: string) {
     } else if (args == 6) {
       return Reporter6Args;
     }
+  } else {
+    return -1;
   }
-
-  return -1;
 };
 
-export { specializeReporter };
+const specializeSpecialReporter = function (token: string) {
+  token = token.toLowerCase();
+  let parseContext = ParseContext.get();
+  let reporters =
+    parseContext?.state.field(basicStateExtension).Reporters ?? {};
+  if (reporters[token]) {
+    let args = reporters[token];
+    if (args == 0) {
+      return SpecialReporter0Args;
+    } else if (args == 1) {
+      return SpecialReporter1Args;
+    } else if (args == 2) {
+      return SpecialReporter2Args;
+    } else if (args == 3) {
+      return SpecialReporter3Args;
+    } else if (args == 4) {
+      return SpecialReporter4Args;
+    } else if (args == 5) {
+      return SpecialReporter5Args;
+    } else if (args == 6) {
+      return SpecialReporter6Args;
+    } else {
+      return -1;
+    }
+  }
+
+  if (token.match(/\w+-(at)/)) {
+    return SpecialReporter2Args;
+  } else if (token.match(/\w+-(here|neighbors)/)) {
+    return SpecialReporter0Args;
+  } else if (token.match(/\w+-(on|with|neighbor\\?)/)) {
+    return SpecialReporter1Args;
+  } else if (token.match(/^(my-in|my-out)-\w+/)) {
+    return SpecialReporter0Args;
+  } else if (token.match(/^is-\w+\\?$/)) {
+    return SpecialReporter1Args;
+  } else if (token.match(/^in-\w+-from$/)) {
+    return SpecialReporter1Args;
+  } else if (token.match(/^(in|out)-\w+-(neighbors)$/)) {
+    return SpecialReporter0Args;
+  } else if (token.match(/^(in|out)-\w+-(neighbor\\?)$/)) {
+    return SpecialReporter1Args;
+  } else if (token.match(/^out-\w+-to$/)) {
+    return SpecialReporter1Args;
+  } else {
+    return -1;
+  }
+};
+
+export { specializeReporter, specializeSpecialReporter };

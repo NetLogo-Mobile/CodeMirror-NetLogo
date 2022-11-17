@@ -28,6 +28,7 @@ import {
   stateExtension,
   StateNetLogo,
 } from './codemirror/extension-state-netlogo';
+import { basicStateExtension } from './codemirror/extension-regex-state';
 import { lightTheme } from './codemirror/theme-light';
 
 import { highlightTree } from '@lezer/highlight';
@@ -83,6 +84,7 @@ export class GalapagosEditor {
         break;
       default:
         this.Language = NetLogo();
+        Extensions.push(basicStateExtension);
         Extensions.push(stateExtension);
         Extensions.push(...netlogoLinters);
     }

@@ -1,9 +1,10 @@
 @precedence {
+  leftArgs @left,
   exponent @right,
   times @left,
   plus @left,
   comparative @left,
-  leftArgs @left,
+  
   open @left
 }
 
@@ -37,7 +38,15 @@ Procedure {
 }
 
 ProcedureName {
-  Identifier | BreedReporters
+  Identifier | 
+  SpecialCommand | 
+  SpecialReporter0Args |
+  SpecialReporter1Args |
+  SpecialReporter2Args |
+  SpecialReporter3Args |
+  SpecialReporter4Args |
+  SpecialReporter5Args |
+  SpecialReporter6Args
 }
 
 Arguments {
@@ -107,10 +116,9 @@ ReporterBlock{
 
 Reporters {
   Reporter | 
-  BreedReporters |
   "(" Reporter Arg+ ")" | 
   Operation |
-  Arg !leftArgs ReporterLeftArgs1 Arg |
+  Arg !leftArgs ReporterLeftArgs1 !leftArgs Arg |
   Arg !leftArgs ReporterLeftArgs2 Arg Arg |
   Reporter0Args |
   Reporter1Args Arg |
@@ -118,14 +126,21 @@ Reporters {
   Reporter3Args Arg Arg Arg |
   Reporter4Args Arg Arg Arg Arg |
   Reporter5Args Arg Arg Arg Arg Arg |
-  Reporter6Args Arg Arg Arg Arg Arg Arg
+  Reporter6Args Arg Arg Arg Arg Arg Arg |
+  SpecialReporter0Args |
+  SpecialReporter1Args Arg |
+  SpecialReporter2Args Arg Arg |
+  SpecialReporter3Args Arg Arg Arg |
+  SpecialReporter4Args Arg Arg Arg Arg |
+  SpecialReporter5Args Arg Arg Arg Arg Arg |
+  SpecialReporter6Args Arg Arg Arg Arg Arg Arg 
 }
 
 CommandStatement {
   Command Arg* |
   Identifier ~statement |
   VariableDeclaration |
-  BreedCommands Arg*
+  SpecialCommand Arg*
 }
 
 Operation {
@@ -143,22 +158,13 @@ Arg {
   ReporterBlock
 }
 
-BreedReporters {
-  BreedFirstReporter | BreedMiddleReporter | BreedLastReporter
-}
-
-BreedCommands {
-  BreedFirstCommand | BreedMiddleCommand | BreedLastCommand
-}
-
-
 @tokens {
 
   MultiplyDivide {"*" |"/"}
 
   Exponent {"^"}
 
-  Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* | $[0-9]* $[\.] $[0-9]+}
+  Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* | $[-]? $[\.] $[0-9]+}
   
   String { '"' (!["\\] | "\\" _)* '"' }
 
@@ -221,7 +227,9 @@ expression {
   PatchVar, 
   LinkVar, 
   Constant, 
-  Unsupported
+  Unsupported,
+  SpecialReporter,
+  SpecialCommand
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {
@@ -232,4 +240,14 @@ expression {
   Reporter4Args,
   Reporter5Args,
   Reporter6Args
+}
+
+@external specialize {SpecialReporter} specializeSpecialReporter from './specializer' {
+  SpecialReporter0Args,
+  SpecialReporter1Args,
+  SpecialReporter2Args,
+  SpecialReporter3Args,
+  SpecialReporter4Args,
+  SpecialReporter5Args,
+  SpecialReporter6Args
 }
