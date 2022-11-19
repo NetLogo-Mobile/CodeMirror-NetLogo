@@ -27715,12 +27715,14 @@
        /** GetSelection: Returns an object of the start and end of
         *  a selection in the editor. */
        GetSelection() {
-           const position = {
+           return {
                from: this.CodeMirror.state.selection.main.from,
                to: this.CodeMirror.state.selection.main.to,
            };
-           console.log(position);
-           return position;
+       }
+       /** GetSelectionCode: Returns the selected code in the editor. */
+       GetSelectionCode() {
+           return this.CodeMirror.state.sliceDoc(this.CodeMirror.state.selection.main.from, this.CodeMirror.state.selection.main.to);
        }
        // #endregion
        // #region "Editor Interfaces"
