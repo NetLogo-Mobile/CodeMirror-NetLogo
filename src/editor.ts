@@ -313,7 +313,10 @@ export class GalapagosEditor {
 
   /** Select: Select and scroll to a given range in the editor. */
   Select(Start: number, End: number) {
-    // Stub
+    this.CodeMirror.dispatch({
+      selection: { anchor: Start, head: End },
+      scrollIntoView: true,
+    });
   }
   // #endregion
 
