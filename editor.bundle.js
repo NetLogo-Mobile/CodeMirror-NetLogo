@@ -27704,10 +27704,23 @@
        }
        /** Select: Select and scroll to a given range in the editor. */
        Select(Start, End) {
+           if (End > this.CodeMirror.state.doc.length || Start < 0 || Start > End) {
+               return;
+           }
            this.CodeMirror.dispatch({
                selection: { anchor: Start, head: End },
                scrollIntoView: true,
            });
+       }
+       /** GetSelection: Returns an object of the start and end of
+        *  a selection in the editor. */
+       GetSelection() {
+           const position = {
+               from: this.CodeMirror.state.selection.main.from,
+               to: this.CodeMirror.state.selection.main.to,
+           };
+           console.log(position);
+           return position;
        }
        // #endregion
        // #region "Editor Interfaces"
