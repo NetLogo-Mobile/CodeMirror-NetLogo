@@ -27,10 +27,10 @@ export class BasicState {
     let doc = State.doc.toString();
     let breeds = doc.match(/breed\s*\[([A-Za-z0-9\-\_\s]*)\]/g);
     let commands = doc.match(
-      /to\s+[A-Za-z0-9\-\_]+(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
+      /(^|\n)[A-Za-z0-9\-\_ ]*to\s+[A-Za-z0-9\-\_]+(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
     );
     let reporters = doc.match(
-      /to-report\s+[A-Za-z0-9\-\_]+(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
+      /(^|\n)[A-Za-z0-9\-\_ ]*to-report\s+[A-Za-z0-9\-\_]+(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
     );
     if (breeds) {
       let processedBreeds = this.processBreeds(breeds);
@@ -54,7 +54,7 @@ export class BasicState {
       let argCount = 0;
       if (list.length == 2) {
         let args = list[1];
-        args.replace(']', '');
+        args = args.replace(']', '');
         let arg_list = args.split(' ');
         for (let arg of arg_list) {
           if (arg != '') {

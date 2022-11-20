@@ -1,5 +1,6 @@
 @precedence {
   leftArgs @left,
+  lastArgs @left,
   exponent @right,
   times @left,
   plus @left,
@@ -114,31 +115,34 @@ ReporterBlock{
   OpenBracket Reporters CloseBracket
 }
 
+Property {
+  OpenBracket VariableName CloseBracket
+}
+
 Reporters {
   Reporter | 
   "(" Reporter Arg+ ")" | 
-  Operation |
-  Arg !leftArgs ReporterLeftArgs1 !leftArgs Arg |
+  Arg !leftArgs ReporterLeftArgs1 !lastArgs Arg |
   Arg !leftArgs ReporterLeftArgs2 Arg Arg |
-  Reporter0Args |
-  Reporter1Args Arg |
-  Reporter2Args Arg Arg |
-  Reporter3Args Arg Arg Arg |
-  Reporter4Args Arg Arg Arg Arg |
-  Reporter5Args Arg Arg Arg Arg Arg |
-  Reporter6Args Arg Arg Arg Arg Arg Arg |
   SpecialReporter0Args |
   SpecialReporter1Args Arg |
   SpecialReporter2Args Arg Arg |
   SpecialReporter3Args Arg Arg Arg |
   SpecialReporter4Args Arg Arg Arg Arg |
   SpecialReporter5Args Arg Arg Arg Arg Arg |
-  SpecialReporter6Args Arg Arg Arg Arg Arg Arg 
+  SpecialReporter6Args Arg Arg Arg Arg Arg Arg |
+  Reporter0Args |
+  Reporter1Args Arg |
+  Reporter2Args Arg Arg |
+  Reporter3Args Arg Arg Arg |
+  Reporter4Args Arg Arg Arg Arg |
+  Reporter5Args Arg Arg Arg Arg Arg |
+  Reporter6Args Arg Arg Arg Arg Arg Arg
+   
 }
 
 CommandStatement {
   Command Arg* |
-  Identifier ~statement |
   VariableDeclaration |
   SpecialCommand Arg*
 }
@@ -155,7 +159,8 @@ Operation {
 Arg {   
   CodeBlock | 
   Value ~statement |
-  ReporterBlock
+  ReporterBlock |
+  Property
 }
 
 @tokens {
@@ -200,16 +205,9 @@ expression {
 @external tokens keyword from "./tokenizer.js" { 
   ReporterLeftArgs1,
   ReporterLeftArgs2,  
-  SpecialPrimitive,
   GlobalStr, 
   ExtensionStr, 
   BreedStr, 
-  BreedFirstCommand,
-  BreedLastCommand,
-  BreedMiddleCommand,
-  BreedFirstReporter,
-  BreedLastReporter,
-  BreedMiddleReporter, 
   PlusMinus,
   Own, 
   Set, 

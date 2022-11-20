@@ -17,14 +17,6 @@ import {
   Let,
   To,
   End,
-  And,
-  Or,
-  BreedFirstCommand,
-  BreedLastCommand,
-  BreedMiddleCommand,
-  BreedFirstReporter,
-  BreedLastReporter,
-  BreedMiddleReporter,
   Directive,
   Command,
   Extension,
@@ -77,10 +69,6 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(To);
   } else if (token == 'end') {
     input.acceptToken(End);
-  } else if (token == 'and') {
-    input.acceptToken(And);
-  } else if (token == 'or') {
-    input.acceptToken(Or);
   } else if (token == 'globals') {
     input.acceptToken(GlobalStr);
   } else if (token == 'extensions') {
@@ -90,8 +78,22 @@ export const keyword = new ExternalTokenizer((input) => {
     token == 'in-radius' ||
     token == 'at-points' ||
     token == 'of' ||
-    token == 'with'
-    // ["+","-","*","/","^","=","!=",">","<","<=",">=","and","or"].indexOf(token)>-1
+    token == 'with' ||
+    [
+      '+',
+      '-',
+      '*',
+      '/',
+      '^',
+      '=',
+      '!=',
+      '>',
+      '<',
+      '<=',
+      '>=',
+      'and',
+      'or',
+    ].indexOf(token) > -1
   ) {
     input.acceptToken(ReporterLeftArgs1);
   } else if (token == 'in-cone') {
@@ -211,10 +213,12 @@ function matchCustomProcedure(token: string) {
   let commands = parseContext?.state.field(basicStateExtension).Commands ?? {};
   let reporters =
     parseContext?.state.field(basicStateExtension).Reporters ?? {};
-  if (commands[token]) {
+  // console.log(commands,reporters,token)
+  if (commands[token] >= 0) {
+    // console.log("found special command")
     return SpecialCommand;
   }
-  if (reporters[token]) {
+  if (reporters[token] >= 0) {
     return SpecialReporter;
   }
   return 0;
