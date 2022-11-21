@@ -316,8 +316,32 @@ export class GalapagosEditor {
 
   /** Select: Select and scroll to a given range in the editor. */
   Select(Start: number, End: number) {
-    // Stub
+    if (End > this.CodeMirror.state.doc.length || Start < 0 || Start > End) {
+      return;
+    }
+    this.CodeMirror.dispatch({
+      selection: { anchor: Start, head: End },
+      scrollIntoView: true,
+    });
   }
+
+  /** GetSelection: Returns an object of the start and end of
+   *  a selection in the editor. */
+  GetSelection() {
+    return {
+      from: this.CodeMirror.state.selection.main.from,
+      to: this.CodeMirror.state.selection.main.to,
+    };
+  }
+
+  /** GetSelectionCode: Returns the selected code in the editor. */
+  GetSelectionCode() {
+    return this.CodeMirror.state.sliceDoc(
+      this.CodeMirror.state.selection.main.from,
+      this.CodeMirror.state.selection.main.to
+    );
+  }
+
   // #endregion
 
   // #region "Editor Interfaces"
