@@ -167,6 +167,9 @@ export class GalapagosEditor {
   GetState(): StateNetLogo {
     return this.CodeMirror.state.field(stateExtension);
   }
+
+  /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
+  SetWidgetVariables(variables: string[]) {}
   // #endregion
 
   // #region "Editor Features"
