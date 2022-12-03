@@ -413,7 +413,6 @@ export class GalapagosEditor {
   }
 
   /** ShowJumpTo: Show the jump-to-line interface. */
-  // TODO: clear other interfaces
   ShowJumpTo() {
     closeSearchPanel(this.CodeMirror);
     const jumpElm = this.Parent.querySelector<HTMLElement>('.cm-gotoLine');
