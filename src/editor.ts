@@ -86,9 +86,15 @@ export class GalapagosEditor {
         Extensions.push(stateExtension);
         Extensions.push(...netlogoLinters);
     }
-
-    // Build the editor
     Extensions.push(this.Language);
+
+    // DOM handlers
+    Extensions.push(
+      EditorView.domEventHandlers({
+        keydown: Options.OnKeyDown,
+        keyup: Options.OnKeyUp,
+      })
+    );
 
     // One-line mode
     if (this.Options.OneLine) {
@@ -105,11 +111,12 @@ export class GalapagosEditor {
       parent: Parent,
     });
 
-    // disable Grammarly
+    // Disable Grammarly
     const el = this.Parent.getElementsByClassName('cm-content')[0];
     el.setAttribute('data-enable-grammarly', 'false');
   }
 
+  // #region "Editor Highlighting"
   /** Highlight: Highlight a given snippet of code. */
   Highlight(Content: string): HTMLElement {
     const Container = document.createElement('span');
@@ -142,6 +149,7 @@ export class GalapagosEditor {
     pos != tree.length &&
       callback(Content.slice(pos, tree.length), '', pos, tree.length);
   }
+  // #endregion
 
   // #region "Editor API"
   /** SetCode: Set the code of the editor. */
@@ -168,6 +176,21 @@ export class GalapagosEditor {
     return this.CodeMirror.state.field(stateExtension);
   }
 
+  /** SetCursorPosition: Set the cursor position of the editor. */
+  SetCursorPosition(position: number) {
+    // Stub!
+  }
+
+  /** Blur: Make the editor lose the focus (if any). */
+  Blur() {
+    // Stub!
+  }
+
+  /** Focus: Make the editor gain the focus (if possible). */
+  Focus() {
+    // Stub!
+  }
+
   /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
   SetWidgetVariables(variables: string[]) {}
   // #endregion
@@ -181,6 +204,11 @@ export class GalapagosEditor {
   /** Redo: Make the editor Redo. Returns false if no group was available. */
   Redo() {
     redo(this.CodeMirror);
+  }
+
+  /** ClearHistory: Clear the change history. */
+  ClearHistory() {
+    // Stub!
   }
 
   /** Find: Find a keyword in the editor and loop over all matches. */
@@ -265,7 +293,7 @@ export class GalapagosEditor {
     closeSearchPanel(this.CodeMirror);
   }
 
-  /** ReplaceAll Replace the all the matching words in the editor. */
+  /** ReplaceAll: Replace the all the matching words in the editor. */
   ReplaceAll(Source: string, Target: string) {
     openSearchPanel(this.CodeMirror);
     let prevFind = (<HTMLInputElement>(
@@ -401,6 +429,11 @@ export class GalapagosEditor {
   HideAllInterfaces() {
     closeSearchPanel(this.CodeMirror);
     this.HideJumpTo();
+  }
+
+  /** ShowProcedures: Show a list of procedures for the user to jump to. */
+  ShowProcedures() {
+    // Stub!
   }
   // #endregion
 

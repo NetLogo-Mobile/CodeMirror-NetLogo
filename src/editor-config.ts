@@ -11,7 +11,10 @@ export interface EditorConfig {
   OneLine?: boolean;
   /** OnUpdate: Handle the Update event. */
   OnUpdate?: (DocumentChanged: boolean, ViewUpdate: ViewUpdate) => void;
-  /** OnKeyDown: Handle the Keydown event. */
+  /** OnKeyDown: Handle the KeyDown event. */
+  OnKeyDown?: (Event: KeyboardEvent) => boolean | void;
+  /** OnKeyUp: Handle the KeyUp event. */
+  OnKeyUp?: (Event: KeyboardEvent) => boolean | void;
 }
 
 /** Language: Language. */
