@@ -27728,6 +27728,10 @@
        Focus() {
            // Stub!
        }
+       /** CloseCompletion: Forcible close the auto completion. */
+       CloseCompletion() {
+           closeCompletion(this.CodeMirror);
+       }
        /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
        SetWidgetVariables(variables) { }
        // #endregion
