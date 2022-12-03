@@ -22143,6 +22143,15 @@
    function linter(source, config = {}) {
        return lintConfig.of({ source, config });
    }
+   /**
+   Forces any linters [configured](https://codemirror.net/6/docs/ref/#lint.linter) to run when the
+   editor is idle to run right away.
+   */
+   function forceLinting(view) {
+       let plugin = view.plugin(lintPlugin);
+       if (plugin)
+           plugin.force();
+   }
    function assignKeys(actions) {
        let assigned = [];
        if (actions)
@@ -25287,14 +25296,33 @@
    /** StateNetLogo: Editor state for the NetLogo Language. */
    class StateNetLogo {
        constructor() {
-           /** Extensions: Extensions in the model. */
+           /** Extensions: Extensions in the code. */
            this.Extensions = [];
-           /** Globals: Globals in the model. */
+           /** Globals: Globals in the code. */
            this.Globals = [];
-           /** Breeds: Breeds in the model. */
+           /** WidgetGlobals: Globals from the widgets. */
+           this.WidgetGlobals = [];
+           /** Breeds: Breeds in the code. */
            this.Breeds = new Map();
-           /** Procedures: Procedures in the model. */
+           /** Procedures: Procedures in the code. */
            this.Procedures = new Map();
+       }
+       /** GetBreedNames: Get names related to breeds. */
+       GetBreedNames() {
+           var breedNames = [];
+           for (let breed of this.Breeds.values()) {
+               breedNames.push(breed.Singular);
+               breedNames.push(breed.Plural);
+           }
+           return breedNames;
+       }
+       /** GetBreedVariables: Get variable names related to breeds. */
+       GetBreedVariables() {
+           var breedNames = [];
+           for (let breed of this.Breeds.values()) {
+               breedNames = breedNames.concat(breed.Variables);
+           }
+           return breedNames;
        }
        /** ParseState: Parse the state from an editor state. */
        ParseState(State) {
@@ -25352,7 +25380,8 @@
                }
                // get procedures
                if (Cursor.node.name == 'Procedure') {
-                   let procedure = new Procedure('', [], [], []);
+                   // TODO: From & To.
+                   let procedure = new Procedure('', [], [], [], 0, 0);
                    Cursor.node.getChildren('ProcedureName').map((Node) => {
                        procedure.Name = State.sliceDoc(Node.from, Node.to).toLowerCase();
                    });
@@ -27357,137 +27386,11 @@
        return true;
    });
 
-   // Checks anything labelled 'Identifier'
-   const IdentifierLinter = linter((view) => {
-       const diagnostics = [];
-       let breedNames = [];
-       for (let breed of view.state.field(stateExtension).Breeds.values()) {
-           breedNames.push(breed.Singular);
-           breedNames.push(breed.Plural);
-           breedNames = breedNames.concat(breed.Variables);
-       }
-       syntaxTree(view.state)
-           .cursor()
-           .iterate((noderef) => {
-           if (noderef.name == 'Identifier') {
-               const Node = noderef.node;
-               const value = view.state.sliceDoc(noderef.from, noderef.to);
-               if (!checkValid(Node, value, view.state, breedNames)) {
-                   diagnostics.push({
-                       from: noderef.from,
-                       to: noderef.to,
-                       severity: 'error',
-                       message: 'Unrecognized identifier',
-                       actions: [
-                           {
-                               name: 'Remove',
-                               apply(view, from, to) {
-                                   view.dispatch({ changes: { from, to } });
-                               },
-                           },
-                       ],
-                   });
-               }
-           }
-       });
-       return diagnostics;
-   });
-   // always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
-   const acceptableIdentifiers = [
-       'Unrecognized',
-       'NewVariableDeclaration',
-       'ProcedureName',
-       'Arguments',
-       'Globals',
-       'Breed',
-       'BreedsOwn',
-   ];
-   // Checks identifiers for valid variable/procedure/breed names
-   const checkValid = function (Node, value, state, breedNames) {
-       var _a, _b;
-       value = value.toLowerCase();
-       const parents = [];
-       let curr_node = Node;
-       let procedureName = '';
-       while (curr_node.parent) {
-           parents.push(curr_node.parent);
-           curr_node = curr_node.parent;
-       }
-       // get procedure name--a bit convoluted but it works
-       parents.map((node) => {
-           if (node.name == 'Procedure') {
-               node.getChildren('ProcedureName').map((child) => {
-                   procedureName = state.sliceDoc(child.from, child.to);
-               });
-           }
-       });
-       // gets list of procedure variables from own procedure, as well as list of all procedure names
-       let procedureVars = [];
-       const procedureNames = Array.from(state.field(stateExtension).Procedures.keys());
-       if (procedureName != '') {
-           let procedure = state
-               .field(stateExtension)
-               .Procedures.get(procedureName.toLowerCase());
-           let vars = [];
-           procedure === null || procedure === void 0 ? void 0 : procedure.Variables.map((variable) => {
-               // makes sure the variable has already been created
-               if (variable.CreationPos < Node.from) {
-                   vars.push(variable.Name);
-               }
-           });
-           procedure === null || procedure === void 0 ? void 0 : procedure.AnonymousProcedures.map((anonProc) => {
-               if (Node.from >= anonProc.From && Node.to <= anonProc.To) {
-                   anonProc.Variables.map((variable) => {
-                       vars.push(variable.Name);
-                   });
-                   vars = vars.concat(anonProc.Arguments);
-               }
-           });
-           if (procedure === null || procedure === void 0 ? void 0 : procedure.Arguments) {
-               procedureVars = vars.concat(procedure.Arguments);
-           }
-       }
-       return (
-       // checks if parent is in a category that is always valid (e.g. 'Globals')
-       acceptableIdentifiers.includes((_b = (_a = Node.parent) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : '') ||
-           // checks if identifier is a global variable
-           state.field(stateExtension).Globals.includes(value) ||
-           // checks if identifier is a breed name or variable
-           breedNames.includes(value) ||
-           // checks if identifier is a variable already declared in the procedure
-           procedureVars.includes(value) ||
-           // checks if identifier is a procedure name
-           procedureNames.includes(value));
-   };
-
-   // checks if something at the top layer isn't a procedure, global, etc.
-   const UnrecognizedGlobalLinter = linter((view) => {
-       const diagnostics = [];
-       syntaxTree(view.state)
-           .cursor()
-           .iterate((node) => {
-           if (node.name == 'Unrecognized') {
-               diagnostics.push({
-                   from: node.from,
-                   to: node.to,
-                   severity: 'error',
-                   message: 'Unrecognized global statement',
-                   actions: [
-                       {
-                           name: 'Remove',
-                           apply(view, from, to) {
-                               view.dispatch({ changes: { from, to } });
-                           },
-                       },
-                   ],
-               });
-           }
-       });
-       return diagnostics;
-   });
-
    const en_us = {
-       'Unrecognized breed name _': (Name) => `The breed name ${Name} cannot be recognized. Did you define it?`,
+       'Unrecognized breed name _': (Name) => `The breed name "${Name}" cannot be recognized. Did you define it?`,
+       'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
+       'Unrecognized global statement _': (Name) => `"${Name}" cannot be recognized as a global-level statement. Did you spell it correctly?`,
+       'Unrecognized statement _': (Name) => `"${Name}" cannot be recognized as a piece of NetLogo code. Did you put it in the correct place?`,
    };
 
    /** LocalizationManager: Manage all localized texts. */
@@ -27503,7 +27406,7 @@
            if (!Bundle.hasOwnProperty(Key))
                return `Unknown message: ${Key}`;
            try {
-               return Bundle[Key].apply(this, ...Args);
+               return Bundle[Key].apply(this, Args);
            }
            catch (_a) {
                return `Error in producing message: ${Key}`;
@@ -27526,16 +27429,135 @@
    }
    catch (error) { }
 
+   // Checks anything labelled 'Identifier'
+   const IdentifierLinter = linter((view) => {
+       const diagnostics = [];
+       const parseState = view.state.field(stateExtension);
+       const breedNames = parseState.GetBreedNames();
+       const breedVars = parseState.GetBreedVariables();
+       syntaxTree(view.state)
+           .cursor()
+           .iterate((noderef) => {
+           if (noderef.name == 'Identifier') {
+               const Node = noderef.node;
+               const value = view.state.sliceDoc(noderef.from, noderef.to);
+               if (!checkValid(Node, value, view.state, parseState, breedNames, breedVars)) {
+                   diagnostics.push({
+                       from: noderef.from,
+                       to: noderef.to,
+                       severity: 'error',
+                       message: Localized.Get('Unrecognized identifier _', value),
+                       /* actions: [
+                         {
+                           name: 'Remove',
+                           apply(view, from, to) {
+                             view.dispatch({ changes: { from, to } });
+                           },
+                         },
+                       ], */
+                   });
+               }
+           }
+       });
+       return diagnostics;
+   });
+   // always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
+   const acceptableIdentifiers = [
+       'Unrecognized',
+       'NewVariableDeclaration',
+       'ProcedureName',
+       'Arguments',
+       'Globals',
+       'Breed',
+       'BreedsOwn',
+   ];
+   // Checks identifiers for valid variable/procedure/breed names
+   const checkValid = function (Node, value, state, parseState, breedNames, breedVars) {
+       var _a, _b;
+       value = value.toLowerCase();
+       // checks if parent is in a category that is always valid (e.g. 'Globals')
+       if (acceptableIdentifiers.includes((_b = (_a = Node.parent) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : ''))
+           return true;
+       // checks if identifier is a global variable
+       if (parseState.Globals.includes(value) ||
+           parseState.WidgetGlobals.includes(value) ||
+           parseState.Procedures.has(value))
+           return true;
+       // checks if identifier is a breed name or variable
+       if (breedNames.includes(value) || breedVars.includes(value))
+           return true;
+       // checks if identifier is a variable already declared in the procedure
+       // get the procedure name
+       let curr_node = Node;
+       let procedureName = '';
+       while (curr_node.parent) {
+           curr_node = curr_node.parent;
+           if (curr_node.name == 'Procedure') {
+               curr_node.getChildren('ProcedureName').map((child) => {
+                   procedureName = state.sliceDoc(child.from, child.to);
+               });
+               break;
+           }
+       }
+       // gets list of procedure variables from own procedure, as well as list of all procedure names
+       let procedureVars = [];
+       if (procedureName != '') {
+           let procedure = parseState.Procedures.get(procedureName.toLowerCase());
+           let vars = [];
+           procedure === null || procedure === void 0 ? void 0 : procedure.Variables.map((variable) => {
+               // makes sure the variable has already been created
+               if (variable.CreationPos < Node.from) {
+                   vars.push(variable.Name);
+               }
+           });
+           procedure === null || procedure === void 0 ? void 0 : procedure.AnonymousProcedures.map((anonProc) => {
+               if (Node.from >= anonProc.From && Node.to <= anonProc.To) {
+                   anonProc.Variables.map((variable) => {
+                       vars.push(variable.Name);
+                   });
+                   vars = vars.concat(anonProc.Arguments);
+               }
+           });
+           if (procedure === null || procedure === void 0 ? void 0 : procedure.Arguments) {
+               procedureVars = vars.concat(procedure.Arguments);
+           }
+       }
+       return procedureVars.includes(value);
+   };
+
+   // checks if something at the top layer isn't a procedure, global, etc.
+   const UnrecognizedGlobalLinter = linter((view) => {
+       const diagnostics = [];
+       syntaxTree(view.state)
+           .cursor()
+           .iterate((node) => {
+           if (node.name == 'Unrecognized') {
+               const value = view.state.sliceDoc(node.from, node.to);
+               diagnostics.push({
+                   from: node.from,
+                   to: node.to,
+                   severity: 'error',
+                   message: Localized.Get('Unrecognized global statement _', value),
+                   /* actions: [
+                     {
+                       name: 'Remove',
+                       apply(view, from, to) {
+                         view.dispatch({ changes: { from, to } });
+                       },
+                     },
+                   ], */
+               });
+           }
+       });
+       return diagnostics;
+   });
+
    // BreedLinter: To check breed commands/reporters for valid breed names
    const BreedLinter = linter((view) => {
        const diagnostics = [];
-       const breedNames = [];
-       let breedVars = [];
-       for (let breed of view.state.field(stateExtension).Breeds.values()) {
-           breedNames.push(breed.Singular);
-           breedNames.push(breed.Plural);
-           breedVars = breedVars.concat(breed.Variables);
-       }
+       const parseState = view.state.field(stateExtension);
+       const breedNames = parseState.GetBreedNames();
+       parseState.GetBreedVariables();
        syntaxTree(view.state)
            .cursor()
            .iterate((noderef) => {
@@ -27546,20 +27568,20 @@
                const value = view.state
                    .sliceDoc(noderef.from, noderef.to)
                    .toLowerCase();
-               if (!checkValidBreed(Node, value, view.state, breedNames, breedVars)) {
+               if (!checkValidBreed(Node, value, view.state, parseState, breedNames)) {
                    diagnostics.push({
                        from: noderef.from,
                        to: noderef.to,
                        severity: 'error',
                        message: Localized.Get('Unrecognized breed name _', value),
-                       actions: [
-                           {
-                               name: 'Remove',
-                               apply(view, from, to) {
-                                   view.dispatch({ changes: { from, to } });
-                               },
+                       /* actions: [
+                         {
+                           name: 'Remove',
+                           apply(view, from, to) {
+                             view.dispatch({ changes: { from, to } });
                            },
-                       ],
+                         },
+                       ], */
                    });
                }
            }
@@ -27568,43 +27590,42 @@
    });
    // Checks if the term in the structure of a breed command/reporter is the name
    // of an actual breed
-   const checkValidBreed = function (node, value, state, breedNames, breedVars) {
+   const checkValidBreed = function (node, value, state, parseState, breedNames, breedVars) {
        var _a;
-       let isValid = false;
+       let isValid = true;
        const values = value.split('-');
        // These are broken up into BreedFirst, BreedMiddle, BreedLast so I know where to
        // check for the breed name. Entirely possible we don't need this and can just search
        // the whole string.
        if (node.name == 'BreedFirst') {
            const val = values[0];
-           if (breedNames.includes(val)) {
-               isValid = true;
+           if (!breedNames.includes(val)) {
+               isValid = false;
            }
        }
        else if (node.name == 'BreedLast') {
            let val = values[values.length - 1];
            val = val.replace('?', '');
-           if (breedNames.includes(val)) {
-               isValid = true;
+           if (!breedNames.includes(val)) {
+               isValid = false;
            }
        }
        else if (node.name == 'BreedMiddle') {
            const val = values[1];
-           if (breedNames.includes(val)) {
-               isValid = true;
+           if (!breedNames.includes(val)) {
+               isValid = false;
            }
        }
        // some procedure names I've come across accidentally use the structure of a
        // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
        // before declaring it invalid
-       if (state.field(stateExtension).Procedures.get(value)) {
-           isValid = true;
-       }
-       else if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Own') {
-           isValid = true;
-       }
        if (!isValid) {
-           isValid = checkValid(node, value, state, breedNames.concat(breedVars));
+           if (parseState.Procedures.get(value)) {
+               isValid = true;
+           }
+           else if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Own') {
+               isValid = true;
+           }
        }
        return isValid;
    };
@@ -27623,19 +27644,20 @@
                //   curr = curr.parent
                // }
                // console.log(parents)
+               const value = view.state.sliceDoc(node.from, node.to);
                diagnostics.push({
                    from: node.from,
                    to: node.to,
                    severity: 'error',
-                   message: 'Unrecognized',
-                   actions: [
-                       {
-                           name: 'Remove',
-                           apply(view, from, to) {
-                               view.dispatch({ changes: { from, to } });
-                           },
+                   message: Localized.Get('Unrecognized statement _', value),
+                   /* actions: [
+                     {
+                       name: 'Remove',
+                       apply(view, from, to) {
+                         view.dispatch({ changes: { from, to } });
                        },
-                   ],
+                     },
+                   ], */
                });
            }
        });
@@ -27709,7 +27731,7 @@
            const el = this.Parent.getElementsByClassName('cm-content')[0];
            el.setAttribute('data-enable-grammarly', 'false');
        }
-       // #region "Editor Highlighting"
+       // #region "Highlighting & Linting"
        /** Highlight: Highlight a given snippet of code. */
        Highlight(Content) {
            const Container = document.createElement('span');
@@ -27737,6 +27759,10 @@
            });
            pos != tree.length &&
                callback(Content.slice(pos, tree.length), '', pos, tree.length);
+       }
+       /** ForceLint: Force the editor to do another round of linting. */
+       ForceLint() {
+           forceLinting(this.CodeMirror);
        }
        // #endregion
        // #region "Editor API"
@@ -27777,7 +27803,24 @@
            closeCompletion(this.CodeMirror);
        }
        /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
-       SetWidgetVariables(variables) { }
+       SetWidgetVariables(Variables, ForceLint) {
+           var State = this.GetState();
+           var Current = State.WidgetGlobals;
+           var Changed = Current.length != Variables.length;
+           if (!Changed) {
+               for (var I = 0; I < Variables.length; I++) {
+                   if (Current[I] != Variables[I]) {
+                       Changed = true;
+                       break;
+                   }
+               }
+           }
+           if (Changed) {
+               State.WidgetGlobals = Variables;
+               if (ForceLint)
+                   this.ForceLint();
+           }
+       }
        // #endregion
        // #region "Editor Features"
        /** Undo: Make the editor undo. Returns false if no group was available. */
