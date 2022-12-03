@@ -27908,7 +27908,6 @@
                button2.style.display = 'inline-block';
        }
        /** ShowJumpTo: Show the jump-to-line interface. */
-       // TODO: clear other interfaces
        ShowJumpTo() {
            closeSearchPanel(this.CodeMirror);
            const jumpElm = this.Parent.querySelector('.cm-gotoLine');
