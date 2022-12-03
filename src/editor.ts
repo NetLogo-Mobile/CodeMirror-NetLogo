@@ -101,6 +101,11 @@ export class GalapagosEditor {
       );
     }
 
+    // Wrapping mode
+    if (this.Options.Wrapping) {
+      Extensions.push(EditorView.lineWrapping);
+    }
+
     // Build the editor
     this.CodeMirror = new EditorView({
       extensions: Extensions,

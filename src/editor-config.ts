@@ -9,6 +9,8 @@ export interface EditorConfig {
   /** OneLine: Is the editor in forced one-line mode? */
   // Basically, we will make the editor an one-line input without additional features & keyboard shortcuts.
   OneLine?: boolean;
+  /** Wrapping: Should we auto-wrap lines? */
+  Wrapping?: boolean;
   /** OnUpdate: Handle the Update event. */
   OnUpdate?: (DocumentChanged: boolean, ViewUpdate: ViewUpdate) => void;
   /** OnKeyDown: Handle the KeyDown event. */
