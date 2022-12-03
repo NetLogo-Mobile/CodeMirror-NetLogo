@@ -25,12 +25,12 @@ import {
   StateNetLogo,
 } from './codemirror/extension-state-netlogo';
 import { lightTheme } from './codemirror/theme-light';
-
 import { highlightTree } from '@lezer/highlight';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
-import { netlogoLinters } from './lang/linters/linters.js';
+import { netlogoLinters } from './lang/linters/linters';
+import { forceLinting } from '@codemirror/lint';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -117,7 +117,7 @@ export class GalapagosEditor {
     el.setAttribute('data-enable-grammarly', 'false');
   }
 
-  // #region "Editor Highlighting"
+  // #region "Highlighting & Linting"
   /** Highlight: Highlight a given snippet of code. */
   Highlight(Content: string): HTMLElement {
     const Container = document.createElement('span');
@@ -149,6 +149,11 @@ export class GalapagosEditor {
     });
     pos != tree.length &&
       callback(Content.slice(pos, tree.length), '', pos, tree.length);
+  }
+
+  /** ForceLint: Force the editor to do another round of linting. */
+  ForceLint() {
+    forceLinting(this.CodeMirror);
   }
   // #endregion
 
@@ -198,7 +203,23 @@ export class GalapagosEditor {
   }
 
   /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
-  SetWidgetVariables(variables: string[]) {}
+  SetWidgetVariables(Variables: string[], ForceLint?: boolean) {
+    var State = this.GetState();
+    var Current = State.WidgetGlobals;
+    var Changed = Current.length != Variables.length;
+    if (!Changed) {
+      for (var I = 0; I < Variables.length; I++) {
+        if (Current[I] != Variables[I]) {
+          Changed = true;
+          break;
+        }
+      }
+    }
+    if (Changed) {
+      State.WidgetGlobals = Variables;
+      if (ForceLint) this.ForceLint();
+    }
+  }
   // #endregion
 
   // #region "Editor Features"
@@ -375,7 +396,6 @@ export class GalapagosEditor {
       this.CodeMirror.state.selection.main.to
     );
   }
-
   // #endregion
 
   // #region "Editor Interfaces"

@@ -11,14 +11,33 @@ import { SyntaxNode } from '@lezer/common';
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
-  /** Extensions: Extensions in the model. */
+  /** Extensions: Extensions in the code. */
   public Extensions: string[] = [];
-  /** Globals: Globals in the model. */
+  /** Globals: Globals in the code. */
   public Globals: string[] = [];
-  /** Breeds: Breeds in the model. */
+  /** WidgetGlobals: Globals from the widgets. */
+  public WidgetGlobals: string[] = [];
+  /** Breeds: Breeds in the code. */
   public Breeds: Map<string, Breed> = new Map<string, Breed>();
-  /** Procedures: Procedures in the model. */
+  /** Procedures: Procedures in the code. */
   public Procedures: Map<string, Procedure> = new Map<string, Procedure>();
+  /** GetBreedNames: Get names related to breeds. */
+  public GetBreedNames(): string[] {
+    var breedNames: string[] = [];
+    for (let breed of this.Breeds.values()) {
+      breedNames.push(breed.Singular);
+      breedNames.push(breed.Plural);
+    }
+    return breedNames;
+  }
+  /** GetBreedVariables: Get variable names related to breeds. */
+  public GetBreedVariables(): string[] {
+    var breedNames: string[] = [];
+    for (let breed of this.Breeds.values()) {
+      breedNames = breedNames.concat(breed.Variables);
+    }
+    return breedNames;
+  }
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StateNetLogo {
     const Cursor = syntaxTree(State).cursor();
@@ -83,7 +102,8 @@ export class StateNetLogo {
       }
       // get procedures
       if (Cursor.node.name == 'Procedure') {
-        let procedure = new Procedure('', [], [], []);
+        // TODO: From & To.
+        let procedure = new Procedure('', [], [], [], 0, 0);
         Cursor.node.getChildren('ProcedureName').map((Node) => {
           procedure.Name = State.sliceDoc(Node.from, Node.to).toLowerCase();
         });
@@ -126,7 +146,11 @@ export class StateNetLogo {
   }
 
   // get local variables for the procedure
-  public getLocalVars(Node: SyntaxNode, State: EditorState, isAnon: Boolean) {
+  public getLocalVars(
+    Node: SyntaxNode,
+    State: EditorState,
+    isAnon: Boolean
+  ): LocalVariable[] {
     let localVars: LocalVariable[] = [];
     Node.cursor().iterate((noderef) => {
       if (noderef.node.to > Node.to) {
@@ -155,7 +179,7 @@ export class StateNetLogo {
     return localVars;
   }
 
-  public getParents(Node: SyntaxNode) {
+  private getParents(Node: SyntaxNode): string[] {
     let parents: string[] = [];
     let curr = Node;
     while (curr.parent) {
@@ -165,7 +189,7 @@ export class StateNetLogo {
     return parents;
   }
 
-  public getVariables(Node: SyntaxNode, state: EditorState) {
+  private getVariables(Node: SyntaxNode, state: EditorState): string[] {
     let vars: string[] = [];
     Node.cursor().iterate((noderef) => {
       if (noderef.node.to > Node.to) {
@@ -183,7 +207,7 @@ export class StateNetLogo {
   }
 
   // get arguments for the procedure
-  public getArgs(Node: SyntaxNode, State: EditorState) {
+  private getArgs(Node: SyntaxNode, State: EditorState): string[] {
     const args: string[] = [];
     Node.getChildren('Arguments').map((node) => {
       node.getChildren('Identifier').map((subnode) => {
@@ -193,6 +217,7 @@ export class StateNetLogo {
     return args;
   }
 }
+
 /** StateExtension: Extension for managing the editor state.  */
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),

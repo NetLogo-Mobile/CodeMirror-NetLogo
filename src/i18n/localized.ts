@@ -9,7 +9,7 @@ class LocalizationManager {
     if (!Bundle.hasOwnProperty(Key)) Bundle = en_us;
     if (!Bundle.hasOwnProperty(Key)) return `Unknown message: ${Key}`;
     try {
-      return Bundle[Key].apply(this, ...Args);
+      return Bundle[Key].apply(this, Args);
     } catch {
       return `Error in producing message: ${Key}`;
     }
