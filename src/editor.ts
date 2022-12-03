@@ -1,11 +1,7 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { undo, redo, selectAll, indentWithTab } from '@codemirror/commands';
-import {
-  forceParsing,
-  LanguageSupport,
-  ParseContext,
-  syntaxParserRunning,
-} from '@codemirror/language';
+import { closeCompletion } from '@codemirror/autocomplete';
+import { LanguageSupport } from '@codemirror/language';
 import {
   replaceAll,
   selectMatches,
@@ -189,6 +185,11 @@ export class GalapagosEditor {
   /** Focus: Make the editor gain the focus (if possible). */
   Focus() {
     // Stub!
+  }
+
+  /** CloseCompletion: Forcible close the auto completion. */
+  CloseCompletion() {
+    closeCompletion(this.CodeMirror);
   }
 
   /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
