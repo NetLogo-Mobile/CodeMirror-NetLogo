@@ -27486,6 +27486,46 @@
        return diagnostics;
    });
 
+   const en_us = {
+       'Unrecognized breed name _': (Name) => `The breed name ${Name} cannot be recognized. Did you define it?`,
+   };
+
+   /** LocalizationManager: Manage all localized texts. */
+   class LocalizationManager {
+       constructor() {
+           this.Current = en_us;
+       }
+       /** Get: Get a localized key. */
+       Get(Key, ...Args) {
+           var Bundle = this.Current;
+           if (!Bundle.hasOwnProperty(Key))
+               Bundle = en_us;
+           if (!Bundle.hasOwnProperty(Key))
+               return `Unknown message: ${Key}`;
+           try {
+               return Bundle[Key].apply(this, ...Args);
+           }
+           catch (_a) {
+               return `Error in producing message: ${Key}`;
+           }
+       }
+       /** Switch: Switch to another language. */
+       Switch(Locale) {
+           switch (Locale) {
+               default:
+                   this.Current = en_us;
+                   break;
+           }
+       }
+   }
+   /** Singleton */
+   const Localized = new LocalizationManager();
+   /** Global singleton */
+   try {
+       window.EditorLocalized = Localized;
+   }
+   catch (error) { }
+
    // BreedLinter: To check breed commands/reporters for valid breed names
    const BreedLinter = linter((view) => {
        const diagnostics = [];
@@ -27511,7 +27551,7 @@
                        from: noderef.from,
                        to: noderef.to,
                        severity: 'error',
-                       message: 'Unrecognized breed name',
+                       message: Localized.Get('Unrecognized breed name _', value),
                        actions: [
                            {
                                name: 'Remove',
