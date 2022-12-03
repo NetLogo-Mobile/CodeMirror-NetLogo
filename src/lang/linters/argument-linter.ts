@@ -33,7 +33,7 @@ export const ArgumentLinter = linter((view) => {
             from: noderef.from,
             to: noderef.to,
             severity: 'error',
-            message: 'Invalid argument',
+            message: 'Invalid number of arguments',
             actions: [
               {
                 name: 'Remove',
@@ -97,7 +97,7 @@ export const checkValid = function (
       state.field(basicStateExtension).Reporters[func] ??
       getBreedCommandArgs(func) ??
       getBreedProcedureArgs(args.func.name);
-    console.log(numArgs, args.rightArgs.length);
+    // console.log(numArgs, args.rightArgs.length);
     return numArgs == args.rightArgs.length;
   } else {
     let primitive = primitives.GetPrimitive('', func);
@@ -110,15 +110,15 @@ export const checkValid = function (
       (primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit &&
         !args.leftArgs)
     ) {
-      console.log('left args');
+      // console.log('left args');
       return false;
     } else if (primitive.RightArgumentTypes.length != args.rightArgs.length) {
-      console.log(args.rightArgs);
-      console.log(
-        'rightargs',
-        primitive.RightArgumentTypes.length,
-        args.rightArgs.length
-      );
+      // console.log(args.rightArgs);
+      // console.log(
+      //   'rightargs',
+      //   primitive.RightArgumentTypes.length,
+      //   args.rightArgs.length
+      // );
       return false;
     } else {
       return true;

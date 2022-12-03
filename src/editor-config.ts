@@ -1,4 +1,4 @@
-import { ViewUpdate } from '@codemirror/view';
+import { EditorView, ViewUpdate } from '@codemirror/view';
 
 /** Options: Options of an editor. */
 export interface EditorConfig {
@@ -9,9 +9,14 @@ export interface EditorConfig {
   /** OneLine: Is the editor in forced one-line mode? */
   // Basically, we will make the editor an one-line input without additional features & keyboard shortcuts.
   OneLine?: boolean;
+  /** Wrapping: Should we auto-wrap lines? */
+  Wrapping?: boolean;
   /** OnUpdate: Handle the Update event. */
   OnUpdate?: (DocumentChanged: boolean, ViewUpdate: ViewUpdate) => void;
-  /** OnKeyDown: Handle the Keydown event. */
+  /** OnKeyDown: Handle the KeyDown event. */
+  OnKeyDown?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
+  /** OnKeyUp: Handle the KeyUp event. */
+  OnKeyUp?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
 }
 
 /** Language: Language. */

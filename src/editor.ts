@@ -1,11 +1,7 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { undo, redo, selectAll, indentWithTab } from '@codemirror/commands';
-import {
-  forceParsing,
-  LanguageSupport,
-  ParseContext,
-  syntaxParserRunning,
-} from '@codemirror/language';
+import { closeCompletion } from '@codemirror/autocomplete';
+import { LanguageSupport } from '@codemirror/language';
 import {
   replaceAll,
   selectMatches,
@@ -30,12 +26,12 @@ import {
 } from './codemirror/extension-state-netlogo';
 import { basicStateExtension } from './codemirror/extension-regex-state';
 import { lightTheme } from './codemirror/theme-light';
-
 import { highlightTree } from '@lezer/highlight';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
-import { netlogoLinters } from './lang/linters/linters.js';
+import { netlogoLinters } from './lang/linters/linters';
+import { forceLinting } from '@codemirror/lint';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -88,9 +84,15 @@ export class GalapagosEditor {
         Extensions.push(stateExtension);
         Extensions.push(...netlogoLinters);
     }
-
-    // Build the editor
     Extensions.push(this.Language);
+
+    // DOM handlers
+    Extensions.push(
+      EditorView.domEventHandlers({
+        keydown: Options.OnKeyDown,
+        keyup: Options.OnKeyUp,
+      })
+    );
 
     // One-line mode
     if (this.Options.OneLine) {
@@ -101,17 +103,23 @@ export class GalapagosEditor {
       );
     }
 
+    // Wrapping mode
+    if (this.Options.Wrapping) {
+      Extensions.push(EditorView.lineWrapping);
+    }
+
     // Build the editor
     this.CodeMirror = new EditorView({
       extensions: Extensions,
       parent: Parent,
     });
 
-    // disable Grammarly
+    // Disable Grammarly
     const el = this.Parent.getElementsByClassName('cm-content')[0];
     el.setAttribute('data-enable-grammarly', 'false');
   }
 
+  // #region "Highlighting & Linting"
   /** Highlight: Highlight a given snippet of code. */
   Highlight(Content: string): HTMLElement {
     const Container = document.createElement('span');
@@ -145,6 +153,12 @@ export class GalapagosEditor {
       callback(Content.slice(pos, tree.length), '', pos, tree.length);
   }
 
+  /** ForceLint: Force the editor to do another round of linting. */
+  ForceLint() {
+    forceLinting(this.CodeMirror);
+  }
+  // #endregion
+
   // #region "Editor API"
   /** SetCode: Set the code of the editor. */
   SetCode(code: string) {
@@ -169,6 +183,45 @@ export class GalapagosEditor {
   GetState(): StateNetLogo {
     return this.CodeMirror.state.field(stateExtension);
   }
+
+  /** SetCursorPosition: Set the cursor position of the editor. */
+  SetCursorPosition(position: number) {
+    // Stub!
+  }
+
+  /** Blur: Make the editor lose the focus (if any). */
+  Blur() {
+    // Stub!
+  }
+
+  /** Focus: Make the editor gain the focus (if possible). */
+  Focus() {
+    // Stub!
+  }
+
+  /** CloseCompletion: Forcible close the auto completion. */
+  CloseCompletion() {
+    closeCompletion(this.CodeMirror);
+  }
+
+  /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
+  SetWidgetVariables(Variables: string[], ForceLint?: boolean) {
+    var State = this.GetState();
+    var Current = State.WidgetGlobals;
+    var Changed = Current.length != Variables.length;
+    if (!Changed) {
+      for (var I = 0; I < Variables.length; I++) {
+        if (Current[I] != Variables[I]) {
+          Changed = true;
+          break;
+        }
+      }
+    }
+    if (Changed) {
+      State.WidgetGlobals = Variables;
+      if (ForceLint) this.ForceLint();
+    }
+  }
   // #endregion
 
   // #region "Editor Features"
@@ -180,6 +233,11 @@ export class GalapagosEditor {
   /** Redo: Make the editor Redo. Returns false if no group was available. */
   Redo() {
     redo(this.CodeMirror);
+  }
+
+  /** ClearHistory: Clear the change history. */
+  ClearHistory() {
+    // Stub!
   }
 
   /** Find: Find a keyword in the editor and loop over all matches. */
@@ -264,7 +322,7 @@ export class GalapagosEditor {
     closeSearchPanel(this.CodeMirror);
   }
 
-  /** ReplaceAll Replace the all the matching words in the editor. */
+  /** ReplaceAll: Replace the all the matching words in the editor. */
   ReplaceAll(Source: string, Target: string) {
     openSearchPanel(this.CodeMirror);
     let prevFind = (<HTMLInputElement>(
@@ -315,7 +373,30 @@ export class GalapagosEditor {
 
   /** Select: Select and scroll to a given range in the editor. */
   Select(Start: number, End: number) {
-    // Stub
+    if (End > this.CodeMirror.state.doc.length || Start < 0 || Start > End) {
+      return;
+    }
+    this.CodeMirror.dispatch({
+      selection: { anchor: Start, head: End },
+      scrollIntoView: true,
+    });
+  }
+
+  /** GetSelection: Returns an object of the start and end of
+   *  a selection in the editor. */
+  GetSelection() {
+    return {
+      from: this.CodeMirror.state.selection.main.from,
+      to: this.CodeMirror.state.selection.main.to,
+    };
+  }
+
+  /** GetSelectionCode: Returns the selected code in the editor. */
+  GetSelectionCode() {
+    return this.CodeMirror.state.sliceDoc(
+      this.CodeMirror.state.selection.main.from,
+      this.CodeMirror.state.selection.main.to
+    );
   }
   // #endregion
 
@@ -359,7 +440,6 @@ export class GalapagosEditor {
   }
 
   /** ShowJumpTo: Show the jump-to-line interface. */
-  // TODO: clear other interfaces
   ShowJumpTo() {
     closeSearchPanel(this.CodeMirror);
     const jumpElm = this.Parent.querySelector<HTMLElement>('.cm-gotoLine');
@@ -376,6 +456,11 @@ export class GalapagosEditor {
   HideAllInterfaces() {
     closeSearchPanel(this.CodeMirror);
     this.HideJumpTo();
+  }
+
+  /** ShowProcedures: Show a list of procedures for the user to jump to. */
+  ShowProcedures() {
+    // Stub!
   }
   // #endregion
 
