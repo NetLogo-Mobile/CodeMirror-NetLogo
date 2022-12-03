@@ -4,6 +4,7 @@ import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { stateExtension } from '../../codemirror/extension-state-netlogo';
 import { checkValid } from './identifier-linter';
+import { Localized } from '../../i18n/localized';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter = linter((view) => {
@@ -32,7 +33,7 @@ export const BreedLinter = linter((view) => {
             from: noderef.from,
             to: noderef.to,
             severity: 'error',
-            message: 'Unrecognized breed name',
+            message: Localized.Get('Unrecognized breed name _', value),
             actions: [
               {
                 name: 'Remove',
