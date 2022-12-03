@@ -27656,6 +27656,10 @@
            if (this.Options.OneLine) {
                Extensions.push(EditorState.transactionFilter.of((tr) => tr.newDoc.lines > 1 ? [] : tr));
            }
+           // Wrapping mode
+           if (this.Options.Wrapping) {
+               Extensions.push(EditorView.lineWrapping);
+           }
            // Build the editor
            this.CodeMirror = new EditorView({
                extensions: Extensions,
