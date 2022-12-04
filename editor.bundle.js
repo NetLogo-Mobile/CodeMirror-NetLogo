@@ -25296,6 +25296,7 @@
    /** StateNetLogo: Editor state for the NetLogo Language. */
    class StateNetLogo {
        constructor() {
+           // #region "Information"
            /** Extensions: Extensions in the code. */
            this.Extensions = [];
            /** Globals: Globals in the code. */
@@ -25306,9 +25307,18 @@
            this.Breeds = new Map();
            /** Procedures: Procedures in the code. */
            this.Procedures = new Map();
+           /** CompilerErrors: Errors from the compiler. */
+           this.CompilerErrors = [];
+           /** CompilerErrors: Errors during the runtime. */
+           this.RuntimeErrors = [];
            /** IsDirty: Whether the current state is dirty. */
            this.IsDirty = true;
+           /** Version: Version of the state (for linter cache). */
+           this.Version = 0;
+           // #endregion
        }
+       // #endregion
+       // #region "Utilities"
        /** GetBreedNames: Get names related to breeds. */
        GetBreedNames() {
            var breedNames = [];
@@ -25326,10 +25336,26 @@
            }
            return breedNames;
        }
+       // #endregion
+       // #region "Version Control"
        /** SetDirty: Make the state dirty. */
        SetDirty() {
            this.IsDirty = true;
        }
+       /** GetDirty: Gets if the state is dirty. */
+       GetDirty() {
+           return this.IsDirty;
+       }
+       /** GetVersion: Get version of the state. */
+       GetVersion() {
+           return this.Version;
+       }
+       /** IncVersion: Increase version of the state. */
+       IncVersion() {
+           return ++this.Version;
+       }
+       // #endregion
+       // #region "Parsing"
        /** ParseState: Parse the state from an editor state. */
        ParseState(State) {
            if (!this.IsDirty)
@@ -25416,6 +25442,7 @@
                    this.Procedures.set(procedure.Name, procedure);
                }
                if (!Cursor.nextSibling()) {
+                   this.IncVersion();
                    this.IsDirty = false;
                    return this;
                }
@@ -27449,11 +27476,23 @@
    }
    catch (error) { }
 
-   // Checks anything labelled 'Identifier'
-   const IdentifierLinter = linter((view) => {
+   const buildLinter = function (Source) {
+       var LastVersion = 0;
+       var Cached;
+       return linter((view) => {
+           const State = view.state.field(stateExtension);
+           if (State.GetDirty() || State.GetVersion() > LastVersion) {
+               State.ParseState(view.state);
+               Cached = Source(view, State);
+               LastVersion = State.GetVersion();
+           }
+           return Cached;
+       });
+   };
+
+   // IdentifierLinter: Checks anything labelled 'Identifier'
+   const IdentifierLinter = buildLinter((view, parseState) => {
        const diagnostics = [];
-       const parseState = view.state.field(stateExtension);
-       parseState.ParseState(view.state);
        const breedNames = parseState.GetBreedNames();
        const breedVars = parseState.GetBreedVariables();
        syntaxTree(view.state)
@@ -27466,7 +27505,7 @@
                    diagnostics.push({
                        from: noderef.from,
                        to: noderef.to,
-                       severity: 'error',
+                       severity: 'warning',
                        message: Localized.Get('Unrecognized identifier _', value),
                        /* actions: [
                          {
@@ -27546,8 +27585,8 @@
        return procedureVars.includes(value);
    };
 
-   // checks if something at the top layer isn't a procedure, global, etc.
-   const UnrecognizedGlobalLinter = linter((view) => {
+   // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
+   const UnrecognizedGlobalLinter = buildLinter((view, parseState) => {
        const diagnostics = [];
        syntaxTree(view.state)
            .cursor()
@@ -27557,7 +27596,7 @@
                diagnostics.push({
                    from: node.from,
                    to: node.to,
-                   severity: 'error',
+                   severity: 'warning',
                    message: Localized.Get('Unrecognized global statement _', value),
                    /* actions: [
                      {
@@ -27574,10 +27613,8 @@
    });
 
    // BreedLinter: To check breed commands/reporters for valid breed names
-   const BreedLinter = linter((view) => {
+   const BreedLinter = buildLinter((view, parseState) => {
        const diagnostics = [];
-       const parseState = view.state.field(stateExtension);
-       parseState.ParseState(view.state);
        const breedNames = parseState.GetBreedNames();
        parseState.GetBreedVariables();
        syntaxTree(view.state)
@@ -27594,7 +27631,7 @@
                    diagnostics.push({
                        from: noderef.from,
                        to: noderef.to,
-                       severity: 'error',
+                       severity: 'warning',
                        message: Localized.Get('Unrecognized breed name _', value),
                        /* actions: [
                          {
@@ -27652,8 +27689,8 @@
        return isValid;
    };
 
-   // checks if something at the top layer isn't a procedure, global, etc.
-   const UnrecognizedLinter = linter((view) => {
+   // UnrecognizedLinter: Checks if something at the top layer isn't a procedure, global, etc.
+   const UnrecognizedLinter = buildLinter((view, parseState) => {
        const diagnostics = [];
        syntaxTree(view.state)
            .cursor()
@@ -27670,7 +27707,7 @@
                diagnostics.push({
                    from: node.from,
                    to: node.to,
-                   severity: 'error',
+                   severity: 'warning',
                    message: Localized.Get('Unrecognized statement _', value),
                    /* actions: [
                      {
@@ -27686,11 +27723,37 @@
        return diagnostics;
    });
 
+   // CompilerLinter: Present all linting results from the compiler.
+   const CompilerLinter = linter((view) => {
+       const State = view.state.field(stateExtension);
+       return State.CompilerErrors.map(function (Error) {
+           return {
+               from: Error.start,
+               to: Error.end,
+               severity: 'error',
+               message: Error.message,
+           };
+       });
+   });
+   // RuntimeLinter: Present all runtime errors.
+   linter((view) => {
+       const State = view.state.field(stateExtension);
+       return State.RuntimeErrors.map(function (Error) {
+           return {
+               from: Error.start,
+               to: Error.end,
+               severity: 'info',
+               message: Error.message,
+           };
+       });
+   });
+
    const netlogoLinters = [
        UnrecognizedLinter,
        UnrecognizedGlobalLinter,
        IdentifierLinter,
        BreedLinter,
+       CompilerLinter,
    ];
 
    /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
@@ -27839,9 +27902,22 @@
            }
            if (Changed) {
                State.WidgetGlobals = Variables;
+               State.IncVersion();
                if (ForceLint)
                    this.ForceLint();
            }
+       }
+       /** SetCompilerErrors: Sync the compiler errors and present it on the editor. */
+       // TODO: Some errors come with start 2147483647, which needs to be rendered as a tip without position.
+       SetCompilerErrors(Errors) {
+           this.GetState().CompilerErrors = Errors;
+           this.GetState().RuntimeErrors = [];
+           this.ForceLint();
+       }
+       /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
+       SetRuntimeErrors(Errors) {
+           this.GetState().RuntimeErrors = Errors;
+           this.ForceLint();
        }
        // #endregion
        // #region "Editor Features"
