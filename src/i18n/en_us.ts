@@ -8,16 +8,16 @@ const en_us: Record<string, Function> = {
   'Unrecognized statement _': (Name: string) =>
     `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
 
-  '~VariableName': (Name: string) => `"A variable. `,
+  '~VariableName': (Name: string) => `A variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,
   '~Arguments/Identifier': (Name: string) => `The name of an argument. `,
   '~PatchVar': (Name: string) => `A built-in variable for every patch. `,
   '~TurtleVar': (Name: string) => `A built-in variable for every turtle. `,
   '~LinkVar': (Name: string) => `A built-in variable for every link. `,
-  '~Reporter': (Name: string) => `"A NetLogo reporter. `,
-  '~Command': (Name: string) => `"A NetLogo command. `,
-  '~Constant': (Name: string) => `"A NetLogo constant. `,
-  '~Extension': (Name: string) => `"A NetLogo extension. `,
+  '~Reporter': (Name: string) => `A NetLogo reporter. `,
+  '~Command': (Name: string) => `A NetLogo command. `,
+  '~Constant': (Name: string) => `A NetLogo constant. `,
+  '~Extension': (Name: string) => `A NetLogo extension. `,
   '~String': (Name: string) => `A string, which is a sequence of characters.`,
   '~LineComment': (Name: string) =>
     `Comments do nothing in the program, but could help others read the code.`,
