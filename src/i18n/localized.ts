@@ -17,8 +17,9 @@ class LocalizationManager {
   }
   /** Switch: Switch to another language. */
   public Switch(Locale: string) {
-    switch (Locale) {
+    switch (Locale.toLowerCase()) {
       case 'zh_cn':
+      case 'Chinese':
         this.Current = zh_cn;
         break;
       default:
