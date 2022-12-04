@@ -22143,15 +22143,6 @@
    function linter(source, config = {}) {
        return lintConfig.of({ source, config });
    }
-   /**
-   Forces any linters [configured](https://codemirror.net/6/docs/ref/#lint.linter) to run when the
-   editor is idle to run right away.
-   */
-   function forceLinting(view) {
-       let plugin = view.plugin(lintPlugin);
-       if (plugin)
-           plugin.force();
-   }
    function assignKeys(actions) {
        let assigned = [];
        if (actions)
@@ -27847,7 +27838,14 @@
        }
        /** ForceLint: Force the editor to do another round of linting. */
        ForceLint() {
-           forceLinting(this.CodeMirror);
+           const plugins = this.CodeMirror.plugins;
+           for (var I = 0; I < plugins.length; I++) {
+               if (plugins[I].value.hasOwnProperty('lintTime')) {
+                   plugins[I].value.set = true;
+                   plugins[I].value.force();
+                   break;
+               }
+           }
        }
        // #endregion
        // #region "Editor API"
@@ -27873,15 +27871,18 @@
        }
        /** SetCursorPosition: Set the cursor position of the editor. */
        SetCursorPosition(position) {
-           // Stub!
+           this.CodeMirror.dispatch({
+               selection: { anchor: position },
+               scrollIntoView: true,
+           });
        }
        /** Blur: Make the editor lose the focus (if any). */
        Blur() {
-           // Stub!
+           this.CodeMirror.contentDOM.blur();
        }
        /** Focus: Make the editor gain the focus (if possible). */
        Focus() {
-           // Stub!
+           this.CodeMirror.focus();
        }
        /** CloseCompletion: Forcible close the auto completion. */
        CloseCompletion() {
@@ -28028,7 +28029,6 @@
        JumpTo(Line) {
            const { state } = this.CodeMirror;
            const docLine = state.doc.line(Math.max(1, Math.min(state.doc.lines, Line)));
-           this.CodeMirror.focus();
            this.CodeMirror.dispatch({
                selection: { anchor: docLine.from },
                scrollIntoView: true,
