@@ -32,7 +32,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
       var parentName = '';
       syntaxTree(state).iterate({
         enter: (ref) => {
-          if (ref.from == ref.to) return true;
+          if (ref.from == ref.to || ref.to == range.from) return true;
           lastFrom = ref.from;
           lastTo = ref.to;
           if (ref.to < range.to) {
@@ -55,6 +55,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
       console.log('Term: ' + term);
       if (Dictionary.Check(term)) closestTerm = term;
       if (closestTerm == '') return null;
+      // TODO: We can still match more, esp. things defined in the model (StateNetLogo).
       // Return the tooltip
       return {
         pos: range.from,
