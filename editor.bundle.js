@@ -25306,6 +25306,8 @@
            this.Breeds = new Map();
            /** Procedures: Procedures in the code. */
            this.Procedures = new Map();
+           /** IsDirty: Whether the current state is dirty. */
+           this.IsDirty = true;
        }
        /** GetBreedNames: Get names related to breeds. */
        GetBreedNames() {
@@ -25324,8 +25326,14 @@
            }
            return breedNames;
        }
+       /** SetDirty: Make the state dirty. */
+       SetDirty() {
+           this.IsDirty = true;
+       }
        /** ParseState: Parse the state from an editor state. */
        ParseState(State) {
+           if (!this.IsDirty)
+               return this;
            const Cursor = syntaxTree(State).cursor();
            if (!Cursor.firstChild())
                return this;
@@ -25408,6 +25416,7 @@
                    this.Procedures.set(procedure.Name, procedure);
                }
                if (!Cursor.nextSibling()) {
+                   this.IsDirty = false;
                    return this;
                }
            }
@@ -25471,10 +25480,8 @@
    const stateExtension = StateField.define({
        create: (State) => new StateNetLogo().ParseState(State),
        update: (Original, Transaction) => {
-           if (!Transaction.docChanged)
-               return Original;
-           Original.ParseState(Transaction.state);
-           console.log(Original);
+           if (Transaction.docChanged)
+               Original.SetDirty();
            return Original;
        },
    });
@@ -27390,10 +27397,17 @@
    });
 
    const en_us = {
-       'Unrecognized breed name _': (Name) => `The breed name "${Name}" cannot be recognized. Did you define it?`,
+       'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
        'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
-       'Unrecognized global statement _': (Name) => `"${Name}" cannot be recognized as a global-level statement. Did you spell it correctly?`,
-       'Unrecognized statement _': (Name) => `"${Name}" cannot be recognized as a piece of NetLogo code. Did you put it in the correct place?`,
+       'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper statement here. Did you spell it correctly?`,
+       'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
+   };
+
+   const zh_cn = {
+       'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
+       'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
+       'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
+       'Unrecognized statement _': (Name) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
    };
 
    /** LocalizationManager: Manage all localized texts. */
@@ -27418,6 +27432,9 @@
        /** Switch: Switch to another language. */
        Switch(Locale) {
            switch (Locale) {
+               case 'zh_cn':
+                   this.Current = zh_cn;
+                   break;
                default:
                    this.Current = en_us;
                    break;
@@ -27436,6 +27453,7 @@
    const IdentifierLinter = linter((view) => {
        const diagnostics = [];
        const parseState = view.state.field(stateExtension);
+       parseState.ParseState(view.state);
        const breedNames = parseState.GetBreedNames();
        const breedVars = parseState.GetBreedVariables();
        syntaxTree(view.state)
@@ -27559,6 +27577,7 @@
    const BreedLinter = linter((view) => {
        const diagnostics = [];
        const parseState = view.state.field(stateExtension);
+       parseState.ParseState(view.state);
        const breedNames = parseState.GetBreedNames();
        parseState.GetBreedVariables();
        syntaxTree(view.state)
