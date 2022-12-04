@@ -14,7 +14,7 @@ import {
   closeSearchPanel,
 } from '@codemirror/search';
 import { Compartment, EditorState } from '@codemirror/state';
-import { ViewUpdate, keymap } from '@codemirror/view';
+import { ViewUpdate, keymap, ViewPlugin } from '@codemirror/view';
 import { NetLogo } from './lang/netlogo.js';
 import { EditorConfig, EditorLanguage } from './editor-config';
 import { highlight, highlightStyle } from './codemirror/style-highlight';
@@ -30,7 +30,6 @@ import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { netlogoLinters } from './lang/linters/linters';
-import { forceLinting } from '@codemirror/lint';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
@@ -154,7 +153,14 @@ export class GalapagosEditor {
 
   /** ForceLint: Force the editor to do another round of linting. */
   ForceLint() {
-    forceLinting(this.CodeMirror);
+    const plugins: any[] = (this.CodeMirror as any).plugins;
+    for (var I = 0; I < plugins.length; I++) {
+      if (plugins[I].value.hasOwnProperty('lintTime')) {
+        plugins[I].value.set = true;
+        plugins[I].value.force();
+        break;
+      }
+    }
   }
   // #endregion
 
@@ -185,17 +191,20 @@ export class GalapagosEditor {
 
   /** SetCursorPosition: Set the cursor position of the editor. */
   SetCursorPosition(position: number) {
-    // Stub!
+    this.CodeMirror.dispatch({
+      selection: { anchor: position },
+      scrollIntoView: true,
+    });
   }
 
   /** Blur: Make the editor lose the focus (if any). */
   Blur() {
-    // Stub!
+    this.CodeMirror.contentDOM.blur();
   }
 
   /** Focus: Make the editor gain the focus (if possible). */
   Focus() {
-    // Stub!
+    this.CodeMirror.focus();
   }
 
   /** CloseCompletion: Forcible close the auto completion. */
@@ -373,7 +382,6 @@ export class GalapagosEditor {
     const docLine = state.doc.line(
       Math.max(1, Math.min(state.doc.lines, Line))
     );
-    this.CodeMirror.focus();
     this.CodeMirror.dispatch({
       selection: { anchor: docLine.from },
       scrollIntoView: true,
