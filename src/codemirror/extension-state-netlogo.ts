@@ -21,6 +21,8 @@ export class StateNetLogo {
   public Breeds: Map<string, Breed> = new Map<string, Breed>();
   /** Procedures: Procedures in the code. */
   public Procedures: Map<string, Procedure> = new Map<string, Procedure>();
+  /** IsDirty: Whether the current state is dirty. */
+  private IsDirty: boolean = true;
   /** GetBreedNames: Get names related to breeds. */
   public GetBreedNames(): string[] {
     var breedNames: string[] = [];
@@ -38,10 +40,14 @@ export class StateNetLogo {
     }
     return breedNames;
   }
+  /** SetDirty: Make the state dirty. */
+  public SetDirty() {
+    this.IsDirty = true;
+  }
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StateNetLogo {
+    if (!this.IsDirty) return this;
     const Cursor = syntaxTree(State).cursor();
-
     if (!Cursor.firstChild()) return this;
     this.Breeds = new Map<string, Breed>();
     this.Procedures = new Map<string, Procedure>();
@@ -140,6 +146,7 @@ export class StateNetLogo {
         this.Procedures.set(procedure.Name, procedure);
       }
       if (!Cursor.nextSibling()) {
+        this.IsDirty = false;
         return this;
       }
     }
@@ -222,9 +229,7 @@ export class StateNetLogo {
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),
   update: (Original: StateNetLogo, Transaction: Transaction) => {
-    if (!Transaction.docChanged) return Original;
-    Original.ParseState(Transaction.state);
-    console.log(Original);
+    if (Transaction.docChanged) Original.SetDirty();
     return Original;
   },
 });

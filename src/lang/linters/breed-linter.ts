@@ -13,6 +13,7 @@ import { Localized } from '../../i18n/localized';
 export const BreedLinter = linter((view) => {
   const diagnostics: Diagnostic[] = [];
   const parseState = view.state.field(stateExtension);
+  parseState.ParseState(view.state);
   const breedNames = parseState.GetBreedNames();
   const breedVars = parseState.GetBreedVariables();
   syntaxTree(view.state)
