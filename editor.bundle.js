@@ -27449,8 +27449,9 @@
        }
        /** Switch: Switch to another language. */
        Switch(Locale) {
-           switch (Locale) {
+           switch (Locale.toLowerCase()) {
                case 'zh_cn':
+               case 'Chinese':
                    this.Current = zh_cn;
                    break;
                default:
@@ -27727,7 +27728,7 @@
        });
    });
    // RuntimeLinter: Present all runtime errors.
-   linter((view) => {
+   const RuntimeLinter = linter((view) => {
        const State = view.state.field(stateExtension);
        return State.RuntimeErrors.map(function (Error) {
            return {
@@ -27740,11 +27741,12 @@
    });
 
    const netlogoLinters = [
+       CompilerLinter,
+       RuntimeLinter,
        UnrecognizedLinter,
        UnrecognizedGlobalLinter,
        IdentifierLinter,
        BreedLinter,
-       CompilerLinter,
    ];
 
    /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
