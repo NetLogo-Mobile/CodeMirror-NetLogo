@@ -25726,7 +25726,7 @@
        'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper statement here. Did you spell it correctly?`,
        'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
        '~VariableName': (Name) => `"A variable. `,
-       '~ProcedureName': (Name) => `"The name of a procedure. `,
+       '~ProcedureName': (Name) => `The name of a procedure. `,
        '~Arguments/Identifier': (Name) => `The name of an argument. `,
        '~PatchVar': (Name) => `A built-in variable for every patch. `,
        '~TurtleVar': (Name) => `A built-in variable for every turtle. `,
@@ -25735,7 +25735,6 @@
        '~Command': (Name) => `"A NetLogo command. `,
        '~Constant': (Name) => `"A NetLogo constant. `,
        '~Extension': (Name) => `"A NetLogo extension. `,
-       '~Numeric': (Name) => `"A number. `,
        '~String': (Name) => `A string, which is a sequence of characters.`,
        '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code.`,
        '~Globals/Identifier': (Name) => `A model-defined global variable.`,
@@ -25750,7 +25749,7 @@
        'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
        'Unrecognized statement _': (Name) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
        '~VariableName': (Name) => `"变量名称。`,
-       '~ProcedureName': (Name) => `"过程或函数的名称。`,
+       '~ProcedureName': (Name) => `过程或函数的名称。`,
        '~Arguments/Identifier': (Name) => `参数名称。`,
        '~PatchVar': (Name) => `格子的内置变量。`,
        '~TurtleVar': (Name) => `海龟的内置变量。`,
@@ -25759,7 +25758,6 @@
        '~Command': (Name) => `"NetLogo 语言的内置命令。`,
        '~Constant': (Name) => `"NetLogo 语言规定的常量。`,
        '~Extension': (Name) => `"NetLogo 语言的扩展。`,
-       '~Numeric': (Name) => `"数字。`,
        '~String': (Name) => `字符串，或者说一串文字。`,
        '~LineComment': (Name) => `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,
        '~Globals/Identifier': (Name) => `模型中定义的全局变量。`,
@@ -25828,7 +25826,6 @@
            this.RegisterBuiltin('~Command');
            this.RegisterBuiltin('~Constant');
            this.RegisterBuiltin('~Extension');
-           this.RegisterBuiltin('~Numeric');
            this.RegisterBuiltin('~String');
            this.RegisterBuiltin('~LineComment');
            this.RegisterBuiltin('~Globals/Identifier');
@@ -25918,9 +25915,15 @@
                strictSide: true,
                arrow: true,
                create: () => {
-                   let dom = document.createElement('div');
-                   dom.className = 'cm-tooltip-explain';
-                   dom.textContent = Dictionary.Get(closestTerm, term);
+                   const dom = document.createElement('div');
+                   var message = Dictionary.Get(closestTerm, term);
+                   if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
+                       message += '➤';
+                       dom.addEventListener('click', () => Dictionary.ClickHandler(term));
+                       dom.classList.add('cm-tooltip-extendable');
+                   }
+                   dom.classList.add('cm-tooltip-explain');
+                   dom.innerText = message;
                    return { dom };
                },
            };
@@ -25936,6 +25939,9 @@
        '.cm-diagnostic': {
            fontSize: '0.9em',
            padding: '0.3em 0.5em',
+       },
+       '.cm-tooltip.cm-tooltip-extendable': {
+           cursor: 'pointer',
        },
        '.cm-tooltip.cm-tooltip-explain': {
            fontSize: '0.9em',
@@ -27958,6 +27964,7 @@
                default:
                    this.Language = NetLogo();
                    Extensions.push(stateExtension);
+                   Dictionary.ClickHandler = Options.OnDictionaryClick;
                    if (!this.Options.OneLine) {
                        Extensions.push(tooltipExtension);
                        Extensions.push(...netlogoLinters);
