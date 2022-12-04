@@ -25725,23 +25725,23 @@
        'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
        'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper statement here. Did you spell it correctly?`,
        'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
-       '~VariableName': (Name) => `"${Name}" is a variable. `,
-       '~ProcedureName': (Name) => `"${Name}" is the name of a procedure. `,
-       '~Arguments/Identifier': (Name) => `"${Name}" is the name of an argument. `,
-       '~PatchVar': (Name) => `"${Name}" is a built-in variable for each patch. `,
-       '~TurtleVar': (Name) => `"${Name}" is a built-in variable for each turtle. `,
-       '~LinkVar': (Name) => `"${Name}" is a built-in variable for each link. `,
-       '~Reporter': (Name) => `"${Name}" is a NetLogo reporter. `,
-       '~Command': (Name) => `"${Name}" is a NetLogo command. `,
-       '~Constant': (Name) => `"${Name}" is a NetLogo constant. `,
-       '~Extension': (Name) => `"${Name}" is a NetLogo extension. `,
-       '~Numeric': (Name) => `"${Name}" represents a number. `,
-       '~String': (Name) => `Represents a sequence of characters.`,
+       '~VariableName': (Name) => `"A variable. `,
+       '~ProcedureName': (Name) => `"The name of a procedure. `,
+       '~Arguments/Identifier': (Name) => `The name of an argument. `,
+       '~PatchVar': (Name) => `A built-in variable for every patch. `,
+       '~TurtleVar': (Name) => `A built-in variable for every turtle. `,
+       '~LinkVar': (Name) => `A built-in variable for every link. `,
+       '~Reporter': (Name) => `"A NetLogo reporter. `,
+       '~Command': (Name) => `"A NetLogo command. `,
+       '~Constant': (Name) => `"A NetLogo constant. `,
+       '~Extension': (Name) => `"A NetLogo extension. `,
+       '~Numeric': (Name) => `"A number. `,
+       '~String': (Name) => `A string, which is a sequence of characters.`,
        '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code.`,
-       '~Globals/Identifier': (Name) => `"${Name}" is a model-defined global variable.`,
-       '~BreedVars/Identifier': (Name) => `"${Name}" is a model-defined variable for a breed.`,
-       '~BreedPlural': (Name) => `"${Name}" is the plural name of a model-defined breed.`,
-       '~BreedSingular': (Name) => `"${Name}" is the singular name of a model-defined breed.`,
+       '~Globals/Identifier': (Name) => `A model-defined global variable.`,
+       '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed.`,
+       '~BreedPlural': (Name) => `The plural name of a model-defined breed.`,
+       '~BreedSingular': (Name) => `The singular name of a model-defined breed.`,
    };
 
    const zh_cn = {
@@ -25749,6 +25749,23 @@
        'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
        'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
        'Unrecognized statement _': (Name) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
+       '~VariableName': (Name) => `"变量名称。`,
+       '~ProcedureName': (Name) => `"过程或函数的名称。`,
+       '~Arguments/Identifier': (Name) => `参数名称。`,
+       '~PatchVar': (Name) => `格子的内置变量。`,
+       '~TurtleVar': (Name) => `海龟的内置变量。`,
+       '~LinkVar': (Name) => `链接的内置变量。`,
+       '~Reporter': (Name) => `"NetLogo 语言的内置函数。`,
+       '~Command': (Name) => `"NetLogo 语言的内置命令。`,
+       '~Constant': (Name) => `"NetLogo 语言规定的常量。`,
+       '~Extension': (Name) => `"NetLogo 语言的扩展。`,
+       '~Numeric': (Name) => `"数字。`,
+       '~String': (Name) => `字符串，或者说一串文字。`,
+       '~LineComment': (Name) => `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,
+       '~Globals/Identifier': (Name) => `模型中定义的全局变量。`,
+       '~BreedVars/Identifier': (Name) => `某类模型中定义的海龟或链接具有的变量。`,
+       '~BreedPlural': (Name) => `某类模型中定义的海龟的复数名称。`,
+       '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
    };
 
    /** LocalizationManager: Manage all localized texts. */
@@ -25864,7 +25881,7 @@
            var parentName = '';
            syntaxTree(state).iterate({
                enter: (ref) => {
-                   if (ref.from == ref.to)
+                   if (ref.from == ref.to || ref.to == range.from)
                        return true;
                    lastFrom = ref.from;
                    lastTo = ref.to;
@@ -25893,6 +25910,7 @@
                closestTerm = term;
            if (closestTerm == '')
                return null;
+           // TODO: We can still match more, esp. things defined in the model (StateNetLogo).
            // Return the tooltip
            return {
                pos: range.from,
