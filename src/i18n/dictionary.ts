@@ -18,7 +18,6 @@ class DictionaryManager {
     this.RegisterBuiltin('~Command');
     this.RegisterBuiltin('~Constant');
     this.RegisterBuiltin('~Extension');
-    this.RegisterBuiltin('~Numeric');
     this.RegisterBuiltin('~String');
     this.RegisterBuiltin('~LineComment');
     this.RegisterBuiltin('~Globals/Identifier');
@@ -42,6 +41,8 @@ class DictionaryManager {
   public Check(Key: string): boolean {
     return this.Data && this.Data.hasOwnProperty(Key.trim().toLowerCase());
   }
+  // ClickHandler: The click handler for clickable dictionary items.
+  public ClickHandler?: (Key: string) => void;
 }
 
 /** Singleton */

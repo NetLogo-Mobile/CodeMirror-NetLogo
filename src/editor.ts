@@ -32,6 +32,7 @@ import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { netlogoLinters } from './lang/linters/linters';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
+import { Dictionary } from './i18n/dictionary.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -81,6 +82,7 @@ export class GalapagosEditor {
       default:
         this.Language = NetLogo();
         Extensions.push(stateExtension);
+        Dictionary.ClickHandler = Options.OnDictionaryClick;
         if (!this.Options.OneLine) {
           Extensions.push(tooltipExtension);
           Extensions.push(...netlogoLinters);

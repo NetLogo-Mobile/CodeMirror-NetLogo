@@ -17,6 +17,8 @@ export interface EditorConfig {
   OnKeyDown?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
   /** OnKeyUp: Handle the KeyUp event. */
   OnKeyUp?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
+  /** OnDictionaryClick: Triggers when a dictionary tooltip is clicked. */
+  OnDictionaryClick?: (Key: string) => void;
 }
 
 /** Language: Language. */

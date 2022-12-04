@@ -9,7 +9,7 @@ const zh_cn: Record<string, Function> = {
     `"${Name}" 似乎不是合理的 NetLogo 代码。`,
 
   '~VariableName': (Name: string) => `"变量名称。`,
-  '~ProcedureName': (Name: string) => `"过程或函数的名称。`,
+  '~ProcedureName': (Name: string) => `过程或函数的名称。`,
   '~Arguments/Identifier': (Name: string) => `参数名称。`,
   '~PatchVar': (Name: string) => `格子的内置变量。`,
   '~TurtleVar': (Name: string) => `海龟的内置变量。`,
@@ -18,7 +18,6 @@ const zh_cn: Record<string, Function> = {
   '~Command': (Name: string) => `"NetLogo 语言的内置命令。`,
   '~Constant': (Name: string) => `"NetLogo 语言规定的常量。`,
   '~Extension': (Name: string) => `"NetLogo 语言的扩展。`,
-  '~Numeric': (Name: string) => `"数字。`,
   '~String': (Name: string) => `字符串，或者说一串文字。`,
   '~LineComment': (Name: string) =>
     `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,

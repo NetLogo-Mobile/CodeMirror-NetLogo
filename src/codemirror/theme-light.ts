@@ -8,6 +8,9 @@ const lightTheme = EditorView.theme({
     fontSize: '0.9em',
     padding: '0.3em 0.5em',
   },
+  '.cm-tooltip.cm-tooltip-extendable': {
+    cursor: 'pointer',
+  },
   '.cm-tooltip.cm-tooltip-explain': {
     fontSize: '0.9em',
     backgroundColor: '#FFFFF0',

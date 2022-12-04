@@ -63,9 +63,15 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         strictSide: true,
         arrow: true,
         create: () => {
-          let dom = document.createElement('div');
-          dom.className = 'cm-tooltip-explain';
-          dom.textContent = Dictionary.Get(closestTerm, term);
+          const dom = document.createElement('div');
+          var message = Dictionary.Get(closestTerm, term);
+          if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
+            message += '➤';
+            dom.addEventListener('click', () => Dictionary.ClickHandler!(term));
+            dom.classList.add('cm-tooltip-extendable');
+          }
+          dom.classList.add('cm-tooltip-explain');
+          dom.innerText = message;
           return { dom };
         },
       };
