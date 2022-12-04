@@ -1,6 +1,6 @@
 import { indentService } from '@codemirror/language';
 
-/** Extension for Indentation. */
+/** IndentExtension: Extension for Indentation. */
 const indentExtension = indentService.of((context, pos) => {
   const previousLine = context.lineAt(pos, -1);
   const match = previousLine.text.match(/^(\s)*/);

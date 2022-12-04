@@ -19,7 +19,7 @@ class LocalizationManager {
   public Switch(Locale: string) {
     switch (Locale.toLowerCase()) {
       case 'zh_cn':
-      case 'Chinese':
+      case 'chinese':
         this.Current = zh_cn;
         break;
       default:

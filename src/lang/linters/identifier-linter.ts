@@ -2,10 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
-import {
-  stateExtension,
-  StateNetLogo,
-} from '../../codemirror/extension-state-netlogo';
+import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 
@@ -57,7 +54,8 @@ const acceptableIdentifiers = [
   'ProcedureName',
   'Arguments',
   'Globals',
-  'Breed',
+  'BreedSingular',
+  'BreedPlural',
   'BreedsOwn',
 ];
 

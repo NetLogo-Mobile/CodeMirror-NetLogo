@@ -21,11 +21,19 @@ globalStatement {
 
   Globals { GlobalStr OpenBracket  Identifier* CloseBracket  } |
 
-  Breed { BreedStr OpenBracket Identifier Identifier CloseBracket } |
+  Breed { BreedStr OpenBracket BreedPlural BreedSingular CloseBracket } |
 
   BreedsOwn {
     Own OpenBracket BreedVars* CloseBracket
   }
+}
+
+BreedSingular {
+  Identifier
+}
+
+BreedPlural {
+  Identifier
 }
 
 BreedVars {
@@ -132,7 +140,6 @@ Arg {
 BreedProceduresReporters {
   BreedFirst | BreedMiddle | BreedLast
 }
-
 
 @tokens {
   Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* }

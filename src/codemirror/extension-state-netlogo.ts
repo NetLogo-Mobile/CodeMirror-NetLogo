@@ -87,10 +87,8 @@ export class StateNetLogo {
       // get extensions
       if (Cursor.node.name == 'Extensions') {
         this.Extensions = [];
-        Cursor.node.getChildren('Extension').map((Node) => {
-          this.Extensions.push(
-            State.sliceDoc(Node.from, Node.to).toLowerCase()
-          );
+        Cursor.node.getChildren('Extension').map((node) => {
+          this.Extensions.push(this.getText(State, node));
         });
       }
       // get global variables
@@ -103,17 +101,11 @@ export class StateNetLogo {
       }
       // get breeds
       if (Cursor.node.name == 'Breed') {
-        const Identifiers = Cursor.node.getChildren('Identifier');
-        if (Identifiers.length == 2) {
-          let plural = State.sliceDoc(
-            Identifiers[0].from,
-            Identifiers[0].to
-          ).toLowerCase();
-          let singular = State.sliceDoc(
-            Identifiers[1].from,
-            Identifiers[1].to
-          ).toLowerCase();
-          let breed = new Breed(singular, plural, []);
+        const Plural = Cursor.node.getChildren('BreedPlural');
+        const Singular = Cursor.node.getChildren('BreedSingular');
+        if (Plural.length == 1 && Singular.length == 1) {
+          let singular = this.getText(State, Singular[0]);
+          let breed = new Breed(singular, this.getText(State, Plural[0]), []);
           this.Breeds.set(singular, breed);
         }
       }
@@ -121,7 +113,7 @@ export class StateNetLogo {
       if (Cursor.node.name == 'BreedsOwn') {
         let breedName = '';
         Cursor.node.getChildren('Own').map((node) => {
-          breedName = State.sliceDoc(node.from, node.to).toLowerCase();
+          breedName = this.getText(State, node);
           breedName = breedName.substring(0, breedName.length - 4);
         });
         let breedVars = this.getVariables(Cursor.node, State);
@@ -139,8 +131,8 @@ export class StateNetLogo {
       if (Cursor.node.name == 'Procedure') {
         // TODO: From & To.
         let procedure = new Procedure('', [], [], [], 0, 0);
-        Cursor.node.getChildren('ProcedureName').map((Node) => {
-          procedure.Name = State.sliceDoc(Node.from, Node.to).toLowerCase();
+        Cursor.node.getChildren('ProcedureName').map((node) => {
+          procedure.Name = this.getText(State, node);
         });
         procedure.Arguments = this.getArgs(Cursor.node, State);
         procedure.Variables = this.getLocalVars(Cursor.node, State, false);
@@ -160,9 +152,7 @@ export class StateNetLogo {
             let Node = noderef.node;
             Node.getChildren('AnonArguments').map((node) => {
               node.getChildren('Identifier').map((subnode) => {
-                args.push(
-                  State.sliceDoc(subnode.from, subnode.to).toLowerCase()
-                );
+                args.push(this.getText(State, subnode));
               });
             });
             anonProc.Arguments = args;
@@ -180,6 +170,11 @@ export class StateNetLogo {
         return this;
       }
     }
+  }
+
+  // getText: Get the text of a node.
+  private getText(State: EditorState, Node: SyntaxNode): string {
+    return State.sliceDoc(Node.from, Node.to).toLowerCase();
   }
 
   // get local variables for the procedure
@@ -202,7 +197,7 @@ export class StateNetLogo {
                 isAnon
               ) {
                 const variable = new LocalVariable(
-                  State.sliceDoc(subsubnode.from, subsubnode.to).toLowerCase(),
+                  this.getText(State, subsubnode),
                   1,
                   subsubnode.from
                 );
@@ -226,7 +221,7 @@ export class StateNetLogo {
     return parents;
   }
 
-  private getVariables(Node: SyntaxNode, state: EditorState): string[] {
+  private getVariables(Node: SyntaxNode, State: EditorState): string[] {
     let vars: string[] = [];
     Node.cursor().iterate((noderef) => {
       if (noderef.node.to > Node.to) {
@@ -237,7 +232,7 @@ export class StateNetLogo {
           noderef.name
         )
       ) {
-        vars.push(state.sliceDoc(noderef.from, noderef.to).toLowerCase());
+        vars.push(this.getText(State, noderef.node));
       }
     });
     return vars;
@@ -248,7 +243,7 @@ export class StateNetLogo {
     const args: string[] = [];
     Node.getChildren('Arguments').map((node) => {
       node.getChildren('Identifier').map((subnode) => {
-        args.push(State.sliceDoc(subnode.from, subnode.to).toLowerCase());
+        args.push(this.getText(State, subnode));
       });
     });
     return args;
