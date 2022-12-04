@@ -27940,8 +27940,10 @@
                default:
                    this.Language = NetLogo();
                    Extensions.push(stateExtension);
-                   Extensions.push(tooltipExtension);
-                   Extensions.push(...netlogoLinters);
+                   if (!this.Options.OneLine) {
+                       Extensions.push(tooltipExtension);
+                       Extensions.push(...netlogoLinters);
+                   }
            }
            Extensions.push(this.Language);
            // DOM handlers
