@@ -31,6 +31,7 @@ import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { netlogoLinters } from './lang/linters/linters';
 import { forceLinting } from '@codemirror/lint';
+import { RuntimeError } from './lang/linters/runtime-linter.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -217,8 +218,23 @@ export class GalapagosEditor {
     }
     if (Changed) {
       State.WidgetGlobals = Variables;
+      State.IncVersion();
       if (ForceLint) this.ForceLint();
     }
+  }
+
+  /** SetCompilerErrors: Sync the compiler errors and present it on the editor. */
+  // TODO: Some errors come with start 2147483647, which needs to be rendered as a tip without position.
+  SetCompilerErrors(Errors: RuntimeError[]) {
+    this.GetState().CompilerErrors = Errors;
+    this.GetState().RuntimeErrors = [];
+    this.ForceLint();
+  }
+
+  /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
+  SetRuntimeErrors(Errors: RuntimeError[]) {
+    this.GetState().RuntimeErrors = Errors;
+    this.ForceLint();
   }
   // #endregion
 

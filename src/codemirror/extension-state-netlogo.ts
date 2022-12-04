@@ -8,9 +8,11 @@ import {
   Procedure,
 } from '../lang/classes';
 import { SyntaxNode } from '@lezer/common';
+import { RuntimeError } from '../lang/linters/runtime-linter';
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
+  // #region "Information"
   /** Extensions: Extensions in the code. */
   public Extensions: string[] = [];
   /** Globals: Globals in the code. */
@@ -21,8 +23,17 @@ export class StateNetLogo {
   public Breeds: Map<string, Breed> = new Map<string, Breed>();
   /** Procedures: Procedures in the code. */
   public Procedures: Map<string, Procedure> = new Map<string, Procedure>();
+  /** CompilerErrors: Errors from the compiler. */
+  public CompilerErrors: RuntimeError[] = [];
+  /** CompilerErrors: Errors during the runtime. */
+  public RuntimeErrors: RuntimeError[] = [];
   /** IsDirty: Whether the current state is dirty. */
   private IsDirty: boolean = true;
+  /** Version: Version of the state (for linter cache). */
+  private Version: number = 0;
+  // #endregion
+
+  // #region "Utilities"
   /** GetBreedNames: Get names related to breeds. */
   public GetBreedNames(): string[] {
     var breedNames: string[] = [];
@@ -40,10 +51,28 @@ export class StateNetLogo {
     }
     return breedNames;
   }
+  // #endregion
+
+  // #region "Version Control"
   /** SetDirty: Make the state dirty. */
   public SetDirty() {
     this.IsDirty = true;
   }
+  /** GetDirty: Gets if the state is dirty. */
+  public GetDirty() {
+    return this.IsDirty;
+  }
+  /** GetVersion: Get version of the state. */
+  public GetVersion(): number {
+    return this.Version;
+  }
+  /** IncVersion: Increase version of the state. */
+  public IncVersion(): number {
+    return ++this.Version;
+  }
+  // #endregion
+
+  // #region "Parsing"
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StateNetLogo {
     if (!this.IsDirty) return this;
@@ -146,6 +175,7 @@ export class StateNetLogo {
         this.Procedures.set(procedure.Name, procedure);
       }
       if (!Cursor.nextSibling()) {
+        this.IncVersion();
         this.IsDirty = false;
         return this;
       }
@@ -153,7 +183,7 @@ export class StateNetLogo {
   }
 
   // get local variables for the procedure
-  public getLocalVars(
+  private getLocalVars(
     Node: SyntaxNode,
     State: EditorState,
     isAnon: Boolean
@@ -223,6 +253,7 @@ export class StateNetLogo {
     });
     return args;
   }
+  // #endregion
 }
 
 /** StateExtension: Extension for managing the editor state.  */

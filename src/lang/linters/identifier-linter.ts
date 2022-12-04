@@ -1,5 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
-import { linter, Diagnostic } from '@codemirror/lint';
+import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import {
@@ -7,12 +7,11 @@ import {
   StateNetLogo,
 } from '../../codemirror/extension-state-netlogo';
 import { Localized } from '../../i18n/localized';
+import { buildLinter } from './linter-builder';
 
-// Checks anything labelled 'Identifier'
-export const IdentifierLinter = linter((view) => {
+// IdentifierLinter: Checks anything labelled 'Identifier'
+export const IdentifierLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
-  const parseState = view.state.field(stateExtension);
-  parseState.ParseState(view.state);
   const breedNames = parseState.GetBreedNames();
   const breedVars = parseState.GetBreedVariables();
   syntaxTree(view.state)
@@ -34,7 +33,7 @@ export const IdentifierLinter = linter((view) => {
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
-            severity: 'error',
+            severity: 'warning',
             message: Localized.Get('Unrecognized identifier _', value),
             /* actions: [
               {
