@@ -1,5 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
-import { linter, Diagnostic } from '@codemirror/lint';
+import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import {
@@ -8,11 +8,11 @@ import {
 } from '../../codemirror/extension-state-netlogo';
 import { checkValid } from './identifier-linter';
 import { Localized } from '../../i18n/localized';
+import { buildLinter } from './linter-builder';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
-export const BreedLinter = linter((view) => {
+export const BreedLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
-  const parseState = view.state.field(stateExtension);
   const breedNames = parseState.GetBreedNames();
   const breedVars = parseState.GetBreedVariables();
   syntaxTree(view.state)
@@ -40,7 +40,7 @@ export const BreedLinter = linter((view) => {
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
-            severity: 'error',
+            severity: 'warning',
             message: Localized.Get('Unrecognized breed name _', value),
             /* actions: [
               {

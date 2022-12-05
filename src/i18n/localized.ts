@@ -1,4 +1,5 @@
 import { en_us } from './en_us';
+import { zh_cn } from './zh_cn';
 
 /** LocalizationManager: Manage all localized texts. */
 class LocalizationManager {
@@ -16,7 +17,11 @@ class LocalizationManager {
   }
   /** Switch: Switch to another language. */
   public Switch(Locale: string) {
-    switch (Locale) {
+    switch (Locale.toLowerCase()) {
+      case 'zh_cn':
+      case 'chinese':
+        this.Current = zh_cn;
+        break;
       default:
         this.Current = en_us;
         break;

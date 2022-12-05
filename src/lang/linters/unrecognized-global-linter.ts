@@ -1,9 +1,10 @@
 import { syntaxTree } from '@codemirror/language';
-import { linter, Diagnostic } from '@codemirror/lint';
+import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
+import { buildLinter } from './linter-builder';
 
-// checks if something at the top layer isn't a procedure, global, etc.
-export const UnrecognizedGlobalLinter = linter((view) => {
+// UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
+export const UnrecognizedGlobalLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -13,7 +14,7 @@ export const UnrecognizedGlobalLinter = linter((view) => {
         diagnostics.push({
           from: node.from,
           to: node.to,
-          severity: 'error',
+          severity: 'warning',
           message: Localized.Get('Unrecognized global statement _', value),
           /* actions: [
             {

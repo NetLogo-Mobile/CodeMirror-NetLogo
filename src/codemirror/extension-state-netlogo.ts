@@ -8,9 +8,11 @@ import {
   Procedure,
 } from '../lang/classes';
 import { SyntaxNode } from '@lezer/common';
+import { RuntimeError } from '../lang/linters/runtime-linter';
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
+  // #region "Information"
   /** Extensions: Extensions in the code. */
   public Extensions: string[] = [];
   /** Globals: Globals in the code. */
@@ -21,6 +23,17 @@ export class StateNetLogo {
   public Breeds: Map<string, Breed> = new Map<string, Breed>();
   /** Procedures: Procedures in the code. */
   public Procedures: Map<string, Procedure> = new Map<string, Procedure>();
+  /** CompilerErrors: Errors from the compiler. */
+  public CompilerErrors: RuntimeError[] = [];
+  /** CompilerErrors: Errors during the runtime. */
+  public RuntimeErrors: RuntimeError[] = [];
+  /** IsDirty: Whether the current state is dirty. */
+  private IsDirty: boolean = true;
+  /** Version: Version of the state (for linter cache). */
+  private Version: number = 0;
+  // #endregion
+
+  // #region "Utilities"
   /** GetBreedNames: Get names related to breeds. */
   public GetBreedNames(): string[] {
     var breedNames: string[] = [];
@@ -38,10 +51,32 @@ export class StateNetLogo {
     }
     return breedNames;
   }
+  // #endregion
+
+  // #region "Version Control"
+  /** SetDirty: Make the state dirty. */
+  public SetDirty() {
+    this.IsDirty = true;
+  }
+  /** GetDirty: Gets if the state is dirty. */
+  public GetDirty() {
+    return this.IsDirty;
+  }
+  /** GetVersion: Get version of the state. */
+  public GetVersion(): number {
+    return this.Version;
+  }
+  /** IncVersion: Increase version of the state. */
+  public IncVersion(): number {
+    return ++this.Version;
+  }
+  // #endregion
+
+  // #region "Parsing"
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StateNetLogo {
+    if (!this.IsDirty) return this;
     const Cursor = syntaxTree(State).cursor();
-
     if (!Cursor.firstChild()) return this;
     this.Breeds = new Map<string, Breed>();
     this.Procedures = new Map<string, Procedure>();
@@ -52,10 +87,8 @@ export class StateNetLogo {
       // get extensions
       if (Cursor.node.name == 'Extensions') {
         this.Extensions = [];
-        Cursor.node.getChildren('Extension').map((Node) => {
-          this.Extensions.push(
-            State.sliceDoc(Node.from, Node.to).toLowerCase()
-          );
+        Cursor.node.getChildren('Extension').map((node) => {
+          this.Extensions.push(this.getText(State, node));
         });
       }
       // get global variables
@@ -68,17 +101,11 @@ export class StateNetLogo {
       }
       // get breeds
       if (Cursor.node.name == 'Breed') {
-        const Identifiers = Cursor.node.getChildren('Identifier');
-        if (Identifiers.length == 2) {
-          let plural = State.sliceDoc(
-            Identifiers[0].from,
-            Identifiers[0].to
-          ).toLowerCase();
-          let singular = State.sliceDoc(
-            Identifiers[1].from,
-            Identifiers[1].to
-          ).toLowerCase();
-          let breed = new Breed(singular, plural, []);
+        const Plural = Cursor.node.getChildren('BreedPlural');
+        const Singular = Cursor.node.getChildren('BreedSingular');
+        if (Plural.length == 1 && Singular.length == 1) {
+          let singular = this.getText(State, Singular[0]);
+          let breed = new Breed(singular, this.getText(State, Plural[0]), []);
           this.Breeds.set(singular, breed);
         }
       }
@@ -86,7 +113,7 @@ export class StateNetLogo {
       if (Cursor.node.name == 'BreedsOwn') {
         let breedName = '';
         Cursor.node.getChildren('Own').map((node) => {
-          breedName = State.sliceDoc(node.from, node.to).toLowerCase();
+          breedName = this.getText(State, node);
           breedName = breedName.substring(0, breedName.length - 4);
         });
         let breedVars = this.getVariables(Cursor.node, State);
@@ -102,6 +129,7 @@ export class StateNetLogo {
       }
       // get procedures
       if (Cursor.node.name == 'Procedure') {
+        // TODO: From & To.
         let procedure = new Procedure(
           '',
           [],
@@ -110,8 +138,8 @@ export class StateNetLogo {
           Cursor.node.from,
           Cursor.node.to
         );
-        Cursor.node.getChildren('ProcedureName').map((Node) => {
-          procedure.Name = State.sliceDoc(Node.from, Node.to).toLowerCase();
+        Cursor.node.getChildren('ProcedureName').map((node) => {
+          procedure.Name = this.getText(State, node);
         });
         procedure.Arguments = this.getArgs(Cursor.node, State);
         procedure.Variables = this.getLocalVars(Cursor.node, State, false);
@@ -131,9 +159,7 @@ export class StateNetLogo {
             let Node = noderef.node;
             Node.getChildren('AnonArguments').map((node) => {
               node.getChildren('Identifier').map((subnode) => {
-                args.push(
-                  State.sliceDoc(subnode.from, subnode.to).toLowerCase()
-                );
+                args.push(this.getText(State, subnode));
               });
             });
             anonProc.Arguments = args;
@@ -146,13 +172,20 @@ export class StateNetLogo {
         this.Procedures.set(procedure.Name, procedure);
       }
       if (!Cursor.nextSibling()) {
+        this.IncVersion();
+        this.IsDirty = false;
         return this;
       }
     }
   }
 
+  // getText: Get the text of a node.
+  private getText(State: EditorState, Node: SyntaxNode): string {
+    return State.sliceDoc(Node.from, Node.to).toLowerCase();
+  }
+
   // get local variables for the procedure
-  public getLocalVars(
+  private getLocalVars(
     Node: SyntaxNode,
     State: EditorState,
     isAnon: Boolean
@@ -171,7 +204,7 @@ export class StateNetLogo {
                 isAnon
               ) {
                 const variable = new LocalVariable(
-                  State.sliceDoc(subsubnode.from, subsubnode.to).toLowerCase(),
+                  this.getText(State, subsubnode),
                   1,
                   subsubnode.from
                 );
@@ -195,7 +228,7 @@ export class StateNetLogo {
     return parents;
   }
 
-  private getVariables(Node: SyntaxNode, state: EditorState): string[] {
+  private getVariables(Node: SyntaxNode, State: EditorState): string[] {
     let vars: string[] = [];
     Node.cursor().iterate((noderef) => {
       if (noderef.node.to > Node.to) {
@@ -206,7 +239,7 @@ export class StateNetLogo {
           noderef.name
         )
       ) {
-        vars.push(state.sliceDoc(noderef.from, noderef.to).toLowerCase());
+        vars.push(this.getText(State, noderef.node));
       }
     });
     return vars;
@@ -217,20 +250,19 @@ export class StateNetLogo {
     const args: string[] = [];
     Node.getChildren('Arguments').map((node) => {
       node.getChildren('Identifier').map((subnode) => {
-        args.push(State.sliceDoc(subnode.from, subnode.to).toLowerCase());
+        args.push(this.getText(State, subnode));
       });
     });
     return args;
   }
+  // #endregion
 }
 
 /** StateExtension: Extension for managing the editor state.  */
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),
   update: (Original: StateNetLogo, Transaction: Transaction) => {
-    if (!Transaction.docChanged) return Original;
-    Original.ParseState(Transaction.state);
-    console.log(Original);
+    if (Transaction.docChanged) Original.SetDirty();
     return Original;
   },
 });
