@@ -1,8 +1,11 @@
 import { EditorView } from '@codemirror/view';
 
 const lightTheme = EditorView.theme({
-  '&': {
+  "&.cm-editor": {
     height: '100%',
+      "&.cm-focused": {
+          outline: "none"
+      },
   },
   '.cm-diagnostic': {
     fontSize: '0.9em',
@@ -24,6 +27,9 @@ const lightTheme = EditorView.theme({
       borderBottomColor: '#FFFFF0',
     },
   },
+  '.cm-editor.cm-focused': {
+    outline: 'none'
+  }
 });
 
 export { lightTheme };
