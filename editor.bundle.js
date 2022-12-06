@@ -25044,8 +25044,8 @@
      SpecialReporter5Args = 38,
      SpecialReporter6Args = 39;
 
-   /** StateNetLogo: Editor state for the NetLogo Language. */
-   class BasicState {
+   /** StatePreprocess: Editor state for the NetLogo Language. */
+   class StatePreprocess {
        constructor() {
            /** Breeds: Breeds in the model. */
            this.PluralBreeds = [];
@@ -25056,72 +25056,48 @@
        }
        /** ParseState: Parse the state from an editor state. */
        ParseState(State) {
-           // let iterator = State.doc.iterLines()
            this.PluralBreeds = [];
            this.SingularBreeds = [];
            this.Commands = {};
            this.Reporters = {};
            let doc = State.doc.toString();
-           let breeds = doc.match(/breed\s*\[([A-Za-z0-9\-\_\s]*)\]/g);
-           let commands = doc.match(/(^|\n)[A-Za-z0-9\-\_ ]*to\s+[A-Za-z0-9\-\_]+(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g);
-           let reporters = doc.match(/(^|\n)[A-Za-z0-9\-\_ ]*to-report\s+[A-Za-z0-9\-\_]+(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g);
-           if (breeds) {
-               let processedBreeds = this.processBreeds(breeds);
-               this.SingularBreeds = processedBreeds[0];
-               this.PluralBreeds = processedBreeds[1];
-           }
-           if (commands) {
-               this.Commands = this.processProcedures(commands);
-           }
-           if (reporters) {
-               this.Reporters = this.processProcedures(reporters);
-           }
+           // Breeds
+           let breeds = doc.matchAll(/breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g);
+           let processedBreeds = this.processBreeds(breeds);
+           this.SingularBreeds = processedBreeds[0];
+           this.PluralBreeds = processedBreeds[1];
+           // Commands
+           let commands = doc.matchAll(/(^|\n)[A-Za-z0-9\-\_ ]*to\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g);
+           this.Commands = this.processProcedures(commands);
+           // Reporters
+           let reporters = doc.matchAll(/(^|\n)[A-Za-z0-9\-\_ ]*to-report\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g);
+           this.Reporters = this.processProcedures(reporters);
            return this;
        }
-       processProcedures(arr) {
+       processProcedures(procedures) {
            let matches = {};
-           arr.map((item) => {
-               item = item.replace('to-report', '').replace('to', '');
-               let list = item.split('[');
-               let argCount = 0;
-               if (list.length == 2) {
-                   let args = list[1];
-                   args = args.replace(']', '');
-                   let arg_list = args.split(' ');
-                   for (let arg of arg_list) {
-                       if (arg != '') {
-                           argCount++;
-                       }
-                   }
-               }
-               item = list[0].trim();
-               matches[item] = argCount;
-           });
+           for (var match of procedures) {
+               const name = match[2];
+               const args = match[4];
+               matches[name] = args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length;
+           }
            return matches;
        }
-       processBreeds(arr) {
+       processBreeds(breeds) {
            let singularmatches = [];
            let pluralmatches = [];
-           arr.map((item) => {
-               item = item.replace('breed', '').replace('[', '').replace(']', '');
-               let list = item.split(' ');
-               let isFirst = true;
-               for (let i of list) {
-                   if (i != '' && isFirst) {
-                       pluralmatches.push(i);
-                       isFirst = false;
-                   }
-                   else if (i != '') {
-                       singularmatches.push(i);
-                   }
-               }
-           });
+           let count = 0;
+           for (var match of breeds) {
+               pluralmatches[count] = match[1];
+               singularmatches[count] = match[2];
+               count++;
+           }
            return [singularmatches, pluralmatches];
        }
    }
    /** StateExtension: Extension for managing the editor state.  */
-   const basicStateExtension = StateField.define({
-       create: (State) => new BasicState().ParseState(State),
+   const preprocessStateExtension = StateField.define({
+       create: (State) => new StatePreprocess().ParseState(State),
        update: (Original, Transaction) => {
            if (!Transaction.docChanged)
                return Original;
@@ -25269,7 +25245,7 @@
        var _a;
        let tag = 0;
        let parseContext = ParseContext.get();
-       let breedNames = (_a = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(basicStateExtension).PluralBreeds.concat(parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(basicStateExtension).SingularBreeds)) !== null && _a !== void 0 ? _a : [];
+       let breedNames = (_a = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).PluralBreeds.concat(parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).SingularBreeds)) !== null && _a !== void 0 ? _a : [];
        let foundMatch = false;
        for (let b of breedNames) {
            if (token.includes(b)) {
@@ -25279,7 +25255,7 @@
        if (!foundMatch) {
            return tag;
        }
-       if (parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(basicStateExtension).SingularBreeds.includes(token)) {
+       if (parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).SingularBreeds.includes(token)) {
            tag = SpecialReporter;
        }
        else if (token.match(/\w+-own/)) {
@@ -25314,8 +25290,8 @@
    function matchCustomProcedure(token) {
        var _a, _b;
        let parseContext = ParseContext.get();
-       let commands = (_a = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(basicStateExtension).Commands) !== null && _a !== void 0 ? _a : {};
-       let reporters = (_b = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(basicStateExtension).Reporters) !== null && _b !== void 0 ? _b : {};
+       let commands = (_a = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).Commands) !== null && _a !== void 0 ? _a : {};
+       let reporters = (_b = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).Reporters) !== null && _b !== void 0 ? _b : {};
        // console.log(commands,reporters,token)
        if (commands[token] >= 0) {
            // console.log("found special command")
@@ -32920,7 +32896,7 @@
        var _a, _b;
        token = token.toLowerCase();
        let parseContext = ParseContext.get();
-       let reporters = (_a = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(basicStateExtension).Reporters) !== null && _a !== void 0 ? _a : {};
+       let reporters = (_a = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).Reporters) !== null && _a !== void 0 ? _a : {};
        if (reporters[token]) {
            let args = reporters[token];
            if (args == 0) {
@@ -32948,7 +32924,7 @@
                return -1;
            }
        }
-       let singularBreedNames = (_b = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(basicStateExtension).SingularBreeds) !== null && _b !== void 0 ? _b : [];
+       let singularBreedNames = (_b = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).SingularBreeds) !== null && _b !== void 0 ? _b : [];
        if (singularBreedNames.includes(token)) {
            return SpecialReporter1Args;
        }
@@ -35687,7 +35663,7 @@
        var _a, _b, _c, _d, _e, _f, _g, _h, _j;
        let func = state.sliceDoc((_a = args.func) === null || _a === void 0 ? void 0 : _a.from, (_b = args.func) === null || _b === void 0 ? void 0 : _b.to).toLowerCase();
        if ((_c = args.func) === null || _c === void 0 ? void 0 : _c.name.includes('Special')) {
-           let numArgs = (_f = (_e = (_d = state.field(basicStateExtension).Commands[func]) !== null && _d !== void 0 ? _d : state.field(basicStateExtension).Reporters[func]) !== null && _e !== void 0 ? _e : getBreedCommandArgs(func)) !== null && _f !== void 0 ? _f : getBreedProcedureArgs(args.func.name);
+           let numArgs = (_f = (_e = (_d = state.field(preprocessStateExtension).Commands[func]) !== null && _d !== void 0 ? _d : state.field(preprocessStateExtension).Reporters[func]) !== null && _e !== void 0 ? _e : getBreedCommandArgs(func)) !== null && _f !== void 0 ? _f : getBreedProcedureArgs(args.func.name);
            return numArgs == args.rightArgs.length;
        }
        else {
@@ -35811,7 +35787,7 @@
                    break;
                default:
                    this.Language = NetLogo();
-                   Extensions.push(basicStateExtension);
+                   Extensions.push(preprocessStateExtension);
                    Extensions.push(stateExtension);
                    Dictionary.ClickHandler = Options.OnDictionaryClick;
                    if (!this.Options.OneLine) {
@@ -35903,6 +35879,10 @@
        /** GetState: Get the current parser state of the NetLogo code. */
        GetState() {
            return this.CodeMirror.state.field(stateExtension);
+       }
+       /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
+       GetPreprocessState() {
+           return this.CodeMirror.state.field(preprocessStateExtension);
        }
        /** SetCursorPosition: Set the cursor position of the editor. */
        SetCursorPosition(position) {
