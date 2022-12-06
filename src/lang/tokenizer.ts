@@ -216,7 +216,8 @@ function matchBreed(token: string) {
 
 function matchCustomProcedure(token: string) {
   let parseContext = ParseContext.get();
-  let commands = parseContext?.state.field(preprocessStateExtension).Commands ?? {};
+  let commands =
+    parseContext?.state.field(preprocessStateExtension).Commands ?? {};
   let reporters =
     parseContext?.state.field(preprocessStateExtension).Reporters ?? {};
   // console.log(commands,reporters,token)

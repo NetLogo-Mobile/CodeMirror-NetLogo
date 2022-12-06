@@ -24,7 +24,10 @@ import {
   stateExtension,
   StateNetLogo,
 } from './codemirror/extension-state-netlogo';
-import { preprocessStateExtension, StatePreprocess } from './codemirror/extension-regex-state';
+import {
+  preprocessStateExtension,
+  StatePreprocess,
+} from './codemirror/extension-regex-state';
 import { tooltipExtension } from './codemirror/extension-tooltip';
 import { lightTheme } from './codemirror/theme-light';
 import { highlightTree } from '@lezer/highlight';

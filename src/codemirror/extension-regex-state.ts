@@ -33,7 +33,9 @@ export class StatePreprocess {
     return this;
   }
 
-  private processProcedures(procedures: IterableIterator<RegExpMatchArray>): Record<string, number> {
+  private processProcedures(
+    procedures: IterableIterator<RegExpMatchArray>
+  ): Record<string, number> {
     let matches: Record<string, number> = {};
     for (var match of procedures) {
       const name = match[2];
@@ -43,9 +45,11 @@ export class StatePreprocess {
     return matches;
   }
 
-  private processBreeds(breeds: IterableIterator<RegExpMatchArray>): string[][] {
-    let singularmatches: string[] = [];
-    let pluralmatches: string[] = [];
+  private processBreeds(
+    breeds: IterableIterator<RegExpMatchArray>
+  ): string[][] {
+    let singularmatches: string[] = ['patch', 'turtle', 'link'];
+    let pluralmatches: string[] = ['patches', 'turtles', 'links'];
     let count = 0;
     for (var match of breeds) {
       pluralmatches[count] = match[1];
