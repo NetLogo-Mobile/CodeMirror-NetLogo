@@ -25084,8 +25084,8 @@
            return matches;
        }
        processBreeds(breeds) {
-           let singularmatches = [];
-           let pluralmatches = [];
+           let singularmatches = ['patch', 'turtle', 'link'];
+           let pluralmatches = ['patches', 'turtles', 'links'];
            let count = 0;
            for (var match of breeds) {
                pluralmatches[count] = match[1];
