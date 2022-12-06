@@ -44,7 +44,7 @@ import { Reporters } from './primitives/reporters.js';
 import { Commands } from './primitives/commands.js';
 import { NetLogoType, Primitive } from './classes';
 import { ParseContext } from '@codemirror/language';
-import { basicStateExtension } from '../codemirror/extension-regex-state';
+import { preprocessStateExtension } from '../codemirror/extension-regex-state';
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer((input) => {
@@ -172,9 +172,9 @@ function matchBreed(token: string) {
   let parseContext = ParseContext.get();
   let breedNames =
     parseContext?.state
-      .field(basicStateExtension)
+      .field(preprocessStateExtension)
       .PluralBreeds.concat(
-        parseContext?.state.field(basicStateExtension).SingularBreeds
+        parseContext?.state.field(preprocessStateExtension).SingularBreeds
       ) ?? [];
   let foundMatch = false;
 
@@ -188,7 +188,7 @@ function matchBreed(token: string) {
   }
   if (
     parseContext?.state
-      .field(basicStateExtension)
+      .field(preprocessStateExtension)
       .SingularBreeds.includes(token)
   ) {
     tag = SpecialReporter;
@@ -216,9 +216,9 @@ function matchBreed(token: string) {
 
 function matchCustomProcedure(token: string) {
   let parseContext = ParseContext.get();
-  let commands = parseContext?.state.field(basicStateExtension).Commands ?? {};
+  let commands = parseContext?.state.field(preprocessStateExtension).Commands ?? {};
   let reporters =
-    parseContext?.state.field(basicStateExtension).Reporters ?? {};
+    parseContext?.state.field(preprocessStateExtension).Reporters ?? {};
   // console.log(commands,reporters,token)
   if (commands[token] >= 0) {
     // console.log("found special command")

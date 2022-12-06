@@ -2,8 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { linter, Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
-import { stateExtension } from '../../codemirror/extension-state-netlogo';
-import { basicStateExtension } from '../../codemirror/extension-regex-state';
+import { preprocessStateExtension } from '../../codemirror/extension-regex-state';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
 
@@ -92,8 +91,8 @@ export const checkValid = function (
   let func = state.sliceDoc(args.func?.from, args.func?.to).toLowerCase();
   if (args.func?.name.includes('Special')) {
     let numArgs =
-      state.field(basicStateExtension).Commands[func] ??
-      state.field(basicStateExtension).Reporters[func] ??
+      state.field(preprocessStateExtension).Commands[func] ??
+      state.field(preprocessStateExtension).Reporters[func] ??
       getBreedCommandArgs(func) ??
       getBreedProcedureArgs(args.func.name);
     return numArgs == args.rightArgs.length;

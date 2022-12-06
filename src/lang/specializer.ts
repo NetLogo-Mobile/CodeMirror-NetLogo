@@ -1,5 +1,5 @@
 import { ParseContext } from '@codemirror/language';
-import { basicStateExtension } from '../codemirror/extension-regex-state.js';
+import { preprocessStateExtension } from '../codemirror/extension-regex-state.js';
 import {
   ReportersAll,
   ReporterVarArgs,
@@ -64,7 +64,7 @@ const specializeSpecialReporter = function (token: string) {
   token = token.toLowerCase();
   let parseContext = ParseContext.get();
   let reporters =
-    parseContext?.state.field(basicStateExtension).Reporters ?? {};
+    parseContext?.state.field(preprocessStateExtension).Reporters ?? {};
   if (reporters[token]) {
     let args = reporters[token];
     if (args == 0) {
@@ -87,7 +87,7 @@ const specializeSpecialReporter = function (token: string) {
   }
 
   let singularBreedNames =
-    parseContext?.state.field(basicStateExtension).SingularBreeds ?? [];
+    parseContext?.state.field(preprocessStateExtension).SingularBreeds ?? [];
   if (singularBreedNames.includes(token)) {
     return SpecialReporter1Args;
   }

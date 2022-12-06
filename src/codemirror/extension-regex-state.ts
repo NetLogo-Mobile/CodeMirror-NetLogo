@@ -1,96 +1,65 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
 
-import { syntaxTree } from '@codemirror/language';
-import {
-  AnonymousProcedure,
-  Breed,
-  LocalVariable,
-  Procedure,
-} from '../lang/classes';
-import { SyntaxNode } from '@lezer/common';
-
-/** StateNetLogo: Editor state for the NetLogo Language. */
-export class BasicState {
+/** StatePreprocess: Editor state for the NetLogo Language. */
+export class StatePreprocess {
   /** Breeds: Breeds in the model. */
   public PluralBreeds: string[] = [];
   public SingularBreeds: string[] = [];
   /** Procedures: Procedures in the model. */
-  public Commands: { [key: string]: number } = {};
-  public Reporters: { [key: string]: number } = {};
+  public Commands: Record<string, number> = {};
+  public Reporters: Record<string, number> = {};
   /** ParseState: Parse the state from an editor state. */
-  public ParseState(State: EditorState): BasicState {
-    // let iterator = State.doc.iterLines()
+  public ParseState(State: EditorState): StatePreprocess {
     this.PluralBreeds = [];
     this.SingularBreeds = [];
     this.Commands = {};
     this.Reporters = {};
     let doc = State.doc.toString();
-    let breeds = doc.match(/breed\s*\[([A-Za-z0-9\-\_\s]*)\]/g);
-    let commands = doc.match(
-      /(^|\n)[A-Za-z0-9\-\_ ]*to\s+[A-Za-z0-9\-\_]+(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
+    // Breeds
+    let breeds = doc.matchAll(/breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g);
+    let processedBreeds = this.processBreeds(breeds);
+    this.SingularBreeds = processedBreeds[0];
+    this.PluralBreeds = processedBreeds[1];
+    // Commands
+    let commands = doc.matchAll(
+      /(^|\n)[A-Za-z0-9\-\_ ]*to\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
     );
-    let reporters = doc.match(
-      /(^|\n)[A-Za-z0-9\-\_ ]*to-report\s+[A-Za-z0-9\-\_]+(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
+    this.Commands = this.processProcedures(commands);
+    // Reporters
+    let reporters = doc.matchAll(
+      /(^|\n)[A-Za-z0-9\-\_ ]*to-report\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
     );
-    if (breeds) {
-      let processedBreeds = this.processBreeds(breeds);
-      this.SingularBreeds = processedBreeds[0];
-      this.PluralBreeds = processedBreeds[1];
-    }
-    if (commands) {
-      this.Commands = this.processProcedures(commands);
-    }
-    if (reporters) {
-      this.Reporters = this.processProcedures(reporters);
-    }
+    this.Reporters = this.processProcedures(reporters);
     return this;
   }
 
-  private processProcedures(arr: string[]): { [key: string]: number } {
-    let matches: { [key: string]: number } = {};
-    arr.map((item) => {
-      item = item.replace('to-report', '').replace('to', '');
-      let list = item.split('[');
-      let argCount = 0;
-      if (list.length == 2) {
-        let args = list[1];
-        args = args.replace(']', '');
-        let arg_list = args.split(' ');
-        for (let arg of arg_list) {
-          if (arg != '') {
-            argCount++;
-          }
-        }
-      }
-      item = list[0].trim();
-      matches[item] = argCount;
-    });
+  private processProcedures(procedures: IterableIterator<RegExpMatchArray>): Record<string, number> {
+    let matches: Record<string, number> = {};
+    for (var match of procedures) {
+      const name = match[2];
+      const args = match[4];
+      matches[name] = args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length;
+    }
     return matches;
   }
 
-  private processBreeds(arr: string[]): string[][] {
+  private processBreeds(breeds: IterableIterator<RegExpMatchArray>): string[][] {
     let singularmatches: string[] = [];
     let pluralmatches: string[] = [];
-    arr.map((item) => {
-      item = item.replace('breed', '').replace('[', '').replace(']', '');
-      let list = item.split(' ');
-      let isFirst = true;
-      for (let i of list) {
-        if (i != '' && isFirst) {
-          pluralmatches.push(i);
-          isFirst = false;
-        } else if (i != '') {
-          singularmatches.push(i);
-        }
-      }
-    });
+    let count = 0;
+    for (var match of breeds) {
+      pluralmatches[count] = match[1];
+      singularmatches[count] = match[2];
+      count++;
+    }
     return [singularmatches, pluralmatches];
   }
 }
+
 /** StateExtension: Extension for managing the editor state.  */
-const basicStateExtension = StateField.define<BasicState>({
-  create: (State) => new BasicState().ParseState(State),
-  update: (Original: BasicState, Transaction: Transaction) => {
+const preprocessStateExtension = StateField.define<StatePreprocess>({
+  create: (State) => new StatePreprocess().ParseState(State),
+  update: (Original: StatePreprocess, Transaction: Transaction) => {
     if (!Transaction.docChanged) return Original;
     Original.ParseState(Transaction.state);
     console.log(Original);
@@ -98,4 +67,4 @@ const basicStateExtension = StateField.define<BasicState>({
   },
 });
 
-export { basicStateExtension };
+export { preprocessStateExtension };
