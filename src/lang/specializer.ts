@@ -92,23 +92,23 @@ const specializeSpecialReporter = function (token: string) {
     return SpecialReporter1Args;
   }
 
-  if (token.match(/\w+-(at)/)) {
+  if (token.match(/[^\s]+-(at)/)) {
     return SpecialReporter2Args;
-  } else if (token.match(/\w+-(here|neighbors)/)) {
+  } else if (token.match(/[^\s]+-(here|neighbors)/)) {
     return SpecialReporter0Args;
-  } else if (token.match(/\w+-(on|with|neighbor\\?)/)) {
+  } else if (token.match(/[^\s]+-(on|with|neighbor\\?)/)) {
     return SpecialReporter1Args;
-  } else if (token.match(/^(my-in|my-out)-\w+/)) {
+  } else if (token.match(/^(my-in|my-out)-[^\s]+/)) {
     return SpecialReporter0Args;
-  } else if (token.match(/^is-\w+\\?$/)) {
+  } else if (token.match(/^is-[^\s]+\\?$/)) {
     return SpecialReporter1Args;
-  } else if (token.match(/^in-\w+-from$/)) {
+  } else if (token.match(/^in-[^\s]+-from$/)) {
     return SpecialReporter1Args;
-  } else if (token.match(/^(in|out)-\w+-(neighbors)$/)) {
+  } else if (token.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
     return SpecialReporter0Args;
-  } else if (token.match(/^(in|out)-\w+-(neighbor\\?)$/)) {
+  } else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
     return SpecialReporter1Args;
-  } else if (token.match(/^out-\w+-to$/)) {
+  } else if (token.match(/^out-[^\s]+-to$/)) {
     return SpecialReporter1Args;
   } else {
     return -1;

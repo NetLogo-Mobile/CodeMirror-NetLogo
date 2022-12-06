@@ -36,6 +36,7 @@ import {
   PlusMinus,
   SpecialCommand,
   SpecialReporter,
+  BreedToken,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -100,8 +101,9 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(ReporterLeftArgs2);
   } else if (token == '-' || token == '+') {
     input.acceptToken(PlusMinus);
+  } else if (token == 'breed') {
+    input.acceptToken(BreedToken);
   } else if (
-    token == 'breed' ||
     token == 'directed-link-breed' ||
     token == 'undirected-link-breed'
   ) {
@@ -192,23 +194,23 @@ function matchBreed(token: string) {
       .SingularBreeds.includes(token)
   ) {
     tag = SpecialReporter;
-  } else if (token.match(/\w+-own/)) {
+  } else if (token.match(/[^\s]+-own/)) {
     tag = Own;
-  } else if (token.match(/\w+-(at|here|on|with|neighbor\\?|neighbors)$/)) {
+  } else if (token.match(/[^\s]+-(at|here|on|with|neighbor\\?|neighbors)$/)) {
     tag = SpecialReporter;
-  } else if (token.match(/^(my-in|my-out)-\w+/)) {
+  } else if (token.match(/^(my-in|my-out)-[^\s]+/)) {
     tag = SpecialReporter;
-  } else if (token.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
+  } else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
     tag = SpecialCommand;
-  } else if (token.match(/^is-\w+\\?$/)) {
+  } else if (token.match(/^is-[^\s]+\\?$/)) {
     tag = SpecialReporter;
-  } else if (token.match(/^in-\w+-from$/)) {
+  } else if (token.match(/^in-[^\s]+-from$/)) {
     tag = SpecialReporter;
-  } else if (token.match(/^(in|out)-\w+-(neighbor\\?|neighbors)$/)) {
+  } else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?|neighbors)$/)) {
     tag = SpecialReporter;
-  } else if (token.match(/^out-\w+-to$/)) {
+  } else if (token.match(/^out-[^\s]+-to$/)) {
     tag = SpecialReporter;
-  } else if (token.match(/^create-\w+-(to|from|with)$/)) {
+  } else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
     tag = SpecialCommand;
   }
   return tag;

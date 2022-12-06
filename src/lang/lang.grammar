@@ -27,7 +27,7 @@ globalStatement {
 
   Globals { GlobalStr OpenBracket  Identifier* CloseBracket  } |
 
-  Breed { BreedStr OpenBracket BreedPlural BreedSingular CloseBracket } |
+  Breed { (BreedStr | BreedToken) OpenBracket BreedPlural BreedSingular CloseBracket } |
 
   BreedsOwn {
     Own OpenBracket Identifier* CloseBracket
@@ -95,7 +95,8 @@ VariableName {
   !leftArgs Identifier | 
   PatchVar | 
   TurtleVar | 
-  LinkVar
+  LinkVar |
+  BreedToken
 }
 
 Value {
@@ -239,7 +240,8 @@ expression {
   Constant, 
   Unsupported,
   SpecialReporter,
-  SpecialCommand
+  SpecialCommand,
+  BreedToken
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {

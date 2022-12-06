@@ -770,6 +770,7 @@ export const turtleVars = [
   'size',
   'pen-size',
   'pen-mode',
+  'breed',
 ];
 
 export const patchVars = ['pxcor', 'pycor', 'pcolor', 'plabel', 'plabel-color'];

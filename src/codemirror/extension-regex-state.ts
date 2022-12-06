@@ -22,12 +22,12 @@ export class StatePreprocess {
     this.PluralBreeds = processedBreeds[1];
     // Commands
     let commands = doc.matchAll(
-      /(^|\n)[A-Za-z0-9\-\_ ]*to\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
+      /(^|\n)to\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
     );
     this.Commands = this.processProcedures(commands);
     // Reporters
     let reporters = doc.matchAll(
-      /(^|\n)[A-Za-z0-9\-\_ ]*to-report\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
+      /(^|\n)to-report\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
     );
     this.Reporters = this.processProcedures(reporters);
     return this;
@@ -50,7 +50,7 @@ export class StatePreprocess {
   ): string[][] {
     let singularmatches: string[] = ['patch', 'turtle', 'link'];
     let pluralmatches: string[] = ['patches', 'turtles', 'links'];
-    let count = 0;
+    let count = 3;
     for (var match of breeds) {
       pluralmatches[count] = match[1];
       singularmatches[count] = match[2];
