@@ -24915,6 +24915,7 @@
        'size',
        'pen-size',
        'pen-mode',
+       'breed',
    ];
    const patchVars = ['pxcor', 'pycor', 'pcolor', 'plabel', 'plabel-color'];
    const linkVars = [
@@ -25029,20 +25030,21 @@
      Unsupported = 23,
      SpecialReporter = 24,
      SpecialCommand = 25,
-     Reporter0Args = 26,
-     Reporter1Args = 27,
-     Reporter2Args = 28,
-     Reporter3Args = 29,
-     Reporter4Args = 30,
-     Reporter5Args = 31,
-     Reporter6Args = 32,
-     SpecialReporter0Args = 33,
-     SpecialReporter1Args = 34,
-     SpecialReporter2Args = 35,
-     SpecialReporter3Args = 36,
-     SpecialReporter4Args = 37,
-     SpecialReporter5Args = 38,
-     SpecialReporter6Args = 39;
+     BreedToken = 26,
+     Reporter0Args = 27,
+     Reporter1Args = 28,
+     Reporter2Args = 29,
+     Reporter3Args = 30,
+     Reporter4Args = 31,
+     Reporter5Args = 32,
+     Reporter6Args = 33,
+     SpecialReporter0Args = 34,
+     SpecialReporter1Args = 35,
+     SpecialReporter2Args = 36,
+     SpecialReporter3Args = 37,
+     SpecialReporter4Args = 38,
+     SpecialReporter5Args = 39,
+     SpecialReporter6Args = 40;
 
    /** StatePreprocess: Editor state for the NetLogo Language. */
    class StatePreprocess {
@@ -25067,10 +25069,10 @@
            this.SingularBreeds = processedBreeds[0];
            this.PluralBreeds = processedBreeds[1];
            // Commands
-           let commands = doc.matchAll(/(^|\n)[A-Za-z0-9\-\_ ]*to\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g);
+           let commands = doc.matchAll(/(^|\n)to\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g);
            this.Commands = this.processProcedures(commands);
            // Reporters
-           let reporters = doc.matchAll(/(^|\n)[A-Za-z0-9\-\_ ]*to-report\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g);
+           let reporters = doc.matchAll(/(^|\n)to-report\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g);
            this.Reporters = this.processProcedures(reporters);
            return this;
        }
@@ -25086,7 +25088,7 @@
        processBreeds(breeds) {
            let singularmatches = ['patch', 'turtle', 'link'];
            let pluralmatches = ['patches', 'turtles', 'links'];
-           let count = 0;
+           let count = 3;
            for (var match of breeds) {
                pluralmatches[count] = match[1];
                singularmatches[count] = match[2];
@@ -25168,8 +25170,10 @@
        else if (token == '-' || token == '+') {
            input.acceptToken(PlusMinus);
        }
-       else if (token == 'breed' ||
-           token == 'directed-link-breed' ||
+       else if (token == 'breed') {
+           input.acceptToken(BreedToken);
+       }
+       else if (token == 'directed-link-breed' ||
            token == 'undirected-link-breed') {
            input.acceptToken(BreedStr);
        }
@@ -25258,31 +25262,31 @@
        if (parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).SingularBreeds.includes(token)) {
            tag = SpecialReporter;
        }
-       else if (token.match(/\w+-own/)) {
+       else if (token.match(/[^\s]+-own/)) {
            tag = Own;
        }
-       else if (token.match(/\w+-(at|here|on|with|neighbor\\?|neighbors)$/)) {
+       else if (token.match(/[^\s]+-(at|here|on|with|neighbor\\?|neighbors)$/)) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^(my-in|my-out)-\w+/)) {
+       else if (token.match(/^(my-in|my-out)-[^\s]+/)) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
+       else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
            tag = SpecialCommand;
        }
-       else if (token.match(/^is-\w+\\?$/)) {
+       else if (token.match(/^is-[^\s]+\\?$/)) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^in-\w+-from$/)) {
+       else if (token.match(/^in-[^\s]+-from$/)) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^(in|out)-\w+-(neighbor\\?|neighbors)$/)) {
+       else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?|neighbors)$/)) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^out-\w+-to$/)) {
+       else if (token.match(/^out-[^\s]+-to$/)) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^create-\w+-(to|from|with)$/)) {
+       else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
            tag = SpecialCommand;
        }
        return tag;
@@ -32928,31 +32932,31 @@
        if (singularBreedNames.includes(token)) {
            return SpecialReporter1Args;
        }
-       if (token.match(/\w+-(at)/)) {
+       if (token.match(/[^\s]+-(at)/)) {
            return SpecialReporter2Args;
        }
-       else if (token.match(/\w+-(here|neighbors)/)) {
+       else if (token.match(/[^\s]+-(here|neighbors)/)) {
            return SpecialReporter0Args;
        }
-       else if (token.match(/\w+-(on|with|neighbor\\?)/)) {
+       else if (token.match(/[^\s]+-(on|with|neighbor\\?)/)) {
            return SpecialReporter1Args;
        }
-       else if (token.match(/^(my-in|my-out)-\w+/)) {
+       else if (token.match(/^(my-in|my-out)-[^\s]+/)) {
            return SpecialReporter0Args;
        }
-       else if (token.match(/^is-\w+\\?$/)) {
+       else if (token.match(/^is-[^\s]+\\?$/)) {
            return SpecialReporter1Args;
        }
-       else if (token.match(/^in-\w+-from$/)) {
+       else if (token.match(/^in-[^\s]+-from$/)) {
            return SpecialReporter1Args;
        }
-       else if (token.match(/^(in|out)-\w+-(neighbors)$/)) {
+       else if (token.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
            return SpecialReporter0Args;
        }
-       else if (token.match(/^(in|out)-\w+-(neighbor\\?)$/)) {
+       else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
            return SpecialReporter1Args;
        }
-       else if (token.match(/^out-\w+-to$/)) {
+       else if (token.match(/^out-[^\s]+-to$/)) {
            return SpecialReporter1Args;
        }
        else {
@@ -32963,20 +32967,20 @@
    // This file was generated by lezer-generator. You probably shouldn't edit it.
    const parser$3 = LRParser.deserialize({
      version: 14,
-     states: "2fQYQROOO!^QPO'#DXO!cQPO'#DZO!hQPO'#D[O!mQPO'#D_OOQQ'#ER'#EROiQRO'#ESOOQQ'#ES'#ESOOQQ'#D`'#D`OOQQ'#Dw'#DwQYQROOO!rQRO'#DcOOQQ'#Dz'#DzQ#aQROOO#fQRO,59sO#nQRO,59uO#vQRO,59vO#{QRO,59yO$TQPO,5:nOOQQ-E7u-E7uOOQQ'#Dd'#DdO$YQRO,59}OOQQ-E7x-E7xOOQQ'#Dx'#DxO$nQRO1G/_OOQQ1G/_1G/_OOQQ'#Dy'#DyO$vQRO1G/aOOQQ1G/a1G/aOOQQ'#D]'#D]O%OQRO1G/bO%WQRO1G/eOOQQ1G/e1G/eOOQQ1G0Y1G0YO%`QRO'#DeO%hQRO'#DuO%mQRO'#DvOOQQ'#Dt'#DtO'iQRO'#DgOOQQ'#Dg'#DgOOQQ'#Df'#DfOOQQ'#D{'#D{O(PQRO1G/iOOQQ1G/i1G/iO(PQRO1G/iOOQQ-E7v-E7vOOQQ7+$y7+$yOOQQ-E7w-E7wOOQQ7+${7+${OOQO'#D^'#D^O(bQPO7+$|OOQQ7+%P7+%PO(gQRO,5:POOQQ,5:P,5:PO%{QRO,5:aOOQQ'#Dl'#DlO%{QRO,5:bO*lQRO'#DiOOQQ'#Dk'#DkO,^QRO'#DjO,eQRO'#D|O%{QRO'#DkO%{QRO'#DkO%{QRO'#DkO%{QRO'#DkO%{QRO'#DkO%{QRO'#DkOOQQ'#Dj'#DjOOQQ'#Dh'#DhO.nQRO,5:ROOQQ-E7y-E7yOOQQ7+%T7+%TO/UQRO7+%TOOQQ<<Hh<<HhOOQQ1G/k1G/kO/gQRO'#DkO/oQRO1G/{O0ZQRO1G/|O0uQRO'#DyO1WQRO'#DpO1`QRO'#DeOOQQ,5:T,5:TO1gQRO,5:TO1xQRO'#DnOOQQ'#D}'#D}O2^QRO,5:XOOQO'#Dp'#DpO2lQPO,5:ZO2qQRO,5:^O2|QRO,5:_O3XQRO,5:VO3fQRO,5:UO%{QRO,5:VO%{QRO,5:VO3qQRO,5:VO5zQRO,5:VO5zQRO,5:VO5zQRO,5:VO5zQRO,5:VO5zQRO,5:VOOQQ-E7z-E7zOOQQ<<Ho<<HoO6UQRO,5:PO6aQRO,5:POOQQ1G/o1G/oOOQQ'#Dn'#DnOOQQ-E7{-E7{OOQQ1G/s1G/sO6lQRO1G/uOOQQ1G/x1G/xOOQQ1G/y1G/yO6}QRO1G/qOOQQ1G/p1G/pOOQQ1G/q1G/qO5zQRO1G/qO7UQRO1G/qO5zQRO1G/qO5zQRO1G/qO5zQRO1G/qO5zQRO1G/qOOQQ7+%a7+%aO9_QRO7+%aOOQQ7+%]7+%]O9pQRO7+%]O5zQRO7+%]O5zQRO7+%]O5zQRO7+%]OOQQ<<H{<<H{O;yQRO<<HwO5zQRO<<HwO5zQRO<<HwO>SQROAN>cO5zQROAN>cO@]QROG23}",
-     stateData: "Bf~O!tOSxOS~ORQOSPOTROVSOYZO^VO`VOaVOcVOdVOeVOfVOgVO!TVO!UVO!wUO~O|^O~O|_O~O|`O~O|aO~O^dOidOqdOrdOsdOtdOudOvdOwdO~OYZO~ObgOziO~O^jOzlO~O^mO~O^jOzpO~O!xqO~OWtOXsOZ{O`vOivO|rO~ObgOz!OO~O^jOz!QO~O^!ROr!RO~O^jOz!TO~O^jOz!VO~O^!WO~O^!XOc!XOd!XOe!XO~O^!XOa![Oc!XOd!XOe!XOf!eOj![Ok!_Ol!`Om!aOn!bOo!cOp!dOq![Or!_Os!`Ot!aOu!bOv!cOw!dO|!ZO!T!eO!U!eO!w!]O~OW!ZXX!ZXZ!ZX`!ZXi!ZXz!ZX~P%{OWtOXsOZ!iO`vOivO~Oz!kO~O^jOz!lO~OWtOXsO^!pO`vOa![Oc!XOd!XOe!XOf!uOivOj![Ok!_Ol!`Om!aOn!bOo!cOp!dOq![Or!_Os!`Ot!aOu!bOv!cOw!dO|!rO!T!uO!U!uO!w!]O!e!dP~Oz!sO~P(oO^!XOc!XOd!XOe!XOf!eOj![Ok!_Ol!`Om!aOn!bOo!cOp!dOq![Or!_Os!`Ot!aOu!bOv!cOw!dO|!ZO!T!eO!U!eO!w!]O~Oa!|O~P*sOP#OOQ#POW!pXX!pXZ!pX^!pX`!pXa!pXc!pXd!pXe!pXf!pXi!pXj!pXk!pXl!pXm!pXn!pXo!pXp!pXq!pXr!pXs!pXt!pXu!pXv!pXw!pX|!pX!T!pX!U!pX!w!pXz!pX!x!pX~OW!ZaX!ZaZ!Za`!Zai!Zaz!Za~P%{OWtOXsOZ#XO`vOivO~OP#OOQ#PO~OP![XQ![XW!iiX!iiZ!ii`!iii!iiz!ii~OP![XQ![XW!jiX!jiZ!ji`!jii!jiz!ji~OP!`XQ!`X^!mXz!`X!e!mX~O^jO!e!dX~Oz#ZO~P(oOWtOXsO`vOivOz#[O~OP!^XQ!^Xf!bXz!bX!T!bX!U!bX~Of#]Oz#_O!T#]O!U#]O~O!e#`O~Oz#aOP!^XQ!^X~Oz#bOP!^XQ!^X~OP!_XQ!_X!x!_X~P%{O!x#dOP![XQ![X~OP#OOQ#POW!_aX!_aZ!_a^!_a`!_aa!_ac!_ad!_ae!_af!_ai!_aj!_ak!_al!_am!_an!_ao!_ap!_aq!_ar!_as!_at!_au!_av!_aw!_a|!_a!T!_a!U!_a!w!_az!_a!x!_a~OP#OOQ#PO~P%{O^jOz!lO!e!dX~OP!]aQ!]a!e!Xa~OWtOXsO`vOivOz#lO~O!x#nO~P%{OP#OOQ#POW!_iX!_iZ!_i^!_i`!_ia!_ic!_id!_ie!_if!_ii!_ij!_ik!_il!_im!_in!_io!_ip!_iq!_ir!_is!_it!_iu!_iv!_iw!_i|!_i!T!_i!U!_i!w!_iz!_i!x!_i~OWtOXsO`vOivOz#sO~OP#OOQ#POW!_qX!_qZ!_q^!_q`!_qa!_qc!_qd!_qe!_qf!_qi!_qj!_qk!_ql!_qm!_qn!_qo!_qp!_qq!_qr!_qs!_qt!_qu!_qv!_qw!_q|!_q!T!_q!U!_q!w!_qz!_q!x!_q~OP#OOQ#POW!_yX!_yZ!_y^!_y`!_ya!_yc!_yd!_ye!_yf!_yi!_yj!_yk!_yl!_ym!_yn!_yo!_yp!_yq!_yr!_ys!_yt!_yu!_yv!_yw!_y|!_y!T!_y!U!_y!w!_yz!_y!x!_y~OP#OOQ#POW!_!RX!_!RZ!_!R^!_!R`!_!Ra!_!Rc!_!Rd!_!Re!_!Rf!_!Ri!_!Rj!_!Rk!_!Rl!_!Rm!_!Rn!_!Ro!_!Rp!_!Rq!_!Rr!_!Rs!_!Rt!_!Ru!_!Rv!_!Rw!_!R|!_!R!T!_!R!U!_!R!w!_!Rz!_!R!x!_!R~OP#OOQ#POW!_!ZX!_!ZZ!_!Z^!_!Z`!_!Za!_!Zc!_!Zd!_!Ze!_!Zf!_!Zi!_!Zj!_!Zk!_!Zl!_!Zm!_!Zn!_!Zo!_!Zp!_!Zq!_!Zr!_!Zs!_!Zt!_!Zu!_!Zv!_!Zw!_!Z|!_!Z!T!_!Z!U!_!Z!w!_!Zz!_!Z!x!_!Z~O",
-     goto: ",c!wPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP!xP!x!x!|#P!x#SPP#W#]#`#g#r#}%v&k'f(])V)z)V*PP%v%v*T*`*`*k*q*w+_+f+y,TPPP#S,[TTOYRn`R!SnTXOYV[OY]ReZQ|eT!x!Z!rcyez|!Z!j!r!t#`#mcxez|!Z!j!r!t#`#mW!^v!g!|#cY!m!W!Y!Z!]!rQ#Q!_Q#R!`Q#S!aQ#T!bQ#U!cQ#V!dQ#e#OQ#f#PQ#g#RQ#h#SQ#i#TQ#j#UQ#k#VQ#n#fQ#o#hQ#p#iQ#q#jQ#r#kQ#t#pQ#u#qQ#v#rQ#w#uQ#x#vR#y#x!e!fv!W!Y!Z!]!_!`!a!b!c!d!g!r!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#x!^!fv!Z!_!`!a!b!c!d!g!r!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#xQ!n!WQ!o!YR!}!]!`!ev!W!Y!]!_!`!a!b!c!d!g!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#xT!z!Z!rQ!Yt!`!ev!W!Y!]!_!`!a!b!c!d!g!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#xT!{!Z!r!e!ev!W!Y!Z!]!_!`!a!b!c!d!g!r!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#xV!v!Z!r!wT!y!Z!rcwez|!Z!j!r!t#`#mcuez|!Z!j!r!t#`#mQYORcYQh^R}hQk_QoaY!Pko!U!q#YQ!UrQ!q!ZR#Y!rS]OYRf]QzeW!hz!j!t#mQ!j|S!t!Z!rR#m#`Q!gvS#W!g#cR#c!|S!w!Z!rR#^!wSWOYRbU",
-     nodeNames: "⚠ ReporterLeftArgs1 ReporterLeftArgs2 GlobalStr ExtensionStr BreedStr PlusMinus Own Set Let To End And Or Identifier Directive Command Reporter Extension TurtleVar PatchVar LinkVar Constant Unsupported SpecialReporter SpecialCommand Reporter0Args Reporter1Args Reporter2Args Reporter3Args Reporter4Args Reporter5Args Reporter6Args SpecialReporter0Args SpecialReporter1Args SpecialReporter2Args SpecialReporter3Args SpecialReporter4Args SpecialReporter5Args SpecialReporter6Args LineComment Program CloseBracket Extensions OpenBracket Globals Breed BreedPlural BreedSingular BreedsOwn Unrecognized Numeric String Procedure ProcedureName Arguments ProcedureContent CommandStatement Arg CodeBlock Value Reporters VariableName List Literal AnonymousProcedure AnonArguments Arrow ReporterBlock Property VariableDeclaration NewVariableDeclaration SetVariable",
-     maxTerm: 86,
+     states: "2fQYQROOO!aQPO'#DYO!fQPO'#D[O!kQPO'#D]O!pQPO'#D`OOQQ'#ES'#ESO!uQRO'#ETOOQQ'#ET'#ETOOQQ'#Da'#DaOOQQ'#Dx'#DxQYQROOO#jQRO'#DdOOQQ'#D{'#D{Q$XQROOO$^QRO,59tO$fQRO,59vO$nQRO,59wO$sQRO,59zO${QPO,5:oOOQQ-E7v-E7vOOQQ'#De'#DeO%QQRO,5:OOOQQ-E7y-E7yOOQQ'#Dy'#DyO%fQRO1G/`OOQQ1G/`1G/`OOQQ'#Dz'#DzO%nQRO1G/bOOQQ1G/b1G/bOOQQ'#D^'#D^O%vQRO1G/cO&OQRO1G/fOOQQ1G/f1G/fOOQQ1G0Z1G0ZO&WQRO'#DfO&`QRO'#DvO&eQRO'#DwOOQQ'#Du'#DuO&vQRO'#DhOOQQ'#Dh'#DhOOQQ'#Dg'#DgOOQQ'#D|'#D|O(lQRO1G/jOOQQ1G/j1G/jO(lQRO1G/jOOQQ-E7w-E7wOOQQ7+$z7+$zOOQQ-E7x-E7xOOQQ7+$|7+$|OOQO'#D_'#D_O(}QPO7+$}OOQQ7+%Q7+%QO)SQRO,5:QOOQQ,5:Q,5:QO)[QRO,5:bOOQQ'#Dm'#DmO)[QRO,5:cO,nQRO'#DjOOQQ'#Dl'#DlO,uQRO'#DkO.XQRO'#D}O)[QRO'#DlO)[QRO'#DlO)[QRO'#DlO)[QRO'#DlO)[QRO'#DlO)[QRO'#DlOOQQ'#Dk'#DkOOQQ'#Di'#DiO0eQRO,5:SOOQQ-E7z-E7zOOQQ7+%U7+%UO2ZQRO7+%UOOQQ<<Hi<<HiOOQQ1G/l1G/lO2lQRO'#DlO2tQRO1G/|O3`QRO1G/}O3zQRO'#DzO4]QRO'#DqO4eQRO'#DfOOQQ,5:U,5:UO4lQRO,5:UO4}QRO'#DoOOQQ'#EO'#EOO5cQRO,5:YOOQO'#Dq'#DqO5qQPO,5:[O5vQRO,5:_O6RQRO,5:`O6^QRO,5:WO7yQRO,5:VO)[QRO,5:WO)[QRO,5:WO8UQRO,5:WO:bQRO,5:WO:bQRO,5:WO:bQRO,5:WO:bQRO,5:WO:bQRO,5:WOOQQ-E7{-E7{OOQQ<<Hp<<HpO;zQRO,5:QO<VQRO,5:QOOQQ1G/p1G/pOOQQ'#Do'#DoOOQQ-E7|-E7|OOQQ1G/t1G/tO<bQRO1G/vOOQQ1G/y1G/yOOQQ1G/z1G/zO<sQRO1G/rOOQQ1G/q1G/qOOQQ1G/r1G/rO:bQRO1G/rO>YQRO1G/rO:bQRO1G/rO:bQRO1G/rO:bQRO1G/rO:bQRO1G/rOOQQ7+%b7+%bO@fQRO7+%bOOQQ7+%^7+%^O@wQRO7+%^O:bQRO7+%^O:bQRO7+%^O:bQRO7+%^OOQQ<<H|<<H|OCTQRO<<HxO:bQRO<<HxO:bQRO<<HxOEaQROAN>dO:bQROAN>dOGmQROG24O",
+     stateData: "Iy~O!uOSyOS~ORQOSPOTROVSOYZO^VO`VOaVOcVOdVOeVOfVOgVOjRO!UVO!VVO!xUO~O}^O~O}_O~O}`O~O}aO~O^VO`VOaVOcVOdVOeVOfVOgVO!UVO!VVO!xUO~O^dOidOrdOsdOtdOudOvdOwdOxdO~OYZO~ObgO{iO~O^jO{lO~O^mO~O^jO{pO~O!yqO~OWtOXsOZ{O`vOivO}rO~ObgO{!OO~O^jO{!QO~O^!ROs!RO~O^jO{!TO~O^jO{!VO~O^!WO~O^!XOc!XOd!XOe!XOj!XO~Oa![Of!eOk![Ol!_Om!`On!aOo!bOp!cOq!dOr![Os!_Ot!`Ou!aOv!bOw!cOx!dO}!ZO!U!eO!V!eO!x!]OW![XX![XZ![X`![Xi![X{![X~P&eOWtOXsOZ!iO`vOivO~O{!kO~O^jO{!lO~Oa![Of!eOk![Ol!_Om!`On!aOo!bOp!cOq!dOr![Os!_Ot!`Ou!aOv!bOw!cOx!dO}!ZO!U!eO!V!eO!x!]O~P&eOWtOXsO^!pO`vOa![Oc!XOd!XOe!XOf!uOivOj!XOk![Ol!_Om!`On!aOo!bOp!cOq!dOr![Os!_Ot!`Ou!aOv!bOw!cOx!dO}!rO!U!uO!V!uO!x!]O!f!eP~O{!sO~P*nOa!|Of!eOk![Ol!_Om!`On!aOo!bOp!cOq!dOr![Os!_Ot!`Ou!aOv!bOw!cOx!dO}!ZO!U!eO!V!eO!x!]O~P&eOP#OOQ#POW!qXX!qXZ!qX^!qX`!qXa!qXc!qXd!qXe!qXf!qXi!qXj!qXk!qXl!qXm!qXn!qXo!qXp!qXq!qXr!qXs!qXt!qXu!qXv!qXw!qXx!qX}!qX!U!qX!V!qX!x!qX{!qX!y!qX~Oa![Of!eOk![Ol!_Om!`On!aOo!bOp!cOq!dOr![Os!_Ot!`Ou!aOv!bOw!cOx!dO}!ZO!U!eO!V!eO!x!]OW![aX![aZ![a`![ai![a{![a~P&eOWtOXsOZ#XO`vOivO~OP#OOQ#PO~OP!]XQ!]XW!jiX!jiZ!ji`!jii!ji{!ji~OP!]XQ!]XW!kiX!kiZ!ki`!kii!ki{!ki~OP!aXQ!aX^!nX{!aX!f!nX~O^jO!f!eX~O{#ZO~P*nOWtOXsO`vOivO{#[O~OP!_XQ!_Xf!cX{!cX!U!cX!V!cX~Of#]O{#_O!U#]O!V#]O~O!f#`O~O{#aOP!_XQ!_X~O{#bOP!_XQ!_X~Oa![Of!eOk![Ol!_Om!`On!aOo!bOp!cOq!dOr![Os!_Ot!`Ou!aOv!bOw!cOx!dO}!ZO!U!eO!V!eO!x!]OP!`XQ!`X!y!`X~P&eO!y#dOP!]XQ!]X~OP#OOQ#POW!`aX!`aZ!`a^!`a`!`aa!`ac!`ad!`ae!`af!`ai!`aj!`ak!`al!`am!`an!`ao!`ap!`aq!`ar!`as!`at!`au!`av!`aw!`ax!`a}!`a!U!`a!V!`a!x!`a{!`a!y!`a~OP#OOQ#POa![Of!eOk![Ol!_Om!`On!aOo!bOp!cOq!dOr![Os!_Ot!`Ou!aOv!bOw!cOx!dO}!ZO!U!eO!V!eO!x!]O~P&eO^jO{!lO!f!eX~OP!^aQ!^a!f!Ya~OWtOXsO`vOivO{#lO~Oa![Of!eOk![Ol!_Om!`On!aOo!bOp!cOq!dOr![Os!_Ot!`Ou!aOv!bOw!cOx!dO}!ZO!U!eO!V!eO!x!]O!y#nO~P&eOP#OOQ#POW!`iX!`iZ!`i^!`i`!`ia!`ic!`id!`ie!`if!`ii!`ij!`ik!`il!`im!`in!`io!`ip!`iq!`ir!`is!`it!`iu!`iv!`iw!`ix!`i}!`i!U!`i!V!`i!x!`i{!`i!y!`i~OWtOXsO`vOivO{#sO~OP#OOQ#POW!`qX!`qZ!`q^!`q`!`qa!`qc!`qd!`qe!`qf!`qi!`qj!`qk!`ql!`qm!`qn!`qo!`qp!`qq!`qr!`qs!`qt!`qu!`qv!`qw!`qx!`q}!`q!U!`q!V!`q!x!`q{!`q!y!`q~OP#OOQ#POW!`yX!`yZ!`y^!`y`!`ya!`yc!`yd!`ye!`yf!`yi!`yj!`yk!`yl!`ym!`yn!`yo!`yp!`yq!`yr!`ys!`yt!`yu!`yv!`yw!`yx!`y}!`y!U!`y!V!`y!x!`y{!`y!y!`y~OP#OOQ#POW!`!RX!`!RZ!`!R^!`!R`!`!Ra!`!Rc!`!Rd!`!Re!`!Rf!`!Ri!`!Rj!`!Rk!`!Rl!`!Rm!`!Rn!`!Ro!`!Rp!`!Rq!`!Rr!`!Rs!`!Rt!`!Ru!`!Rv!`!Rw!`!Rx!`!R}!`!R!U!`!R!V!`!R!x!`!R{!`!R!y!`!R~OP#OOQ#POW!`!ZX!`!ZZ!`!Z^!`!Z`!`!Za!`!Zc!`!Zd!`!Ze!`!Zf!`!Zi!`!Zj!`!Zk!`!Zl!`!Zm!`!Zn!`!Zo!`!Zp!`!Zq!`!Zr!`!Zs!`!Zt!`!Zu!`!Zv!`!Zw!`!Zx!`!Z}!`!Z!U!`!Z!V!`!Z!x!`!Z{!`!Z!y!`!Z~O",
+     goto: ",d!xPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP!yP!y!y!}#Q!y#TPP#X#^#a#h#s$O%w&l'g(^)W){)W*QP%w%w*U*a*a*l*r*x+`+g+z,UPPP#T,]TTOYRn`R!SnTXOYV[OY]ReZQ|eT!x!Z!rcyez|!Z!j!r!t#`#mcxez|!Z!j!r!t#`#mW!^v!g!|#cY!m!W!Y!Z!]!rQ#Q!_Q#R!`Q#S!aQ#T!bQ#U!cQ#V!dQ#e#OQ#f#PQ#g#RQ#h#SQ#i#TQ#j#UQ#k#VQ#n#fQ#o#hQ#p#iQ#q#jQ#r#kQ#t#pQ#u#qQ#v#rQ#w#uQ#x#vR#y#x!e!fv!W!Y!Z!]!_!`!a!b!c!d!g!r!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#x!^!fv!Z!_!`!a!b!c!d!g!r!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#xQ!n!WQ!o!YR!}!]!`!ev!W!Y!]!_!`!a!b!c!d!g!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#xT!z!Z!rQ!Yt!`!ev!W!Y!]!_!`!a!b!c!d!g!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#xT!{!Z!r!e!ev!W!Y!Z!]!_!`!a!b!c!d!g!r!|#O#P#R#S#T#U#V#c#f#h#i#j#k#p#q#r#u#v#xV!v!Z!r!wT!y!Z!rcwez|!Z!j!r!t#`#mcuez|!Z!j!r!t#`#mQYORcYQh^R}hQk_QoaY!Pko!U!q#YQ!UrQ!q!ZR#Y!rS]OYRf]QzeW!hz!j!t#mQ!j|S!t!Z!rR#m#`Q!gvS#W!g#cR#c!|S!w!Z!rR#^!wSWOYRbU",
+     nodeNames: "⚠ ReporterLeftArgs1 ReporterLeftArgs2 GlobalStr ExtensionStr BreedStr PlusMinus Own Set Let To End And Or Identifier Directive Command Reporter Extension TurtleVar PatchVar LinkVar Constant Unsupported SpecialReporter SpecialCommand BreedToken Reporter0Args Reporter1Args Reporter2Args Reporter3Args Reporter4Args Reporter5Args Reporter6Args SpecialReporter0Args SpecialReporter1Args SpecialReporter2Args SpecialReporter3Args SpecialReporter4Args SpecialReporter5Args SpecialReporter6Args LineComment Program CloseBracket Extensions OpenBracket Globals Breed BreedPlural BreedSingular BreedsOwn Unrecognized Numeric String Procedure ProcedureName Arguments ProcedureContent CommandStatement Arg CodeBlock Value Reporters VariableName List Literal AnonymousProcedure AnonArguments Arrow ReporterBlock Property VariableDeclaration NewVariableDeclaration SetVariable",
+     maxTerm: 87,
      nodeProps: [
-       ["openedBy", 42,"OpenBracket"],
-       ["closedBy", 44,"CloseBracket"]
+       ["openedBy", 43,"OpenBracket"],
+       ["closedBy", 45,"CloseBracket"]
      ],
-     skippedNodes: [0,6,12,13,15,24,40],
+     skippedNodes: [0,6,12,13,15,24,41],
      repeatNodeCount: 7,
-     tokenData: "%r~R]XYzYZz]^zpqzrs!]xy#yyz$O}!O$T!O!P$a!Q![$o!]!^%P!}#O%h#P#Q%m~!PS!t~XYzYZz]^zpqz~!`VOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s<%lO!]~!zO!U~~!}RO;'S!];'S;=`#W;=`O!]~#ZWOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s;=`<%l!]<%lO!]~#vP;=`<%l!]~$OO!w~~$TO!x~~$WR!O!P$a!Q![$o!`!a$z~$dP!Q![$g~$lP!T~!Q![$g~$tQ!T~!O!P$g!Q![$o~%PO!e~~%USx~OY%PZ;'S%P;'S;=`%b<%lO%P~%eP;=`<%l%P~%mO|~~%rOz~",
+     tokenData: "%r~R]XYzYZz]^zpqzrs!]xy#yyz$O}!O$T!O!P$a!Q![$o!]!^%P!}#O%h#P#Q%m~!PS!u~XYzYZz]^zpqz~!`VOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s<%lO!]~!zO!V~~!}RO;'S!];'S;=`#W;=`O!]~#ZWOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s;=`<%l!]<%lO!]~#vP;=`<%l!]~$OO!x~~$TO!y~~$WR!O!P$a!Q![$o!`!a$z~$dP!Q![$g~$lP!U~!Q![$g~$tQ!U~!O!P$g!Q![$o~%PO!f~~%USy~OY%PZ;'S%P;'S;=`%b<%lO%P~%eP;=`<%l%P~%mO}~~%rO{~",
      tokenizers: [0, keyword],
-     topRules: {"Program":[0,41]},
+     topRules: {"Program":[0,42]},
      specialized: [{term: 17, get: (value, stack) => (specializeReporter(value) << 1), external: specializeReporter},{term: 24, get: (value, stack) => (specializeSpecialReporter(value) << 1), external: specializeSpecialReporter}],
      tokenPrec: 0
    });
