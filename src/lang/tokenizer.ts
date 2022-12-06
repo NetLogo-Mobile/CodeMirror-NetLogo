@@ -186,7 +186,13 @@ function matchBreed(token: string) {
   if (!foundMatch) {
     return tag;
   }
-  if (token.match(/\w+-own/)) {
+  if (
+    parseContext?.state
+      .field(basicStateExtension)
+      .SingularBreeds.includes(token)
+  ) {
+    tag = SpecialReporter;
+  } else if (token.match(/\w+-own/)) {
     tag = Own;
   } else if (token.match(/\w+-(at|here|on|with|neighbor\\?|neighbors)$/)) {
     tag = SpecialReporter;

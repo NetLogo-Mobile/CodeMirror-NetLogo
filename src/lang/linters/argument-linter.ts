@@ -89,7 +89,6 @@ export const checkValid = function (
     func: SyntaxNode | null;
   }
 ) {
-  // console.log(args)
   let func = state.sliceDoc(args.func?.from, args.func?.to).toLowerCase();
   if (args.func?.name.includes('Special')) {
     let numArgs =
@@ -97,12 +96,11 @@ export const checkValid = function (
       state.field(basicStateExtension).Reporters[func] ??
       getBreedCommandArgs(func) ??
       getBreedProcedureArgs(args.func.name);
-    // console.log(numArgs, args.rightArgs.length);
     return numArgs == args.rightArgs.length;
   } else {
     let primitive = primitives.GetPrimitive('', func);
     if (!primitive) {
-      // console.log ("no primitive",func);
+      // console.log ("no primitive",args.func?.name);
       return false;
     } else if (
       (primitive.LeftArgumentType?.Types[0] == NetLogoType.Unit &&
@@ -112,16 +110,21 @@ export const checkValid = function (
     ) {
       // console.log('left args');
       return false;
-    } else if (primitive.RightArgumentTypes.length != args.rightArgs.length) {
-      // console.log(args.rightArgs);
-      // console.log(
-      //   'rightargs',
-      //   primitive.RightArgumentTypes.length,
-      //   args.rightArgs.length
-      // );
-      return false;
     } else {
-      return true;
+      let rightArgs =
+        primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
+      if (rightArgs != args.rightArgs.length) {
+        // console.log(args.rightArgs);
+        // console.log(
+        //   'rightargs',
+        //   primitive.DefaultOption,
+        //   primitive.RightArgumentTypes.length,
+        //   args.rightArgs.length
+        // );
+        return false;
+      } else {
+        return true;
+      }
     }
   }
 };

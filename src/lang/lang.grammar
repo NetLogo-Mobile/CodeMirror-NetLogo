@@ -35,7 +35,7 @@ globalStatement {
 }
 
 BreedSingular {
-  Identifier
+  Identifier | SpecialReporter1Args
 }
 
 BreedPlural {

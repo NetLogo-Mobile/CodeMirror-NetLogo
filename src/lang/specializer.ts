@@ -86,6 +86,12 @@ const specializeSpecialReporter = function (token: string) {
     }
   }
 
+  let singularBreedNames =
+    parseContext?.state.field(basicStateExtension).SingularBreeds ?? [];
+  if (singularBreedNames.includes(token)) {
+    return SpecialReporter1Args;
+  }
+
   if (token.match(/\w+-(at)/)) {
     return SpecialReporter2Args;
   } else if (token.match(/\w+-(here|neighbors)/)) {
