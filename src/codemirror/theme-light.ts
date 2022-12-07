@@ -14,7 +14,7 @@ const lightTheme = EditorView.theme({
   '.cm-tooltip.cm-tooltip-explain': {
     fontSize: '0.9em',
     backgroundColor: '#FFFFF0',
-    padding: '0.2em 0.3em',
+    padding: '0.3em 0.5em',
     '& .cm-tooltip-arrow:before': {
       borderTopColor: '#FFFFF0',
       backgroundColor: '#FFFFF0',
