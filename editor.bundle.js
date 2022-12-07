@@ -32905,7 +32905,7 @@
        token = token.toLowerCase();
        let parseContext = ParseContext.get();
        let reporters = (_a = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).Reporters) !== null && _a !== void 0 ? _a : {};
-       if (reporters[token]) {
+       if (reporters[token] >= 0) {
            let args = reporters[token];
            if (args == 0) {
                return SpecialReporter0Args;
