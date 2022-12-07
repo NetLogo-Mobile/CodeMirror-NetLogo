@@ -21,6 +21,7 @@ const parserWithMetadata = parser.configure({
       String: t.string,
       LineComment: t.lineComment,
       '[ ]': t.paren,
+      BreedDirective: t.strong,
       Directive: t.strong,
       Numeric: t.string,
       Extension: t.bool,

@@ -21,13 +21,11 @@ export class StatePreprocess {
     this.SingularBreeds = processedBreeds[0];
     this.PluralBreeds = processedBreeds[1];
     // Commands
-    let commands = doc.matchAll(
-      /(^|\n)to\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
-    );
+    let commands = doc.matchAll(/(^|\n)to\s+([^\s]+)(\s*\[([^\]]*)\])?/g);
     this.Commands = this.processProcedures(commands);
     // Reporters
     let reporters = doc.matchAll(
-      /(^|\n)to-report\s+([A-Za-z0-9\-\_]+)(\s*\[([A-Za-z0-9\-\_\s]*)\])?/g
+      /(^|\n)to-report\s+([^\s]+)(\s*\[([^\]]*)\])?/g
     );
     this.Reporters = this.processProcedures(reporters);
     return this;
