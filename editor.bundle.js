@@ -5758,6 +5758,7 @@
            this.curLine = null;
            this.breakAtStart = 0;
            this.pendingBuffer = 0 /* Buf.No */;
+           this.bufferMarks = [];
            // Set to false directly after a widget that covers the position after it
            this.atCursorPos = true;
            this.openStart = -1;
@@ -5780,20 +5781,20 @@
            }
            return this.curLine;
        }
-       flushBuffer(active) {
+       flushBuffer(active = this.bufferMarks) {
            if (this.pendingBuffer) {
                this.curLine.append(wrapMarks(new WidgetBufferView(-1), active), active.length);
                this.pendingBuffer = 0 /* Buf.No */;
            }
        }
        addBlockWidget(view) {
-           this.flushBuffer([]);
+           this.flushBuffer();
            this.curLine = null;
            this.content.push(view);
        }
        finish(openEnd) {
-           if (!openEnd)
-               this.flushBuffer([]);
+           if (this.pendingBuffer && openEnd <= this.bufferMarks.length)
+               this.flushBuffer();
            else
                this.pendingBuffer = 0 /* Buf.No */;
            if (!this.posCovered())
@@ -5813,8 +5814,9 @@
                            this.content[this.content.length - 1].breakAfter = 1;
                        else
                            this.breakAtStart = 1;
-                       this.flushBuffer([]);
+                       this.flushBuffer();
                        this.curLine = null;
+                       this.atCursorPos = true;
                        length--;
                        continue;
                    }
@@ -5856,7 +5858,7 @@
                else {
                    let view = WidgetView.create(deco.widget || new NullWidget("span"), len, len ? 0 : deco.startSide);
                    let cursorBefore = this.atCursorPos && !view.isEditable && openStart <= active.length && (from < to || deco.startSide > 0);
-                   let cursorAfter = !view.isEditable && (from < to || deco.startSide <= 0);
+                   let cursorAfter = !view.isEditable && (from < to || openStart > active.length || deco.startSide <= 0);
                    let line = this.getLine();
                    if (this.pendingBuffer == 2 /* Buf.IfCursor */ && !cursorBefore)
                        this.pendingBuffer = 0 /* Buf.No */;
@@ -5867,7 +5869,9 @@
                    }
                    line.append(wrapMarks(view, active), openStart);
                    this.atCursorPos = cursorAfter;
-                   this.pendingBuffer = !cursorAfter ? 0 /* Buf.No */ : from < to ? 1 /* Buf.Yes */ : 2 /* Buf.IfCursor */;
+                   this.pendingBuffer = !cursorAfter ? 0 /* Buf.No */ : from < to || openStart > active.length ? 1 /* Buf.Yes */ : 2 /* Buf.IfCursor */;
+                   if (this.pendingBuffer)
+                       this.bufferMarks = active.slice();
                }
            }
            else if (this.doc.lineAt(this.pos).from == this.pos) { // Line decoration
@@ -9444,7 +9448,6 @@
            margin: 0,
            flexGrow: 2,
            flexShrink: 0,
-           minHeight: "100%",
            display: "block",
            whiteSpace: "pre",
            wordWrap: "normal",
@@ -9590,6 +9593,21 @@
            color: "#888",
            display: "inline-block",
            verticalAlign: "top",
+       },
+       ".cm-highlightSpace:before": {
+           content: "attr(data-display)",
+           position: "absolute",
+           pointerEvents: "none",
+           color: "#888"
+       },
+       ".cm-highlightTab": {
+           backgroundImage: `url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="200" height="20"><path stroke="%23888" stroke-width="1" fill="none" d="M1 10H196L190 5M190 15L196 10M197 4L197 16"/></svg>')`,
+           backgroundSize: "auto 100%",
+           backgroundPosition: "right 90%",
+           backgroundRepeat: "no-repeat"
+       },
+       ".cm-trailingSpace": {
+           backgroundColor: "#ff332255"
        },
        ".cm-button": {
            verticalAlign: "middle",
@@ -9893,7 +9911,8 @@
            this.lastChange = 0;
            this.scrollTargets = [];
            this.intersection = null;
-           this.resize = null;
+           this.resizeScroll = null;
+           this.resizeContent = null;
            this.intersecting = false;
            this.gapIntersection = null;
            this.gaps = [];
@@ -9931,12 +9950,14 @@
            this.onPrint = this.onPrint.bind(this);
            this.onScroll = this.onScroll.bind(this);
            if (typeof ResizeObserver == "function") {
-               this.resize = new ResizeObserver(() => {
+               this.resizeScroll = new ResizeObserver(() => {
                    var _a;
                    if (((_a = this.view.docView) === null || _a === void 0 ? void 0 : _a.lastUpdate) < Date.now() - 75)
                        this.onResize();
                });
-               this.resize.observe(view.scrollDOM);
+               this.resizeScroll.observe(view.scrollDOM);
+               this.resizeContent = new ResizeObserver(() => this.view.requestMeasure());
+               this.resizeContent.observe(view.contentDOM);
            }
            this.addWindowListeners(this.win = view.win);
            this.start();
@@ -10255,11 +10276,12 @@
            win.document.removeEventListener("selectionchange", this.onSelectionChange);
        }
        destroy() {
-           var _a, _b, _c;
+           var _a, _b, _c, _d;
            this.stop();
            (_a = this.intersection) === null || _a === void 0 ? void 0 : _a.disconnect();
            (_b = this.gapIntersection) === null || _b === void 0 ? void 0 : _b.disconnect();
-           (_c = this.resize) === null || _c === void 0 ? void 0 : _c.disconnect();
+           (_c = this.resizeScroll) === null || _c === void 0 ? void 0 : _c.disconnect();
+           (_d = this.resizeContent) === null || _d === void 0 ? void 0 : _d.disconnect();
            for (let dom of this.scrollTargets)
                dom.removeEventListener("scroll", this.onScroll);
            this.removeWindowListeners(this.win);
@@ -10358,7 +10380,7 @@
            this.scrollDOM.className = "cm-scroller";
            this.scrollDOM.appendChild(this.contentDOM);
            this.announceDOM = document.createElement("div");
-           this.announceDOM.style.cssText = "position: absolute; top: -10000px";
+           this.announceDOM.style.cssText = "position: fixed; top: -10000px";
            this.announceDOM.setAttribute("aria-live", "polite");
            this.dom = document.createElement("div");
            this.dom.appendChild(this.announceDOM);
@@ -11449,7 +11471,8 @@
    */
    class RectangleMarker {
        /**
-       Create a marker with the given class and dimensions.
+       Create a marker with the given class and dimensions. If `width`
+       is null, the DOM element will get no width style.
        */
        constructor(className, left, top, width, height) {
            this.className = className;
@@ -11473,13 +11496,136 @@
        adjust(elt) {
            elt.style.left = this.left + "px";
            elt.style.top = this.top + "px";
-           if (this.width >= 0)
+           if (this.width != null)
                elt.style.width = this.width + "px";
            elt.style.height = this.height + "px";
        }
        eq(p) {
            return this.left == p.left && this.top == p.top && this.width == p.width && this.height == p.height &&
                this.className == p.className;
+       }
+       /**
+       Create a set of rectangles for the given selection range,
+       assigning them theclass`className`. Will create a single
+       rectangle for empty ranges, and a set of selection-style
+       rectangles covering the range's content (in a bidi-aware
+       way) for non-empty ones.
+       */
+       static forRange(view, className, range) {
+           if (range.empty) {
+               let pos = view.coordsAtPos(range.head, range.assoc || 1);
+               if (!pos)
+                   return [];
+               let base = getBase(view);
+               return [new RectangleMarker(className, pos.left - base.left, pos.top - base.top, null, pos.bottom - pos.top)];
+           }
+           else {
+               return rectanglesForRange(view, className, range);
+           }
+       }
+   }
+   function getBase(view) {
+       let rect = view.scrollDOM.getBoundingClientRect();
+       let left = view.textDirection == Direction.LTR ? rect.left : rect.right - view.scrollDOM.clientWidth;
+       return { left: left - view.scrollDOM.scrollLeft, top: rect.top - view.scrollDOM.scrollTop };
+   }
+   function wrappedLine(view, pos, inside) {
+       let range = EditorSelection.cursor(pos);
+       return { from: Math.max(inside.from, view.moveToLineBoundary(range, false, true).from),
+           to: Math.min(inside.to, view.moveToLineBoundary(range, true, true).from),
+           type: BlockType.Text };
+   }
+   function blockAt(view, pos) {
+       let line = view.lineBlockAt(pos);
+       if (Array.isArray(line.type))
+           for (let l of line.type) {
+               if (l.to > pos || l.to == pos && (l.to == line.to || l.type == BlockType.Text))
+                   return l;
+           }
+       return line;
+   }
+   function rectanglesForRange(view, className, range) {
+       if (range.to <= view.viewport.from || range.from >= view.viewport.to)
+           return [];
+       let from = Math.max(range.from, view.viewport.from), to = Math.min(range.to, view.viewport.to);
+       let ltr = view.textDirection == Direction.LTR;
+       let content = view.contentDOM, contentRect = content.getBoundingClientRect(), base = getBase(view);
+       let lineStyle = window.getComputedStyle(content.firstChild);
+       let leftSide = contentRect.left + parseInt(lineStyle.paddingLeft) + Math.min(0, parseInt(lineStyle.textIndent));
+       let rightSide = contentRect.right - parseInt(lineStyle.paddingRight);
+       let startBlock = blockAt(view, from), endBlock = blockAt(view, to);
+       let visualStart = startBlock.type == BlockType.Text ? startBlock : null;
+       let visualEnd = endBlock.type == BlockType.Text ? endBlock : null;
+       if (view.lineWrapping) {
+           if (visualStart)
+               visualStart = wrappedLine(view, from, visualStart);
+           if (visualEnd)
+               visualEnd = wrappedLine(view, to, visualEnd);
+       }
+       if (visualStart && visualEnd && visualStart.from == visualEnd.from) {
+           return pieces(drawForLine(range.from, range.to, visualStart));
+       }
+       else {
+           let top = visualStart ? drawForLine(range.from, null, visualStart) : drawForWidget(startBlock, false);
+           let bottom = visualEnd ? drawForLine(null, range.to, visualEnd) : drawForWidget(endBlock, true);
+           let between = [];
+           if ((visualStart || startBlock).to < (visualEnd || endBlock).from - 1)
+               between.push(piece(leftSide, top.bottom, rightSide, bottom.top));
+           else if (top.bottom < bottom.top && view.elementAtHeight((top.bottom + bottom.top) / 2).type == BlockType.Text)
+               top.bottom = bottom.top = (top.bottom + bottom.top) / 2;
+           return pieces(top).concat(between).concat(pieces(bottom));
+       }
+       function piece(left, top, right, bottom) {
+           return new RectangleMarker(className, left - base.left, top - base.top - 0.01 /* C.Epsilon */, right - left, bottom - top + 0.01 /* C.Epsilon */);
+       }
+       function pieces({ top, bottom, horizontal }) {
+           let pieces = [];
+           for (let i = 0; i < horizontal.length; i += 2)
+               pieces.push(piece(horizontal[i], top, horizontal[i + 1], bottom));
+           return pieces;
+       }
+       // Gets passed from/to in line-local positions
+       function drawForLine(from, to, line) {
+           let top = 1e9, bottom = -1e9, horizontal = [];
+           function addSpan(from, fromOpen, to, toOpen, dir) {
+               // Passing 2/-2 is a kludge to force the view to return
+               // coordinates on the proper side of block widgets, since
+               // normalizing the side there, though appropriate for most
+               // coordsAtPos queries, would break selection drawing.
+               let fromCoords = view.coordsAtPos(from, (from == line.to ? -2 : 2));
+               let toCoords = view.coordsAtPos(to, (to == line.from ? 2 : -2));
+               top = Math.min(fromCoords.top, toCoords.top, top);
+               bottom = Math.max(fromCoords.bottom, toCoords.bottom, bottom);
+               if (dir == Direction.LTR)
+                   horizontal.push(ltr && fromOpen ? leftSide : fromCoords.left, ltr && toOpen ? rightSide : toCoords.right);
+               else
+                   horizontal.push(!ltr && toOpen ? leftSide : toCoords.left, !ltr && fromOpen ? rightSide : fromCoords.right);
+           }
+           let start = from !== null && from !== void 0 ? from : line.from, end = to !== null && to !== void 0 ? to : line.to;
+           // Split the range by visible range and document line
+           for (let r of view.visibleRanges)
+               if (r.to > start && r.from < end) {
+                   for (let pos = Math.max(r.from, start), endPos = Math.min(r.to, end);;) {
+                       let docLine = view.state.doc.lineAt(pos);
+                       for (let span of view.bidiSpans(docLine)) {
+                           let spanFrom = span.from + docLine.from, spanTo = span.to + docLine.from;
+                           if (spanFrom >= endPos)
+                               break;
+                           if (spanTo > pos)
+                               addSpan(Math.max(spanFrom, pos), from == null && spanFrom <= start, Math.min(spanTo, endPos), to == null && spanTo >= end, span.dir);
+                       }
+                       pos = docLine.to + 1;
+                       if (pos >= endPos)
+                           break;
+                   }
+               }
+           if (horizontal.length == 0)
+               addSpan(start, from == null, end, to == null, view.textDirection);
+           return { top, bottom, horizontal };
+       }
+       function drawForWidget(block, top) {
+           let y = contentRect.top + (top ? block.top : block.bottom);
+           return { top: y, bottom: y, horizontal: [] };
        }
    }
    function sameMarker(a, b) {
@@ -11540,6 +11686,8 @@
            }
        }
        destroy() {
+           if (this.layer.destroy)
+               this.layer.destroy(this.dom, this.view);
            this.dom.remove();
        }
    }
@@ -11604,8 +11752,9 @@
            for (let r of state.selection.ranges) {
                let prim = r == state.selection.main;
                if (r.empty ? !prim || CanHidePrimary : conf.drawRangeCursor) {
-                   let piece = measureCursor(view, r, prim);
-                   if (piece)
+                   let className = prim ? "cm-cursor cm-cursor-primary" : "cm-cursor cm-cursor-secondary";
+                   let cursor = r.empty ? r : EditorSelection.cursor(r.head, r.head > r.anchor ? -1 : 1);
+                   for (let piece of RectangleMarker.forRange(view, className, cursor))
                        cursors.push(piece);
                }
            }
@@ -11630,7 +11779,8 @@
    const selectionLayer = /*@__PURE__*/layer({
        above: false,
        markers(view) {
-           return view.state.selection.ranges.map(r => r.empty ? [] : measureRange(view, r)).reduce((a, b) => a.concat(b));
+           return view.state.selection.ranges.map(r => r.empty ? [] : RectangleMarker.forRange(view, "cm-selectionBackground", r))
+               .reduce((a, b) => a.concat(b));
        },
        update(update, dom) {
            return update.docChanged || update.selectionSet || update.viewportChanged || configChanged(update);
@@ -11646,117 +11796,6 @@
    if (CanHidePrimary)
        themeSpec[".cm-line"].caretColor = "transparent !important";
    const hideNativeSelection = /*@__PURE__*/Prec.highest(/*@__PURE__*/EditorView.theme(themeSpec));
-   function getBase(view) {
-       let rect = view.scrollDOM.getBoundingClientRect();
-       let left = view.textDirection == Direction.LTR ? rect.left : rect.right - view.scrollDOM.clientWidth;
-       return { left: left - view.scrollDOM.scrollLeft, top: rect.top - view.scrollDOM.scrollTop };
-   }
-   function wrappedLine(view, pos, inside) {
-       let range = EditorSelection.cursor(pos);
-       return { from: Math.max(inside.from, view.moveToLineBoundary(range, false, true).from),
-           to: Math.min(inside.to, view.moveToLineBoundary(range, true, true).from),
-           type: BlockType.Text };
-   }
-   function blockAt(view, pos) {
-       let line = view.lineBlockAt(pos);
-       if (Array.isArray(line.type))
-           for (let l of line.type) {
-               if (l.to > pos || l.to == pos && (l.to == line.to || l.type == BlockType.Text))
-                   return l;
-           }
-       return line;
-   }
-   function measureRange(view, range) {
-       if (range.to <= view.viewport.from || range.from >= view.viewport.to)
-           return [];
-       let from = Math.max(range.from, view.viewport.from), to = Math.min(range.to, view.viewport.to);
-       let ltr = view.textDirection == Direction.LTR;
-       let content = view.contentDOM, contentRect = content.getBoundingClientRect(), base = getBase(view);
-       let lineStyle = window.getComputedStyle(content.firstChild);
-       let leftSide = contentRect.left + parseInt(lineStyle.paddingLeft) + Math.min(0, parseInt(lineStyle.textIndent));
-       let rightSide = contentRect.right - parseInt(lineStyle.paddingRight);
-       let startBlock = blockAt(view, from), endBlock = blockAt(view, to);
-       let visualStart = startBlock.type == BlockType.Text ? startBlock : null;
-       let visualEnd = endBlock.type == BlockType.Text ? endBlock : null;
-       if (view.lineWrapping) {
-           if (visualStart)
-               visualStart = wrappedLine(view, from, visualStart);
-           if (visualEnd)
-               visualEnd = wrappedLine(view, to, visualEnd);
-       }
-       if (visualStart && visualEnd && visualStart.from == visualEnd.from) {
-           return pieces(drawForLine(range.from, range.to, visualStart));
-       }
-       else {
-           let top = visualStart ? drawForLine(range.from, null, visualStart) : drawForWidget(startBlock, false);
-           let bottom = visualEnd ? drawForLine(null, range.to, visualEnd) : drawForWidget(endBlock, true);
-           let between = [];
-           if ((visualStart || startBlock).to < (visualEnd || endBlock).from - 1)
-               between.push(piece(leftSide, top.bottom, rightSide, bottom.top));
-           else if (top.bottom < bottom.top && view.elementAtHeight((top.bottom + bottom.top) / 2).type == BlockType.Text)
-               top.bottom = bottom.top = (top.bottom + bottom.top) / 2;
-           return pieces(top).concat(between).concat(pieces(bottom));
-       }
-       function piece(left, top, right, bottom) {
-           return new RectangleMarker("cm-selectionBackground", left - base.left, top - base.top - 0.01 /* C.Epsilon */, right - left, bottom - top + 0.01 /* C.Epsilon */);
-       }
-       function pieces({ top, bottom, horizontal }) {
-           let pieces = [];
-           for (let i = 0; i < horizontal.length; i += 2)
-               pieces.push(piece(horizontal[i], top, horizontal[i + 1], bottom));
-           return pieces;
-       }
-       // Gets passed from/to in line-local positions
-       function drawForLine(from, to, line) {
-           let top = 1e9, bottom = -1e9, horizontal = [];
-           function addSpan(from, fromOpen, to, toOpen, dir) {
-               // Passing 2/-2 is a kludge to force the view to return
-               // coordinates on the proper side of block widgets, since
-               // normalizing the side there, though appropriate for most
-               // coordsAtPos queries, would break selection drawing.
-               let fromCoords = view.coordsAtPos(from, (from == line.to ? -2 : 2));
-               let toCoords = view.coordsAtPos(to, (to == line.from ? 2 : -2));
-               top = Math.min(fromCoords.top, toCoords.top, top);
-               bottom = Math.max(fromCoords.bottom, toCoords.bottom, bottom);
-               if (dir == Direction.LTR)
-                   horizontal.push(ltr && fromOpen ? leftSide : fromCoords.left, ltr && toOpen ? rightSide : toCoords.right);
-               else
-                   horizontal.push(!ltr && toOpen ? leftSide : toCoords.left, !ltr && fromOpen ? rightSide : fromCoords.right);
-           }
-           let start = from !== null && from !== void 0 ? from : line.from, end = to !== null && to !== void 0 ? to : line.to;
-           // Split the range by visible range and document line
-           for (let r of view.visibleRanges)
-               if (r.to > start && r.from < end) {
-                   for (let pos = Math.max(r.from, start), endPos = Math.min(r.to, end);;) {
-                       let docLine = view.state.doc.lineAt(pos);
-                       for (let span of view.bidiSpans(docLine)) {
-                           let spanFrom = span.from + docLine.from, spanTo = span.to + docLine.from;
-                           if (spanFrom >= endPos)
-                               break;
-                           if (spanTo > pos)
-                               addSpan(Math.max(spanFrom, pos), from == null && spanFrom <= start, Math.min(spanTo, endPos), to == null && spanTo >= end, span.dir);
-                       }
-                       pos = docLine.to + 1;
-                       if (pos >= endPos)
-                           break;
-                   }
-               }
-           if (horizontal.length == 0)
-               addSpan(start, from == null, end, to == null, view.textDirection);
-           return { top, bottom, horizontal };
-       }
-       function drawForWidget(block, top) {
-           let y = contentRect.top + (top ? block.top : block.bottom);
-           return { top: y, bottom: y, horizontal: [] };
-       }
-   }
-   function measureCursor(view, cursor, primary) {
-       let pos = view.coordsAtPos(cursor.head, cursor.assoc || 1);
-       if (!pos)
-           return null;
-       let base = getBase(view);
-       return new RectangleMarker(primary ? "cm-cursor cm-cursor-primary" : "cm-cursor cm-cursor-secondary", pos.left - base.left, pos.top - base.top, -1, pos.bottom - pos.top);
-   }
 
    const setDropCursorPos = /*@__PURE__*/StateEffect.define({
        map(pos, mapping) { return pos == null ? null : mapping.mapPos(pos); }
@@ -33656,7 +33695,7 @@
        '.cm-tooltip.cm-tooltip-explain': {
            fontSize: '0.9em',
            backgroundColor: '#FFFFF0',
-           padding: '0.2em 0.3em',
+           padding: '0.3em 0.5em',
            '& .cm-tooltip-arrow:before': {
                borderTopColor: '#FFFFF0',
                backgroundColor: '#FFFFF0',
@@ -34081,11 +34120,22 @@
            config.jsx ? autoCloseTags$1 : [],
        ]);
    }
+   function findOpenTag(node) {
+       for (;;) {
+           if (node.name == "JSXOpenTag" || node.name == "JSXSelfClosingTag" || node.name == "JSXFragmentTag")
+               return node;
+           if (!node.parent)
+               return null;
+           node = node.parent;
+       }
+   }
    function elementName$1(doc, tree, max = doc.length) {
-       if (!tree)
-           return "";
-       let name = tree.getChild("JSXIdentifier");
-       return name ? doc.sliceString(name.from, Math.min(name.to, max)) : "";
+       for (let ch = tree === null || tree === void 0 ? void 0 : tree.firstChild; ch; ch = ch.nextSibling) {
+           if (ch.name == "JSXIdentifier" || ch.name == "JSXBuiltin" || ch.name == "JSXNamespacedName" ||
+               ch.name == "JSXMemberExpression")
+               return doc.sliceString(ch.from, Math.min(ch.to, max));
+       }
+       return "";
    }
    const android = typeof navigator == "object" && /*@__PURE__*//Android\b/.test(navigator.userAgent);
    /**
@@ -34099,23 +34149,27 @@
            return false;
        let { state } = view;
        let changes = state.changeByRange(range => {
-           var _a, _b, _c;
+           var _a, _b;
            let { head } = range, around = syntaxTree(state).resolveInner(head, -1), name;
            if (around.name == "JSXStartTag")
                around = around.parent;
            if (text == ">" && around.name == "JSXFragmentTag") {
                return { range: EditorSelection.cursor(head + 1), changes: { from: head, insert: `><>` } };
            }
-           else if (text == ">" && around.name == "JSXIdentifier") {
-               if (((_b = (_a = around.parent) === null || _a === void 0 ? void 0 : _a.lastChild) === null || _b === void 0 ? void 0 : _b.name) != "JSXEndTag" && (name = elementName$1(state.doc, around.parent, head)))
-                   return { range: EditorSelection.cursor(head + 1), changes: { from: head, insert: `></${name}>` } };
-           }
            else if (text == "/" && around.name == "JSXFragmentTag") {
                let empty = around.parent, base = empty === null || empty === void 0 ? void 0 : empty.parent;
-               if (empty.from == head - 1 && ((_c = base.lastChild) === null || _c === void 0 ? void 0 : _c.name) != "JSXEndTag" && (name = elementName$1(state.doc, base === null || base === void 0 ? void 0 : base.firstChild, head))) {
+               if (empty.from == head - 1 && ((_a = base.lastChild) === null || _a === void 0 ? void 0 : _a.name) != "JSXEndTag" &&
+                   (name = elementName$1(state.doc, base === null || base === void 0 ? void 0 : base.firstChild, head))) {
                    let insert = `/${name}>`;
                    return { range: EditorSelection.cursor(head + insert.length), changes: { from: head, insert } };
                }
+           }
+           else if (text == ">") {
+               let openTag = findOpenTag(around);
+               if (openTag && ((_b = openTag.lastChild) === null || _b === void 0 ? void 0 : _b.name) != "JSXEndTag" &&
+                   state.sliceDoc(head, head + 2) != "</" &&
+                   (name = elementName$1(state.doc, openTag, head)))
+                   return { range: EditorSelection.cursor(head + 1), changes: { from: head, insert: `></${name}>` } };
            }
            return { range };
        });
