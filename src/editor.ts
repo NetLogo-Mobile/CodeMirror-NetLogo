@@ -24,6 +24,10 @@ import {
   stateExtension,
   StateNetLogo,
 } from './codemirror/extension-state-netlogo';
+import {
+  preprocessStateExtension,
+  StatePreprocess,
+} from './codemirror/extension-regex-state';
 import { tooltipExtension } from './codemirror/extension-tooltip';
 import { lightTheme } from './codemirror/theme-light';
 import { highlightTree } from '@lezer/highlight';
@@ -81,6 +85,7 @@ export class GalapagosEditor {
         break;
       default:
         this.Language = NetLogo();
+        Extensions.push(preprocessStateExtension);
         Extensions.push(stateExtension);
         Dictionary.ClickHandler = Options.OnDictionaryClick;
         if (!this.Options.OneLine) {
@@ -193,6 +198,11 @@ export class GalapagosEditor {
   /** GetState: Get the current parser state of the NetLogo code. */
   GetState(): StateNetLogo {
     return this.CodeMirror.state.field(stateExtension);
+  }
+
+  /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
+  GetPreprocessState(): StatePreprocess {
+    return this.CodeMirror.state.field(preprocessStateExtension);
   }
 
   /** SetCursorPosition: Set the cursor position of the editor. */

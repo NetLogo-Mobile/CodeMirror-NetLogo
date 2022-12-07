@@ -7,6 +7,8 @@ const en_us: Record<string, Function> = {
     `Cannot recognize "${Name}" as a proper statement here. Did you spell it correctly?`,
   'Unrecognized statement _': (Name: string) =>
     `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
+  'Unsupported statement _': (Name: string) =>
+    `"${Name}" is not supported in NetLogo Web`,
 
   '~VariableName': (Name: string) => `A variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,

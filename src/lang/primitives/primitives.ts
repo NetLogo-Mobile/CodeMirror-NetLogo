@@ -25,7 +25,7 @@ export class Primitives {
 
   /** ImportNL: Import primitive metadatas from NetLogo. */
   public ImportNL(Extension: string, Source: NLPrimitive) {
-    this.Metadata.set(`${Extension}:${Source.name}`, {
+    this.Metadata.set(`${Extension}:${Source.name.toLowerCase()}`, {
       Extension: Extension,
       Name: Source.name,
       LeftArgumentType: this.ConvertToArgument(Source.syntax.left),
@@ -133,8 +133,18 @@ export class Primitives {
       return NetLogoType.Turtle;
     } else if (Type == 'patch') {
       return NetLogoType.Patch;
+    } else if (Type == 'link') {
+      return NetLogoType.Link;
     } else if (Type == 'symbol') {
       return NetLogoType.Symbol;
+    } else if (Type == 'linkset') {
+      return NetLogoType.LinkSet;
+    } else if (Type == 'reporterblock') {
+      return NetLogoType.ReporterBlock;
+    } else if (Type == 'booleanblock') {
+      return NetLogoType.BooleanBlock;
+    } else if (Type == 'command') {
+      return NetLogoType.Command;
     } else {
       console.log('Unrecognized type: ' + Type);
       return NetLogoType.Other;

@@ -17,9 +17,6 @@ import {
   Let,
   To,
   End,
-  BreedFirst,
-  BreedLast,
-  BreedMiddle,
   Directive,
   Command,
   Extension,
@@ -34,17 +31,13 @@ import {
   GlobalStr,
   ExtensionStr,
   BreedStr,
-  Reporter11Args,
-  Reporter0Args,
-  Reporter1Args,
-  Reporter2Args,
-  Reporter3Args,
-  Reporter4Args,
-  Command0Args,
-  Command1Args,
-  Command2Args,
-  Command3Args,
-  Command4Args,
+  ReporterLeftArgs1,
+  ReporterLeftArgs2,
+  PlusMinus,
+  SpecialCommand,
+  SpecialReporter,
+  BreedToken,
+  AndOr,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -52,6 +45,8 @@ import {
 import { Reporters } from './primitives/reporters.js';
 import { Commands } from './primitives/commands.js';
 import { NetLogoType, Primitive } from './classes';
+import { ParseContext } from '@codemirror/language';
+import { preprocessStateExtension } from '../codemirror/extension-regex-state';
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer((input) => {
@@ -66,7 +61,7 @@ export const keyword = new ExternalTokenizer((input) => {
   // Find if the token belongs to any category
   // Check if token is a breed reporter/command
   // JC: Match should be done only when needed to booster the performance.
-  const match = matchBreed(token);
+
   // When these were under the regular tokenizer, they matched to word parts rather than whole words
   if (token == 'set') {
     input.acceptToken(Set);
@@ -76,20 +71,48 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(To);
   } else if (token == 'end') {
     input.acceptToken(End);
+  } else if (token == 'and' || token == 'or') {
+    input.acceptToken(AndOr);
   } else if (token == 'globals') {
     input.acceptToken(GlobalStr);
   } else if (token == 'extensions') {
     input.acceptToken(ExtensionStr);
   } else if (
-    token == 'breed' ||
+    token == 'mod' ||
+    token == 'in-radius' ||
+    token == 'at-points' ||
+    token == 'of' ||
+    token == 'with' ||
+    [
+      '+',
+      '-',
+      '*',
+      '/',
+      '^',
+      '=',
+      '!=',
+      '>',
+      '<',
+      '<=',
+      '>=',
+      'and',
+      'or',
+    ].indexOf(token) > -1
+  ) {
+    input.acceptToken(ReporterLeftArgs1);
+  } else if (token == 'in-cone') {
+    input.acceptToken(ReporterLeftArgs2);
+  } else if (token == '-' || token == '+') {
+    input.acceptToken(PlusMinus);
+  } else if (token == 'breed') {
+    input.acceptToken(BreedToken);
+  } else if (
     token == 'directed-link-breed' ||
     token == 'undirected-link-breed'
   ) {
     input.acceptToken(BreedStr);
   } else if (directives.indexOf(token) != -1) {
     input.acceptToken(Directive);
-  } else if (extensions.indexOf(token) != -1) {
-    input.acceptToken(Extension);
   } else if (turtleVars.indexOf(token) != -1) {
     input.acceptToken(TurtleVar);
   } else if (patchVars.indexOf(token) != -1) {
@@ -104,10 +127,20 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(Command);
   } else if (reporters.indexOf(token) != -1) {
     input.acceptToken(Reporter);
-  } else if (match != 0) {
-    input.acceptToken(match);
+  } else if (extensions.indexOf(token) != -1) {
+    input.acceptToken(Extension);
   } else {
-    input.acceptToken(Identifier);
+    const match = matchBreed(token);
+    if (match != 0) {
+      input.acceptToken(match);
+    } else {
+      const customMatch = matchCustomProcedure(token);
+      if (customMatch != 0) {
+        input.acceptToken(customMatch);
+      } else {
+        input.acceptToken(Identifier);
+      }
+    }
   }
 });
 
@@ -141,52 +174,64 @@ function isValidKeyword(ch: number) {
 // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
 function matchBreed(token: string) {
   let tag = 0;
-  if (token.match(/\w+-own/)) {
+  let parseContext = ParseContext.get();
+  let breedNames =
+    parseContext?.state
+      .field(preprocessStateExtension)
+      .PluralBreeds.concat(
+        parseContext?.state.field(preprocessStateExtension).SingularBreeds
+      ) ?? [];
+  let foundMatch = false;
+
+  for (let b of breedNames) {
+    if (token.includes(b)) {
+      foundMatch = true;
+    }
+  }
+  if (!foundMatch) {
+    return tag;
+  }
+  if (
+    parseContext?.state
+      .field(preprocessStateExtension)
+      .SingularBreeds.includes(token)
+  ) {
+    tag = SpecialReporter;
+  } else if (token.match(/[^\s]+-own/)) {
     tag = Own;
-  } else if (token.match(/\w+-at$/)) {
-    tag = BreedFirst;
-  } else if (token.match(/\w+-here$/)) {
-    tag = BreedFirst;
-  } else if (token.match(/\w+-on$/)) {
-    tag = BreedFirst;
-  } else if (token.match(/\w+-with$/)) {
-    tag = BreedFirst;
-  } else if (token.match(/\w+-neighbor\\?$/)) {
-    tag = BreedFirst;
-  } else if (token.match(/\w+-neighbors$/)) {
-    tag = BreedFirst;
-  } else if (token.match(/^create-\w+/)) {
-    tag = BreedLast;
-  } else if (token.match(/^my-in-\w+/)) {
-    tag = BreedLast;
-  } else if (token.match(/^my-out-\w+/)) {
-    tag = BreedLast;
-  } else if (token.match(/^create-ordered-\w+/)) {
-    tag = BreedLast;
-  } else if (token.match(/^hatch-\w+/)) {
-    tag = BreedLast;
-  } else if (token.match(/^sprout-\w+/)) {
-    tag = BreedLast;
-  } else if (token.match(/^is-\w+\\?$/)) {
-    tag = BreedLast;
-  } else if (token.match(/^in-\w+-neighbor\\?$/)) {
-    tag = BreedMiddle;
-  } else if (token.match(/^in-\w+-neighbors$/)) {
-    tag = BreedMiddle;
-  } else if (token.match(/^in-\w+-from$/)) {
-    tag = BreedMiddle;
-  } else if (token.match(/^out-\w+-neighbor\\?$/)) {
-    tag = BreedMiddle;
-  } else if (token.match(/^out-\w+-neighbors$/)) {
-    tag = BreedMiddle;
-  } else if (token.match(/^out-\w+-to$/)) {
-    tag = BreedMiddle;
-  } else if (token.match(/^create-\w+-to$/)) {
-    tag = BreedMiddle;
-  } else if (token.match(/^create-\w+-from$/)) {
-    tag = BreedMiddle;
-  } else if (token.match(/^create-\w+-with$/)) {
-    tag = BreedMiddle;
+  } else if (token.match(/[^\s]+-(at|here|on|with|neighbor\\?|neighbors)$/)) {
+    tag = SpecialReporter;
+  } else if (token.match(/^(my-in|my-out)-[^\s]+/)) {
+    tag = SpecialReporter;
+  } else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+    tag = SpecialCommand;
+  } else if (token.match(/^is-[^\s]+\\?$/)) {
+    tag = SpecialReporter;
+  } else if (token.match(/^in-[^\s]+-from$/)) {
+    tag = SpecialReporter;
+  } else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?|neighbors)$/)) {
+    tag = SpecialReporter;
+  } else if (token.match(/^out-[^\s]+-to$/)) {
+    tag = SpecialReporter;
+  } else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
+    tag = SpecialCommand;
   }
   return tag;
+}
+
+function matchCustomProcedure(token: string) {
+  let parseContext = ParseContext.get();
+  let commands =
+    parseContext?.state.field(preprocessStateExtension).Commands ?? {};
+  let reporters =
+    parseContext?.state.field(preprocessStateExtension).Reporters ?? {};
+  console.log(commands, reporters, token);
+  if (commands[token] >= 0) {
+    // console.log("found special command")
+    return SpecialCommand;
+  }
+  if (reporters[token] >= 0) {
+    return SpecialReporter;
+  }
+  return 0;
 }

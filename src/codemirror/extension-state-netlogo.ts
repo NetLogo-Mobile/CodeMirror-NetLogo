@@ -130,7 +130,14 @@ export class StateNetLogo {
       // get procedures
       if (Cursor.node.name == 'Procedure') {
         // TODO: From & To.
-        let procedure = new Procedure('', [], [], [], 0, 0);
+        let procedure = new Procedure(
+          '',
+          [],
+          [],
+          [],
+          Cursor.node.from,
+          Cursor.node.to
+        );
         Cursor.node.getChildren('ProcedureName').map((node) => {
           procedure.Name = this.getText(State, node);
         });
@@ -188,7 +195,7 @@ export class StateNetLogo {
       if (noderef.node.to > Node.to) {
         return false;
       }
-      if (noderef.name == 'ProcedureContent') {
+      if (noderef.name == 'CommandStatement') {
         noderef.node.getChildren('VariableDeclaration').map((node) => {
           node.getChildren('NewVariableDeclaration').map((subnode) => {
             subnode.getChildren('Identifier').map((subsubnode) => {

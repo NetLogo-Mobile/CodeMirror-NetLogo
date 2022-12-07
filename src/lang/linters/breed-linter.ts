@@ -100,8 +100,8 @@ const checkValidBreed = function (
     }
   }
   if (!isValid) {
-    // Why do we need this one?
-    // isValid = checkValid(node, value, state, parseState, breedNames, breedVars);
+    // Why do we need this one? We need it to check if it is actually a valid identifier
+    isValid = checkValid(node, value, state, parseState, breedNames, breedVars);
   }
   return isValid;
 };
