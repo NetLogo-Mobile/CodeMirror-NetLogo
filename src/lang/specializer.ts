@@ -62,10 +62,11 @@ const specializeReporter = function (token: string) {
 
 const specializeSpecialReporter = function (token: string) {
   token = token.toLowerCase();
+
   let parseContext = ParseContext.get();
   let reporters =
     parseContext?.state.field(preprocessStateExtension).Reporters ?? {};
-  if (reporters[token]) {
+  if (reporters[token] >= 0) {
     let args = reporters[token];
     if (args == 0) {
       return SpecialReporter0Args;
