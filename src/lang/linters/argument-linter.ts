@@ -5,6 +5,7 @@ import { EditorState } from '@codemirror/state';
 import { preprocessStateExtension } from '../../codemirror/extension-regex-state';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
+import { Agent } from 'http';
 
 let primitives = PrimitiveManager;
 
@@ -66,7 +67,7 @@ export const getArgs = function (Node: SyntaxNode) {
       args.leftArgs = cursor.node;
     } else if (seenFunc && cursor.node.name == 'Arg') {
       args.rightArgs.push(cursor.node);
-    } else {
+    } else if (cursor.node.name != 'LineComment') {
       // console.log(cursor.node.name)
       args.func = cursor.node;
       seenFunc = true;
@@ -99,7 +100,7 @@ export const checkValid = function (
   } else {
     let primitive = primitives.GetPrimitive('', func);
     if (!primitive) {
-      // console.log ("no primitive",args.func?.name);
+      console.log('no primitive', args.func?.name, func);
       return false;
     } else if (
       (primitive.LeftArgumentType?.Types[0] == NetLogoType.Unit &&
@@ -107,19 +108,30 @@ export const checkValid = function (
       (primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit &&
         !args.leftArgs)
     ) {
-      // console.log('left args');
+      console.log('left args');
       return false;
     } else {
-      let rightArgs =
-        primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
-      if (rightArgs != args.rightArgs.length) {
-        // console.log(args.rightArgs);
-        // console.log(
-        //   'rightargs',
-        //   primitive.DefaultOption,
-        //   primitive.RightArgumentTypes.length,
-        //   args.rightArgs.length
-        // );
+      let rightArgMin =
+        primitive.MinimumOption ??
+        primitive.DefaultOption ??
+        primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
+          .length;
+      let rightArgMax =
+        primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length > 0
+          ? 100
+          : primitive.RightArgumentTypes.length;
+      if (
+        args.rightArgs.length < rightArgMin ||
+        args.rightArgs.length > rightArgMax
+      ) {
+        console.log(args.rightArgs);
+        console.log(
+          func,
+          'rightargs',
+          rightArgMin,
+          rightArgMax,
+          args.rightArgs.length
+        );
         return false;
       } else {
         return true;

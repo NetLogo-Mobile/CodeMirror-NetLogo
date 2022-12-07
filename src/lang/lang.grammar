@@ -117,11 +117,11 @@ Literal {
 }
 
 List {
-  OpenBracket Literal+ CloseBracket 
+  OpenBracket Literal* CloseBracket ~statement
 }
 
 CodeBlock {
-  OpenBracket ProcedureContent* CloseBracket
+  OpenBracket ProcedureContent* CloseBracket ~statement
 }
 
 ReporterBlock{
@@ -136,28 +136,30 @@ Reporters {
   Reporter | 
   "(" Reporter Arg+ ")" | 
   Arg !leftArgs ReporterLeftArgs1 !lastArgs Arg |
-  Arg !leftArgs ReporterLeftArgs2 Arg Arg |
+  Arg !leftArgs ReporterLeftArgs2 Arg !lastArgs Arg |
   SpecialReporter0Args |
-  SpecialReporter1Args Arg |
-  SpecialReporter2Args Arg Arg |
-  SpecialReporter3Args Arg Arg Arg |
-  SpecialReporter4Args Arg Arg Arg Arg |
-  SpecialReporter5Args Arg Arg Arg Arg Arg |
-  SpecialReporter6Args Arg Arg Arg Arg Arg Arg |
+  SpecialReporter1Args !lastArgs Arg |
+  SpecialReporter2Args Arg !lastArgs Arg |
+  SpecialReporter3Args Arg Arg !lastArgs Arg |
+  SpecialReporter4Args Arg Arg Arg !lastArgs Arg |
+  SpecialReporter5Args Arg Arg Arg Arg !lastArgs Arg |
+  SpecialReporter6Args Arg Arg Arg Arg Arg !lastArgs Arg |
   Reporter0Args |
-  Reporter1Args Arg |
-  Reporter2Args Arg Arg |
-  Reporter3Args Arg Arg Arg |
-  Reporter4Args Arg Arg Arg Arg |
-  Reporter5Args Arg Arg Arg Arg Arg |
-  Reporter6Args Arg Arg Arg Arg Arg Arg
+  Reporter1Args !lastArgs Arg |
+  Reporter2Args Arg !lastArgs Arg |
+  Reporter3Args Arg Arg !lastArgs Arg |
+  Reporter4Args Arg Arg Arg !lastArgs Arg |
+  Reporter5Args Arg Arg Arg Arg !lastArgs Arg |
+  Reporter6Args Arg Arg Arg Arg Arg !lastArgs Arg |
+  Arg !comparative AndOr Arg
    
 }
 
 CommandStatement {
   Command Arg* |
   VariableDeclaration |
-  SpecialCommand Arg*
+  SpecialCommand Arg* |
+  Unsupported
 }
 
 Operation {
@@ -169,7 +171,7 @@ Operation {
   Value !comparative Or Value
 }
 
-Arg {   
+Arg {  
   CodeBlock | 
   Value ~statement |
   ReporterBlock |
@@ -241,7 +243,8 @@ expression {
   Unsupported,
   SpecialReporter,
   SpecialCommand,
-  BreedToken
+  BreedToken,
+  AndOr
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {

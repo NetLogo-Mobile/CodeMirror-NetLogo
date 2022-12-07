@@ -37,6 +37,7 @@ import {
   SpecialCommand,
   SpecialReporter,
   BreedToken,
+  AndOr,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -70,6 +71,8 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(To);
   } else if (token == 'end') {
     input.acceptToken(End);
+  } else if (token == 'and' || token == 'or') {
+    input.acceptToken(AndOr);
   } else if (token == 'globals') {
     input.acceptToken(GlobalStr);
   } else if (token == 'extensions') {
