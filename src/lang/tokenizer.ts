@@ -225,7 +225,7 @@ function matchCustomProcedure(token: string) {
     parseContext?.state.field(preprocessStateExtension).Commands ?? {};
   let reporters =
     parseContext?.state.field(preprocessStateExtension).Reporters ?? {};
-  console.log(commands, reporters, token);
+  // console.log(commands, reporters, token);
   if (commands[token] >= 0) {
     // console.log("found special command")
     return SpecialCommand;

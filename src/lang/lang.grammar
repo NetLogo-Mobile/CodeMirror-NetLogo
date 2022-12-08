@@ -71,7 +71,8 @@ Arguments {
 }
 
 ProcedureContent {
-  CommandStatement
+  CommandStatement |
+  OpenParen CommandStatement CloseParen
 }
 
 AnonArguments {
@@ -96,7 +97,7 @@ SetVariable {
 }
 
 VariableName {
-  !leftArgs Identifier | 
+  Identifier | 
   PatchVar | 
   TurtleVar | 
   LinkVar |
@@ -104,13 +105,13 @@ VariableName {
 }
 
 Value {
-  Reporters ~statement |
+  OpenParen Value CloseParen  |
   String |
   Constant |
-  VariableName ~statement|
+  Reporters|
+  VariableName|
   List |
   Numeric |
-  "(" Value ")" |
   AnonymousProcedure
 }
 
@@ -136,9 +137,7 @@ Property {
   OpenBracket VariableName CloseBracket
 }
 
-Reporters {
-  Reporter | 
-  "(" Reporter Arg+ ")" | 
+Reporters { 
   Arg !leftArgs ReporterLeftArgs1 !lastArgs Arg |
   Arg !leftArgs ReporterLeftArgs2 Arg !lastArgs Arg |
   SpecialReporter0Args |
@@ -149,30 +148,21 @@ Reporters {
   SpecialReporter5Args Arg Arg Arg Arg !lastArgs Arg |
   SpecialReporter6Args Arg Arg Arg Arg Arg !lastArgs Arg |
   Reporter0Args |
-  Reporter1Args !lastArgs Arg |
-  Reporter2Args Arg !lastArgs Arg |
-  Reporter3Args Arg Arg !lastArgs Arg |
-  Reporter4Args Arg Arg Arg !lastArgs Arg |
-  Reporter5Args Arg Arg Arg Arg !lastArgs Arg |
-  Reporter6Args Arg Arg Arg Arg Arg !lastArgs Arg |
+  Reporter1Args !lastArgs Arg+ |
+  Reporter2Args Arg !lastArgs Arg+ |
+  Reporter3Args Arg Arg !lastArgs Arg+ |
+  Reporter4Args Arg Arg Arg !lastArgs Arg+ |
+  Reporter5Args Arg Arg Arg Arg !lastArgs Arg+ |
+  Reporter6Args Arg Arg Arg Arg Arg !lastArgs Arg+ |
   Arg !comparative AndOr Arg
    
 }
 
 CommandStatement {
-  Command Arg* |
+  Command !lastArgs Arg* |
   VariableDeclaration |
-  SpecialCommand Arg* |
+  SpecialCommand !lastArgs Arg* |
   Unsupported
-}
-
-Operation {
-  Value !plus PlusMinus Value |
-  Value !times MultiplyDivide Value |
-  Value !exponent Exponent Value |
-  Value !comparative Comparative Value |
-  Value !comparative And Value |
-  Value !comparative Or Value
 }
 
 Arg {  
@@ -190,7 +180,7 @@ Arg {
 
   Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* | $[-]? $[\.] $[0-9]+}
   
-  String { '"' (!["\\] | "\\" _)* '"' }
+  String { '"' (!["\\] | "\\" _)* '"' | "'" (!['\\] | "\\" _)* "'" }
 
   LineComment { ";" ![\n]* }
 
@@ -204,11 +194,15 @@ Arg {
 
   Comparative { "=" | "!=" | ">" | "<" | "<=" | ">="}
 
+  OpenParen { "(" }
+
+  CloseParen { ")" }
+
   "[" "]"
 }
 
 expression {
-  "(" expression ")" |
+  OpenParen expression CloseParen |
   Identifier |
   Command |
   Reporter |
