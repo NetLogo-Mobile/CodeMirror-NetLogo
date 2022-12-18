@@ -108,7 +108,7 @@ Value {
   OpenParen Value CloseParen |
   String |
   Constant |
-  Reporters |
+  Reporter |
   VariableName |
   List |
   Numeric |
@@ -130,14 +130,14 @@ CodeBlock {
 }
 
 ReporterBlock {
-  OpenBracket Reporters CloseBracket
+  OpenBracket Reporter CloseBracket
 }
 
 Property {
   OpenBracket VariableName CloseBracket
 }
 
-Reporters { 
+Reporter { 
   Arg !leftArgs ReporterLeftArgs1 !lastArgs Arg |
   Arg !leftArgs ReporterLeftArgs2 Arg !lastArgs Arg |
   SpecialReporter0Args |
