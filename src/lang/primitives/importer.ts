@@ -42,7 +42,7 @@ class PrimitiveImporter {
     File.writeFileSync(
       './src/lang/primitives/dataset.ts',
       `import { Primitive } from '../classes';
-export const Dataset: Primitive[] = ${JSON.stringify(this.Primitives, null, 2)}`
+export const Dataset: Primitive[] = ${JSON.stringify(this.Primitives)}`
     );
   }
 

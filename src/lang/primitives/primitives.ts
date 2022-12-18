@@ -67,11 +67,14 @@ export class Primitives {
       if (
         Primitive.Extension == '' ||
         Extensions.indexOf(Primitive.Extension) != -1
-      )
+      ) {
+        var Name = Primitive.Name;
+        if (Primitive.Extension != '') Name = `${Primitive.Extension}:${Name}`;
         Results.push({
-          label: Primitive.Name,
+          label: Name,
           type: this.IsReporter(Primitive) ? 'Reporter' : 'Command',
         });
+      }
     }
     return Results;
   }
