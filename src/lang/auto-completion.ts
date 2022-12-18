@@ -1,15 +1,9 @@
 import {
   directives,
-  commands,
-  extensions,
-  reporters,
   turtleVars,
   patchVars,
   linkVars,
   constants,
-  unsupported,
-  extensionCommands,
-  extensionReporters,
 } from './keywords';
 import {
   stateExtension,
@@ -22,19 +16,31 @@ import {
   CompletionResult,
 } from '@codemirror/autocomplete';
 import { syntaxTree } from '@codemirror/language';
+import { PrimitiveManager } from './primitives/primitives';
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
+/* Possible Types of Autocompletion Tokens:
+Directive; Constant; Extension; 
+Variable-Builtin; Variable-Global; Variable-Breed;
+Breed;
+Command; Command-Custom; Reporter; Reporter-Custom.
+*/
 export class AutoCompletion {
-  /** allIdentifiers: All built-in identifiers. */
-  private allIdentifiers = [
-    'end',
-    ...commands,
-    ...reporters,
-    ...turtleVars,
-    ...patchVars,
-    ...linkVars,
-    ...constants,
+  /** BuiltinVariables: The completion list of built-in variables. */
+  private BuiltinVariables: Completion[] = this.KeywordsToCompletions(
+    [...turtleVars, ...patchVars, ...linkVars],
+    'Variable-Builtin'
+  );
+  /** SharedIdentifiers: Shared built-in completions. */
+  private SharedIdentifiers: Completion[] = [
+    { label: 'end', type: 'Directive' },
+    ...this.BuiltinVariables,
+    ...this.KeywordsToCompletions(constants, 'Constant'),
   ];
+  /** LastExtensions: Cached extension list. */
+  private LastExtensions: string = '$NIL$';
+  /** LastPrimitives: Cached primitive list. */
+  private LastPrimitives: Completion[] = [];
 
   /** KeywordsToCompletions: Transform keywords to completions. */
   private KeywordsToCompletions(
@@ -48,8 +54,11 @@ export class AutoCompletion {
 
   /** ParentMaps: Maps of keywords to parents.  */
   private ParentMaps: Record<string, Completion[]> = {
-    Extensions: this.KeywordsToCompletions(extensions, 'Extension'),
-    Program: this.KeywordsToCompletions(directives, 'Extension'),
+    Extensions: this.KeywordsToCompletions(
+      PrimitiveManager.GetExtensions(),
+      'Extension'
+    ), // Extensions
+    Program: this.KeywordsToCompletions(directives, 'Directive'), // Directives
     Globals: [], // Names of global variables
     BreedsOwn: [], // Names of breed variables
     Breed: [], // Names of breeds
@@ -57,10 +66,9 @@ export class AutoCompletion {
     Arguments: [], // Arguments of procedures
     VariableName: this.KeywordsToCompletions(
       [...turtleVars, ...patchVars, ...linkVars],
-      'Variables'
-    ), // built-in variable names
+      'Variable-Builtin'
+    ), // Built-in variable names
   };
-
   /** ParentTypes: Types of keywords.  */
   private ParentTypes = Object.keys(this.ParentMaps);
 
@@ -75,7 +83,15 @@ export class AutoCompletion {
         break;
       case 'VariableName':
         results = results.concat(
-          this.KeywordsToCompletions(State.Globals, 'Variables')
+          this.KeywordsToCompletions(State.Globals, 'Variable')
+        );
+        break;
+      case 'Program':
+        results = results.concat(
+          this.KeywordsToCompletions(
+            [...State.Breeds.values()].map((breed) => breed.Plural),
+            'Directive'
+          )
         );
         break;
     }
@@ -89,72 +105,75 @@ export class AutoCompletion {
     // Preparation
     const node = syntaxTree(Context.state).resolveInner(Context.pos, -1);
     const from = /\./.test(node.name) ? node.to : node.from;
+    const nodeName = node.type.name;
     const parentName = node.parent?.type.name ?? '';
     const grandparentName = node.parent?.parent?.type.name ?? '';
-    const nodeName = node.type.name;
     const state = Context.state.field(stateExtension);
-    console.log(grandparentName + ' / ' + parentName + ' / ' + nodeName);
 
-    let curr = node;
+    // Debug output
+    /* let curr = node;
     let parents = [];
     while (curr.parent) {
       parents.push(curr.parent.name);
       curr = curr.parent;
     }
-    console.log(node.name, parents);
+    console.log(node.name, parents); */
+    console.log(grandparentName + ' / ' + parentName + ' / ' + nodeName);
 
     // If the parent/grand parent node is of a type specified in this.maps
-    if (this.ParentTypes.indexOf(parentName) > -1) {
-      return {
-        from,
-        options: this.GetParentKeywords(parentName, state),
-      };
-    } else if (
+    if (this.ParentTypes.indexOf(parentName) > -1)
+      return { from, options: this.GetParentKeywords(parentName, state) };
+    if (
       this.ParentTypes.indexOf(grandparentName) > -1 &&
       (parentName != 'Procedure' || nodeName == 'To')
-    ) {
-      return {
-        from,
-        options: this.GetParentKeywords(grandparentName, state),
-      };
-    } else if (nodeName == 'Identifier') {
-      let results = this.allIdentifiers;
+    )
+      return { from, options: this.GetParentKeywords(grandparentName, state) };
+
+    // Otherwise, try to build a full list
+    if (nodeName == 'Identifier') {
+      let results = this.SharedIdentifiers;
       // Extensions
-      const extensions = Context.state.field(stateExtension).Extensions;
-      if (extensions.length > 0) {
-        results = results.concat(
-          this.FilterExtensions(
-            extensionCommands.concat(extensionReporters),
-            extensions
+      const extensionNames = state.Extensions.join(',');
+      if (this.LastExtensions != extensionNames) {
+        this.LastPrimitives = PrimitiveManager.GetCompletions(state.Extensions);
+        this.LastExtensions = extensionNames;
+      }
+      results = results.concat(this.LastPrimitives);
+      // Breeds
+      if (state.Breeds.size > 0) {
+        results.push(
+          ...this.KeywordsToCompletions(state.GetBreedNames(), 'Breed')
+        );
+        results.push(
+          ...this.KeywordsToCompletions(
+            state.GetBreedVariables(),
+            'Variable-Breed'
           )
         );
       }
-      // Breeds
-      const breeds = Context.state.field(stateExtension).Breeds;
-      if (breeds.size > 0) {
-        for (const breed of breeds.values()) {
-          results.push(breed.Plural + '-own');
-        }
+      // Global Variables
+      results.push(
+        ...this.KeywordsToCompletions(state.Globals, 'Variable-Global')
+      );
+      results.push(
+        ...this.KeywordsToCompletions(state.WidgetGlobals, 'Variable-Global')
+      );
+      // Custom Procedures
+      for (var Procedure of state.Procedures.values()) {
+        results.push({
+          label: Procedure.Name,
+          type: Procedure.IsCommand ? 'Command-Custom' : 'Reporter-Custom',
+        });
       }
-      // Mappings
-      return {
-        from,
-        options: this.KeywordsToCompletions(results, 'Identifier'),
-      };
-    } else return null;
+      return { from, options: results };
+    }
+
+    // Failed
+    return null;
   }
 
   /** GetCompletionSource: Get the completion source for a NetLogo model. */
   public GetCompletionSource(): CompletionSource {
     return (Context) => this.GetCompletion(Context);
-  }
-
-  /** FilterExtensions: Filter keywords for extensions. */
-  private FilterExtensions(Keyword: string[], Extensions: string[]): string[] {
-    Extensions = Extensions.map((Extension) => Extension + ':');
-    return Keyword.filter(
-      (Current) =>
-        Extensions.findIndex((Extension) => Current.startsWith(Extension)) != -1
-    );
   }
 }

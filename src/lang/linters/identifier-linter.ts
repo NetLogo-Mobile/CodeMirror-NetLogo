@@ -97,23 +97,25 @@ export const checkValid = function (
   let procedureVars: string[] = [];
   if (procedureName != '') {
     let procedure = parseState.Procedures.get(procedureName.toLowerCase());
-    let vars: string[] = [];
     procedure?.Variables.map((variable) => {
       // makes sure the variable has already been created
       if (variable.CreationPos < Node.from) {
-        vars.push(variable.Name);
+        procedureVars.push(variable.Name);
       }
     });
     procedure?.AnonymousProcedures.map((anonProc) => {
-      if (Node.from >= anonProc.From && Node.to <= anonProc.To) {
-        anonProc.Variables.map((variable) => {
-          vars.push(variable.Name);
-        });
-        vars = vars.concat(anonProc.Arguments);
+      if (
+        Node.from >= anonProc.PositionStart &&
+        Node.to <= anonProc.PositionEnd
+      ) {
+        anonProc.Variables.map((variable) => variable.Name).forEach((name) =>
+          procedureVars.push(name)
+        );
+        procedureVars.push(...anonProc.Arguments);
       }
     });
     if (procedure?.Arguments) {
-      procedureVars = vars.concat(procedure.Arguments);
+      procedureVars.push(...procedure.Arguments);
     }
   }
   return procedureVars.includes(value);

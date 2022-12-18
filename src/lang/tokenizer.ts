@@ -2,7 +2,6 @@ import { ExternalTokenizer } from '@lezer/lr';
 
 import {
   directives,
-  extensions,
   turtleVars,
   patchVars,
   linkVars,
@@ -116,7 +115,7 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(Constant);
   } else if (unsupported.indexOf(token) != -1) {
     input.acceptToken(Unsupported);
-  } else if (extensions.indexOf(token) != -1) {
+  } else if (PrimitiveManager.GetExtensions().indexOf(token) != -1) {
     input.acceptToken(Extension);
   } else {
     // Check if token is a reporter/commander

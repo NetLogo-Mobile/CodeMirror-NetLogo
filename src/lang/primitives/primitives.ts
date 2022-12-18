@@ -2,6 +2,7 @@ import { Primitive, NetLogoType, AgentContexts, Argument } from '../classes';
 import { Commands } from './commands';
 import { NLArgument, NLPrimitive, NLWPrimitive } from './nlstructures';
 import { Reporters } from './reporters';
+import { Completion } from '@codemirror/autocomplete';
 
 /** Primitives: Managing all primitives.  */
 export class Primitives {
@@ -9,25 +10,32 @@ export class Primitives {
   private Metadata: Map<string, Primitive> = new Map<string, Primitive>();
   /** SimpleArguments: The cache for simple arguments. */
   private SimpleArguments: Map<string, Argument> = new Map<string, Argument>();
+  /** Extensions: The dictionary for extensions. */
+  private Extensions: Map<string, Primitive[]> = new Map<string, Primitive[]>();
+  /** ExtensionNames: The list for known extensions. */
+  private ExtensionNames: string[] = [];
 
   /** ImportNLW: Import primitive metadatas from NLW. */
   public ImportNLW(Extension: string, Source: NLWPrimitive) {
-    this.Metadata.set(`${Extension}:${Source.name}`, {
+    const Name = Source.name.toLowerCase();
+    const Primitive = {
       Extension: Extension,
-      Name: Source.name,
+      Name: Name,
       LeftArgumentType: this.ConvertToArgument('unit'),
       RightArgumentTypes: this.ConvertToArguments(Source.argTypes),
       ReturnType: this.ConvertToArgument(Source.returnType),
       AgentContext: new AgentContexts(Source.agentClassString),
       Precedence: 0, // Needs to check with the actual code
-    });
+    };
+    this.Register(Extension, Primitive);
   }
 
   /** ImportNL: Import primitive metadatas from NetLogo. */
   public ImportNL(Extension: string, Source: NLPrimitive) {
-    this.Metadata.set(`${Extension}:${Source.name.toLowerCase()}`, {
+    const Name = Source.name.toLowerCase();
+    const Primitive = {
       Extension: Extension,
-      Name: Source.name,
+      Name: Name,
       LeftArgumentType: this.ConvertToArgument(Source.syntax.left),
       RightArgumentTypes: this.ConvertToArguments(Source.syntax.right),
       ReturnType: this.ConvertToArgument(Source.syntax.ret),
@@ -39,7 +47,21 @@ export class Primitives {
       IsRightAssociative: Source.syntax.isRightAssociative,
       IntroducesContext: Source.syntax.introducesContext == 'true',
       CanBeConcise: Source.syntax.canBeConcise,
-    });
+    };
+    this.Register(Extension, Primitive);
+  }
+  /** Register: Register a primitive information. */
+  public Register(Extension: string, Source: Primitive) {
+    if (!this.Metadata.has(`${Extension}:${Source.Name}`)) {
+      this.RegisterPrimitive(Extension, Source);
+      this.Metadata.set(`${Extension}:${Source.Name}`, Source);
+    }
+  }
+  /** RegisterPrimitive: Register a primitive for an extension. */
+  private RegisterPrimitive(Extension: string, Primitive: Primitive) {
+    if (this.ExtensionNames.indexOf(Extension) == -1)
+      this.Extensions.set(Extension, []);
+    this.Extensions.get(Extension)!.push(Primitive);
   }
 
   /** BuildInstance: Build a primitive manager instance. */
@@ -69,6 +91,25 @@ export class Primitives {
   /** IsReporter: Is the primitive a reporter. */
   public IsReporter(Source: Primitive): boolean {
     return Source.ReturnType == this.SimpleArguments.get('unit');
+  }
+  /** GetExtensions: Get the names of extensions. */
+  public GetExtensions(): string[] {
+    return this.ExtensionNames;
+  }
+  /** GetCompletions: Get a proper completion list for primitives. */
+  public GetCompletions(Extensions: string[]): Completion[] {
+    var Results: Completion[] = [];
+    for (var Primitive of this.Metadata.values()) {
+      if (
+        Primitive.Extension == '' ||
+        Extensions.indexOf(Primitive.Extension) != -1
+      )
+        Results.push({
+          label: Primitive.Name,
+          type: this.IsReporter(Primitive) ? 'Reporter' : 'Command',
+        });
+    }
+    return Results;
   }
 
   /** ConvertToArguments: Convert NetLogo arguments to our format. */

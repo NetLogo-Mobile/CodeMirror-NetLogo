@@ -101,57 +101,31 @@ export class Breed {
 /** Procedure: Dynamic metadata of a procedure. */
 export class Procedure {
   /** name: The name of the procedure. */
-  public Name: string;
+  public Name: string = '';
   /** Arguments: The arguments of the procedure. */
-  public Arguments: string[];
+  public Arguments: string[] = [];
   /** Variables: local variables defined for the procedure. */
-  public Variables: LocalVariable[];
+  public Variables: LocalVariable[] = [];
   /** AnonymousProcedures: anonymous procedures defined for the procedure. */
-  public AnonymousProcedures: AnonymousProcedure[];
+  public AnonymousProcedures: AnonymousProcedure[] = [];
   /** PositionStart: The starting position of the procedure in the document. */
-  public PositionStart: number;
+  public PositionStart: number = 0;
   /** PositionEnd: The end position of the procedure in the document. */
-  public PositionEnd: number;
-  /** Build a procedure. */
-  public constructor(
-    Name: string,
-    Arguments: string[],
-    Variables: LocalVariable[],
-    AnonymousProcedures: AnonymousProcedure[],
-    PositionStart: number,
-    PositionEnd: number
-  ) {
-    this.Name = Name;
-    this.Arguments = Arguments;
-    this.Variables = Variables;
-    this.AnonymousProcedures = AnonymousProcedures;
-    this.PositionStart = PositionStart;
-    this.PositionEnd = PositionEnd;
-  }
+  public PositionEnd: number = 0;
+  /** IsCommand: Is the procedure a command (to) instead of a reporter (to-report)? */
+  public IsCommand: boolean = false;
 }
 
 /** Procedure: Dynamic metadata of an anonymous procedure. */
 export class AnonymousProcedure {
-  /** From: The position at the start of the procedure */
-  public From: number;
-  /** To: The position at the end of the procedure */
-  public To: number;
+  /** PositionStart: The position at the start of the procedure. */
+  public PositionStart: number = 0;
+  /** PositionEnd: The position at the end of the procedure. */
+  public PositionEnd: number = 0;
   /** Arguments: The arguments of the procedure. */
-  public Arguments: string[];
+  public Arguments: string[] = [];
   /** Variables: local variables defined for the procedure. */
-  public Variables: LocalVariable[];
-  /** Build an anonymous procedure. */
-  public constructor(
-    From: number,
-    To: number,
-    Arguments: string[],
-    Variables: LocalVariable[]
-  ) {
-    this.From = From;
-    this.To = To;
-    this.Arguments = Arguments;
-    this.Variables = Variables;
-  }
+  public Variables: LocalVariable[] = [];
 }
 
 /** LocalVariable: metadata for local variables */

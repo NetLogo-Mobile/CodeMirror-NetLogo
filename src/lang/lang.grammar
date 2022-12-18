@@ -129,7 +129,7 @@ CodeBlock {
   OpenBracket ProcedureContent* CloseBracket ~statement
 }
 
-ReporterBlock{
+ReporterBlock {
   OpenBracket Reporters CloseBracket
 }
 

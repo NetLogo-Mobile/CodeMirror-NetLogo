@@ -129,32 +129,29 @@ export class StateNetLogo {
       }
       // get procedures
       if (Cursor.node.name == 'Procedure') {
-        // TODO: From & To.
-        let procedure = new Procedure(
-          '',
-          [],
-          [],
-          [],
-          Cursor.node.from,
-          Cursor.node.to
-        );
+        let procedure = new Procedure();
+        procedure.PositionStart = Cursor.node.from;
+        procedure.PositionEnd = Cursor.node.to;
+        procedure.IsCommand =
+          this.getText(
+            State,
+            Cursor.node.getChildren('To')[0].node
+          ).toLowerCase() == 'to';
         Cursor.node.getChildren('ProcedureName').map((node) => {
           procedure.Name = this.getText(State, node);
         });
         procedure.Arguments = this.getArgs(Cursor.node, State);
         procedure.Variables = this.getLocalVars(Cursor.node, State, false);
-
+        // Anonymous procedure
         Cursor.node.cursor().iterate((noderef) => {
           if (noderef.node.to > Cursor.node.to) {
             return false;
           }
           if (noderef.name == 'AnonymousProcedure') {
-            let anonProc = new AnonymousProcedure(
-              noderef.from,
-              noderef.to,
-              [],
-              procedure.Variables
-            );
+            let anonProc = new AnonymousProcedure();
+            anonProc.PositionStart = Cursor.node.from;
+            anonProc.PositionEnd = Cursor.node.to;
+            anonProc.Variables = procedure.Variables;
             let args: string[] = [];
             let Node = noderef.node;
             Node.getChildren('AnonArguments').map((node) => {
