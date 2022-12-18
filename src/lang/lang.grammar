@@ -105,11 +105,11 @@ VariableName {
 }
 
 Value {
-  OpenParen Value CloseParen  |
+  OpenParen Value CloseParen |
   String |
   Constant |
-  Reporters|
-  VariableName|
+  Reporters |
+  VariableName |
   List |
   Numeric |
   AnonymousProcedure

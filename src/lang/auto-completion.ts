@@ -165,6 +165,7 @@ export class AutoCompletion {
           type: Procedure.IsCommand ? 'Command-Custom' : 'Reporter-Custom',
         });
       }
+
       return { from, options: results };
     }
 

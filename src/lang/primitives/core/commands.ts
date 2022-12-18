@@ -1,4 +1,4 @@
-import { NLPrimitive } from './nlstructures';
+import { NLPrimitive } from './../nlstructures';
 
 const Commands: NLPrimitive[] = [
   {

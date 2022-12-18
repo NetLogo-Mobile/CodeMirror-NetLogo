@@ -1,0 +1,35 @@
+{
+  "name": "fetch",
+  "prims": [
+    {
+      "name": "file",
+      "argTypes": ["string"],
+      "returnType": "string"
+    },
+    {
+      "name": "file-async",
+      "argTypes": ["string", "command"],
+      "returnType": "unit"
+    },
+    {
+      "name": "url",
+      "argTypes": ["string"],
+      "returnType": "string"
+    },
+    {
+      "name": "url-async",
+      "argTypes": ["string", "command"],
+      "returnType": "unit"
+    },
+    {
+      "name": "user-file",
+      "argTypes": [],
+      "returnType": "string"
+    },
+    {
+      "name": "user-file-async",
+      "argTypes": ["command"],
+      "returnType": "unit"
+    }
+  ]
+}

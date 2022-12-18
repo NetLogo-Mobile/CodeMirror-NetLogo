@@ -6,7 +6,8 @@
     "check-types": "npx tsc --noEmit",
     "lint": "npx eslint 'src/**/*.{js,jsx,ts,tsx}' --fix",
     "prettier": "npx prettier --write .",
-    "build": "lezer-generator ./src/lang/lang.grammar -o ./src/lang/lang.js && rollup -c"
+    "build": "lezer-generator ./src/lang/lang.grammar -o ./src/lang/lang.js && rollup -c",
+    "import": "ts-node --esm src/lang/primitives/importer.ts"
   },
   "dependencies": {
     "@codemirror/commands": "^6.1.1",
@@ -23,6 +24,7 @@
     "codemirror": "^6.0.1",
     "minimist": "^1.2.6",
     "rollup": "^2.79.1",
+    "ts-node": "^10.9.1",
     "tslib": "^2.4.0"
   },
   "devDependencies": {

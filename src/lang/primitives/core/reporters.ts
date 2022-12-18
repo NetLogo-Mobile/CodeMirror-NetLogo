@@ -1,5 +1,4 @@
-import { NLPrimitive } from './nlstructures';
-import { Primitives } from './primitives';
+import { NLPrimitive } from '../nlstructures';
 
 const Reporters: NLPrimitive[] = [
   {

@@ -1,0 +1,15 @@
+{
+  "name": "http-req",
+  "prims": [
+    {
+      "name": "get",
+      "argTypes": ["string"],
+      "returnType": "list"
+    },
+    {
+      "name": "post",
+      "argTypes": ["string", "string", "string"],
+      "returnType": "list"
+    }
+  ]
+}

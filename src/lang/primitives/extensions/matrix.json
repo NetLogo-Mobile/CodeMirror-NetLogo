@@ -1,0 +1,253 @@
+{
+  "name": "matrix",
+  "prims": [
+    {
+      "name": "IS-MATRIX?",
+      "argTypes": ["wildcard"],
+      "returnType": "boolean"
+    },
+    {
+      "name": "REGRESS",
+      "argTypes": ["wildcard"],
+      "returnType": "list"
+    },
+    {
+      "name": "FORECAST-CONTINUOUS-GROWTH",
+      "argTypes": ["list"],
+      "returnType": "list"
+    },
+    {
+      "name": "FORECAST-COMPOUND-GROWTH",
+      "argTypes": ["list"],
+      "returnType": "list"
+    },
+    {
+      "name": "FORECAST-LINEAR-GROWTH",
+      "argTypes": ["list"],
+      "returnType": "list"
+    },
+    {
+      "name": "MAKE-CONSTANT",
+      "argTypes": ["number", "number", "number"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "DIMENSIONS",
+      "argTypes": ["wildcard"],
+      "returnType": "list"
+    },
+    {
+      "name": "DET",
+      "argTypes": ["wildcard"],
+      "returnType": "number"
+    },
+    {
+      "name": "RANK",
+      "argTypes": ["wildcard"],
+      "returnType": "number"
+    },
+    {
+      "name": "TRACE",
+      "argTypes": ["wildcard"],
+      "returnType": "number"
+    },
+    {
+      "name": "MAKE-IDENTITY",
+      "argTypes": ["number"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "FROM-ROW-LIST",
+      "argTypes": ["list"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "FROM-COLUMN-LIST",
+      "argTypes": ["list"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "TO-ROW-LIST",
+      "argTypes": ["wildcard"],
+      "returnType": "list"
+    },
+    {
+      "name": "TO-COLUMN-LIST",
+      "argTypes": ["wildcard"],
+      "returnType": "list"
+    },
+    {
+      "name": "COPY",
+      "argTypes": ["wildcard"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "PRETTY-PRINT-TEXT",
+      "argTypes": ["wildcard"],
+      "returnType": "string"
+    },
+    {
+      "name": "SOLVE",
+      "argTypes": ["wildcard", "wildcard"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "GET",
+      "argTypes": ["wildcard", "number", "number"],
+      "returnType": "number"
+    },
+    {
+      "name": "GET-ROW",
+      "argTypes": ["wildcard", "number"],
+      "returnType": "number"
+    },
+    {
+      "name": "GET-COLUMN",
+      "argTypes": ["wildcard", "number"],
+      "returnType": "number"
+    },
+    {
+      "name": "SET",
+      "argTypes": ["wildcard", "number", "number", "number"]
+    },
+    {
+      "name": "SET-ROW",
+      "argTypes": ["wildcard", "number", "list"]
+    },
+    {
+      "name": "SET-COLUMN",
+      "argTypes": ["wildcard", "number", "list"]
+    },
+    {
+      "name": "SWAP-ROWS",
+      "argTypes": ["wildcard", "number", "number"],
+      "returnType": "unit"
+    },
+    {
+      "name": "SWAP-COLUMNS",
+      "argTypes": ["wildcard", "number", "number"],
+      "returnType": "unit"
+    },
+    {
+      "name": "SET-AND-REPORT",
+      "argTypes": ["wildcard", "number", "number", "number"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "SUBMATRIX",
+      "argTypes": ["wildcard", "number", "number", "number", "number"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "MAP",
+      "argTypes": [
+        "reporter",
+        {
+          "type": "wildcard",
+          "isRepeatable": true
+        }
+      ],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "TIMES-SCALAR",
+      "argTypes": ["wildcard", "number"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "TIMES",
+      "argTypes": [
+        "wildcard",
+        {
+          "type": "wildcard",
+          "isRepeatable": true
+        }
+      ],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "*",
+      "argTypes": ["wildcard", "wildcard"],
+      "returnType": "wildcard",
+      "isInfix": true,
+      "precedenceOffset": -2
+    },
+    {
+      "name": "TIMES-ELEMENT-WISE",
+      "argTypes": [
+        "wildcard",
+        {
+          "type": "wildcard",
+          "isRepeatable": true
+        }
+      ],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "PLUS-SCALAR",
+      "argTypes": ["wildcard", "number"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "PLUS",
+      "argTypes": [
+        "wildcard",
+        {
+          "type": "wildcard",
+          "isRepeatable": true
+        }
+      ],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "+",
+      "argTypes": ["wildcard", "wildcard"],
+      "returnType": "wildcard",
+      "isInfix": true,
+      "precedenceOffset": -3
+    },
+    {
+      "name": "MINUS",
+      "argTypes": [
+        "wildcard",
+        {
+          "type": "wildcard",
+          "isRepeatable": true
+        }
+      ],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "-",
+      "argTypes": ["wildcard", "wildcard"],
+      "returnType": "wildcard",
+      "isInfix": true,
+      "precedenceOffset": -3
+    },
+    {
+      "name": "INVERSE",
+      "argTypes": ["wildcard"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "TRANSPOSE",
+      "argTypes": ["wildcard"],
+      "returnType": "wildcard"
+    },
+    {
+      "name": "REAL-EIGENVALUES",
+      "argTypes": ["wildcard"],
+      "returnType": "list"
+    },
+    {
+      "name": "IMAGINARY-EIGENVALUES",
+      "argTypes": ["wildcard"],
+      "returnType": "list"
+    },
+    {
+      "name": "EIGENVECTORS",
+      "argTypes": ["wildcard"],
+      "returnType": "wildcard"
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "name": "tune",
+  "prims": [
+    {
+      "name": "drums",
+      "argTypes": [],
+      "returnType": "list"
+    },
+    {
+      "name": "instruments",
+      "argTypes": [],
+      "returnType": "list"
+    },
+    {
+      "name": "use",
+      "argTypes": [{ "types": ["string", "number"] }],
+      "returnType": "unit"
+    },
+    {
+      "name": "tempo",
+      "argTypes": ["number"],
+      "returnType": "unit"
+    },
+    {
+      "name": "note",
+      "argTypes": [{ "type": "number", "isRepeatable": true }],
+      "returnType": "unit"
+    },
+    {
+      "name": "rest",
+      "argTypes": ["number"],
+      "returnType": "unit"
+    },
+    {
+      "name": "loop",
+      "argTypes": [],
+      "returnType": "unit"
+    },
+    {
+      "name": "once",
+      "argTypes": [],
+      "returnType": "unit"
+    },
+    {
+      "name": "loop-then",
+      "argTypes": [{ "types": ["string", "command"] }],
+      "returnType": "unit"
+    },
+    {
+      "name": "once-then",
+      "argTypes": [{ "types": ["string", "command"] }],
+      "returnType": "unit"
+    },
+    {
+      "name": "who",
+      "argTypes": [],
+      "returnType": "number"
+    },
+    {
+      "name": "volume",
+      "argTypes": ["number"],
+      "returnType": "unit"
+    },
+    {
+      "name": "moveto",
+      "argTypes": ["number"],
+      "returnType": "unit"
+    },
+    {
+      "name": "rewind",
+      "argTypes": ["number"],
+      "returnType": "unit"
+    },
+    {
+      "name": "forward",
+      "argTypes": ["number"],
+      "returnType": "unit"
+    },
+    {
+      "name": "clear",
+      "argTypes": [],
+      "returnType": "unit"
+    },
+    {
+      "name": "stop",
+      "argTypes": ["number"],
+      "returnType": "unit"
+    }
+  ]
+}

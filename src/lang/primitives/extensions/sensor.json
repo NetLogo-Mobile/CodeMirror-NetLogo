@@ -1,0 +1,83 @@
+{
+  "name": "sensor",
+  "prims": [
+    {
+      "name": "clear",
+      "actionName": "clear",
+      "argTypes": [],
+      "returnType": "unit"
+    },
+    {
+      "name": "bind-gesture",
+      "actionName": "bind-gesture",
+      "argTypes": ["string", { "types": ["string", "command"] }],
+      "returnType": "unit"
+    },
+    {
+      "name": "unbind-gesture",
+      "actionName": "unbind-gesture",
+      "argTypes": ["string"],
+      "returnType": "unit"
+    },
+    {
+      "name": "touches",
+      "actionName": "touches",
+      "argTypes": [],
+      "returnType": "list"
+    },
+    {
+      "name": "touch-size",
+      "actionName": "touch-size",
+      "argTypes": [],
+      "returnType": "number"
+    },
+    {
+      "name": "touch",
+      "actionName": "touch",
+      "argTypes": ["number"],
+      "returnType": "list"
+    },
+    {
+      "name": "open",
+      "actionName": "open",
+      "argTypes": ["string"],
+      "returnType": "unit"
+    },
+    {
+      "name": "close",
+      "actionName": "close",
+      "argTypes": ["string"],
+      "returnType": "unit"
+    },
+    {
+      "name": "on-change",
+      "actionName": "on-change",
+      "argTypes": ["string", { "types": ["string", "command"] }],
+      "returnType": "unit"
+    },
+    {
+      "name": "read-number",
+      "actionName": "read-number",
+      "argTypes": ["string"],
+      "returnType": "number"
+    },
+    {
+      "name": "read-vector",
+      "actionName": "read-vector",
+      "argTypes": ["string"],
+      "returnType": "list"
+    },
+    {
+      "name": "is-available?",
+      "actionName": "is-available?",
+      "argTypes": ["string"],
+      "returnType": "boolean"
+    },
+    {
+      "name": "set-warning",
+      "actionName": "set-warning",
+      "argTypes": ["boolean"],
+      "returnType": "unit"
+    }
+  ]
+}

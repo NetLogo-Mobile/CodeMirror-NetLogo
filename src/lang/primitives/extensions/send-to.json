@@ -1,0 +1,10 @@
+{
+  "name": "send-to",
+  "prims": [
+    {
+      "name": "file",
+      "argTypes": ["string", "string"],
+      "returnType": "unit"
+    }
+  ]
+}

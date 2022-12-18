@@ -16,10 +16,10 @@ export interface Primitive {
   AgentContext: AgentContexts;
   /** AgentContext: Context in the command block of the primitive. */
   BlockContext?: AgentContexts;
-  /** DefaultOption: Unsure what this is for. */
-  DefaultOption?: number | null;
-  /** MinimumOption: Unsure what this is for. */
-  MinimumOption?: number | null;
+  /** DefaultOption: Default number of arguments. */
+  DefaultOption?: number;
+  /** MinimumOption: Minimum number of arguments. */
+  MinimumOption?: number;
   /** IsRightAssociative: Unsure what this is for. */
   IsRightAssociative?: boolean;
   /** IntroducesContext: If this primitive introduces a new context. */

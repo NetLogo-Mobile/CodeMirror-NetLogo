@@ -2,7 +2,7 @@
 export interface NLWPrimitive {
   name: string;
   argTypes: string[];
-  returnType: string;
+  returnType?: string;
   agentClassString?: string;
 }
 
@@ -10,7 +10,7 @@ export interface NLWPrimitive {
 export interface NLArgument {
   type?: string;
   types?: string[];
-  isRepeatable: boolean;
+  isRepeatable?: boolean;
   isOptional?: boolean;
 }
 
