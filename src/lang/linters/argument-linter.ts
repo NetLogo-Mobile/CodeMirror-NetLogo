@@ -6,6 +6,7 @@ import { preprocessStateExtension } from '../../codemirror/extension-regex-state
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
 import { Agent } from 'http';
+import { Localized } from '../../i18n/localized';
 
 let primitives = PrimitiveManager;
 
@@ -29,19 +30,23 @@ export const ArgumentLinter = linter((view) => {
           args.func &&
           !checkValid(Node, value, view.state, args)
         ) {
+          // We need to make the error message much more clearer. It will also help debug.
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
             severity: 'error',
-            message: 'Invalid number of arguments',
-            actions: [
+            message: Localized.Get(
+              'Invalid number of arguments for _. Expected _, found _.',
+              value
+            ),
+            /* actions: [
               {
                 name: 'Remove',
                 apply(view, from, to) {
                   view.dispatch({ changes: { from, to } });
                 },
               },
-            ],
+            ], */
           });
         }
       }
@@ -98,7 +103,7 @@ export const checkValid = function (
       getBreedProcedureArgs(args.func.name);
     return numArgs == args.rightArgs.length;
   } else {
-    let primitive = primitives.GetPrimitive('', func);
+    let primitive = primitives.GetNamedPrimitive(func);
     if (!primitive) {
       console.log('no primitive', args.func?.name, func);
       return false;

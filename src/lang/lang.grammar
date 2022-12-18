@@ -25,7 +25,7 @@ Unrecognized {
 globalStatement {
   Extensions { ExtensionStr OpenBracket Extension* CloseBracket } |
 
-  Globals { GlobalStr OpenBracket  Identifier* CloseBracket  } |
+  Globals { GlobalStr OpenBracket Identifier* CloseBracket  } |
 
   Breed { BreedDeclarative OpenBracket BreedPlural BreedSingular CloseBracket } |
 
@@ -155,7 +155,6 @@ Reporters {
   Reporter5Args Arg Arg Arg Arg !lastArgs Arg+ |
   Reporter6Args Arg Arg Arg Arg Arg !lastArgs Arg+ |
   Arg !comparative AndOr Arg
-   
 }
 
 CommandStatement {

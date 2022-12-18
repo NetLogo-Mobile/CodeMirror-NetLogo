@@ -64,10 +64,11 @@ export class AutoCompletion {
     Breed: [], // Names of breeds
     ProcedureName: [], // Names of procedures
     Arguments: [], // Arguments of procedures
-    VariableName: this.KeywordsToCompletions(
+    /* VariableName: this.KeywordsToCompletions(
       [...turtleVars, ...patchVars, ...linkVars],
       'Variable-Builtin'
-    ), // Built-in variable names
+    ), // Built-in variable names*/
+    // Temporary fix
   };
   /** ParentTypes: Types of keywords.  */
   private ParentTypes = Object.keys(this.ParentMaps);
