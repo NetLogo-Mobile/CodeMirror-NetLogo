@@ -2,9 +2,7 @@ import { ExternalTokenizer } from '@lezer/lr';
 
 import {
   directives,
-  commands,
   extensions,
-  reporters,
   turtleVars,
   patchVars,
   linkVars,
@@ -42,11 +40,9 @@ import {
   // @ts-ignore
 } from './lang.terms.js';
 
-import { Reporters } from './primitives/reporters.js';
-import { Commands } from './primitives/commands.js';
-import { NetLogoType, Primitive } from './classes';
 import { ParseContext } from '@codemirror/language';
 import { preprocessStateExtension } from '../codemirror/extension-regex-state';
+import { PrimitiveManager } from './primitives/primitives';
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer((input) => {
@@ -59,9 +55,6 @@ export const keyword = new ExternalTokenizer((input) => {
   if (token == '') return;
   token = token.toLowerCase();
   // Find if the token belongs to any category
-  // Check if token is a breed reporter/command
-  // JC: Match should be done only when needed to booster the performance.
-
   // When these were under the regular tokenizer, they matched to word parts rather than whole words
   if (token == 'set') {
     input.acceptToken(Set);
@@ -78,11 +71,6 @@ export const keyword = new ExternalTokenizer((input) => {
   } else if (token == 'extensions') {
     input.acceptToken(ExtensionStr);
   } else if (
-    token == 'mod' ||
-    token == 'in-radius' ||
-    token == 'at-points' ||
-    token == 'of' ||
-    token == 'with' ||
     [
       '+',
       '-',
@@ -97,6 +85,11 @@ export const keyword = new ExternalTokenizer((input) => {
       '>=',
       'and',
       'or',
+      'mod',
+      'in-radius',
+      'at-points',
+      'of',
+      'with',
     ].indexOf(token) > -1
   ) {
     input.acceptToken(ReporterLeftArgs1);
@@ -123,23 +116,31 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(Constant);
   } else if (unsupported.indexOf(token) != -1) {
     input.acceptToken(Unsupported);
-  } else if (commands.indexOf(token) != -1) {
-    input.acceptToken(Command);
-  } else if (reporters.indexOf(token) != -1) {
-    input.acceptToken(Reporter);
   } else if (extensions.indexOf(token) != -1) {
     input.acceptToken(Extension);
   } else {
+    // Check if token is a reporter/commander
+    const primitive = PrimitiveManager.GetNamedPrimitive(token);
+    if (primitive != null) {
+      if (PrimitiveManager.IsReporter(primitive)) {
+        input.acceptToken(Reporter);
+      } else {
+        input.acceptToken(Command);
+      }
+      return;
+    }
+    // Check if token is a breed reporter/command
     const match = matchBreed(token);
     if (match != 0) {
       input.acceptToken(match);
+      return;
+    }
+    // Check if token is a custom procedure
+    const customMatch = matchCustomProcedure(token);
+    if (customMatch != 0) {
+      input.acceptToken(customMatch);
     } else {
-      const customMatch = matchCustomProcedure(token);
-      if (customMatch != 0) {
-        input.acceptToken(customMatch);
-      } else {
-        input.acceptToken(Identifier);
-      }
+      input.acceptToken(Identifier);
     }
   }
 });
