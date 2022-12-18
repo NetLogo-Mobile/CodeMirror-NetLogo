@@ -51572,8 +51572,12 @@
                BreedsOwn: [],
                Breed: [],
                ProcedureName: [],
-               Arguments: [],
-               VariableName: this.KeywordsToCompletions([...turtleVars, ...patchVars, ...linkVars], 'Variable-Builtin'), // Built-in variable names
+               Arguments: [], // Arguments of procedures
+               /* VariableName: this.KeywordsToCompletions(
+                 [...turtleVars, ...patchVars, ...linkVars],
+                 'Variable-Builtin'
+               ), // Built-in variable names*/
+               // Temporary fix
            };
            /** ParentTypes: Types of keywords.  */
            this.ParentTypes = Object.keys(this.ParentMaps);
