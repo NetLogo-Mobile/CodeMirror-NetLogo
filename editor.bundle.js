@@ -24277,766 +24277,6 @@
        'extensions',
        '__includes',
    ];
-   const commands = [
-       '__apply',
-       '__bench',
-       '__change-topology',
-       '__done',
-       '__experimentstepend',
-       '__export-drawing',
-       '__foreverbuttonend',
-       '__ignore',
-       '__let',
-       '__linkcode',
-       '__make-preview',
-       '__mkdir',
-       '__observercode',
-       '__patchcode',
-       '__plot-pen-hide',
-       '__plot-pen-show',
-       '__pwd',
-       '__reload-extensions',
-       '__set-line-thickness',
-       '__stderr',
-       '__stdout',
-       '__thunk-did-finish',
-       '__turtlecode',
-       'ask',
-       'ask-concurrent',
-       'auto-plot-off',
-       'auto-plot-on',
-       'back',
-       'beep',
-       'bk',
-       'ca',
-       'carefully',
-       'cd',
-       'clear-all',
-       'clear-all-plots',
-       'clear-drawing',
-       'clear-globals',
-       'clear-links',
-       'clear-output',
-       'clear-patches',
-       'clear-plot',
-       'clear-ticks',
-       'clear-turtles',
-       'cp',
-       'create-link-from',
-       'create-link-to',
-       'create-link-with',
-       'create-links-from',
-       'create-links-to',
-       'create-links-with',
-       'create-ordered-turtles',
-       'create-temporary-plot-pen',
-       'create-turtles',
-       'cro',
-       'crt',
-       'ct',
-       'die',
-       'diffuse',
-       'diffuse4',
-       'display',
-       'downhill',
-       'downhill4',
-       'error',
-       'every',
-       'export-all-plots',
-       'export-interface',
-       'export-output',
-       'export-plot',
-       'export-view',
-       'export-world',
-       'face',
-       'facexy',
-       'fd',
-       'file-close',
-       'file-close-all',
-       'file-delete',
-       'file-flush',
-       'file-open',
-       'file-print',
-       'file-show',
-       'file-type',
-       'file-write',
-       'follow',
-       'follow-me',
-       'foreach',
-       'forward',
-       'hatch',
-       'hide-link',
-       'hide-turtle',
-       'histogram',
-       'home',
-       'help',
-       'ht',
-       'hubnet-broadcast',
-       'hubnet-broadcast-clear-output',
-       'hubnet-broadcast-message',
-       'hubnet-clear-override',
-       'hubnet-clear-overrides',
-       'hubnet-kick-all-clients',
-       'hubnet-kick-client',
-       'hubnet-fetch-message',
-       'hubnet-reset',
-       'hubnet-reset-perspective',
-       'hubnet-send',
-       'hubnet-send-clear-output',
-       'hubnet-send-follow',
-       'hubnet-send-message',
-       'hubnet-send-override',
-       'hubnet-send-watch',
-       'if',
-       'if-else',
-       'ifelse',
-       'import-drawing',
-       'import-pcolors',
-       'import-pcolors-rgb',
-       'import-world',
-       'inspect',
-       'jump',
-       'layout-circle',
-       'layout-radial',
-       'layout-spring',
-       'layout-tutte',
-       'left',
-       'let',
-       'loop',
-       'lt',
-       'move-to',
-       'no-display',
-       'output-print',
-       'output-show',
-       'output-type',
-       'output-write',
-       'pd',
-       'pe',
-       'pen-down',
-       'pen-erase',
-       'pen-up',
-       'pendown',
-       'penup',
-       'plot',
-       'plot-pen-down',
-       'plot-pen-reset',
-       'plot-pen-up',
-       'plotxy',
-       'print',
-       'pu',
-       'random-seed',
-       'repeat',
-       'report',
-       'reset-perspective',
-       'reset-ticks',
-       'reset-timer',
-       'resize-world',
-       'ride',
-       'ride-me',
-       'right',
-       'rp',
-       'rt',
-       'run',
-       'set',
-       'set-current-directory',
-       'set-current-plot',
-       'set-current-plot-pen',
-       'set-default-shape',
-       'set-histogram-num-bars',
-       'set-patch-size',
-       'set-plot-background-color',
-       'set-plot-pen-color',
-       'set-plot-pen-interval',
-       'set-plot-pen-mode',
-       'set-plot-x-range',
-       'set-plot-y-range',
-       'setup-plots',
-       'setxy',
-       'show',
-       'show-link',
-       'show-turtle',
-       'sprout',
-       'st',
-       'stamp',
-       'stamp-erase',
-       'stop',
-       'stop-inspecting',
-       'stop-inspecting-dead-agents',
-       'tick',
-       'tick-advance',
-       'tie',
-       'type',
-       'untie',
-       'update-plots',
-       'uphill',
-       'uphill4',
-       'user-message',
-       'wait',
-       'watch',
-       'watch-me',
-       'while',
-       'with-local-randomness',
-       'without-interruption',
-       'write',
-   ];
-   const extensionCommands = [
-       'array:set',
-       'matrix:set',
-       'matrix:set-row',
-       'matrix:set-column',
-       'matrix:swap-rows',
-       'matrix:swap-columns',
-       'table:clear',
-       'table:put',
-       'table:remove',
-       'dialog:user-input',
-       'dialog:user-message',
-       'dialog:user-one-of',
-       'dialog:user-yes-or-no?',
-       'tutorial:show-dialog',
-       'tutorial:minimize-dialog',
-       'tutorial:hide-dialog',
-       'tutorial:back-dialog',
-       'tutorial:submit-input',
-       'tutorial:get',
-       'tutorial:set',
-       'tutorial:activate',
-       'tutorial:survey',
-       'tutorial:activate',
-       'tutorial:deactivate',
-       'tutorial:back',
-       'tutorial:forward',
-       'tutorial:go',
-       'widget:show',
-       'widget:hide',
-       'widget:move',
-       'widget:toast',
-       'widget:set-title',
-       'widget:bind',
-       'widget:unbind',
-       'widget:set-group',
-       'widget:show-group',
-       'widget:hide-group',
-       'widget:move-group',
-       'widget:rename-group',
-       'widget:show-joystick',
-       'widget:hide-joystick',
-       'widget:bind-joystick',
-       'workspace:play',
-       'workspace:pause',
-       'workspace:show',
-       'workspace:hide',
-       'workspace:bind',
-       'workspace:unbind',
-       'workspace:unbind-all',
-       'workspace:trigger',
-       'workspace:set-speed',
-       'workspace:recompile',
-       'workspace:clear-commands',
-       'workspace:execute-command',
-       'plot:show',
-       'plot:hide',
-       'plot:activate',
-       'plot:move',
-       'plot:set-title',
-       'plot:bind',
-       'plot:unbind',
-       'nettango:recompile',
-       'nettango:activate',
-       'nettango:show',
-       'nettango:hide',
-       'nettango:show-blocks',
-       'nettango:show-blocks-except',
-       'nettango:hide-blocks',
-       'nettango:hide-blocks-except',
-       'nettango:highlight-blocks',
-       'nettango:highlight-blocks-except',
-       'nettango:switch-program',
-       'sound:play-drum',
-       'sound:play-note',
-       'sound:play-note-later',
-       'sound:start-note',
-       'sound:stop-note',
-       'sound:stop-instrument',
-       'sound:stop-music',
-       'tune:clear',
-       'tune:use',
-       'tune:tempo',
-       'tune:note',
-       'tune:rest',
-       'tune:loop',
-       'tune:once',
-       'tune:loop-then',
-       'tune:once-then',
-       'tune:volume',
-       'tune:moveto',
-       'tune:rewind',
-       'tune:forward',
-       'tune:stop',
-       'sensor:clear',
-       'sensor:bind-gesture',
-       'sensor:unbind-gesture',
-       'sensor:open',
-       'sensor:close',
-       'sensor:on-change',
-       'sensor:set-warning',
-       'phys:update',
-       'phys:clear-vectors',
-       'phys:show-vector',
-       'phys:show-orthogonal',
-       'phys:hide-vectors',
-       'phys:contact-begin',
-       'phys:contact-end',
-       'phys:contact-stay',
-       'phys:filter-contact',
-       'phys:raycast-all',
-       'phys:all-contacts',
-       'phys:set-gravity',
-       'phys:set-physical',
-       'phys:set-group',
-       'phys:set-friction',
-       'phys:set-restitution',
-       'phys:set-density',
-       'phys:set-type',
-       'phys:set-mass',
-       'phys:set-origin',
-       'phys:set-v',
-       'phys:set-angular-v',
-       'phys:set-linear-damping',
-       'phys:set-angular-damping',
-       'phys:push',
-       'phys:apply-force',
-       'phys:apply-torque',
-       'phys:make-box',
-       'phys:make-circle',
-       'phys:make-polygon',
-       'phys:make-edges',
-       'phys:add-box',
-       'phys:add-circle',
-       'phys:add-polygon',
-       'phys:add-edges',
-       'phys:detach-joint',
-       'phys:distance-joint',
-       'phys:distance-joint-anchored',
-       'phys:mouse-joint',
-       'phys:set-length',
-       'phys:set-lengths',
-       'phys:set-linear-stiffness',
-       'phys:set-damping',
-       'phys:set-stiffness',
-       'phys:set-max-force',
-       'phys:set-max-torque',
-       'phys:set-force',
-       'phys:set-torque',
-   ];
-   const extensions = [
-       'array',
-       'bitmap',
-       'codap',
-       'csv',
-       'encode',
-       'dialog',
-       'export-the',
-       'fetch',
-       'fp',
-       'http-req',
-       'import-a',
-       'logging',
-       'matrix',
-       'mini-csv',
-       'nlmap',
-       'nt',
-       'palette',
-       'send-to',
-       'sound',
-       'store',
-       'table',
-       'plot',
-       'tutorial',
-       'widget',
-       'workspace',
-       'nettango',
-       'sensor',
-       'tune',
-       'phys',
-   ];
-   const reporters = [
-       '!=',
-       '*',
-       '+',
-       '-',
-       '/',
-       '<',
-       '<=',
-       '=',
-       '>',
-       '>=',
-       '^',
-       '__apply-result',
-       '__boom',
-       '__check-syntax',
-       '__dump',
-       '__dump-extension-prims',
-       '__dump-extensions',
-       '__dump1',
-       '__hubnet-in-q-size',
-       '__hubnet-out-q-size',
-       '__nano-time',
-       '__patchcol',
-       '__patchrow',
-       '__processors',
-       '__random-state',
-       '__stack-trace',
-       '__to-string',
-       'abs',
-       'acos',
-       'all?',
-       'and',
-       'any?',
-       'approximate-hsb',
-       'approximate-rgb',
-       'asin',
-       'at-points',
-       'atan',
-       'autoplot?',
-       'base-colors',
-       'behaviorspace-experiment-name',
-       'behaviorspace-run-number',
-       'bf',
-       'bl',
-       'both-ends',
-       'but-first',
-       'but-last',
-       'butfirst',
-       'butlast',
-       'can-move?',
-       'ceiling',
-       'cos',
-       'count',
-       'date-and-time',
-       'distance',
-       'distance-nowrap',
-       'distancexy',
-       'distancexy-nowrap',
-       'dx',
-       'dy',
-       'empty?',
-       'end1',
-       'end2',
-       'error-message',
-       'exp',
-       'extract-hsb',
-       'extract-rgb',
-       'file-at-end?',
-       'file-exists?',
-       'file-read',
-       'file-read-characters',
-       'file-read-line',
-       'filter',
-       'first',
-       'floor',
-       'fput',
-       'hsb',
-       'hubnet-clients-list',
-       'hubnet-enter-message?',
-       'hubnet-exit-message?',
-       'hubnet-message',
-       'hubnet-message-source',
-       'hubnet-message-tag',
-       'hubnet-message-waiting?',
-       'ifelse-value',
-       'in-cone',
-       'in-cone-nowrap',
-       'in-link-from',
-       'in-link-neighbor?',
-       'in-link-neighbors',
-       'in-radius',
-       'in-radius-nowrap',
-       'insert-item',
-       'int',
-       'is-agent?',
-       'is-agentset?',
-       'is-anonymous-command?',
-       'is-anonymous-reporter?',
-       'is-boolean?',
-       'is-command-task?',
-       'is-directed-link?',
-       'is-link-set?',
-       'is-link?',
-       'is-list?',
-       'is-number?',
-       'is-patch-set?',
-       'is-patch?',
-       'is-reporter-task?',
-       'is-string?',
-       'is-turtle-set?',
-       'is-turtle?',
-       'is-undirected-link?',
-       'item',
-       'last',
-       'length',
-       'link',
-       'link-heading',
-       'link-length',
-       'link-neighbor?',
-       'link-neighbors',
-       'link-set',
-       'link-shapes',
-       'link-with',
-       'links',
-       'list',
-       'ln',
-       'log',
-       'lput',
-       'map',
-       'max',
-       'max-n-of',
-       'max-one-of',
-       'max-pxcor',
-       'max-pycor',
-       'mean',
-       'median',
-       'member?',
-       'min',
-       'min-n-of',
-       'min-one-of',
-       'min-pxcor',
-       'min-pycor',
-       'mod',
-       'modes',
-       'mouse-down?',
-       'mouse-inside?',
-       'mouse-xcor',
-       'mouse-ycor',
-       'movie-status',
-       'my-in-links',
-       'my-links',
-       'my-out-links',
-       'myself',
-       'n-of',
-       'n-values',
-       'neighbors',
-       'neighbors4',
-       'netlogo-applet?',
-       'netlogo-version',
-       'netlogo-web?',
-       'new-seed',
-       'no-links',
-       'no-patches',
-       'no-turtles',
-       'not',
-       'of',
-       'one-of',
-       'or',
-       'other',
-       'other-end',
-       'out-link-neighbor?',
-       'out-link-neighbors',
-       'out-link-to',
-       'patch',
-       'patch-ahead',
-       'patch-at',
-       'patch-at-heading-and-distance',
-       'patch-here',
-       'patch-left-and-ahead',
-       'patch-right-and-ahead',
-       'patch-set',
-       'patch-size',
-       'patches',
-       'plot-name',
-       'plot-pen-exists?',
-       'plot-x-max',
-       'plot-x-min',
-       'plot-y-max',
-       'plot-y-min',
-       'position',
-       'precision',
-       'random',
-       'random-exponential',
-       'random-float',
-       'random-gamma',
-       'random-normal',
-       'random-or-random-float',
-       'random-poisson',
-       'random-pxcor',
-       'random-pycor',
-       'random-xcor',
-       'random-ycor',
-       'range',
-       'read-from-string',
-       'reduce',
-       'remainder',
-       'remove',
-       'remove-duplicates',
-       'remove-item',
-       'replace-item',
-       'reverse',
-       'rgb',
-       'round',
-       'run-result',
-       'runresult',
-       'scale-color',
-       'se',
-       'self',
-       'sentence',
-       'shade-of?',
-       'shapes',
-       'shuffle',
-       'sin',
-       'sort',
-       'sort-by',
-       'sort-on',
-       'sqrt',
-       'standard-deviation',
-       'subject',
-       'sublist',
-       'substring',
-       'subtract-headings',
-       'sum',
-       'tan',
-       'task',
-       'ticks',
-       'timer',
-       'towards',
-       'towards-nowrap',
-       'towardsxy',
-       'towardsxy-nowrap',
-       'turtle',
-       'turtle-set',
-       'turtles',
-       'turtles-at',
-       'turtles-here',
-       'turtles-on',
-       'up-to-n-of',
-       'user-directory',
-       'user-file',
-       'user-input',
-       'user-new-file',
-       'user-one-of',
-       'user-yes-or-no?',
-       'value-from',
-       'values-from',
-       'variance',
-       'with',
-       'with-max',
-       'with-min',
-       'word',
-       'world-height',
-       'world-width',
-       'wrap-color',
-       'xor',
-   ];
-   const extensionReporters = [
-       'array:from-list',
-       'array:to-list',
-       'array:is-array?',
-       'array:length',
-       'array:item',
-       'csv:from-string',
-       'csv:from-row',
-       'csv:from-file',
-       'csv:to-string',
-       'csv:to-file',
-       'csv:to-row',
-       'matrix:is-matrix?',
-       'matrix:regress',
-       'matrix:forecast-continuous-growth',
-       'matrix:forecast-compound-growth',
-       'matrix:forecast-linear-growth',
-       'matrix:make-constant',
-       'matrix:dimensions',
-       'matrix:det',
-       'matrix:dimensions',
-       'matrix:rank',
-       'matrix:trace',
-       'matrix:make-identity',
-       'matrix:from-row-list',
-       'matrix:from-column-list',
-       'matrix:to-row-list',
-       'matrix:to-column-list',
-       'matrix:copy',
-       'matrix:pretty-print-text',
-       'matrix:solve',
-       'matrix:get',
-       'matrix:get-row',
-       'matrix:get-column',
-       'matrix:set-and-report',
-       'matrix:submatrix',
-       'matrix:map',
-       'matrix:times-scalar',
-       'matrix:times',
-       'matrix:times-element-wise',
-       'matrix:plus',
-       'matrix:plus-scalar',
-       'matrix:minus',
-       'matrix:inverse',
-       'matrix:transpose',
-       'matrix:real-eigenvalues',
-       'matrix:imaginary-eigenvalues',
-       'matrix:eigenvectors',
-       'table:is-table?',
-       'table:counts',
-       'table:group-agents',
-       'table:group-items',
-       'table:from-list',
-       'table:from-json',
-       'table:get',
-       'table:get-or-default',
-       'table:has-key?',
-       'table:keys',
-       'table:length',
-       'table:make',
-       'table:to-list',
-       'table:to-json',
-       'table:values',
-       'workspace:get-platform',
-       'tutorial:get',
-       'tutorial:in-tutorial?',
-       'tutorial:is-activated?',
-       'sound:drums',
-       'sound:instruments',
-       'tune:drums',
-       'tune:instruments',
-       'tune:who',
-       'sensor:touches',
-       'sensor:touch',
-       'sensor:touch-size',
-       'sensor:read-number',
-       'sensor:read-vector',
-       'sensor:is-available?',
-       'widget:joystick-x',
-       'widget:joystick-y',
-       'phys:get-gravity',
-       'phys:raycast',
-       'phys:pointcast',
-       'phys:query',
-       'phys:contacts',
-       'phys:turtles-here',
-       'phys:turtles-around',
-       'phys:is-physical?',
-       'phys:get-friction',
-       'phys:get-restitution',
-       'phys:get-type',
-       'phys:get-group',
-       'phys:get-density',
-       'phys:get-mass',
-       'phys:get-origin',
-       'phys:get-v',
-       'phys:get-vx',
-       'phys:get-vy',
-       'phys:get-a',
-       'phys:get-angular-v',
-       'phys:get-angular-a',
-       'phys:get-linear-damping',
-       'phys:get-angular-damping',
-       'phys:get-length',
-       'phys:get-damping',
-       'phys:get-stiffness',
-       'phys:get-max-force',
-       'phys:get-max-torque',
-       'phys:get-force',
-       'phys:get-torque',
-   ];
    const turtleVars = [
        'who',
        'color',
@@ -25303,24 +24543,34 @@
    }
    /** Procedure: Dynamic metadata of a procedure. */
    class Procedure {
-       /** Build a procedure. */
-       constructor(Name, Arguments, Variables, AnonymousProcedures, PositionStart, PositionEnd) {
-           this.Name = Name;
-           this.Arguments = Arguments;
-           this.Variables = Variables;
-           this.AnonymousProcedures = AnonymousProcedures;
-           this.PositionStart = PositionStart;
-           this.PositionEnd = PositionEnd;
+       constructor() {
+           /** name: The name of the procedure. */
+           this.Name = '';
+           /** Arguments: The arguments of the procedure. */
+           this.Arguments = [];
+           /** Variables: local variables defined for the procedure. */
+           this.Variables = [];
+           /** AnonymousProcedures: anonymous procedures defined for the procedure. */
+           this.AnonymousProcedures = [];
+           /** PositionStart: The starting position of the procedure in the document. */
+           this.PositionStart = 0;
+           /** PositionEnd: The end position of the procedure in the document. */
+           this.PositionEnd = 0;
+           /** IsCommand: Is the procedure a command (to) instead of a reporter (to-report)? */
+           this.IsCommand = false;
        }
    }
    /** Procedure: Dynamic metadata of an anonymous procedure. */
    class AnonymousProcedure {
-       /** Build an anonymous procedure. */
-       constructor(From, To, Arguments, Variables) {
-           this.From = From;
-           this.To = To;
-           this.Arguments = Arguments;
-           this.Variables = Variables;
+       constructor() {
+           /** PositionStart: The position at the start of the procedure. */
+           this.PositionStart = 0;
+           /** PositionEnd: The position at the end of the procedure. */
+           this.PositionEnd = 0;
+           /** Arguments: The arguments of the procedure. */
+           this.Arguments = [];
+           /** Variables: local variables defined for the procedure. */
+           this.Variables = [];
        }
    }
    /** LocalVariable: metadata for local variables */
@@ -32618,24 +31868,31 @@
            this.Metadata = new Map();
            /** SimpleArguments: The cache for simple arguments. */
            this.SimpleArguments = new Map();
+           /** Extensions: The dictionary for extensions. */
+           this.Extensions = new Map();
+           /** ExtensionNames: The list for known extensions. */
+           this.ExtensionNames = [];
        }
        /** ImportNLW: Import primitive metadatas from NLW. */
        ImportNLW(Extension, Source) {
-           this.Metadata.set(`${Extension}:${Source.name}`, {
+           const Name = Source.name.toLowerCase();
+           const Primitive = {
                Extension: Extension,
-               Name: Source.name,
+               Name: Name,
                LeftArgumentType: this.ConvertToArgument('unit'),
                RightArgumentTypes: this.ConvertToArguments(Source.argTypes),
                ReturnType: this.ConvertToArgument(Source.returnType),
                AgentContext: new AgentContexts(Source.agentClassString),
                Precedence: 0, // Needs to check with the actual code
-           });
+           };
+           this.Register(Extension, Primitive);
        }
        /** ImportNL: Import primitive metadatas from NetLogo. */
        ImportNL(Extension, Source) {
-           this.Metadata.set(`${Extension}:${Source.name.toLowerCase()}`, {
+           const Name = Source.name.toLowerCase();
+           const Primitive = {
                Extension: Extension,
-               Name: Source.name,
+               Name: Name,
                LeftArgumentType: this.ConvertToArgument(Source.syntax.left),
                RightArgumentTypes: this.ConvertToArguments(Source.syntax.right),
                ReturnType: this.ConvertToArgument(Source.syntax.ret),
@@ -32647,7 +31904,21 @@
                IsRightAssociative: Source.syntax.isRightAssociative,
                IntroducesContext: Source.syntax.introducesContext == 'true',
                CanBeConcise: Source.syntax.canBeConcise,
-           });
+           };
+           this.Register(Extension, Primitive);
+       }
+       /** Register: Register a primitive information. */
+       Register(Extension, Source) {
+           if (!this.Metadata.has(`${Extension}:${Source.Name}`)) {
+               this.RegisterPrimitive(Extension, Source);
+               this.Metadata.set(`${Extension}:${Source.Name}`, Source);
+           }
+       }
+       /** RegisterPrimitive: Register a primitive for an extension. */
+       RegisterPrimitive(Extension, Primitive) {
+           if (this.ExtensionNames.indexOf(Extension) == -1)
+               this.Extensions.set(Extension, []);
+           this.Extensions.get(Extension).push(Primitive);
        }
        /** BuildInstance: Build a primitive manager instance. */
        static BuildInstance() {
@@ -32679,6 +31950,23 @@
        /** IsReporter: Is the primitive a reporter. */
        IsReporter(Source) {
            return Source.ReturnType == this.SimpleArguments.get('unit');
+       }
+       /** GetExtensions: Get the names of extensions. */
+       GetExtensions() {
+           return this.ExtensionNames;
+       }
+       /** GetCompletions: Get a proper completion list for primitives. */
+       GetCompletions(Extensions) {
+           var Results = [];
+           for (var Primitive of this.Metadata.values()) {
+               if (Primitive.Extension == '' ||
+                   Extensions.indexOf(Primitive.Extension) != -1)
+                   Results.push({
+                       label: Primitive.Name,
+                       type: this.IsReporter(Primitive) ? 'Reporter' : 'Command',
+                   });
+           }
+           return Results;
        }
        /** ConvertToArguments: Convert NetLogo arguments to our format. */
        ConvertToArguments(Items) {
@@ -32879,7 +32167,7 @@
        else if (unsupported.indexOf(token) != -1) {
            input.acceptToken(Unsupported);
        }
-       else if (extensions.indexOf(token) != -1) {
+       else if (PrimitiveManager.GetExtensions().indexOf(token) != -1) {
            input.acceptToken(Extension);
        }
        else {
@@ -33249,19 +32537,26 @@
                }
                // get procedures
                if (Cursor.node.name == 'Procedure') {
-                   // TODO: From & To.
-                   let procedure = new Procedure('', [], [], [], Cursor.node.from, Cursor.node.to);
+                   let procedure = new Procedure();
+                   procedure.PositionStart = Cursor.node.from;
+                   procedure.PositionEnd = Cursor.node.to;
+                   procedure.IsCommand =
+                       this.getText(State, Cursor.node.getChildren('To')[0].node).toLowerCase() == 'to';
                    Cursor.node.getChildren('ProcedureName').map((node) => {
                        procedure.Name = this.getText(State, node);
                    });
                    procedure.Arguments = this.getArgs(Cursor.node, State);
                    procedure.Variables = this.getLocalVars(Cursor.node, State, false);
+                   // Anonymous procedure
                    Cursor.node.cursor().iterate((noderef) => {
                        if (noderef.node.to > Cursor.node.to) {
                            return false;
                        }
                        if (noderef.name == 'AnonymousProcedure') {
-                           let anonProc = new AnonymousProcedure(noderef.from, noderef.to, [], procedure.Variables);
+                           let anonProc = new AnonymousProcedure();
+                           anonProc.PositionStart = Cursor.node.from;
+                           anonProc.PositionEnd = Cursor.node.to;
+                           anonProc.Variables = procedure.Variables;
                            let args = [];
                            let Node = noderef.node;
                            Node.getChildren('AnonArguments').map((node) => {
@@ -33353,28 +32648,36 @@
    });
 
    /** AutoCompletion: Auto completion service for a NetLogo model. */
+   /* Possible Types of Autocompletion Tokens:
+   Directive; Constant; Extension;
+   Variable-Builtin; Variable-Global; Variable-Breed;
+   Breed;
+   Command; Command-Custom; Reporter; Reporter-Custom.
+   */
    class AutoCompletion {
        constructor() {
-           /** allIdentifiers: All built-in identifiers. */
-           this.allIdentifiers = [
-               'end',
-               ...commands,
-               ...reporters,
-               ...turtleVars,
-               ...patchVars,
-               ...linkVars,
-               ...constants,
+           /** BuiltinVariables: The completion list of built-in variables. */
+           this.BuiltinVariables = this.KeywordsToCompletions([...turtleVars, ...patchVars, ...linkVars], 'Variable-Builtin');
+           /** SharedIdentifiers: Shared built-in completions. */
+           this.SharedIdentifiers = [
+               { label: 'end', type: 'Directive' },
+               ...this.BuiltinVariables,
+               ...this.KeywordsToCompletions(constants, 'Constant'),
            ];
+           /** LastExtensions: Cached extension list. */
+           this.LastExtensions = '$NIL$';
+           /** LastPrimitives: Cached primitive list. */
+           this.LastPrimitives = [];
            /** ParentMaps: Maps of keywords to parents.  */
            this.ParentMaps = {
-               Extensions: this.KeywordsToCompletions(extensions, 'Extension'),
-               Program: this.KeywordsToCompletions(directives, 'Extension'),
+               Extensions: this.KeywordsToCompletions(PrimitiveManager.GetExtensions(), 'Extension'),
+               Program: this.KeywordsToCompletions(directives, 'Directive'),
                Globals: [],
                BreedsOwn: [],
                Breed: [],
                ProcedureName: [],
                Arguments: [],
-               VariableName: this.KeywordsToCompletions([...turtleVars, ...patchVars, ...linkVars], 'Variables'), // built-in variable names
+               VariableName: this.KeywordsToCompletions([...turtleVars, ...patchVars, ...linkVars], 'Variable-Builtin'), // Built-in variable names
            };
            /** ParentTypes: Types of keywords.  */
            this.ParentTypes = Object.keys(this.ParentMaps);
@@ -33393,7 +32696,10 @@
                    results = results.filter((ext) => !State.Extensions.includes(ext.label));
                    break;
                case 'VariableName':
-                   results = results.concat(this.KeywordsToCompletions(State.Globals, 'Variables'));
+                   results = results.concat(this.KeywordsToCompletions(State.Globals, 'Variable'));
+                   break;
+               case 'Program':
+                   results = results.concat(this.KeywordsToCompletions([...State.Breeds.values()].map((breed) => breed.Plural), 'Directive'));
                    break;
            }
            return results;
@@ -33404,63 +32710,58 @@
            // Preparation
            const node = syntaxTree(Context.state).resolveInner(Context.pos, -1);
            const from = /\./.test(node.name) ? node.to : node.from;
+           const nodeName = node.type.name;
            const parentName = (_b = (_a = node.parent) === null || _a === void 0 ? void 0 : _a.type.name) !== null && _b !== void 0 ? _b : '';
            const grandparentName = (_e = (_d = (_c = node.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.type.name) !== null && _e !== void 0 ? _e : '';
-           const nodeName = node.type.name;
            const state = Context.state.field(stateExtension);
-           console.log(grandparentName + ' / ' + parentName + ' / ' + nodeName);
-           let curr = node;
+           // Debug output
+           /* let curr = node;
            let parents = [];
            while (curr.parent) {
-               parents.push(curr.parent.name);
-               curr = curr.parent;
+             parents.push(curr.parent.name);
+             curr = curr.parent;
            }
-           console.log(node.name, parents);
+           console.log(node.name, parents); */
+           console.log(grandparentName + ' / ' + parentName + ' / ' + nodeName);
            // If the parent/grand parent node is of a type specified in this.maps
-           if (this.ParentTypes.indexOf(parentName) > -1) {
-               return {
-                   from,
-                   options: this.GetParentKeywords(parentName, state),
-               };
-           }
-           else if (this.ParentTypes.indexOf(grandparentName) > -1 &&
-               (parentName != 'Procedure' || nodeName == 'To')) {
-               return {
-                   from,
-                   options: this.GetParentKeywords(grandparentName, state),
-               };
-           }
-           else if (nodeName == 'Identifier') {
-               let results = this.allIdentifiers;
+           if (this.ParentTypes.indexOf(parentName) > -1)
+               return { from, options: this.GetParentKeywords(parentName, state) };
+           if (this.ParentTypes.indexOf(grandparentName) > -1 &&
+               (parentName != 'Procedure' || nodeName == 'To'))
+               return { from, options: this.GetParentKeywords(grandparentName, state) };
+           // Otherwise, try to build a full list
+           if (nodeName == 'Identifier') {
+               let results = this.SharedIdentifiers;
                // Extensions
-               const extensions = Context.state.field(stateExtension).Extensions;
-               if (extensions.length > 0) {
-                   results = results.concat(this.FilterExtensions(extensionCommands.concat(extensionReporters), extensions));
+               const extensionNames = state.Extensions.join(',');
+               if (this.LastExtensions != extensionNames) {
+                   this.LastPrimitives = PrimitiveManager.GetCompletions(state.Extensions);
+                   this.LastExtensions = extensionNames;
                }
+               results = results.concat(this.LastPrimitives);
                // Breeds
-               const breeds = Context.state.field(stateExtension).Breeds;
-               if (breeds.size > 0) {
-                   for (const breed of breeds.values()) {
-                       results.push(breed.Plural + '-own');
-                   }
+               if (state.Breeds.size > 0) {
+                   results.push(...this.KeywordsToCompletions(state.GetBreedNames(), 'Breed'));
+                   results.push(...this.KeywordsToCompletions(state.GetBreedVariables(), 'Variable-Breed'));
                }
-               // Mappings
-               return {
-                   from,
-                   options: this.KeywordsToCompletions(results, 'Identifier'),
-               };
+               // Global Variables
+               results.push(...this.KeywordsToCompletions(state.Globals, 'Variable-Global'));
+               results.push(...this.KeywordsToCompletions(state.WidgetGlobals, 'Variable-Global'));
+               // Custom Procedures
+               for (var Procedure of state.Procedures.values()) {
+                   results.push({
+                       label: Procedure.Name,
+                       type: Procedure.IsCommand ? 'Command-Custom' : 'Reporter-Custom',
+                   });
+               }
+               return { from, options: results };
            }
-           else
-               return null;
+           // Failed
+           return null;
        }
        /** GetCompletionSource: Get the completion source for a NetLogo model. */
        GetCompletionSource() {
            return (Context) => this.GetCompletion(Context);
-       }
-       /** FilterExtensions: Filter keywords for extensions. */
-       FilterExtensions(Keyword, Extensions) {
-           Extensions = Extensions.map((Extension) => Extension + ':');
-           return Keyword.filter((Current) => Extensions.findIndex((Extension) => Current.startsWith(Extension)) != -1);
        }
    }
 
@@ -35597,23 +34898,21 @@
        let procedureVars = [];
        if (procedureName != '') {
            let procedure = parseState.Procedures.get(procedureName.toLowerCase());
-           let vars = [];
            procedure === null || procedure === void 0 ? void 0 : procedure.Variables.map((variable) => {
                // makes sure the variable has already been created
                if (variable.CreationPos < Node.from) {
-                   vars.push(variable.Name);
+                   procedureVars.push(variable.Name);
                }
            });
            procedure === null || procedure === void 0 ? void 0 : procedure.AnonymousProcedures.map((anonProc) => {
-               if (Node.from >= anonProc.From && Node.to <= anonProc.To) {
-                   anonProc.Variables.map((variable) => {
-                       vars.push(variable.Name);
-                   });
-                   vars = vars.concat(anonProc.Arguments);
+               if (Node.from >= anonProc.PositionStart &&
+                   Node.to <= anonProc.PositionEnd) {
+                   anonProc.Variables.map((variable) => variable.Name).forEach((name) => procedureVars.push(name));
+                   procedureVars.push(...anonProc.Arguments);
                }
            });
            if (procedure === null || procedure === void 0 ? void 0 : procedure.Arguments) {
-               procedureVars = vars.concat(procedure.Arguments);
+               procedureVars.push(...procedure.Arguments);
            }
        }
        return procedureVars.includes(value);
