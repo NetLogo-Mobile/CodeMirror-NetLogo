@@ -5,7 +5,6 @@ import { EditorState } from '@codemirror/state';
 import { preprocessStateExtension } from '../../codemirror/extension-regex-state';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
-import { Agent } from 'http';
 import { Localized } from '../../i18n/localized';
 
 let primitives = PrimitiveManager;
