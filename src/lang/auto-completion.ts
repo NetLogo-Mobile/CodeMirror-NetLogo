@@ -112,14 +112,13 @@ export class AutoCompletion {
     const state = Context.state.field(stateExtension);
 
     // Debug output
-    /* let curr = node;
+    let curr = node;
     let parents = [];
     while (curr.parent) {
       parents.push(curr.parent.name);
       curr = curr.parent;
     }
-    console.log(node.name, parents); */
-    console.log(grandparentName + ' / ' + parentName + ' / ' + nodeName);
+    console.log(node.name + '/' + parents.join('/'));
 
     // If the parent/grand parent node is of a type specified in this.maps
     if (this.ParentTypes.indexOf(parentName) > -1)
@@ -131,7 +130,7 @@ export class AutoCompletion {
       return { from, options: this.GetParentKeywords(grandparentName, state) };
 
     // Otherwise, try to build a full list
-    if (nodeName == 'Identifier') {
+    if (nodeName == 'Identifier' || nodeName == 'Extension') {
       let results = this.SharedIdentifiers;
       // Extensions
       const extensionNames = state.Extensions.join(',');

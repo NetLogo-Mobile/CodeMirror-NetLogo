@@ -130,14 +130,14 @@ CodeBlock {
 }
 
 ReporterBlock {
-  OpenBracket Reporter CloseBracket
+  OpenBracket ReporterStatement CloseBracket
 }
 
 Property {
   OpenBracket VariableName CloseBracket
 }
 
-Reporter { 
+ReporterStatement { 
   Arg !leftArgs ReporterLeftArgs1 !lastArgs Arg |
   Arg !leftArgs ReporterLeftArgs2 Arg !lastArgs Arg |
   SpecialReporter0Args |

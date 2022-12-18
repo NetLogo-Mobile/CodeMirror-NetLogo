@@ -39,6 +39,11 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
             multipleTokens = true;
             return false;
           }
+          // Reporters & Commands are very special
+          var name = ref.name;
+          if (name.startsWith('Reporter')) name = 'Reporter';
+          if (name.startsWith('Command')) name = 'Command';
+          // Check the category name
           if (Dictionary.Check(`~${ref.name}`)) closestTerm = `~${ref.name}`;
           else if (Dictionary.Check(`~${parentName}/${ref.name}`))
             closestTerm = `~${parentName}/${ref.name}`;

@@ -16,7 +16,8 @@ export const ArgumentLinter = linter((view) => {
     .cursor()
     .iterate((noderef) => {
       if (
-        (noderef.name == 'Reporter' || noderef.name == 'CommandStatement') &&
+        (noderef.name == 'ReporterStatement' ||
+          noderef.name == 'CommandStatement') &&
         noderef.node.getChildren('Arg')
       ) {
         const Node = noderef.node;
