@@ -25336,58 +25336,64 @@
    }
 
    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-   const parserWithMetadata = parser$3.configure({
-       props: [
-           styleTags({
-               // Basic elements
-               Constant: tags$1.string,
-               String: tags$1.string,
-               LineComment: tags$1.lineComment,
-               '[ ]': tags$1.paren,
-               BreedDirective: tags$1.strong,
-               Directive: tags$1.strong,
-               Numeric: tags$1.string,
-               Extension: tags$1.bool,
-               LinkVar: tags$1.bool,
-               PatchVar: tags$1.bool,
-               TurtleVar: tags$1.bool,
-               Reporter: tags$1.bool,
-               Reporter0Args: tags$1.bool,
-               Reporter1Args: tags$1.bool,
-               Reporter2Args: tags$1.bool,
-               Reporter3Args: tags$1.bool,
-               Reporter4Args: tags$1.bool,
-               Command: tags$1.variableName,
-               Command0Args: tags$1.variableName,
-               Command1Args: tags$1.variableName,
-               Command2Args: tags$1.variableName,
-               Command3Args: tags$1.variableName,
-               Command4Args: tags$1.variableName,
-               Set: tags$1.variableName,
-               Let: tags$1.variableName,
-               // Global statements
-               ExtensionStr: tags$1.strong,
-               GlobalStr: tags$1.strong,
-               BreedStr: tags$1.strong,
-               Own: tags$1.strong,
-               // Procedures
-               To: tags$1.strong,
-               End: tags$1.strong,
-           }),
-           indentNodeProp.add({
-               Application: (context) => context.column(context.node.from) + context.unit,
-           }),
-           foldNodeProp.add({
-               Application: foldInside,
-           }),
-       ],
-   });
    /** NetLogoLanguage: The NetLogo language. */
    const NetLogoLanguage = LRLanguage.define({
-       parser: parserWithMetadata,
+       parser: parser$3.configure({
+           props: [
+               // Stylish tags
+               styleTags({
+                   // Basic elements
+                   Constant: tags$1.string,
+                   String: tags$1.string,
+                   LineComment: tags$1.lineComment,
+                   '[ ]': tags$1.paren,
+                   BreedDirective: tags$1.strong,
+                   Directive: tags$1.strong,
+                   Numeric: tags$1.string,
+                   Extension: tags$1.bool,
+                   LinkVar: tags$1.bool,
+                   PatchVar: tags$1.bool,
+                   TurtleVar: tags$1.bool,
+                   Reporter: tags$1.bool,
+                   Reporter0Args: tags$1.bool,
+                   Reporter1Args: tags$1.bool,
+                   Reporter2Args: tags$1.bool,
+                   Reporter3Args: tags$1.bool,
+                   Reporter4Args: tags$1.bool,
+                   Command: tags$1.variableName,
+                   Command0Args: tags$1.variableName,
+                   Command1Args: tags$1.variableName,
+                   Command2Args: tags$1.variableName,
+                   Command3Args: tags$1.variableName,
+                   Command4Args: tags$1.variableName,
+                   Set: tags$1.variableName,
+                   Let: tags$1.variableName,
+                   // Global statements
+                   ExtensionStr: tags$1.strong,
+                   GlobalStr: tags$1.strong,
+                   BreedStr: tags$1.strong,
+                   Own: tags$1.strong,
+                   // Procedures
+                   To: tags$1.strong,
+                   End: tags$1.strong,
+               }),
+               // Indentations
+               indentNodeProp.add({
+                   CodeBlock: delimitedIndent({ closing: '[' }),
+                   Procedure: delimitedIndent({ closing: 'end' }),
+                   // Doesn't work well with "END" or "eND". Should do a bug report to CM6.
+               }),
+               // Foldings
+               foldNodeProp.add({
+                   CodeBlock: foldInside,
+                   Procedure: foldProcedure,
+               }),
+           ],
+       }),
        languageData: {
            commentTokens: { line: ';' },
            closeBrackets: closeBrackets(),
+           indentOnInput: /^\s*(?:end|\]|\])$/i,
        },
    });
    /** NetLogo: The NetLogo language support. */
@@ -25397,6 +25403,18 @@
                autocomplete: new AutoCompletion().GetCompletionSource(),
            }),
        ]);
+   }
+   /// [Fold](#language.foldNodeProp) function that folds everything but
+   /// the first and the last child of a syntax node. Useful for nodes
+   /// that start and end with delimiters.
+   function foldProcedure(node) {
+       var first = node.getChild('Arguments');
+       first = first !== null && first !== void 0 ? first : node.getChild('ProcedureName');
+       first = first !== null && first !== void 0 ? first : node.firstChild;
+       let last = node.lastChild;
+       return first && first.to < last.from
+           ? { from: first.to, to: last.type.isError ? node.to : last.to }
+           : null;
    }
 
    /** Language: Language. */
@@ -25421,15 +25439,6 @@
        { tag: tags$1.bool, color: '#660096' },
    ]);
    const highlight = syntaxHighlighting(highlightStyle);
-
-   /** IndentExtension: Extension for Indentation. */
-   const indentExtension = indentService.of((context, pos) => {
-       const previousLine = context.lineAt(pos, -1);
-       const match = previousLine.text.match(/^(\s)*/);
-       if (match == null)
-           return 0;
-       return match[0].length;
-   });
 
    /** UpdateExtension: Extension for Handling Update. */
    const updateExtension = function (callback) {
@@ -25610,13 +25619,13 @@
                    if (name.startsWith('Command'))
                        name = 'Command';
                    // Check the category name
-                   if (Dictionary.Check(`~${ref.name}`))
-                       closestTerm = `~${ref.name}`;
-                   else if (Dictionary.Check(`~${parentName}/${ref.name}`))
-                       closestTerm = `~${parentName}/${ref.name}`;
+                   if (Dictionary.Check(`~${name}`))
+                       closestTerm = `~${name}`;
+                   else if (Dictionary.Check(`~${parentName}/${name}`))
+                       closestTerm = `~${parentName}/${name}`;
                    else
-                       console.log(ref.name);
-                   parentName = ref.name;
+                       console.log(name);
+                   parentName = name;
                },
                from: range.from,
                to: range.to,
@@ -27683,7 +27692,7 @@
                // Events
                updateExtension((Update) => this.onUpdate(Update)),
                highlight,
-               indentExtension,
+               // indentExtension,
                keymap.of([indentWithTab]),
            ];
            // Language-specific
