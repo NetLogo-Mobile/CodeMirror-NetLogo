@@ -68,7 +68,7 @@ export class GalapagosEditor {
       // Events
       updateExtension((Update) => this.onUpdate(Update)),
       highlight,
-      indentExtension,
+      // indentExtension,
       keymap.of([indentWithTab]),
     ];
 

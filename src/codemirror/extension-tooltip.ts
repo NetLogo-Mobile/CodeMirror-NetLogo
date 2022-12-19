@@ -44,11 +44,11 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
           if (name.startsWith('Reporter')) name = 'Reporter';
           if (name.startsWith('Command')) name = 'Command';
           // Check the category name
-          if (Dictionary.Check(`~${ref.name}`)) closestTerm = `~${ref.name}`;
-          else if (Dictionary.Check(`~${parentName}/${ref.name}`))
-            closestTerm = `~${parentName}/${ref.name}`;
-          else console.log(ref.name);
-          parentName = ref.name;
+          if (Dictionary.Check(`~${name}`)) closestTerm = `~${name}`;
+          else if (Dictionary.Check(`~${parentName}/${name}`))
+            closestTerm = `~${parentName}/${name}`;
+          else console.log(name);
+          parentName = name;
         },
         from: range.from,
         to: range.to,
