@@ -18,7 +18,6 @@ import { ViewUpdate, keymap, ViewPlugin } from '@codemirror/view';
 import { NetLogo } from './lang/netlogo.js';
 import { EditorConfig, EditorLanguage } from './editor-config';
 import { highlight, highlightStyle } from './codemirror/style-highlight';
-import { indentExtension } from './codemirror/extension-indent';
 import { updateExtension } from './codemirror/extension-update';
 import {
   stateExtension,
