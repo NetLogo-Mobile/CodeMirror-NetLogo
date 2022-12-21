@@ -6,12 +6,9 @@ import {
   LRLanguage,
   LanguageSupport,
   delimitedIndent,
-  flatIndent,
-  continuedIndent,
   indentNodeProp,
   foldNodeProp,
   foldInside,
-  syntaxTree,
 } from '@codemirror/language';
 import { styleTags, tags as t } from '@lezer/highlight';
 import { closeBrackets } from '@codemirror/autocomplete';
@@ -29,13 +26,10 @@ export const NetLogoLanguage = LRLanguage.define({
         String: t.string,
         LineComment: t.lineComment,
         '[ ]': t.paren,
-        BreedDirective: t.strong,
         Directive: t.strong,
-        Numeric: t.string,
+        Numeric: t.float,
         Extension: t.bool,
-        LinkVar: t.bool,
-        PatchVar: t.bool,
-        TurtleVar: t.bool,
+        // Commands
         Reporter: t.bool,
         Reporter0Args: t.bool,
         Reporter1Args: t.bool,
@@ -48,12 +42,17 @@ export const NetLogoLanguage = LRLanguage.define({
         Command2Args: t.variableName,
         Command3Args: t.variableName,
         Command4Args: t.variableName,
+        // Variables
         Set: t.variableName,
         Let: t.variableName,
+        LinkVar: t.bool,
+        PatchVar: t.bool,
+        TurtleVar: t.bool,
+        'VariableName/BreedToken': t.bool,
         // Global statements
         ExtensionStr: t.strong,
         GlobalStr: t.strong,
-        BreedStr: t.strong,
+        'BreedDeclarative/BreedToken': t.strong,
         Own: t.strong,
         // Procedures
         To: t.strong,
