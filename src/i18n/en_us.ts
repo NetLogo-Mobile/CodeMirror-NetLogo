@@ -20,6 +20,7 @@ const en_us: Record<string, Function> = {
   '~Command': (Name: string) => `A NetLogo command. `,
   '~Constant': (Name: string) => `A NetLogo constant. `,
   '~Extension': (Name: string) => `A NetLogo extension. `,
+  '~Numeric': (Name: string) => `A number. `,
   '~String': (Name: string) => `A string, which is a sequence of characters.`,
   '~LineComment': (Name: string) =>
     `Comments do nothing in the program, but could help others read the code.`,

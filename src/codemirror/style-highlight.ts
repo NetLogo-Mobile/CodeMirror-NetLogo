@@ -4,9 +4,11 @@ import { HighlightStyle, syntaxHighlighting } from '@codemirror/language';
 const highlightStyle = HighlightStyle.define([
   { tag: tags.strong, color: '#007F69', 'font-weight': 'bold' },
   { tag: tags.variableName, color: '#0000AA' },
-  { tag: tags.string, color: '#963700' },
+  { tag: tags.operator, color: '#660096' },
+  { tag: tags.literal, color: '#963700' },
   { tag: tags.lineComment, color: '#5A5A5A' },
   { tag: tags.bool, color: '#660096' },
+  { tag: tags.paren, color: '#333333' },
 ]);
 
 const highlight = syntaxHighlighting(highlightStyle);

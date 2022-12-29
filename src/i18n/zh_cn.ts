@@ -18,6 +18,7 @@ const zh_cn: Record<string, Function> = {
   '~Command': (Name: string) => `NetLogo 语言的内置命令。`,
   '~Constant': (Name: string) => `NetLogo 语言规定的常量。`,
   '~Extension': (Name: string) => `NetLogo 语言的扩展。`,
+  '~Numeric': (Name: string) => `一个数字。`,
   '~String': (Name: string) => `字符串，或者说一串文字。`,
   '~LineComment': (Name: string) =>
     `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,

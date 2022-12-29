@@ -18,6 +18,7 @@ class DictionaryManager {
     this.RegisterBuiltin('~Command');
     this.RegisterBuiltin('~Constant');
     this.RegisterBuiltin('~Extension');
+    this.RegisterBuiltin('~Numeric');
     this.RegisterBuiltin('~String');
     this.RegisterBuiltin('~LineComment');
     this.RegisterBuiltin('~Globals/Identifier');
