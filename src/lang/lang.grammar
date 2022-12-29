@@ -138,8 +138,8 @@ Property {
 }
 
 ReporterStatement { 
-  Arg !leftArgs ReporterLeftArgs1 !lastArgs Arg |
-  Arg !leftArgs ReporterLeftArgs2 Arg !lastArgs Arg |
+  Arg !leftArgs ReporterLeft1Args !lastArgs Arg |
+  Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg |
   SpecialReporter0Args |
   SpecialReporter1Args !lastArgs Arg |
   SpecialReporter2Args Arg !lastArgs Arg |
@@ -215,8 +215,8 @@ expression {
 }
 
 @external tokens keyword from "./tokenizer.js" { 
-  ReporterLeftArgs1,
-  ReporterLeftArgs2,  
+  ReporterLeft1Args,
+  ReporterLeft2Args,  
   GlobalStr, 
   ExtensionStr, 
   BreedStr, 

@@ -28,8 +28,8 @@ import {
   GlobalStr,
   ExtensionStr,
   BreedStr,
-  ReporterLeftArgs1,
-  ReporterLeftArgs2,
+  ReporterLeft1Args,
+  ReporterLeft2Args,
   PlusMinus,
   SpecialCommand,
   SpecialReporter,
@@ -91,9 +91,9 @@ export const keyword = new ExternalTokenizer((input) => {
       'with',
     ].indexOf(token) > -1
   ) {
-    input.acceptToken(ReporterLeftArgs1);
+    input.acceptToken(ReporterLeft1Args);
   } else if (token == 'in-cone') {
-    input.acceptToken(ReporterLeftArgs2);
+    input.acceptToken(ReporterLeft2Args);
   } else if (token == '-' || token == '+') {
     input.acceptToken(PlusMinus);
   } else if (token == 'breed') {
