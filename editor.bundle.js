@@ -1,3 +1,16 @@
+
+/** For String.prototype.matchAll */
+if(!String.prototype.matchAll) {
+    String.prototype.matchAll = function (rx) {
+        if (typeof rx === "string") rx = new RegExp(rx, "g"); // coerce a string to be a global regex
+        rx = new RegExp(rx); // Clone the regex so we don't update the last index on the regex they pass us
+        let cap = []; // the single capture
+        let all = []; // all the captures (return this)
+        while ((cap = rx.exec(this)) !== null) all.push(cap); // execute and add
+        return all; // profit!
+    };
+}
+      
 (function (exports) {
    'use strict';
 
@@ -1514,10 +1527,11 @@
        /**
        Create a selection range.
        */
-       static range(anchor, head, goalColumn) {
-           let goal = (goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* RangeFlag.NoGoalColumn */) << 5 /* RangeFlag.GoalColumnOffset */;
-           return head < anchor ? SelectionRange.create(head, anchor, 16 /* RangeFlag.Inverted */ | goal | 8 /* RangeFlag.AssocAfter */)
-               : SelectionRange.create(anchor, head, goal | (head > anchor ? 4 /* RangeFlag.AssocBefore */ : 0));
+       static range(anchor, head, goalColumn, bidiLevel) {
+           let flags = ((goalColumn !== null && goalColumn !== void 0 ? goalColumn : 33554431 /* RangeFlag.NoGoalColumn */) << 5 /* RangeFlag.GoalColumnOffset */) |
+               (bidiLevel == null ? 3 : Math.min(2, bidiLevel));
+           return head < anchor ? SelectionRange.create(head, anchor, 16 /* RangeFlag.Inverted */ | 8 /* RangeFlag.AssocAfter */ | flags)
+               : SelectionRange.create(anchor, head, (head > anchor ? 4 /* RangeFlag.AssocBefore */ : 0) | flags);
        }
        /**
        @internal
@@ -18413,7 +18427,7 @@
    function extendSel(view, how) {
        let selection = updateSel(view.state.selection, range => {
            let head = how(range);
-           return EditorSelection.range(range.anchor, head.head, head.goalColumn);
+           return EditorSelection.range(range.anchor, head.head, head.goalColumn, head.bidiLevel || undefined);
        });
        if (selection.eq(view.state.selection))
            return false;
@@ -25343,20 +25357,21 @@
                // Stylish tags
                styleTags({
                    // Basic elements
-                   Constant: tags$1.string,
-                   String: tags$1.string,
+                   Constant: tags$1.literal,
+                   String: tags$1.literal,
+                   Numeric: tags$1.literal,
                    LineComment: tags$1.lineComment,
-                   '[ ]': tags$1.paren,
+                   OpenBracket: tags$1.paren,
+                   CloseBracket: tags$1.paren,
                    Directive: tags$1.strong,
-                   Numeric: tags$1.float,
                    Extension: tags$1.bool,
                    // Commands
-                   Reporter: tags$1.bool,
-                   Reporter0Args: tags$1.bool,
-                   Reporter1Args: tags$1.bool,
-                   Reporter2Args: tags$1.bool,
-                   Reporter3Args: tags$1.bool,
-                   Reporter4Args: tags$1.bool,
+                   Reporter: tags$1.operator,
+                   Reporter0Args: tags$1.operator,
+                   Reporter1Args: tags$1.operator,
+                   Reporter2Args: tags$1.operator,
+                   Reporter3Args: tags$1.operator,
+                   Reporter4Args: tags$1.operator,
                    Command: tags$1.variableName,
                    Command0Args: tags$1.variableName,
                    Command1Args: tags$1.variableName,
@@ -25436,9 +25451,11 @@
    const highlightStyle = HighlightStyle.define([
        { tag: tags$1.strong, color: '#007F69', 'font-weight': 'bold' },
        { tag: tags$1.variableName, color: '#0000AA' },
-       { tag: tags$1.string, color: '#963700' },
+       { tag: tags$1.operator, color: '#660096' },
+       { tag: tags$1.literal, color: '#963700' },
        { tag: tags$1.lineComment, color: '#5A5A5A' },
        { tag: tags$1.bool, color: '#660096' },
+       { tag: tags$1.paren, color: '#333333' },
    ]);
    const highlight = syntaxHighlighting(highlightStyle);
 
@@ -25463,6 +25480,7 @@
        '~Command': (Name) => `A NetLogo command. `,
        '~Constant': (Name) => `A NetLogo constant. `,
        '~Extension': (Name) => `A NetLogo extension. `,
+       '~Numeric': (Name) => `A number. `,
        '~String': (Name) => `A string, which is a sequence of characters.`,
        '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code.`,
        '~Globals/Identifier': (Name) => `A model-defined global variable.`,
@@ -25486,6 +25504,7 @@
        '~Command': (Name) => `NetLogo 语言的内置命令。`,
        '~Constant': (Name) => `NetLogo 语言规定的常量。`,
        '~Extension': (Name) => `NetLogo 语言的扩展。`,
+       '~Numeric': (Name) => `一个数字。`,
        '~String': (Name) => `字符串，或者说一串文字。`,
        '~LineComment': (Name) => `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,
        '~Globals/Identifier': (Name) => `模型中定义的全局变量。`,
@@ -25554,6 +25573,7 @@
            this.RegisterBuiltin('~Command');
            this.RegisterBuiltin('~Constant');
            this.RegisterBuiltin('~Extension');
+           this.RegisterBuiltin('~Numeric');
            this.RegisterBuiltin('~String');
            this.RegisterBuiltin('~LineComment');
            this.RegisterBuiltin('~Globals/Identifier');
@@ -25616,9 +25636,9 @@
                    }
                    // Reporters & Commands are very special
                    var name = ref.name;
-                   if (name.startsWith('Reporter'))
+                   if (name.startsWith('Reporter') && name.endsWith('Args'))
                        name = 'Reporter';
-                   if (name.startsWith('Command'))
+                   if (name.startsWith('Command') && name.endsWith('Args'))
                        name = 'Command';
                    // Check the category name
                    if (Dictionary.Check(`~${name}`))
