@@ -25366,6 +25366,7 @@ if(!String.prototype.matchAll) {
                    Directive: tags$1.strong,
                    Extension: tags$1.bool,
                    // Commands
+                   AndOr: tags$1.operator,
                    Reporter: tags$1.operator,
                    Reporter0Args: tags$1.operator,
                    Reporter1Args: tags$1.operator,
