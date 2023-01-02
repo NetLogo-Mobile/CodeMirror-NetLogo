@@ -31,6 +31,7 @@ export const NetLogoLanguage = LRLanguage.define({
         Directive: t.strong,
         Extension: t.bool,
         // Commands
+        AndOr: t.operator,
         Reporter: t.operator,
         Reporter0Args: t.operator,
         Reporter1Args: t.operator,
