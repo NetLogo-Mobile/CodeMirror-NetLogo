@@ -6,7 +6,8 @@
   plus @left,
   comparative @left,
   
-  open @left
+  open @left,
+  close @left
 }
 
 @top Program { 
@@ -63,7 +64,15 @@ ProcedureName {
   SpecialReporter3Args |
   SpecialReporter4Args |
   SpecialReporter5Args |
-  SpecialReporter6Args
+  SpecialReporter6Args |
+  SpecialCommand0Args |
+  SpecialCommand1Args |
+  SpecialCommand2Args |
+  SpecialCommand3Args |
+  SpecialCommand4Args |
+  SpecialCommand5Args |
+  SpecialCommand6Args |
+  SpecialCommandCreate
 }
 
 Arguments {
@@ -108,7 +117,7 @@ Value {
   OpenParen Value CloseParen |
   String |
   Constant |
-  Reporter |
+  ReporterStatement |
   VariableName |
   List |
   Numeric |
@@ -130,7 +139,8 @@ CodeBlock {
 }
 
 ReporterBlock {
-  OpenBracket ReporterStatement CloseBracket
+  OpenBracket ReporterStatement CloseBracket |
+  OpenBracket OpenParen ReporterStatement !close CloseParen CloseBracket
 }
 
 Property {
@@ -147,20 +157,48 @@ ReporterStatement {
   SpecialReporter4Args Arg Arg Arg !lastArgs Arg |
   SpecialReporter5Args Arg Arg Arg Arg !lastArgs Arg |
   SpecialReporter6Args Arg Arg Arg Arg Arg !lastArgs Arg |
-  Reporter0Args |
-  Reporter1Args !lastArgs Arg+ |
-  Reporter2Args Arg !lastArgs Arg+ |
-  Reporter3Args Arg Arg !lastArgs Arg+ |
-  Reporter4Args Arg Arg Arg !lastArgs Arg+ |
-  Reporter5Args Arg Arg Arg Arg !lastArgs Arg+ |
-  Reporter6Args Arg Arg Arg Arg Arg !lastArgs Arg+ |
+  (Reporter0Args | Reporter0ArgsVar) |
+  (Reporter1Args | Reporter1ArgsVar) !lastArgs Arg |
+  (Reporter2Args | Reporter2ArgsVar) Arg !lastArgs Arg |
+  (Reporter3Args | Reporter3ArgsVar) Arg Arg !lastArgs Arg |
+  (Reporter4Args | Reporter4ArgsVar) Arg Arg Arg !lastArgs Arg |
+  (Reporter5Args | Reporter5ArgsVar) Arg Arg Arg Arg !lastArgs Arg |
+  (Reporter6Args | Reporter6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg |
+  OpenParen Reporter0ArgsVar Arg* !close CloseParen|
+  OpenParen Reporter1ArgsVar Arg+ !close CloseParen |
+  OpenParen Reporter2ArgsVar Arg Arg+ !close CloseParen |
+  OpenParen Reporter3ArgsVar Arg Arg Arg+ !close CloseParen |
+  OpenParen Reporter4ArgsVar Arg Arg Arg Arg+ !close CloseParen |
+  OpenParen Reporter5ArgsVar Arg Arg Arg Arg Arg+ !close CloseParen |
+  OpenParen Reporter6ArgsVar Arg Arg Arg Arg Arg Arg+ !close CloseParen |
   Arg !comparative AndOr Arg
 }
 
 CommandStatement {
-  Command !lastArgs Arg* |
+  SpecialCommand0Args |
+  SpecialCommand1Args !lastArgs Arg |
+  SpecialCommand2Args Arg !lastArgs Arg |
+  SpecialCommand3Args Arg Arg !lastArgs Arg |
+  SpecialCommand4Args Arg Arg Arg !lastArgs Arg |
+  SpecialCommand5Args Arg Arg Arg Arg !lastArgs Arg |
+  SpecialCommand6Args Arg Arg Arg Arg Arg !lastArgs Arg |
+  SpecialCommandCreate !lastArgs Arg |
+  SpecialCommandCreate Arg !lastArgs Arg |
+  (Command0Args | Command0ArgsVar) |
+  (Command1Args | Command1ArgsVar) !lastArgs Arg |
+  (Command2Args | Command2ArgsVar) Arg !lastArgs Arg |
+  (Command3Args | Command3ArgsVar) Arg Arg !lastArgs Arg |
+  (Command4Args | Command4ArgsVar) Arg Arg Arg !lastArgs Arg |
+  (Command5Args | Command5ArgsVar) Arg Arg Arg Arg !lastArgs Arg |
+  (Command6Args | Command6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg |
+  OpenParen Command0ArgsVar Arg* !close CloseParen|
+  OpenParen Command1ArgsVar Arg+ !close CloseParen |
+  OpenParen Command2ArgsVar Arg Arg+ !close CloseParen |
+  OpenParen Command3ArgsVar Arg Arg Arg+ !close CloseParen |
+  OpenParen Command4ArgsVar Arg Arg Arg Arg+ !close CloseParen |
+  OpenParen Command5ArgsVar Arg Arg Arg Arg Arg+ !close CloseParen |
+  OpenParen Command6ArgsVar Arg Arg Arg Arg Arg Arg+ !close CloseParen |
   VariableDeclaration |
-  SpecialCommand !lastArgs Arg* |
   Unsupported
 }
 
@@ -179,7 +217,7 @@ Arg {
 
   Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* | $[-]? $[\.] $[0-9]+}
   
-  String { '"' (!["\\] | "\\" _)* '"' | "'" (!['\\] | "\\" _)* "'" }
+  String { '"' (!["\\] | "\\" _)* '"' }
 
   LineComment { ";" ![\n]* }
 
@@ -251,7 +289,14 @@ expression {
   Reporter3Args, 
   Reporter4Args,
   Reporter5Args,
-  Reporter6Args
+  Reporter6Args,
+  Reporter0ArgsVar,
+  Reporter1ArgsVar, 
+  Reporter2ArgsVar, 
+  Reporter3ArgsVar, 
+  Reporter4ArgsVar,
+  Reporter5ArgsVar,
+  Reporter6ArgsVar
 }
 
 @external specialize {SpecialReporter} specializeSpecialReporter from './specializer' {
@@ -262,4 +307,32 @@ expression {
   SpecialReporter4Args,
   SpecialReporter5Args,
   SpecialReporter6Args
+}
+
+@external specialize {Command} specializeCommand from './specializer' {
+  Command0Args,
+  Command1Args, 
+  Command2Args, 
+  Command3Args, 
+  Command4Args,
+  Command5Args,
+  Command6Args,
+  Command0ArgsVar,
+  Command1ArgsVar, 
+  Command2ArgsVar, 
+  Command3ArgsVar, 
+  Command4ArgsVar,
+  Command5ArgsVar,
+  Command6ArgsVar
+}
+
+@external specialize {SpecialCommand} specializeSpecialCommand from './specializer' {
+  SpecialCommand0Args,
+  SpecialCommand1Args,
+  SpecialCommand2Args,
+  SpecialCommand3Args,
+  SpecialCommand4Args,
+  SpecialCommand5Args,
+  SpecialCommand6Args,
+  SpecialCommandCreate
 }

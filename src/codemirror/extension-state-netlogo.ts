@@ -259,7 +259,10 @@ export class StateNetLogo {
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),
   update: (Original: StateNetLogo, Transaction: Transaction) => {
-    if (Transaction.docChanged) Original.SetDirty();
+    if (Transaction.docChanged) {
+      console.log(Original);
+      Original.SetDirty();
+    }
     return Original;
   },
 });

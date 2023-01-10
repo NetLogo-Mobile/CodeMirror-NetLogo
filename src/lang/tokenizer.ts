@@ -148,6 +148,7 @@ export const keyword = new ExternalTokenizer((input) => {
 function isValidKeyword(ch: number) {
   return (
     ch == 33 ||
+    ch == 39 ||
     // 0-9
     (ch >= 42 && ch <= 58) ||
     // -

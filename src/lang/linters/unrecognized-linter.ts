@@ -10,13 +10,13 @@ export const UnrecognizedLinter = buildLinter((view, parseState) => {
     .cursor()
     .iterate((node) => {
       if (node.name == '⚠' && node.to != node.from) {
-        // let curr = node.node
-        // let parents: string []=[]
-        // while (curr.parent){
-        //   parents.push(curr.parent.name)
-        //   curr = curr.parent
-        // }
-        // console.log(parents)
+        let curr = node.node;
+        let parents: string[] = [];
+        while (curr.parent) {
+          parents.push(curr.parent.name);
+          curr = curr.parent;
+        }
+        console.log(node.name, parents);
         const value = view.state.sliceDoc(node.from, node.to);
         diagnostics.push({
           from: node.from,

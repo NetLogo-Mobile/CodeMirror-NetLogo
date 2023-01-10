@@ -72,7 +72,10 @@ export const getArgs = function (Node: SyntaxNode) {
       args.leftArgs = cursor.node;
     } else if (seenFunc && cursor.node.name == 'Arg') {
       args.rightArgs.push(cursor.node);
-    } else if (cursor.node.name != 'LineComment') {
+    } else if (
+      cursor.node.name.includes('Command') ||
+      cursor.node.name.includes('Reporter')
+    ) {
       // console.log(cursor.node.name)
       args.func = cursor.node;
       seenFunc = true;
