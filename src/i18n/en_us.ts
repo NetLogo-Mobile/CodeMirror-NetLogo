@@ -4,11 +4,34 @@ const en_us: Record<string, Function> = {
   'Unrecognized identifier _': (Name: string) =>
     `Nothing called "${Name}" was found. Did you spell it correctly?`,
   'Unrecognized global statement _': (Name: string) =>
-    `Cannot recognize "${Name}" as a proper statement here. Did you spell it correctly?`,
+    `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
   'Unrecognized statement _': (Name: string) =>
     `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
   'Unsupported statement _': (Name: string) =>
     `"${Name}" is not supported in NetLogo Web`,
+  'Problem identifying primitive _. Expected _, found _.': (
+    Name: string,
+    Expected: string,
+    Actual: string
+  ) => `"${Name}" is not a valid primitive`,
+  'Left args for _. Expected _, found _.': (
+    Name: string,
+    Expected: string,
+    Actual: string
+  ) =>
+    `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
+  'Too few right args for _. Expected _, found _.': (
+    Name: string,
+    Expected: string,
+    Actual: string
+  ) =>
+    `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
+  'Too many right args for _. Expected _, found _.': (
+    Name: string,
+    Expected: string,
+    Actual: string
+  ) =>
+    `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
 
   '~VariableName': (Name: string) => `A variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,
