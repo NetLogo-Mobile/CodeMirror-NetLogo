@@ -158,6 +158,11 @@ export class StateNetLogo {
               node.getChildren('Identifier').map((subnode) => {
                 args.push(this.getText(State, subnode));
               });
+              node.getChildren('Arguments').map((subnode) => {
+                subnode.getChildren('Identifier').map((subsubnode) => {
+                  args.push(this.getText(State, subsubnode));
+                });
+              });
             });
             anonProc.Arguments = args;
             anonProc.Variables = anonProc.Variables.concat(

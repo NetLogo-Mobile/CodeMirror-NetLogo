@@ -150,21 +150,21 @@ Property {
 ReporterStatement { 
   Arg !leftArgs ReporterLeft1Args !lastArgs Arg |
   Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg |
-  SpecialReporter0Args |
+  SpecialReporter0Args  ~statement |
   SpecialReporter1Args !lastArgs Arg |
   SpecialReporter2Args Arg !lastArgs Arg |
   SpecialReporter3Args Arg Arg !lastArgs Arg |
   SpecialReporter4Args Arg Arg Arg !lastArgs Arg |
   SpecialReporter5Args Arg Arg Arg Arg !lastArgs Arg |
   SpecialReporter6Args Arg Arg Arg Arg Arg !lastArgs Arg |
-  (Reporter0Args | Reporter0ArgsVar) |
+  (Reporter0Args | Reporter0ArgsVar)  ~statement |
   (Reporter1Args | Reporter1ArgsVar) !lastArgs Arg |
   (Reporter2Args | Reporter2ArgsVar) Arg !lastArgs Arg |
   (Reporter3Args | Reporter3ArgsVar) Arg Arg !lastArgs Arg |
   (Reporter4Args | Reporter4ArgsVar) Arg Arg Arg !lastArgs Arg |
   (Reporter5Args | Reporter5ArgsVar) Arg Arg Arg Arg !lastArgs Arg |
   (Reporter6Args | Reporter6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg |
-  OpenParen Reporter0ArgsVar Arg* !close CloseParen|
+  OpenParen Reporter0ArgsVar Arg* !close CloseParen |
   OpenParen Reporter1ArgsVar Arg+ !close CloseParen |
   OpenParen Reporter2ArgsVar Arg Arg+ !close CloseParen |
   OpenParen Reporter3ArgsVar Arg Arg Arg+ !close CloseParen |
@@ -175,7 +175,7 @@ ReporterStatement {
 }
 
 CommandStatement {
-  SpecialCommand0Args |
+  SpecialCommand0Args ~statement |
   SpecialCommand1Args !lastArgs Arg |
   SpecialCommand2Args Arg !lastArgs Arg |
   SpecialCommand3Args Arg Arg !lastArgs Arg |
@@ -184,7 +184,7 @@ CommandStatement {
   SpecialCommand6Args Arg Arg Arg Arg Arg !lastArgs Arg |
   SpecialCommandCreate !lastArgs Arg |
   SpecialCommandCreate Arg !lastArgs Arg |
-  (Command0Args | Command0ArgsVar) |
+  (Command0Args | Command0ArgsVar) ~statement |
   (Command1Args | Command1ArgsVar) !lastArgs Arg |
   (Command2Args | Command2ArgsVar) Arg !lastArgs Arg |
   (Command3Args | Command3ArgsVar) Arg Arg !lastArgs Arg |
@@ -207,6 +207,53 @@ Arg {
   Value ~statement |
   ReporterBlock |
   Property
+}
+
+CommandReporter {
+  SpecialCommand | 
+  SpecialReporter0Args ~statement |
+  SpecialReporter1Args |
+  SpecialReporter2Args |
+  SpecialReporter3Args |
+  SpecialReporter4Args |
+  SpecialReporter5Args |
+  SpecialReporter6Args |
+  SpecialCommand0Args ~statement |
+  SpecialCommand1Args |
+  SpecialCommand2Args |
+  SpecialCommand3Args |
+  SpecialCommand4Args |
+  SpecialCommand5Args |
+  SpecialCommand6Args |
+  SpecialCommandCreate |
+  Reporter0Args ~statement |
+  Reporter1Args |
+  Reporter2Args |
+  Reporter3Args |
+  Reporter4Args |
+  Reporter5Args |
+  Reporter6Args |
+  Command0Args ~statement |
+  Command1Args |
+  Command2Args |
+  Command3Args |
+  Command4Args |
+  Command5Args |
+  Command6Args |
+  Reporter0ArgsVar ~statement |
+  Reporter1ArgsVar |
+  Reporter2ArgsVar |
+  Reporter3ArgsVar |
+  Reporter4ArgsVar |
+  Reporter5ArgsVar |
+  Reporter6ArgsVar |
+  Command0ArgsVar ~statement |
+  Command1ArgsVar |
+  Command2ArgsVar |
+  Command3ArgsVar |
+  Command4ArgsVar |
+  Command5ArgsVar |
+  Command6ArgsVar
 }
 
 @tokens {
