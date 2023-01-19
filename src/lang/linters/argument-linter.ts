@@ -32,7 +32,6 @@ export const ArgumentLinter = linter((view) => {
           let func = result[1];
           let expected = result[2];
           let actual = result[3];
-          console.log(result);
           if (error_type == 'no primitive') {
             diagnostics.push({
               from: noderef.from,

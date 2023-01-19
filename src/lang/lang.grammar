@@ -148,22 +148,22 @@ Property {
 }
 
 ReporterStatement { 
-  Arg !leftArgs ReporterLeft1Args !lastArgs Arg |
-  Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg |
-  SpecialReporter0Args  ~statement |
-  SpecialReporter1Args !lastArgs Arg |
-  SpecialReporter2Args Arg !lastArgs Arg |
-  SpecialReporter3Args Arg Arg !lastArgs Arg |
-  SpecialReporter4Args Arg Arg Arg !lastArgs Arg |
-  SpecialReporter5Args Arg Arg Arg Arg !lastArgs Arg |
-  SpecialReporter6Args Arg Arg Arg Arg Arg !lastArgs Arg |
-  (Reporter0Args | Reporter0ArgsVar)  ~statement |
-  (Reporter1Args | Reporter1ArgsVar) !lastArgs Arg |
-  (Reporter2Args | Reporter2ArgsVar) Arg !lastArgs Arg |
-  (Reporter3Args | Reporter3ArgsVar) Arg Arg !lastArgs Arg |
-  (Reporter4Args | Reporter4ArgsVar) Arg Arg Arg !lastArgs Arg |
-  (Reporter5Args | Reporter5ArgsVar) Arg Arg Arg Arg !lastArgs Arg |
-  (Reporter6Args | Reporter6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg |
+  Arg !leftArgs ReporterLeft1Args !lastArgs Arg+ |
+  Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg+ |
+  SpecialReporter0Args !lastArgs Arg* ~statement |
+  SpecialReporter1Args !lastArgs Arg+ |
+  SpecialReporter2Args Arg !lastArgs Arg+ |
+  SpecialReporter3Args Arg Arg !lastArgs Arg+ |
+  SpecialReporter4Args Arg Arg Arg !lastArgs Arg+ |
+  SpecialReporter5Args Arg Arg Arg Arg !lastArgs Arg+ |
+  SpecialReporter6Args Arg Arg Arg Arg Arg !lastArgs Arg+ |
+  (Reporter0Args | Reporter0ArgsVar) !lastArgs Arg* ~statement |
+  (Reporter1Args | Reporter1ArgsVar) !lastArgs Arg+ |
+  (Reporter2Args | Reporter2ArgsVar) Arg !lastArgs Arg+ |
+  (Reporter3Args | Reporter3ArgsVar) Arg Arg !lastArgs Arg+ |
+  (Reporter4Args | Reporter4ArgsVar) Arg Arg Arg !lastArgs Arg+ |
+  (Reporter5Args | Reporter5ArgsVar) Arg Arg Arg Arg !lastArgs Arg+ |
+  (Reporter6Args | Reporter6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg+ |
   OpenParen Reporter0ArgsVar Arg* !close CloseParen |
   OpenParen Reporter1ArgsVar Arg+ !close CloseParen |
   OpenParen Reporter2ArgsVar Arg Arg+ !close CloseParen |
@@ -175,22 +175,22 @@ ReporterStatement {
 }
 
 CommandStatement {
-  SpecialCommand0Args ~statement |
-  SpecialCommand1Args !lastArgs Arg |
-  SpecialCommand2Args Arg !lastArgs Arg |
-  SpecialCommand3Args Arg Arg !lastArgs Arg |
-  SpecialCommand4Args Arg Arg Arg !lastArgs Arg |
-  SpecialCommand5Args Arg Arg Arg Arg !lastArgs Arg |
-  SpecialCommand6Args Arg Arg Arg Arg Arg !lastArgs Arg |
-  SpecialCommandCreate !lastArgs Arg |
-  SpecialCommandCreate Arg !lastArgs Arg |
-  (Command0Args | Command0ArgsVar) ~statement |
-  (Command1Args | Command1ArgsVar) !lastArgs Arg |
-  (Command2Args | Command2ArgsVar) Arg !lastArgs Arg |
-  (Command3Args | Command3ArgsVar) Arg Arg !lastArgs Arg |
-  (Command4Args | Command4ArgsVar) Arg Arg Arg !lastArgs Arg |
-  (Command5Args | Command5ArgsVar) Arg Arg Arg Arg !lastArgs Arg |
-  (Command6Args | Command6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg |
+  SpecialCommand0Args !lastArgs Arg* ~statement |
+  SpecialCommand1Args !lastArgs Arg+ |
+  SpecialCommand2Args Arg !lastArgs Arg+ |
+  SpecialCommand3Args Arg Arg !lastArgs Arg+ |
+  SpecialCommand4Args Arg Arg Arg !lastArgs Arg+ |
+  SpecialCommand5Args Arg Arg Arg Arg !lastArgs Arg+ |
+  SpecialCommand6Args Arg Arg Arg Arg Arg !lastArgs Arg+ |
+  SpecialCommandCreate !lastArgs Arg+ |
+  SpecialCommandCreate Arg !lastArgs Arg+ |
+  (Command0Args | Command0ArgsVar) !lastArgs Arg* ~statement |
+  (Command1Args | Command1ArgsVar) !lastArgs Arg+ |
+  (Command2Args | Command2ArgsVar) Arg !lastArgs Arg+ |
+  (Command3Args | Command3ArgsVar) Arg Arg !lastArgs Arg+ |
+  (Command4Args | Command4ArgsVar) Arg Arg Arg !lastArgs Arg+ |
+  (Command5Args | Command5ArgsVar) Arg Arg Arg Arg !lastArgs Arg+ |
+  (Command6Args | Command6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg+ |
   OpenParen Command0ArgsVar Arg* !close CloseParen|
   OpenParen Command1ArgsVar Arg+ !close CloseParen |
   OpenParen Command2ArgsVar Arg Arg+ !close CloseParen |

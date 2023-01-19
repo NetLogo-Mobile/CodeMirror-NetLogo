@@ -1,6 +1,9 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { parser } from './lang.js';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { getIndent } from './indent.ts';
 
 import {
   LRLanguage,
@@ -14,6 +17,7 @@ import { styleTags, tags as t } from '@lezer/highlight';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { AutoCompletion } from './auto-completion';
 import { SyntaxNode } from '@lezer/common';
+import { css } from '@codemirror/lang-css';
 
 /** NetLogoLanguage: The NetLogo language. */
 export const NetLogoLanguage = LRLanguage.define({
@@ -97,8 +101,13 @@ export const NetLogoLanguage = LRLanguage.define({
       }),
       // Indentations
       indentNodeProp.add({
-        CodeBlock: delimitedIndent({ closing: '[' }),
-        Procedure: delimitedIndent({ closing: 'end' }),
+        CodeBlock: delimitedIndent({ closing: '[', align: false }),
+        AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
+        Procedure: (context) =>
+          /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
+            ? context.baseIndent
+            : context.lineIndent(context.node.from) + context.unit,
+        // delimitedIndent({ closing: 'end' }),
         // Doesn't work well with "END" or "eND". Should do a bug report to CM6.
       }),
       // Foldings
@@ -111,7 +120,7 @@ export const NetLogoLanguage = LRLanguage.define({
   languageData: {
     commentTokens: { line: ';' },
     closeBrackets: closeBrackets(),
-    indentOnInput: /^\s*(?:end|\]|\])$/i,
+    indentOnInput: /^\s*end$/i,
   },
 });
 
