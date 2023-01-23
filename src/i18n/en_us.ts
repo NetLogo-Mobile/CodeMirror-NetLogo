@@ -8,7 +8,7 @@ const en_us: Record<string, Function> = {
   'Unrecognized statement _': (Name: string) =>
     `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
   'Unsupported statement _': (Name: string) =>
-    `"${Name}" is not supported in NetLogo Web`,
+    `"${Name}" is not supported in this version of NetLogo.`,
   'Problem identifying primitive _. Expected _, found _.': (
     Name: string,
     Expected: string,

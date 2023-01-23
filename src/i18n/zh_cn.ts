@@ -7,6 +7,31 @@ const zh_cn: Record<string, Function> = {
     `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
   'Unrecognized statement _': (Name: string) =>
     `"${Name}" 似乎不是合理的 NetLogo 代码。`,
+  'Unsupported statement _': (Name: string) =>
+    `此版本 NetLogo 不支持 "${Name}"。`,
+  'Problem identifying primitive _. Expected _, found _.': (
+    Name: string,
+    Expected: string,
+    Actual: string
+  ) => `"${Name}" 不是有效的原语。预计 "${Expected}" 却得到 "${Actual}"。`,
+  'Left args for _. Expected _, found _.': (
+    Name: string,
+    Expected: string,
+    Actual: string
+  ) =>
+    `原语 "${Name}" 需要 ${Expected} 个左侧参数，但代码中只有 ${Actual} 个。`,
+  'Too few right args for _. Expected _, found _.': (
+    Name: string,
+    Expected: string,
+    Actual: string
+  ) =>
+    `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
+  'Too many right args for _. Expected _, found _.': (
+    Name: string,
+    Expected: string,
+    Actual: string
+  ) =>
+  `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
 
   '~VariableName': (Name: string) => `变量名称。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,
