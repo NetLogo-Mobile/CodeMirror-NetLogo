@@ -94,7 +94,7 @@
     {
       "name": "use-scan",
       "argTypes": ["string"],
-      "returnType": "boolean",
+      "returnType": "unit",
       "agentClassString": "O---"
     },
     {
