@@ -9,10 +9,10 @@ import { UnsupportedLinter } from './unsupported-linter';
 export const netlogoLinters = [
   CompilerLinter,
   RuntimeLinter,
-  // UnrecognizedLinter,
+  UnrecognizedLinter,
   UnrecognizedGlobalLinter,
   IdentifierLinter,
   BreedLinter,
-  // ArgumentLinter,
+  ArgumentLinter,
   UnsupportedLinter,
 ];

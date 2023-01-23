@@ -25,29 +25,62 @@ export const ArgumentLinter = linter((view) => {
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
         let args = getArgs(Node);
-        if (
-          Node.getChildren('VariableDeclaration').length == 0 &&
-          args.func &&
-          !checkValid(Node, value, view.state, args)
-        ) {
+        if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
           // We need to make the error message much more clearer. It will also help debug.
-          diagnostics.push({
-            from: noderef.from,
-            to: noderef.to,
-            severity: 'error',
-            message: Localized.Get(
-              'Invalid number of arguments for _. Expected _, found _.',
-              value
-            ),
-            /* actions: [
-              {
-                name: 'Remove',
-                apply(view, from, to) {
-                  view.dispatch({ changes: { from, to } });
-                },
-              },
-            ], */
-          });
+          const result = checkValid(Node, value, view.state, args);
+          let error_type = result[0];
+          let func = result[1];
+          let expected = result[2];
+          let actual = result[3];
+          if (error_type == 'no primitive') {
+            diagnostics.push({
+              from: noderef.from,
+              to: noderef.to,
+              severity: 'error',
+              message: Localized.Get(
+                'Problem identifying primitive _. Expected _, found _.',
+                func.toString(),
+                expected.toString(),
+                actual.toString()
+              ),
+            });
+          } else if (error_type == 'left') {
+            diagnostics.push({
+              from: noderef.from,
+              to: noderef.to,
+              severity: 'error',
+              message: Localized.Get(
+                'Left args for _. Expected _, found _.',
+                func.toString(),
+                expected.toString(),
+                actual.toString()
+              ),
+            });
+          } else if (error_type == 'rightmin') {
+            diagnostics.push({
+              from: noderef.from,
+              to: noderef.to,
+              severity: 'error',
+              message: Localized.Get(
+                'Too few right args for _. Expected _, found _.',
+                func.toString(),
+                expected.toString(),
+                actual.toString()
+              ),
+            });
+          } else if (error_type == 'rightmax') {
+            diagnostics.push({
+              from: noderef.from,
+              to: noderef.to,
+              severity: 'error',
+              message: Localized.Get(
+                'Too many right args for _. Expected _, found _.',
+                func.toString(),
+                expected.toString(),
+                actual.toString()
+              ),
+            });
+          }
         }
       }
     });
@@ -72,7 +105,10 @@ export const getArgs = function (Node: SyntaxNode) {
       args.leftArgs = cursor.node;
     } else if (seenFunc && cursor.node.name == 'Arg') {
       args.rightArgs.push(cursor.node);
-    } else if (cursor.node.name != 'LineComment') {
+    } else if (
+      cursor.node.name.includes('Command') ||
+      cursor.node.name.includes('Reporter')
+    ) {
       // console.log(cursor.node.name)
       args.func = cursor.node;
       seenFunc = true;
@@ -101,12 +137,17 @@ export const checkValid = function (
       state.field(preprocessStateExtension).Reporters[func] ??
       getBreedCommandArgs(func) ??
       getBreedProcedureArgs(args.func.name);
-    return numArgs == args.rightArgs.length;
+    return [
+      numArgs == args.rightArgs.length,
+      func,
+      numArgs,
+      args.rightArgs.length,
+    ];
   } else {
     let primitive = primitives.GetNamedPrimitive(func);
     if (!primitive) {
       console.log('no primitive', args.func?.name, func);
-      return false;
+      return ['no primitive', func, 0, 0];
     } else if (
       (primitive.LeftArgumentType?.Types[0] == NetLogoType.Unit &&
         args.leftArgs) ||
@@ -114,7 +155,11 @@ export const checkValid = function (
         !args.leftArgs)
     ) {
       console.log('left args');
-      return false;
+      let expected =
+        primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit ? 1 : 0;
+      let actual = args.leftArgs ? 1 : 0;
+      console.log('left', expected, actual);
+      return ['left', func, expected, actual];
     } else {
       let rightArgMin =
         primitive.MinimumOption ??
@@ -125,10 +170,7 @@ export const checkValid = function (
         primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length > 0
           ? 100
           : primitive.RightArgumentTypes.length;
-      if (
-        args.rightArgs.length < rightArgMin ||
-        args.rightArgs.length > rightArgMax
-      ) {
+      if (args.rightArgs.length < rightArgMin) {
         console.log(args.rightArgs);
         console.log(
           func,
@@ -137,9 +179,11 @@ export const checkValid = function (
           rightArgMax,
           args.rightArgs.length
         );
-        return false;
+        return ['rightmin', func, rightArgMin, args.rightArgs.length];
+      } else if (args.rightArgs.length > rightArgMax) {
+        return ['rightmax', func, rightArgMax, args.rightArgs.length];
       } else {
-        return true;
+        return [true, func, 0, 0];
       }
     }
   }
