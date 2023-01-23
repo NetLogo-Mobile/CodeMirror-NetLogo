@@ -21170,7 +21170,7 @@ if(!String.prototype.matchAll) {
                type == "delete" && cur(tr.startState) == this.from)
                return new ActiveSource(this.source, type == "input" && conf.activateOnTyping ? 1 /* State.Pending */ : 0 /* State.Inactive */);
            let explicitPos = this.explicitPos < 0 ? -1 : tr.changes.mapPos(this.explicitPos), updated;
-           if (checkValid$1(this.result.validFor, tr.state, from, to))
+           if (checkValid$2(this.result.validFor, tr.state, from, to))
                return new ActiveResult(this.source, explicitPos, this.result, from, to);
            if (this.result.update &&
                (updated = this.result.update(this.result, from, to, new CompletionContext(tr.state, pos, explicitPos >= 0))))
@@ -21185,7 +21185,7 @@ if(!String.prototype.matchAll) {
                new ActiveResult(this.source, this.explicitPos < 0 ? -1 : mapping.mapPos(this.explicitPos), this.result, mapping.mapPos(this.from), mapping.mapPos(this.to, 1));
        }
    }
-   function checkValid$1(validFor, state, from, to) {
+   function checkValid$2(validFor, state, from, to) {
        if (!validFor)
            return false;
        let text = state.sliceDoc(from, to);
@@ -24530,13 +24530,42 @@ if(!String.prototype.matchAll) {
      Reporter4Args = 32,
      Reporter5Args = 33,
      Reporter6Args = 34,
-     SpecialReporter0Args = 35,
-     SpecialReporter1Args = 36,
-     SpecialReporter2Args = 37,
-     SpecialReporter3Args = 38,
-     SpecialReporter4Args = 39,
-     SpecialReporter5Args = 40,
-     SpecialReporter6Args = 41;
+     Reporter0ArgsVar = 35,
+     Reporter1ArgsVar = 36,
+     Reporter2ArgsVar = 37,
+     Reporter3ArgsVar = 38,
+     Reporter4ArgsVar = 39,
+     Reporter5ArgsVar = 40,
+     Reporter6ArgsVar = 41,
+     SpecialReporter0Args = 42,
+     SpecialReporter1Args = 43,
+     SpecialReporter2Args = 44,
+     SpecialReporter3Args = 45,
+     SpecialReporter4Args = 46,
+     SpecialReporter5Args = 47,
+     SpecialReporter6Args = 48,
+     Command0Args = 49,
+     Command1Args = 50,
+     Command2Args = 51,
+     Command3Args = 52,
+     Command4Args = 53,
+     Command5Args = 54,
+     Command6Args = 55,
+     Command0ArgsVar = 56,
+     Command1ArgsVar = 57,
+     Command2ArgsVar = 58,
+     Command3ArgsVar = 59,
+     Command4ArgsVar = 60,
+     Command5ArgsVar = 61,
+     Command6ArgsVar = 62,
+     SpecialCommand0Args = 63,
+     SpecialCommand1Args = 64,
+     SpecialCommand2Args = 65,
+     SpecialCommand3Args = 66,
+     SpecialCommand4Args = 67,
+     SpecialCommand5Args = 68,
+     SpecialCommand6Args = 69,
+     SpecialCommandCreate = 70;
 
    /** StatePreprocess: Editor state for the NetLogo Language. */
    class StatePreprocess {
@@ -24596,7 +24625,7 @@ if(!String.prototype.matchAll) {
            if (!Transaction.docChanged)
                return Original;
            Original.ParseState(Transaction.state);
-           // console.log(Original);
+           console.log(Original);
            return Original;
        },
    });
@@ -24884,6 +24913,7 @@ if(!String.prototype.matchAll) {
    // Check if the character is valid for a keyword.
    function isValidKeyword(ch) {
        return (ch == 33 ||
+           ch == 39 ||
            // 0-9
            (ch >= 42 && ch <= 58) ||
            // -
@@ -24968,42 +24998,66 @@ if(!String.prototype.matchAll) {
        return 0;
    }
 
-   let primitives = PrimitiveManager;
+   let primitives$1 = PrimitiveManager;
    const specializeReporter = function (token) {
        token = token.toLowerCase();
-       let reporter = primitives.GetPrimitive('', token);
+       let reporter = primitives$1.GetPrimitive('', token);
        if (reporter) {
+           let repeats = false;
            let args = reporter === null || reporter === void 0 ? void 0 : reporter.RightArgumentTypes.length;
            reporter.RightArgumentTypes.map((arg) => {
                if (arg.CanRepeat) {
+                   repeats = true;
                    if (reporter === null || reporter === void 0 ? void 0 : reporter.DefaultOption) {
                        args = reporter === null || reporter === void 0 ? void 0 : reporter.DefaultOption;
                    }
                }
            });
-           // if (repeats) {
-           //     return ReporterVarArgs
-           // }
-           if (args == 0) {
-               return Reporter0Args;
+           if (repeats) {
+               if (args == 0) {
+                   return Reporter0ArgsVar;
+               }
+               else if (args == 1) {
+                   return Reporter1ArgsVar;
+               }
+               else if (args == 2) {
+                   return Reporter2ArgsVar;
+               }
+               else if (args == 3) {
+                   return Reporter3ArgsVar;
+               }
+               else if (args == 4) {
+                   return Reporter4ArgsVar;
+               }
+               else if (args == 5) {
+                   return Reporter5ArgsVar;
+               }
+               else if (args == 6) {
+                   return Reporter6ArgsVar;
+               }
            }
-           else if (args == 1) {
-               return Reporter1Args;
-           }
-           else if (args == 2) {
-               return Reporter2Args;
-           }
-           else if (args == 3) {
-               return Reporter3Args;
-           }
-           else if (args == 4) {
-               return Reporter4Args;
-           }
-           else if (args == 5) {
-               return Reporter5Args;
-           }
-           else if (args == 6) {
-               return Reporter6Args;
+           else {
+               if (args == 0) {
+                   return Reporter0Args;
+               }
+               else if (args == 1) {
+                   return Reporter1Args;
+               }
+               else if (args == 2) {
+                   return Reporter2Args;
+               }
+               else if (args == 3) {
+                   return Reporter3Args;
+               }
+               else if (args == 4) {
+                   return Reporter4Args;
+               }
+               else if (args == 5) {
+                   return Reporter5Args;
+               }
+               else if (args == 6) {
+                   return Reporter6Args;
+               }
            }
        }
        else {
@@ -25077,25 +25131,132 @@ if(!String.prototype.matchAll) {
            return -1;
        }
    };
+   const specializeCommand = function (token) {
+       token = token.toLowerCase();
+       let commands = primitives$1.GetPrimitive('', token);
+       if (commands) {
+           let repeats = false;
+           let args = commands === null || commands === void 0 ? void 0 : commands.RightArgumentTypes.length;
+           commands.RightArgumentTypes.map((arg) => {
+               if (arg.CanRepeat) {
+                   repeats = true;
+                   if (commands === null || commands === void 0 ? void 0 : commands.DefaultOption) {
+                       args = commands === null || commands === void 0 ? void 0 : commands.DefaultOption;
+                   }
+               }
+           });
+           if (repeats) {
+               if (args == 0) {
+                   return Command0ArgsVar;
+               }
+               else if (args == 1) {
+                   return Command1ArgsVar;
+               }
+               else if (args == 2) {
+                   return Command2ArgsVar;
+               }
+               else if (args == 3) {
+                   return Command3ArgsVar;
+               }
+               else if (args == 4) {
+                   return Command4ArgsVar;
+               }
+               else if (args == 5) {
+                   return Command5ArgsVar;
+               }
+               else if (args == 6) {
+                   return Command6ArgsVar;
+               }
+           }
+           else {
+               if (args == 0) {
+                   return Command0Args;
+               }
+               else if (args == 1) {
+                   return Command1Args;
+               }
+               else if (args == 2) {
+                   return Command2Args;
+               }
+               else if (args == 3) {
+                   return Command3Args;
+               }
+               else if (args == 4) {
+                   return Command4Args;
+               }
+               else if (args == 5) {
+                   return Command5Args;
+               }
+               else if (args == 6) {
+                   return Command6Args;
+               }
+           }
+       }
+       else {
+           return -1;
+       }
+   };
+   const specializeSpecialCommand = function (token) {
+       var _a;
+       token = token.toLowerCase();
+       let parseContext = ParseContext.get();
+       let commands = (_a = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).Commands) !== null && _a !== void 0 ? _a : {};
+       if (commands[token] >= 0) {
+           let args = commands[token];
+           if (args == 0) {
+               return SpecialCommand0Args;
+           }
+           else if (args == 1) {
+               return SpecialCommand1Args;
+           }
+           else if (args == 2) {
+               return SpecialCommand2Args;
+           }
+           else if (args == 3) {
+               return SpecialCommand3Args;
+           }
+           else if (args == 4) {
+               return SpecialCommand4Args;
+           }
+           else if (args == 5) {
+               return SpecialCommand5Args;
+           }
+           else if (args == 6) {
+               return SpecialCommand6Args;
+           }
+           else {
+               return -1;
+           }
+       }
+       if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+           return SpecialCommandCreate;
+       }
+       else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
+           return SpecialCommandCreate;
+       }
+       else {
+           return -1;
+       }
+   };
 
    // This file was generated by lezer-generator. You probably shouldn't edit it.
    const parser$3 = LRParser.deserialize({
      version: 14,
-     states: "6bQYQROOO!aQPO'#DZO!fQPO'#D]OOQO'#D_'#D_O!kQPO'#D^O!pQPO'#DbOOQQ'#EW'#EWO!uQRO'#EXOOQQ'#EX'#EXOOQQ'#Dc'#DcOOQQ'#D|'#D|QYQROOO#jQRO'#DhOOQQ'#EP'#EPQ$XQROOO$^QRO,59uO$fQRO,59wO$nQRO,59xO$sQRO,59|O${QPO,5:sOOQQ-E7z-E7zOOQQ'#Di'#DiO%fQRO,5:SOOQQ-E7}-E7}OOQQ'#D}'#D}O%pQRO1G/aOOQQ1G/a1G/aOOQQ'#EO'#EOO%xQRO1G/cOOQQ1G/c1G/cOOQQ'#D`'#D`O&QQRO1G/dO&YQRO1G/hOOQQ1G/h1G/hOOQQ1G0_1G0_O&bQRO'#DjO&jQRO'#DzO&oQRO'#D{OOQQ'#Dy'#DyO'QQRO'#DlOOQQ'#Dl'#DlOOQQ'#Dk'#DkO'}QRO'#DkOOQQ'#EQ'#EQO(`QRO1G/nOOQQ1G/n1G/nO(`QRO1G/nOOQQ-E7{-E7{OOQQ7+${7+${OOQQ-E7|-E7|OOQQ7+$}7+$}OOQO'#Da'#DaO(gQPO7+%OOOQQ7+%S7+%SO(lQRO,5:UOOQQ,5:U,5:UO(tQRO,5:fOOQQ'#Dp'#DpO(tQRO,5:gO+[QRO'#DnO(tQRO'#DoOOQQ'#Do'#DoOOQQ'#Dm'#DmOOQQ'#ER'#ERO+fQRO,5:WO,cQPO,5:VOOQQ-E8O-E8OOOQQ7+%Y7+%YO,hQRO7+%YOOQQ<<Hj<<HjOOQQ1G/p1G/pO,oQRO'#DqOOQQ1G0Q1G0QOOQQ1G0R1G0RO-WQRO'#EOO-lQRO'#DtO-tQRO'#DjO.OQRO,5:YO0hQRO,5:YO0oQRO'#DrOOQQ'#ES'#ESO1WQRO,5:]OOQO'#Dt'#DtO1fQPO,5:_O1kQRO'#DoO2bQRO,5:dO2pQRO'#DwOOQO'#Dw'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO2{QRO'#DwO3cQPO,5:bO3hQPO,5:ZOOQQ-E8P-E8POOQQ1G/q1G/qOOQQ<<Ht<<HtOOQQ'#Dr'#DrOOQQ,5:],5:]O3mQRO,5:UO3xQRO,5:UOOQQ1G/t1G/tOOQQ-E8Q-E8QOOQQ1G/w1G/wO4aQRO1G/yOOQQ1G0O1G0OO2{QRO,5:cO2{QRO,5:cOOQO,5:c,5:cO2{QRO,5:cO2{QRO,5:cO2{QRO,5:cO4hQRO,5:cO2{QRO,5:cO2{QRO,5:cO2{QRO,5:cO2{QRO,5:cO2{QRO,5:cOOQQ1G/|1G/|OOQQ1G/u1G/uOOQQ7+%e7+%eO5RQRO7+%eOOQO1G/}1G/}O2{QRO1G/}O2{QRO1G/}O2{QRO1G/}O2{QRO1G/}O5YQRO1G/}O2{QRO1G/}O2{QRO1G/}O2{QRO1G/}O2{QRO1G/}OOQQ<<IP<<IPOOQO7+%i7+%iO2{QRO7+%iO2{QRO7+%iO2{QRO7+%iO5sQRO7+%iO2{QRO7+%iO2{QRO7+%iO2{QRO7+%iOOQO<<IT<<ITO2{QRO<<ITO2{QRO<<ITO6^QRO<<ITO2{QRO<<ITO2{QRO<<ITOOQOAN>oAN>oO2{QROAN>oO6wQROAN>oO2{QROAN>oOOQOG24ZG24ZO7bQROG24ZO7{QRO'#DlO8fQRO,5:WO9PQRO'#EO",
-     stateData: "9W~O!yOSzOS~ORQOSPOTROVTOY[O^WO`WOaWOcWOdWOeWOfWOgWOjRO!WVO!YWO!ZWO~O!O_O~O!O`O~O!OaO~O!ObO~O^WO`WOaWOcWOdWOeWOfWOgWO!WVO!YWO!ZWO~O^eOieOseOteOueOveOweOxeOyeO~OY[O~ObhO|jO~O^kO|mO~O^nO~O^kO|qO~O!XrO~OWuOXtO`wOgxOiwO!WzO~OZ}O!OsO~P%QObhO|!QO~O^kO|!SO~O^!TOt!TO~O^kO|!VO~O^kO|!XO~O^!YO~O^!ZOc!ZOd!ZOe!ZOj!ZO~Oa!_Of!_O!O!]O!Y!_O!Z!_OW!`XX!`XZ!`X`!`Xg!`Xi!`X!W!`X|!`X~P&oOWuOXtO`$gOgxOi$gO~OZ!eO~P%QO|!gO~O^kO|!hO~Oa!_Of!_O!O!iO!W!^O!Y!_O!Z!_O~P&oOWuOXtO`wOa!_Oc!ZOd!ZOe!ZOf!qOgxOiwOj!ZOl!yOm#QOn#ROo#SOp#TOq#UOr#VOs!yOt!zOu!{Ov!|Ow!}Ox#OOy#PO!O!nO!W!vO!Y!qO!Z!qO!i!hP~O^!lO|!oO~P)[Oa!_Of!_O!O!]O!Y!_O!Z!_OW!`aX!`aZ!`a`!`ag!`ai!`a!W!`a|!`a~P&oO!X#ZO~OZ#[O~P%QO^kOf#]O|#^O!OsO!Y#]O!Z#]O!i!hP~OP!dXQ!dX^!rXk!dX|!dX!i!rX~O^kO!i!hX~O^$iO|#`O~P)[OW!baW!eaX!baX!eaZ!baZ!ea^!ba^!ea`!ba`!eaa!baa!eac!bac!ead!bad!eae!bae!eaf!baf!eag!bag!eai!bai!eaj!baj!ea!O!ba!O!ea!W!ba!W!ea!Y!ba!Y!ea!Z!ba!Z!ea!X!ba!X!ea|!ba|!ea~O|#aO~P%QOP!cXQ!cXf!fXk!cX|!fX!Y!fX!Z!fX~Of#]O|#cO!Y#]O!Z#]O~O!i#dO~OWuOXtO`$gOa!_Of!_OgxOi$gO!O!iO!W!^O!Y!_O!Z!_O~P&oO|#eOP!cXQ!cXk!cX~OP#fOQ#gOk#fO~Oa!_Of!_O!O!]O!W!^O!Y!_O!Z!_O~P&oO|#rO~O!X#sO~O^kO|!hO!i!hX~OP!baP!eaQ!baQ!eak!bak!ea!i!^a~O|#tO~P%QOa!_Of!_O!O!]O!W!^O!Y!_O!Z!_O|!ka~P&oO|$QO~P%QOa!_Of!_O!O!]O!W!^O!Y!_O!Z!_O|!ki~P&oOa!_Of!_O!O!]O!W!^O!Y!_O!Z!_O|!kq~P&oOa!_Of!_O!O!]O!W!^O!Y!_O!Z!_O|!ky~P&oOa!_Of!_O!O!]O!W!^O!Y!_O!Z!_O|!k!R~P&oOa!_Of!_O!O!]O!W!^O!Y!_O!Z!_O|!k!Z~P&oOa!_Of!_O!O!]O!W!^O!Y!_O!Z!_O!X!`X~P&oOa!_Of!_O!O!]O!W!^O!Y!_O!Z!_O!X!`a~P&oO|!rX~P-WO",
-     goto: "/s!|PPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP!}P!}!}#R#V#Y!}#]PPPP#a#f#i#q#|$]'T(_)s+W,f+W,lP'T,q'T,u-S-S-a-g-m.U.].p/dPPP#]/lTUOZTSOZRoaR!UoTYOZV]OZ^Rf[Q!OfV!t!]!i!nc{f|!O!]!f!n!p#d#ubyf|!O!]!f!n!p#d#uT!cz!vp!aw!b#Q#l#m#{#|$V$W$^$_$c$d$f$g$hS!x!]!nQ#f!{Q#g!|Q#h!zQ#i!}Q#j#OQ#k#PQ#m#RQ#n#SQ#o#TQ#p#UQ#q#VQ#v#fQ#w#gQ#x#iQ#y#jQ#z#kQ#|#nQ#}#oQ$O#pQ$P#qQ$R#wQ$S#xQ$T#yQ$U#zQ$W#}Q$X$OQ$Y$PQ$Z$SQ$[$TQ$]$UQ$_$XQ$`$YQ$a$[Q$b$]Q$d$`R$e$b#a!`w!]!b!n!z!{!|!}#O#P#Q#R#S#T#U#V#f#g#i#j#k#l#m#n#o#p#q#w#x#y#z#{#|#}$O$P$S$T$U$V$W$X$Y$[$]$^$_$`$b$c$d$f$g$h#`!`w!]!b!n!z!{!|!}#O#P#Q#R#S#T#U#V#f#g#i#j#k#l#m#n#o#p#q#w#x#y#z#{#|#}$O$P$S$T$U$V$W$X$Y$[$]$^$_$`$b$c$d$f$g$hQ!j!YQ!k![T#X!^!vQ![u#d!_w!Y![!^!b!v!z!{!|!}#O#P#Q#R#S#T#U#V#f#g#i#j#k#l#m#n#o#p#q#w#x#y#z#{#|#}$O$P$S$T$U$V$W$X$Y$[$]$^$_$`$b$c$d$f$g$hT!w!]!n#i!_w!Y![!]!^!b!n!v!z!{!|!}#O#P#Q#R#S#T#U#V#f#g#i#j#k#l#m#n#o#p#q#w#x#y#z#{#|#}$O$P$S$T$U$V$W$X$Y$[$]$^$_$`$b$c$d$f$g$hX!r!]!i!n!sV!u!]!i!nT#W!]!ngxfz|!O!]!f!n!p!v#d#ugvfz|!O!]!f!n!p!v#d#uQZORdZQi_R!PiQl`QpbY!Rlp!W!m#_Q!WsS!m!]!iR#_!nS^OZRg^Q|fW!d|!f!p#uQ!f!OS!p!]!nR#u#dQ!bw`#Y!b#l#{$V$^$c$f$hQ#l#QQ#{#mQ$V#|Q$^$WQ$c$_Q$f$dR$h$gU!s!]!i!nR#b!sSXOZRcV",
-     nodeNames: "⚠ ReporterLeft1Args ReporterLeft2Args GlobalStr ExtensionStr BreedStr PlusMinus Own Set Let To End And Or Identifier Directive Command Reporter Extension TurtleVar PatchVar LinkVar Constant Unsupported SpecialReporter SpecialCommand BreedToken AndOr Reporter0Args Reporter1Args Reporter2Args Reporter3Args Reporter4Args Reporter5Args Reporter6Args SpecialReporter0Args SpecialReporter1Args SpecialReporter2Args SpecialReporter3Args SpecialReporter4Args SpecialReporter5Args SpecialReporter6Args LineComment Program CloseBracket Extensions OpenBracket Globals Breed BreedDeclarative BreedPlural BreedSingular BreedsOwn Unrecognized OpenParen CloseParen Numeric String Procedure ProcedureName Arguments ProcedureContent CommandStatement Arg CodeBlock Value VariableName List Literal AnonymousProcedure AnonArguments Arrow ReporterBlock ReporterStatement Property VariableDeclaration NewVariableDeclaration SetVariable",
-     maxTerm: 89,
+     states: "!#UQYQROOO!aQPO'#DxO!fQPO'#DzOOQO'#D|'#D|O!kQPO'#D{O!pQPO'#EPOOQQ'#Eu'#EuO!uQRO'#EvOOQQ'#Ev'#EvOOQQ'#EQ'#EQOOQQ'#Ek'#EkQYQROOO#jQRO'#EVOOQQ'#En'#EnQ$qQROOO$vQRO,5:dO%OQRO,5:fO%WQRO,5:gO%]QRO,5:kO%eQPO,5;bOOQQ-E8i-E8iOOQQ'#EW'#EWO'^QRO,5:qOOQQ-E8l-E8lOOQQ'#El'#ElO'hQRO1G0OOOQQ1G0O1G0OOOQQ'#Em'#EmO'pQRO1G0QOOQQ1G0Q1G0QOOQQ'#D}'#D}O'xQRO1G0RO(QQRO1G0VOOQQ1G0V1G0VOOQQ1G0|1G0|O(YQRO'#EXO(bQRO'#EiO(gQRO'#EjOOQQ'#Eh'#EhO(xQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO/xQRO'#EZOOQQ'#EZ'#EZOOQQ'#EY'#EYOOQQ'#Eo'#EoO0PQRO1G0]OOQQ1G0]1G0]O0PQRO1G0]OOQQ-E8j-E8jOOQQ7+%j7+%jOOQQ-E8k-E8kOOQQ7+%l7+%lOOQO'#EO'#EOO0WQPO7+%mOOQQ7+%q7+%qO0]QRO,5:sOOQQ,5:s,5:sO0eQRO,5;TOOQQ'#E`'#E`O0eQRO,5;UO6OQRO'#E]O8YQRO'#EpOOQQ'#E_'#E_O,cQRO'#E_O,cQRO'#E_O,cQRO'#E_O,cQRO'#E_O,cQRO'#E_O,cQRO'#E_O:[QRO'#E_OOQQ'#E^'#E^OOQQ'#E['#E[O<QQRO,5:uO?kQRO,5:uO?kQRO,5:uO?kQRO,5:uO?kQRO,5:uO?kQRO,5:uOAjQRO,5:uOE^QRO,5:uOGVQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uOH{QRO'#EZOIdQPO,5:tOOQQ-E8m-E8mOOQQ7+%w7+%wOIiQRO7+%wOOQQ<<IX<<IXOOQQ1G0_1G0_OIpQRO'#E_OI{QRO'#E_OMoQRO1G0oO! uQRO1G0pO!#{QRO'#EmO!$aQRO'#EdO!(ZQRO'#EXO!-OQRO,5:wO!0lQRO,5:wO!0sQRO,5;QO!2xQRO'#EbOOQQ'#Eq'#EqO!3aQRO,5:{OOQO'#Ed'#EdO!3oQPO,5:}O!3tQRO,5;QO!4SQRO,5;RO,cQRO,5:yO,cQRO,5:yO,cQRO,5:yOOQQ,5:y,5:yO?kQRO,5:yO?kQRO,5:yO?kQRO,5:yO?kQRO,5:yO?kQRO,5:yO!4bQRO,5:yOGVQRO,5:yO,cQRO,5:yO,cQRO,5:yO,cQRO,5:yO,cQRO,5:yO,cQRO,5:yO!6dQRO,5:xOOQQ-E8n-E8nO!6rQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO!:]QRO1G0aOOQQ1G0a1G0aO!<UQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO!>TQRO,5:uOGVQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uOOQQ1G0`1G0`OOQQ<<Ic<<IcO!?|QRO,5:yO!CpQRO,5:sO!DaQRO,5:sOOQQ1G0c1G0cO!DhQRO'#E_O!FmQRO1G0lOOQQ'#Eb'#EbOOQQ-E8o-E8oOOQQ1G0g1G0gO!F{QRO1G0iOOQQ1G0l1G0lOOQQ1G0m1G0mOOQQ1G0e1G0eO?kQRO1G0eO!IYQRO1G0eO?kQRO1G0eO?kQRO1G0eO?kQRO1G0eO!KXQRO1G0eO!<UQRO1G0eO?kQRO1G0eO?kQRO1G0eO?kQRO1G0eO?kQRO1G0eOOQQ1G0d1G0dO!MZQRO7+%{O?kQRO7+%{O?kQRO7+%{O?kQRO7+%{OOQQ7+%{7+%{O#!tQRO7+%{O!<UQRO7+%{O?kQRO7+%{O?kQRO7+%{O?kQRO7+%{O#$mQRO1G0aO!<UQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO#&fQRO1G0eO#*YQPO7+&WOOQQ7+&T7+&TO#*_QRO7+&TOOQQ7+&P7+&PO?kQRO7+&PO?kQRO7+&PO?kQRO7+&PO#*fQRO7+&PO!<UQRO7+&PO?kQRO7+&PO?kQRO7+&PO?kQRO7+&PO#,hQRO<<IgO?kQRO<<IgO?kQRO<<IgOOQQ<<Ig<<IgO#0RQRO<<IgO!<UQRO<<IgO?kQRO<<IgO?kQRO<<IgO#1zQRO7+%{O!<UQRO7+%{O?kQRO7+%{O?kQRO7+%{O?kQRO7+%{O#3sQRO7+&POOQQ<<Ir<<IrOOQQ<<Io<<IoOOQQ<<Ik<<IkO?kQRO<<IkO?kQRO<<IkO#7gQRO<<IkO!<UQRO<<IkO?kQRO<<IkO?kQRO<<IkO#9iQROAN?RO?kQROAN?ROOQQAN?RAN?RO#=SQROAN?RO!<UQROAN?RO?kQROAN?RO#>{QRO<<IgO!<UQRO<<IgO?kQRO<<IgO?kQRO<<IgO#@tQRO<<IkOOQQAN?VAN?VO?kQROAN?VO#DhQROAN?VO!<UQROAN?VO?kQROAN?VO#FjQROG24mOOQQG24mG24mO#JTQROG24mO!<UQROG24mO#K|QROAN?RO!<UQROAN?RO?kQROAN?RO#MuQROAN?VOOQQG24qG24qO$#iQROG24qO!<UQROG24qOOQQLD*XLD*XO$%kQROLD*XO$'dQROG24mO!<UQROG24mO$)]QROG24qPOQQLD*]LD*]O$-PQROLD*]OOQQ!$'Ms!$'MsO$/RQROLD*XPOQQ!$'Mw!$'MwO,cQRO'#E_O$0zQRO'#E_O$2|QRO'#EmO$3TQRO,5:wO$5VQRO,5:wO,cQRO,5:yO$5^QRO,5:yO$7SQRO,5:yO?kQRO,5:yO$8xQRO,5:yO?kQRO1G0eO$:zQRO1G0eO$<}QRO1G0eO?kQRO7+&PO$?PQRO7+&PO?kQRO<<IkO$ARQRO<<IkO?kQROAN?VO$CTQROAN?VO$EVQROG24qOGVQRO'#EZO:[QRO,5;TO:[QRO,5;UO$GXQRO'#E]O$G`QRO'#E]OGVQRO'#E_O,cQRO'#E_O$GgQRO,5:uO$IiQRO'#E_OGVQRO,5:yO,cQRO,5:yOGVQRO,5:yO!<UQRO,5:yO?kQRO,5:yO!<UQRO1G0eO$ItQRO1G0eO?kQRO1G0eO!<UQRO7+&PO?kQRO7+&PO!<UQRO<<IkO?kQRO<<IkO!<UQROAN?VO,cQRO'#E_O,cQRO,5:yOGVQRO,5:yO$JRQRO,5:yO?kQRO,5:yO?kQRO1G0eO$KwQRO1G0eO$LVQRO1G0eO?kQRO7+&PO?kQRO<<IkO?kQROAN?VO$LeQRO'#EiO(gQRO'#EjO$LjQRO'#EpO,cQRO'#E_O,cQRO'#E_O,cQRO,5:yO?kQRO,5:yO?kQRO,5:yO?kQRO1G0eO?kQRO1G0eO?kQRO7+&PO?kQRO7+&PO?kQRO<<IkO,cQRO'#E_O$LzQRO'#E_O,cQRO,5:yO,cQRO,5:yO?kQRO,5:yO?kQRO1G0eO?kQRO7+&PO?kQRO<<IkO,cQRO'#E_O,cQRO'#E_O?kQRO,5:yO?kQRO,5:yO?kQRO1G0eO?kQRO1G0eO?kQRO7+&PO,cQRO'#E_O?kQRO,5:yO?kQRO1G0eO?kQRO7+&PO,cQRO'#E_O,cQRO'#E_O?kQRO,5:yO?kQRO,5:yO?kQRO1G0eO,cQRO'#E_O?kQRO,5:yO?kQRO1G0eO,cQRO'#E_O,cQRO'#E_O?kQRO,5:yO,cQRO'#E_O?kQRO,5:yO,cQRO'#E_O,cQRO'#E_",
+     stateData: "$MV~O#hOS!iOS~ORQOSPOTROVTOY[O^WO`WOaWOcWOdWOeWOfWOgWOjRO!uVO!wWO!xWO~O!m_O~O!m`O~O!maO~O!mbO~O^WO`WOaWOcWOdWOeWOfWOgWO!uVO!wWO!xWO~O^eOieOzeO{eO|eO}eO!OeO!PeO!QeO!aeO!beO!ceO!deO!eeO!feO!geO!heO~OY[O~ObhO!kjO~O^kO!kmO~O^nO~O^kO!kqO~O!vrO~OWuOXtOg!QO!RwO!SxO!TyO!UzO!V{O!W|O!X}O!YwO!ZxO![yO!]zO!^{O!_|O!`}O!awO!bxO!cyO!dzO!e{O!f|O!g}O!h!OO!u!PO~OZ!UO!msO~P%jObhO!k!XO~O^kO!k!ZO~O^![O{![O~O^kO!k!^O~O^kO!k!`O~O^!aO~O^!bOc!bOd!bOe!bOj!bO~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}XX!}XZ!}Xg!}X!R!}X!S!}X!T!}X!U!}X!V!}X!W!}X!X!}X!Y!}X!Z!}X![!}X!]!}X!^!}X!_!}X!`!}X!a!}X!b!}X!c!}X!d!}X!e!}X!f!}X!g!}X!h!}X!u!}X!k!}X~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nO~P(gOW(POX(OOg!QO!R!wO!S!xO!T!yO!U!zO!V!{O!W!|O!X!}O!Y!wO!Z!xO![!yO!]!zO!^!{O!_!|O!`!}O!a!wO!b!xO!c!yO!d!zO!e!{O!f!|O!g!}O!h']O~O!u#OO~P.XOZ#RO~P%jO!k#TO~O^kO!k#UO~Of!nOl#WOm&wOn'cOo(SOp(fOq(qOr(yOs#WOt&wOu'cOv(SOw(fOx(qOy(yOz#WO{&wO|'cO}(SO!O(fO!P(qO!Q(yO!m'`O!u!mO!w!nO!x!nO~P(gOWuOXtO^#ZOc!bOd!bOe!bOf#aOg!QOj!bOl&xOm'sOn(]Oo(lOp(uOq({Or)OOs&xOt'sOu(]Ov(lOw(uOx({Oy)OOz&xO{'sO|(]O}(lO!O(uO!P({O!Q)OO!RwO!SxO!TyO!UzO!V{O!W|O!X}O!YwO!ZxO![yO!]zO!^{O!_|O!`}O!awO!bxO!cyO!dzO!e{O!f|O!g}O!h!OO!m#]O!u#`O!w#aO!x#aO#X#WP~O!k#^O~P2ZO^#dXc#dXd#dXe#dXf#dXj#dXl#dXm#dXn#dXo#dXp#dXq#dXr#dXs#dXt#dXu#dXv#dXw#dXx#dXy#dXz#dX{#dX|#dX}#dX!O#dX!P#dX!Q#dX!m#dX!u#dX!w#dX!x#dX~OP#hOQ#iOk#jOW#dXX#dXZ#dXg#dX!R#dX!S#dX!T#dX!U#dX!V#dX!W#dX!X#dX!Y#dX!Z#dX![#dX!]#dX!^#dX!_#dX!`#dX!a#dX!b#dX!c#dX!d#dX!e#dX!f#dX!g#dX!h#dX!k#dX~P6VOf!nOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!m!dO!u!mO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}aX!}aZ!}ag!}a!R!}a!S!}a!T!}a!U!}a!V!}a!W!}a!X!}a!Y!}a!Z!}a![!}a!]!}a!^!}a!_!}a!`!}a!a!}a!b!}a!c!}a!d!}a!e!}a!f!}a!g!}a!h!}a!u!}a!k!}a~P(gOP#hOQ#iOf!nOk#jOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nO~P(gOP#hOQ#iOf!nOk#jOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOW#dXX#dXZ#dXg#dX!R#dX!S#dX!T#dX!U#dX!V#dX!W#dX!X#dX!Y#dX!Z#dX![#dX!]#dX!^#dX!_#dX!`#dX!a#dX!b#dX!c#dX!d#dX!e#dX!f#dX!g#dX!h#dX!k#dX~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}X~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO~P(gO!Y$WO!Z$XO![$YO!]$ZO!^$[O!_$]O!`$^O~O!v$_O~OZ$`O~P%jOP&|OQ'gOk&}O~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RXQ#RXW#RXX#RXZ#RXg#RXk#RX!R#RX!S#RX!T#RX!U#RX!V#RX!W#RX!X#RX!Y#RX!Z#RX![#RX!]#RX!^#RX!_#RX!`#RX!a#RX!b#RX!c#RX!d#RX!e#RX!f#RX!g#RX!h#RX!u#RX!k#RX~P(gOP#OXQ#OXW#]iX#]iZ#]ig#]ik#OX!R#]i!S#]i!T#]i!U#]i!V#]i!W#]i!X#]i!Y#]i!Z#]i![#]i!]#]i!^#]i!_#]i!`#]i!a#]i!b#]i!c#]i!d#]i!e#]i!f#]i!g#]i!h#]i!u#]i!v#]i!k#]i~OP#OXQ#OXW#^iX#^iZ#^ig#^ik#OX!R#^i!S#^i!T#^i!U#^i!V#^i!W#^i!X#^i!Y#^i!Z#^i![#^i!]#^i!^#^i!_#^i!`#^i!a#^i!b#^i!c#^i!d#^i!e#^i!f#^i!g#^i!h#^i!u#^i!v#^i!k#^i~OP#SXQ#SX^#aXk#SX!k#SX#X#aX~O^kO#X#WX~OWuOXtOc!bOd!bOe!bOf#aOg!QOj!bOl&xOm'sOn(]Oo(lOp(uOq({Or)OOs&xOt'sOu(]Ov(lOw(uOx({Oy)OOz&xO{'sO|(]O}(lO!O(uO!P({O!Q)OO!RwO!SxO!TyO!UzO!V{O!W|O!X}O!YwO!ZxO![yO!]zO!^{O!_|O!`}O!awO!bxO!cyO!dzO!e{O!f|O!g}O!h!OO!m#]O!u#`O!w#aO!x#aO#X#WP~O^&yO!k$cO~P!$iOP#PaP#TaQ#PaQ#Ta^#Pa^#Tac#Pac#Tad#Pad#Tae#Pae#Taf#Paf#Taj#Paj#Tak#Pak#Tal#Pal#Tam#Pam#Tan#Pan#Tao#Pao#Tap#Pap#Taq#Paq#Tar#Par#Tas#Pas#Tat#Pat#Tau#Pau#Tav#Pav#Taw#Paw#Tax#Pax#Tay#Pay#Taz#Paz#Ta{#Pa{#Ta|#Pa|#Ta}#Pa}#Ta!O#Pa!O#Ta!P#Pa!P#Ta!Q#Pa!Q#Ta!m#Pa!m#Ta!u#Pa!u#Ta!w#Pa!w#Ta!x#Pa!x#Ta!v#Ta~OW#PaW#TaX#PaX#TaZ#PaZ#Tag#Pag#Ta!R#Pa!R#Ta!S#Pa!S#Ta!T#Pa!T#Ta!U#Pa!U#Ta!V#Pa!V#Ta!W#Pa!W#Ta!X#Pa!X#Ta!Y#Pa!Y#Ta!Z#Pa!Z#Ta![#Pa![#Ta!]#Pa!]#Ta!^#Pa!^#Ta!_#Pa!_#Ta!`#Pa!`#Ta!a#Pa!a#Ta!b#Pa!b#Ta!c#Pa!c#Ta!d#Pa!d#Ta!e#Pa!e#Ta!f#Pa!f#Ta!g#Pa!g#Ta!h#Pa!h#Ta!k#Pa!k#Ta~P!(eO!k$dO~P%jO^!bOc!bOd!bOe!bOf!nOj!bOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!m!dO!u$eO!w!nO!x!nO~P.XOP#QXQ#QXf#UXk#QX!k#UX!w#UX!x#UX~Of$gO!k$iO!w$gO!x$gO~O#X$jO~O!k$kOP#QXQ#QXk#QX~O!k$lOP#QXQ#QXk#QX~Of!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RXQ#RXk#RX!v#RX~P(gO!v$yOP#OXQ#OXk#OX~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}iX!}iZ!}ig!}i!R!}i!S!}i!T!}i!U!}i!V!}i!W!}i!X!}i!Y!}i!Z!}i![!}i!]!}i!^!}i!_!}i!`!}i!a!}i!b!}i!c!}i!d!}i!e!}i!f!}i!g!}i!h!}i!u!}i!k!}i~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}a~P(gOP#hOQ#iOf!nOk#jOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v$QO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RaQ#RaW#RaX#RaZ#Rag#Rak#Ra!R#Ra!S#Ra!T#Ra!U#Ra!V#Ra!W#Ra!X#Ra!Y#Ra!Z#Ra![#Ra!]#Ra!^#Ra!_#Ra!`#Ra!a#Ra!b#Ra!c#Ra!d#Ra!e#Ra!f#Ra!g#Ra!h#Ra!u#Ra!k#Ra~P(gO^kO!k#UO#X#WX~OP#PaP#TaQ#PaQ#Tak#Pak#Ta~O#X!{a~P!C{O^!bOc!bOd!bOe!bOf!nOj!bOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!m!dO!u!mO!w!nO!x!nO~PH{O!v%]OP#QXQ#QXk#QX~O!k%^O~P%jO^#Ric#Rid#Rie#Rif#Rij#Rik#Ril#Rim#Rin#Rio#Rip#Riq#Rir#Ris#Rit#Riu#Riv#Riw#Rix#Riy#Riz#Ri{#Ri|#Ri}#Ri!O#Ri!P#Ri!Q#Ri!m#Ri!u#Ri!w#Ri!x#Ri~OP#hOQ#iOW#RiX#RiZ#Rig#Ri!R#Ri!S#Ri!T#Ri!U#Ri!V#Ri!W#Ri!X#Ri!Y#Ri!Z#Ri![#Ri!]#Ri!^#Ri!_#Ri!`#Ri!a#Ri!b#Ri!c#Ri!d#Ri!e#Ri!f#Ri!g#Ri!h#Ri!k#Ri~P!GSOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RaQ#Rak#Ra!v#Ra~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}qX!}qZ!}qg!}q!R!}q!S!}q!T!}q!U!}q!V!}q!W!}q!X!}q!Y!}q!Z!}q![!}q!]!}q!^!}q!_!}q!`!}q!a!}q!b!}q!c!}q!d!}q!e!}q!f!}q!g!}q!h!}q!u!}q!k!}q~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}i~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v%OO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RiQ#RiW#RiX#RiZ#Rig#Rik#Ri!R#Ri!S#Ri!T#Ri!U#Ri!V#Ri!W#Ri!X#Ri!Y#Ri!Z#Ri![#Ri!]#Ri!^#Ri!_#Ri!`#Ri!a#Ri!b#Ri!c#Ri!d#Ri!e#Ri!f#Ri!g#Ri!h#Ri!u#Ri!k#Ri~P(gO!k%wO~O!k%xO~P%jOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RiQ#Rik#Ri!v#Ri~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}yX!}yZ!}yg!}y!R!}y!S!}y!T!}y!U!}y!V!}y!W!}y!X!}y!Y!}y!Z!}y![!}y!]!}y!^!}y!_!}y!`!}y!a!}y!b!}y!c!}y!d!}y!e!}y!f!}y!g!}y!h!}y!u!}y!k!}y~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}q~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v%lO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RqQ#RqW#RqX#RqZ#Rqg#Rqk#Rq!R#Rq!S#Rq!T#Rq!U#Rq!V#Rq!W#Rq!X#Rq!Y#Rq!Z#Rq![#Rq!]#Rq!^#Rq!_#Rq!`#Rq!a#Rq!b#Rq!c#Rq!d#Rq!e#Rq!f#Rq!g#Rq!h#Rq!u#Rq!k#Rq~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RqQ#Rqk#Rq!v#Rq~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}!RX!}!RZ!}!Rg!}!R!R!}!R!S!}!R!T!}!R!U!}!R!V!}!R!W!}!R!X!}!R!Y!}!R!Z!}!R![!}!R!]!}!R!^!}!R!_!}!R!`!}!R!a!}!R!b!}!R!c!}!R!d!}!R!e!}!R!f!}!R!g!}!R!h!}!R!u!}!R!k!}!R~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}y~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v&SO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RyQ#RyW#RyX#RyZ#Ryg#Ryk#Ry!R#Ry!S#Ry!T#Ry!U#Ry!V#Ry!W#Ry!X#Ry!Y#Ry!Z#Ry![#Ry!]#Ry!^#Ry!_#Ry!`#Ry!a#Ry!b#Ry!c#Ry!d#Ry!e#Ry!f#Ry!g#Ry!h#Ry!u#Ry!k#Ry~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RyQ#Ryk#Ry!v#Ry~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}!ZX!}!ZZ!}!Zg!}!Z!R!}!Z!S!}!Z!T!}!Z!U!}!Z!V!}!Z!W!}!Z!X!}!Z!Y!}!Z!Z!}!Z![!}!Z!]!}!Z!^!}!Z!_!}!Z!`!}!Z!a!}!Z!b!}!Z!c!}!Z!d!}!Z!e!}!Z!f!}!Z!g!}!Z!h!}!Z!u!}!Z!k!}!Z~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}!R~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v&cO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#R!RQ#R!RW#R!RX#R!RZ#R!Rg#R!Rk#R!R!R#R!R!S#R!R!T#R!R!U#R!R!V#R!R!W#R!R!X#R!R!Y#R!R!Z#R!R![#R!R!]#R!R!^#R!R!_#R!R!`#R!R!a#R!R!b#R!R!c#R!R!d#R!R!e#R!R!f#R!R!g#R!R!h#R!R!u#R!R!k#R!R~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#R!RQ#R!Rk#R!R!v#R!R~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}!Z~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v&mO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#R!ZQ#R!ZW#R!ZX#R!ZZ#R!Zg#R!Zk#R!Z!R#R!Z!S#R!Z!T#R!Z!U#R!Z!V#R!Z!W#R!Z!X#R!Z!Y#R!Z!Z#R!Z![#R!Z!]#R!Z!^#R!Z!_#R!Z!`#R!Z!a#R!Z!b#R!Z!c#R!Z!d#R!Z!e#R!Z!f#R!Z!g#R!Z!h#R!Z!u#R!Z!k#R!Z~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#R!ZQ#R!Zk#R!Z!v#R!Z~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v&tO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RXQ#RXk#RX!k#RX~P(gO!k#aX~P!#{OW#TaX#TaZ#Tag#Ta!R#Ta!S#Ta!T#Ta!U#Ta!V#Ta!W#Ta!X#Ta!Y#Ta!Z#Ta![#Ta!]#Ta!^#Ta!_#Ta!`#Ta!a#Ta!b#Ta!c#Ta!d#Ta!e#Ta!f#Ta!g#Ta!h#Ta!u#Ta!k#Ta!v#Pa!v#Ta~P!C{O!v#Pa~P!(eOf!nOl#WOm&wOn'cOo(SOp(fOq(qOr(yOs#WOt&wOu'cOv(SOw(fOx(qOy(yOz#WO{&wO|'cO}(SO!O(fO!P(qO!Q(yO!m!dO!u!mO!w!nO!x!nO~P(gOf!nOl&xOm'sOn(]Oo(lOp(uOq({Or)OOs&xOt'sOu(]Ov(lOw(uOx({Oy)OOz&xO{'sO|(]O}(lO!O(uO!P({O!Q)OO!m!dO!u!mO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RaQ#Rak#Ra!k#Ra~P(gOP&|OQ'gOW#RiX#RiZ#Rig#Rik#Ri!R#Ri!S#Ri!T#Ri!U#Ri!V#Ri!W#Ri!X#Ri!Y#Ri!Z#Ri![#Ri!]#Ri!^#Ri!_#Ri!`#Ri!a#Ri!b#Ri!c#Ri!d#Ri!e#Ri!f#Ri!g#Ri!h#Ri!u#Ri!k#Ri~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RiQ#Rik#Ri!k#Ri~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RqQ#Rqk#Rq!k#Rq~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RyQ#Ryk#Ry!k#Ry~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#R!RQ#R!Rk#R!R!k#R!R~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#R!ZQ#R!Zk#R!Z!k#R!Z~P(gO!k&zO~P2ZO!k&{O~P2ZOP'fOQ(TOf!nOk'hOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v#dX~P(gOP'tOQ(_Ok'OO~OP'fOQ(TO!v#Ri~P!GSOf!nOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!m'`O!u!mO!w!nO!x!nO~P(gOP'tOQ(_Ok#Ri!k#Ri~OP'uOQ(`Ok#Ri!v#Ri~O^'^O~OP'fOQ(TOk'hO!v#dX~P6VOP'uOQ(`Ok'vO~O",
+     goto: "!#a#kPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP#lP#l#l#p#t#w#l#zPPPP$O$T$W$a$n%P/}5Z:m?}EcJoEcJvP/}/}J|K]K]KlKrKxLbLiMO!#PPPP#z!#YTUOZTSOZRoaR!]oTYOZV]OZ^Rf[Q!VfX#d!d#]'`'ag!Sf!T!V!d#S#]#_$j%_'`'af!Rf!T!V!d#S#]#_$j%_'`'aT#P!P#`#U!ewx!g!p!q!v#W#h#l#z#{$a$n$z${%[%a%i%j%v%z&Q&R&[&^&b&i&q&w&x&|'P'Q'R'T'U'V'W'X'Y'Z'['s't'w'x'{'|'}Q!qyQ!rzQ!s{Q!t|Q!u}Q!v!OS#V!a!cQ#l!hQ#m!iQ#n!jQ#o!kQ#p!lQ#{!rQ#|!sQ#}!tQ$O!uQ$R!yQ$S!zQ$T!{Q$U!|Q$V!}S$n#i#mQ$o#jQ$p#nQ$q#oQ$r#pQ$t#sQ$u#tQ$v#uQ$w#vQ$x#wQ${#|Q$|#}Q$}$OQ%Q$SQ%R$TQ%S$UQ%T$VQ%V$YQ%W$ZQ%X$[Q%Y$]Q%Z$^Q%a$pQ%b$qQ%c$rS%e$u(`Q%f$vQ%g$wQ%h$xQ%j$|Q%k$}Q%n%RQ%o%SQ%p%TQ%r%WQ%s%XQ%t%YQ%u%ZQ%z%bQ%{%cQ%}%fQ&O%gQ&P%hQ&R%kQ&U%oQ&V%pQ&X%sQ&Y%tQ&Z%uQ&^%{Q&`&OQ&a&PQ&e&VQ&g&YQ&h&ZQ&l&aQ&p&hQ'P'cS'R'g'jQ'S&}Q'U'mQ'W'oQ'Y'qQ'd']W'e!d#]'`'aQ'i(RQ'j(SS'k(T(UQ'l'hQ'm(VQ'n(WQ'o(XQ'p(YQ'q(ZQ'r([Q'w(]S'x(_(aQ'y'OQ'z'vQ'{(bQ'|(cQ'}(d#S(Q!w!x#q#r$P$R$W$X$s$t%P%Q%U%V%d%e%m%n%q%r%|%}&T&U&W&X&_&`&d&e&f&g&k&l&n&o&p&s&u'b'd'f'i'k'n'p'r'uQ(U(eQ(V(fQ(W(gQ(X(hQ(Y(iQ(Z(jQ([(kY(^!m#`$e'^'_Q(a(lQ(b(mQ(c(nQ(d(oQ(g(pQ(h(qQ(i(rQ(j(sQ(k(tQ(m(uQ(n(vQ(o(wQ(r(xQ(s(yQ(t(zQ(v({Q(w(|Q(z(}R(|)O+e!owxyz{|}!O!a!c!d!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#]#`#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'`'a'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O+U!owxyz{|}!O!d!g!h!i!j!k!l!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#]#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'`'a'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OS#X!a'^S#Y!c'_V#x!m#`$e+Y!nwxyz{|}!O!a!c!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OW#f!d#]'`'aR$f#`Q!cu+[!nwxyz{|}!O!a!c!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#`#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OW#g!d#]'`'aR'_(P+e!nwxyz{|}!O!a!c!d!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#]#`#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'`'a'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OZ#b!d#]#c'`'aX#e!d#]'`'ak!Qf!P!T!V!d#S#]#_#`$j%_'`'akvf!P!T!V!d#S#]#_#`$j%_'`'aQZORdZQi_R!WiQl`QpbY!Ylp!_#[$bQ!_sU#[!d'`'aR$b#]S^OZRg^Q!TfW#Q!T#S#_%_Q#S!VW#_!d#]'`'aR%_$jU!pwx!OS#k!g'b!j#y!p#z$P$a$s$z%P%U%[%d%i%m%q%v%|&Q&T&W&[&_&b&d&f&i&k&n&o&q&s&u'Q'T'V'X'Z'[S#z!q!vU$P!w!x']S$a#W&wW$m#h#l'f'iS$s#q#rQ$z#{S%P$R'dS%U$W$XS%[&|'PS%`$n'kS%d$t'uQ%i${Q%m%QQ%q%VQ%v'RS%y%a'nQ%|%eQ&Q%jQ&T%nQ&W%rQ&['US&]%z'pQ&_%}Q&b&RQ&d&UQ&f&XQ&i'WS&j&^'rQ&k&`Q&n&eQ&o&gQ&q'YQ&s&lQ&u&pS'Q&x'sS'T't'wQ'V'xQ'X'{Q'Z'|R'['}W#c!d#]'`'aR$h#cSXOZRcV",
+     nodeNames: "⚠ ReporterLeft1Args ReporterLeft2Args GlobalStr ExtensionStr BreedStr PlusMinus Own Set Let To End And Or Identifier Directive Command Reporter Extension TurtleVar PatchVar LinkVar Constant Unsupported SpecialReporter SpecialCommand BreedToken AndOr Reporter0Args Reporter1Args Reporter2Args Reporter3Args Reporter4Args Reporter5Args Reporter6Args Reporter0ArgsVar Reporter1ArgsVar Reporter2ArgsVar Reporter3ArgsVar Reporter4ArgsVar Reporter5ArgsVar Reporter6ArgsVar SpecialReporter0Args SpecialReporter1Args SpecialReporter2Args SpecialReporter3Args SpecialReporter4Args SpecialReporter5Args SpecialReporter6Args Command0Args Command1Args Command2Args Command3Args Command4Args Command5Args Command6Args Command0ArgsVar Command1ArgsVar Command2ArgsVar Command3ArgsVar Command4ArgsVar Command5ArgsVar Command6ArgsVar SpecialCommand0Args SpecialCommand1Args SpecialCommand2Args SpecialCommand3Args SpecialCommand4Args SpecialCommand5Args SpecialCommand6Args SpecialCommandCreate LineComment Program CloseBracket Extensions OpenBracket Globals Breed BreedDeclarative BreedPlural BreedSingular BreedsOwn Unrecognized OpenParen CloseParen Numeric String Procedure ProcedureName Arguments ProcedureContent CommandStatement Arg CodeBlock Value ReporterStatement VariableName List Literal AnonymousProcedure AnonArguments Arrow ReporterBlock Property VariableDeclaration NewVariableDeclaration SetVariable",
+     maxTerm: 118,
      nodeProps: [
-       ["openedBy", 44,"OpenBracket"],
-       ["closedBy", 46,"CloseBracket"]
+       ["openedBy", 73,"OpenBracket"],
+       ["closedBy", 75,"CloseBracket"]
      ],
-     skippedNodes: [0,6,12,13,15,24,42],
+     skippedNodes: [0,6,12,13,15,24,71],
      repeatNodeCount: 7,
-     tokenData: "'^~R^XY}YZ}]^}pq}rs!`wx#|xy%eyz%j}!O%o!O!P%{!Q![&Z!]!^&k!}#O'S#P#Q'X~!SS!y~XY}YZ}]^}pq}~!cVOr!`rs!xs#O!`#O#P!}#P;'S!`;'S;=`#v<%lO!`~!}O!Z~~#QRO;'S!`;'S;=`#Z;=`O!`~#^WOr!`rs!xs#O!`#O#P!}#P;'S!`;'S;=`#v;=`<%l!`<%lO!`~#yP;=`<%l!`~$PVOw#|wx!xx#O#|#O#P$f#P;'S#|;'S;=`%_<%lO#|~$iRO;'S#|;'S;=`$r;=`O#|~$uWOw#|wx!xx#O#|#O#P$f#P;'S#|;'S;=`%_;=`<%l#|<%lO#|~%bP;=`<%l#|~%jO!W~~%oO!X~~%rR!O!P%{!Q![&Z!`!a&f~&OP!Q![&R~&WP!Y~!Q![&R~&`Q!Y~!O!P&R!Q![&Z~&kO!i~~&pSz~OY&kZ;'S&k;'S;=`&|<%lO&k~'PP;=`<%l&k~'XO!O~~'^O|~",
+     tokenData: "%r~R]XYzYZz]^zpqzrs!]xy#yyz$O}!O$T!O!P$a!Q![$o!]!^%P!}#O%h#P#Q%m~!PS#h~XYzYZz]^zpqz~!`VOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s<%lO!]~!zO!x~~!}RO;'S!];'S;=`#W;=`O!]~#ZWOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s;=`<%l!]<%lO!]~#vP;=`<%l!]~$OO!u~~$TO!v~~$WR!O!P$a!Q![$o!`!a$z~$dP!Q![$g~$lP!w~!Q![$g~$tQ!w~!O!P$g!Q![$o~%PO#X~~%US!i~OY%PZ;'S%P;'S;=`%b<%lO%P~%eP;=`<%l%P~%mO!m~~%rO!k~",
      tokenizers: [0, keyword],
-     topRules: {"Program":[0,43]},
-     specialized: [{term: 17, get: (value, stack) => (specializeReporter(value) << 1), external: specializeReporter},{term: 24, get: (value, stack) => (specializeSpecialReporter(value) << 1), external: specializeSpecialReporter}],
+     topRules: {"Program":[0,72]},
+     specialized: [{term: 17, get: (value, stack) => (specializeReporter(value) << 1), external: specializeReporter},{term: 24, get: (value, stack) => (specializeSpecialReporter(value) << 1), external: specializeSpecialReporter},{term: 16, get: (value, stack) => (specializeCommand(value) << 1), external: specializeCommand},{term: 25, get: (value, stack) => (specializeSpecialCommand(value) << 1), external: specializeSpecialCommand}],
      tokenPrec: 0
    });
 
@@ -25246,6 +25407,11 @@ if(!String.prototype.matchAll) {
                                node.getChildren('Identifier').map((subnode) => {
                                    args.push(this.getText(State, subnode));
                                });
+                               node.getChildren('Arguments').map((subnode) => {
+                                   subnode.getChildren('Identifier').map((subsubnode) => {
+                                       args.push(this.getText(State, subsubnode));
+                                   });
+                               });
                            });
                            anonProc.Arguments = args;
                            anonProc.Variables = anonProc.Variables.concat(this.getLocalVars(Node, State, true));
@@ -25324,8 +25490,10 @@ if(!String.prototype.matchAll) {
    const stateExtension = StateField.define({
        create: (State) => new StateNetLogo().ParseState(State),
        update: (Original, Transaction) => {
-           if (Transaction.docChanged)
+           if (Transaction.docChanged) {
+               console.log(Original);
                Original.SetDirty();
+           }
            return Original;
        },
    });
@@ -25477,6 +25645,13 @@ if(!String.prototype.matchAll) {
                    Reporter4Args: tags$1.operator,
                    Reporter5Args: tags$1.operator,
                    Reporter6Args: tags$1.operator,
+                   Reporter0ArgsVar: tags$1.operator,
+                   Reporter1ArgsVar: tags$1.operator,
+                   Reporter2ArgsVar: tags$1.operator,
+                   Reporter3ArgsVar: tags$1.operator,
+                   Reporter4ArgsVar: tags$1.operator,
+                   Reporter5ArgsVar: tags$1.operator,
+                   Reporter6ArgsVar: tags$1.operator,
                    ReporterLeft1Args: tags$1.operator,
                    ReporterLeft2Args: tags$1.operator,
                    SpecialReporter0Args: tags$1.operator,
@@ -25494,6 +25669,21 @@ if(!String.prototype.matchAll) {
                    Command4Args: tags$1.variableName,
                    Command5Args: tags$1.variableName,
                    Command6Args: tags$1.variableName,
+                   SpecialCommand0Args: tags$1.variableName,
+                   SpecialCommand1Args: tags$1.variableName,
+                   SpecialCommand2Args: tags$1.variableName,
+                   SpecialCommand3Args: tags$1.variableName,
+                   SpecialCommand4Args: tags$1.variableName,
+                   SpecialCommand5Args: tags$1.variableName,
+                   SpecialCommand6Args: tags$1.variableName,
+                   SpecialCommandCreate: tags$1.variableName,
+                   Command0ArgsVar: tags$1.variableName,
+                   Command1ArgsVar: tags$1.variableName,
+                   Command2ArgsVar: tags$1.variableName,
+                   Command3ArgsVar: tags$1.variableName,
+                   Command4ArgsVar: tags$1.variableName,
+                   Command5ArgsVar: tags$1.variableName,
+                   Command6ArgsVar: tags$1.variableName,
                    // Variables
                    Set: tags$1.variableName,
                    Let: tags$1.variableName,
@@ -25512,8 +25702,12 @@ if(!String.prototype.matchAll) {
                }),
                // Indentations
                indentNodeProp.add({
-                   CodeBlock: delimitedIndent({ closing: '[' }),
-                   Procedure: delimitedIndent({ closing: 'end' }),
+                   CodeBlock: delimitedIndent({ closing: '[', align: false }),
+                   AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
+                   Procedure: (context) => /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
+                       ? context.baseIndent
+                       : context.lineIndent(context.node.from) + context.unit,
+                   // delimitedIndent({ closing: 'end' }),
                    // Doesn't work well with "END" or "eND". Should do a bug report to CM6.
                }),
                // Foldings
@@ -25526,7 +25720,7 @@ if(!String.prototype.matchAll) {
        languageData: {
            commentTokens: { line: ';' },
            closeBrackets: closeBrackets(),
-           indentOnInput: /^\s*(?:end|\]|\])$/i,
+           indentOnInput: /^\s*end$/i,
        },
    });
    /** NetLogo: The NetLogo language support. */
@@ -25583,9 +25777,13 @@ if(!String.prototype.matchAll) {
    const en_us = {
        'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
        'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
-       'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper statement here. Did you spell it correctly?`,
+       'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
        'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
        'Unsupported statement _': (Name) => `"${Name}" is not supported in NetLogo Web`,
+       'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" is not a valid primitive`,
+       'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
+       'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
+       'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
        '~VariableName': (Name) => `A variable. `,
        '~ProcedureName': (Name) => `The name of a procedure. `,
        '~Arguments/Identifier': (Name) => `The name of an argument. `,
@@ -27535,7 +27733,7 @@ if(!String.prototype.matchAll) {
                return;
            const Node = noderef.node;
            const value = view.state.sliceDoc(noderef.from, noderef.to);
-           if (!checkValid(Node, value, view.state, parseState, breedNames, breedVars)) {
+           if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
                diagnostics.push({
                    from: noderef.from,
                    to: noderef.to,
@@ -27558,7 +27756,7 @@ if(!String.prototype.matchAll) {
        'BreedsOwn',
    ];
    // Checks identifiers for valid variable/procedure/breed names
-   const checkValid = function (Node, value, state, parseState, breedNames, breedVars) {
+   const checkValid$1 = function (Node, value, state, parseState, breedNames, breedVars) {
        var _a, _b;
        value = value.toLowerCase();
        // checks if parent is in a category that is always valid (e.g. 'Globals')
@@ -27712,9 +27910,199 @@ if(!String.prototype.matchAll) {
        }
        if (!isValid) {
            // Why do we need this one? We need it to check if it is actually a valid identifier
-           isValid = checkValid(node, value, state, parseState, breedNames, breedVars);
+           isValid = checkValid$1(node, value, state, parseState, breedNames, breedVars);
        }
        return isValid;
+   };
+
+   // UnrecognizedLinter: Checks if something at the top layer isn't a procedure, global, etc.
+   const UnrecognizedLinter = buildLinter((view, parseState) => {
+       const diagnostics = [];
+       syntaxTree(view.state)
+           .cursor()
+           .iterate((node) => {
+           if (node.name == '⚠' && node.to != node.from) {
+               let curr = node.node;
+               let parents = [];
+               while (curr.parent) {
+                   parents.push(curr.parent.name);
+                   curr = curr.parent;
+               }
+               console.log(node.name, parents);
+               const value = view.state.sliceDoc(node.from, node.to);
+               diagnostics.push({
+                   from: node.from,
+                   to: node.to,
+                   severity: 'warning',
+                   message: Localized.Get('Unrecognized statement _', value),
+                   /* actions: [
+                     {
+                       name: 'Remove',
+                       apply(view, from, to) {
+                         view.dispatch({ changes: { from, to } });
+                       },
+                     },
+                   ], */
+               });
+           }
+       });
+       return diagnostics;
+   });
+
+   let primitives = PrimitiveManager;
+   // Checks anything labelled 'Identifier'
+   const ArgumentLinter = linter((view) => {
+       const diagnostics = [];
+       syntaxTree(view.state)
+           .cursor()
+           .iterate((noderef) => {
+           if ((noderef.name == 'ReporterStatement' ||
+               noderef.name == 'CommandStatement') &&
+               noderef.node.getChildren('Arg')) {
+               const Node = noderef.node;
+               const value = view.state
+                   .sliceDoc(noderef.from, noderef.to)
+                   .toLowerCase();
+               let args = getArgs(Node);
+               if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
+                   // We need to make the error message much more clearer. It will also help debug.
+                   const result = checkValid(Node, value, view.state, args);
+                   let error_type = result[0];
+                   let func = result[1];
+                   let expected = result[2];
+                   let actual = result[3];
+                   if (error_type == 'no primitive') {
+                       diagnostics.push({
+                           from: noderef.from,
+                           to: noderef.to,
+                           severity: 'error',
+                           message: Localized.Get('Problem identifying primitive _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
+                       });
+                   }
+                   else if (error_type == 'left') {
+                       diagnostics.push({
+                           from: noderef.from,
+                           to: noderef.to,
+                           severity: 'error',
+                           message: Localized.Get('Left args for _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
+                       });
+                   }
+                   else if (error_type == 'rightmin') {
+                       diagnostics.push({
+                           from: noderef.from,
+                           to: noderef.to,
+                           severity: 'error',
+                           message: Localized.Get('Too few right args for _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
+                       });
+                   }
+                   else if (error_type == 'rightmax') {
+                       diagnostics.push({
+                           from: noderef.from,
+                           to: noderef.to,
+                           severity: 'error',
+                           message: Localized.Get('Too many right args for _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
+                       });
+                   }
+               }
+           }
+       });
+       return diagnostics;
+   });
+   const getArgs = function (Node) {
+       let cursor = Node.cursor();
+       let args = { leftArgs: null, rightArgs: [], func: null };
+       let seenFunc = false;
+       let done = false;
+       if (!cursor.firstChild()) {
+           return args;
+       }
+       while (done == false) {
+           // console.log(cursor.node.name,args)
+           if (!seenFunc && cursor.node.name == 'Arg') {
+               args.leftArgs = cursor.node;
+           }
+           else if (seenFunc && cursor.node.name == 'Arg') {
+               args.rightArgs.push(cursor.node);
+           }
+           else if (cursor.node.name.includes('Command') ||
+               cursor.node.name.includes('Reporter')) {
+               // console.log(cursor.node.name)
+               args.func = cursor.node;
+               seenFunc = true;
+           }
+           if (!cursor.nextSibling()) {
+               done = true;
+           }
+       }
+       return args;
+   };
+   const checkValid = function (Node, value, state, args) {
+       var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+       let func = state.sliceDoc((_a = args.func) === null || _a === void 0 ? void 0 : _a.from, (_b = args.func) === null || _b === void 0 ? void 0 : _b.to).toLowerCase();
+       if ((_c = args.func) === null || _c === void 0 ? void 0 : _c.name.includes('Special')) {
+           let numArgs = (_f = (_e = (_d = state.field(preprocessStateExtension).Commands[func]) !== null && _d !== void 0 ? _d : state.field(preprocessStateExtension).Reporters[func]) !== null && _e !== void 0 ? _e : getBreedCommandArgs(func)) !== null && _f !== void 0 ? _f : getBreedProcedureArgs(args.func.name);
+           return [
+               numArgs == args.rightArgs.length,
+               func,
+               numArgs,
+               args.rightArgs.length,
+           ];
+       }
+       else {
+           let primitive = primitives.GetNamedPrimitive(func);
+           if (!primitive) {
+               console.log('no primitive', (_g = args.func) === null || _g === void 0 ? void 0 : _g.name, func);
+               return ['no primitive', func, 0, 0];
+           }
+           else if ((((_h = primitive.LeftArgumentType) === null || _h === void 0 ? void 0 : _h.Types[0]) == NetLogoType.Unit &&
+               args.leftArgs) ||
+               (((_j = primitive.LeftArgumentType) === null || _j === void 0 ? void 0 : _j.Types[0]) != NetLogoType.Unit &&
+                   !args.leftArgs)) {
+               console.log('left args');
+               let expected = ((_k = primitive.LeftArgumentType) === null || _k === void 0 ? void 0 : _k.Types[0]) != NetLogoType.Unit ? 1 : 0;
+               let actual = args.leftArgs ? 1 : 0;
+               console.log('left', expected, actual);
+               return ['left', func, expected, actual];
+           }
+           else {
+               let rightArgMin = (_m = (_l = primitive.MinimumOption) !== null && _l !== void 0 ? _l : primitive.DefaultOption) !== null && _m !== void 0 ? _m : primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
+                   .length;
+               let rightArgMax = primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length > 0
+                   ? 100
+                   : primitive.RightArgumentTypes.length;
+               if (args.rightArgs.length < rightArgMin) {
+                   console.log(args.rightArgs);
+                   console.log(func, 'rightargs', rightArgMin, rightArgMax, args.rightArgs.length);
+                   return ['rightmin', func, rightArgMin, args.rightArgs.length];
+               }
+               else if (args.rightArgs.length > rightArgMax) {
+                   return ['rightmax', func, rightArgMax, args.rightArgs.length];
+               }
+               else {
+                   return [true, func, 0, 0];
+               }
+           }
+       }
+   };
+   const getBreedCommandArgs = function (func) {
+       if (func.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
+           return 2;
+       }
+       else if (func.match(/^create-\w+-(to|from|with)$/)) {
+           return 2;
+       }
+       else {
+           return null;
+       }
+   };
+   const getBreedProcedureArgs = function (func_type) {
+       let match = func_type.match(/[A-Za-z]*(\d)[A-Za-z]*/);
+       if (match) {
+           return parseInt(match[1]);
+       }
+       else {
+           return null;
+       }
    };
 
    // CompilerLinter: Present all linting results from the compiler.
@@ -27779,11 +28167,11 @@ if(!String.prototype.matchAll) {
    const netlogoLinters = [
        CompilerLinter,
        RuntimeLinter,
-       // UnrecognizedLinter,
+       UnrecognizedLinter,
        UnrecognizedGlobalLinter,
        IdentifierLinter,
        BreedLinter,
-       // ArgumentLinter,
+       ArgumentLinter,
        UnsupportedLinter,
    ];
 
