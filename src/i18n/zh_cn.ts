@@ -31,7 +31,7 @@ const zh_cn: Record<string, Function> = {
     Expected: string,
     Actual: string
   ) =>
-  `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
+    `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
 
   '~VariableName': (Name: string) => `变量名称。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,
