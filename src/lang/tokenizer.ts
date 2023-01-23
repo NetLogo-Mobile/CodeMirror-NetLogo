@@ -145,10 +145,12 @@ export const keyword = new ExternalTokenizer((input) => {
 });
 
 // Check if the character is valid for a keyword.
+// JC: For performance, can we turn this into a Bool[256] that requires O(1) to check?
 function isValidKeyword(ch: number) {
   return (
-    ch == 33 ||
-    ch == 39 ||
+    ch == 33 || // !
+    ch == 39 || // '
+    ch == 63 || // ?
     // 0-9
     (ch >= 42 && ch <= 58) ||
     // -
