@@ -2,6 +2,36 @@
   "name": "xr",
   "prims": [
     {
+      "name": "is-supported?",
+      "argTypes": [],
+      "returnType": "boolean",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "is-on?",
+      "argTypes": [],
+      "returnType": "boolean",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "start",
+      "argTypes": [],
+      "returnType": "unit",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "stop",
+      "argTypes": [],
+      "returnType": "unit",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "get-gravity",
+      "argTypes": [],
+      "returnType": "list",
+      "agentClassString": "OTPL"
+    },
+    {
       "name": "get-scale",
       "argTypes": [],
       "returnType": "number",
@@ -14,13 +44,37 @@
       "agentClassString": "OTPL"
     },
     {
-      "name": "room-scan",
-      "argTypes": ["wildcard"],
+      "name": "show-wireframes",
+      "argTypes": [],
       "returnType": "unit",
       "agentClassString": "OTPL"
     },
     {
-      "name": "room-scan-supported?",
+      "name": "hide-wireframes",
+      "argTypes": [],
+      "returnType": "unit",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "show-wireframe",
+      "argTypes": ["string"],
+      "returnType": "unit",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "hide-wireframe",
+      "argTypes": ["string"],
+      "returnType": "unit",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "room-scan",
+      "argTypes": [{ "types": ["string", "command"] }],
+      "returnType": "unit",
+      "agentClassString": "O---"
+    },
+    {
+      "name": "is-room-scan-supported?",
       "argTypes": ["number"],
       "returnType": "boolean",
       "agentClassString": "OTPL"
@@ -32,27 +86,56 @@
       "agentClassString": "OTPL"
     },
     {
-      "name": "resize-world",
-      "argTypes": ["string"],
-      "returnType": "unit",
+      "name": "current-scan",
+      "argTypes": [],
+      "returnType": "string",
       "agentClassString": "OTPL"
     },
     {
-      "name": "get-dimensions",
+      "name": "use-scan",
       "argTypes": ["string"],
+      "returnType": "boolean",
+      "agentClassString": "O---"
+    },
+    {
+      "name": "resize-world",
+      "argTypes": [
+        {
+          "type": "number",
+          "isRepeatable": true
+        }
+      ],
+      "returnType": "unit",
+      "agentClassString": "O---"
+    },
+    {
+      "name": "get-dimensions",
+      "argTypes": [],
       "returnType": "list",
       "agentClassString": "OTPL"
     },
     {
       "name": "iterate-as-patches",
-      "argTypes": ["string", "wildcard"],
+      "argTypes": [{ "types": ["string", "command"] }],
       "returnType": "unit",
       "agentClassString": "OTPL"
     },
     {
       "name": "iterate-as-turtles",
-      "argTypes": ["string", "wildcard"],
+      "argTypes": [{ "types": ["string", "command"] }],
       "returnType": "unit",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "inside-scan?",
+      "argTypes": [],
+      "returnType": "boolean",
+      "agentClassString": "-TP-"
+    },
+    {
+      "name": "color-of",
+      "argTypes": ["string", "string"],
+      "returnType": "number",
       "agentClassString": "OTPL"
     }
   ]
