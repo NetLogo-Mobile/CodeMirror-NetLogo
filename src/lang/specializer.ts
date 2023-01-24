@@ -24,6 +24,13 @@ import {
   SpecialReporter4Args,
   SpecialReporter5Args,
   SpecialReporter6Args,
+  SpecialReporter1ArgsBoth,
+  SpecialReporter0ArgsLink,
+  SpecialReporter1ArgsLink,
+  SpecialReporter2ArgsTurtle,
+  SpecialReporter0ArgsTurtle,
+  SpecialReporter1ArgsTurtle,
+  SpecialReporter0ArgsLinkP,
   Command0Args,
   Command1Args,
   Command2Args,
@@ -45,7 +52,8 @@ import {
   SpecialCommand4Args,
   SpecialCommand5Args,
   SpecialCommand6Args,
-  SpecialCommandCreate,
+  SpecialCommandCreateTurtle,
+  SpecialCommandCreateLink,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -138,23 +146,27 @@ const specializeSpecialReporter = function (token: string) {
   }
 
   if (token.match(/[^\s]+-(at)/)) {
-    return SpecialReporter2Args;
-  } else if (token.match(/[^\s]+-(here|neighbors)/)) {
-    return SpecialReporter0Args;
-  } else if (token.match(/[^\s]+-(on|with|neighbor\\?)/)) {
-    return SpecialReporter1Args;
-  } else if (token.match(/^(my-in|my-out)-[^\s]+/)) {
-    return SpecialReporter0Args;
+    return SpecialReporter2ArgsTurtle;
+  } else if (token.match(/[^\s]+-here/)) {
+    return SpecialReporter0ArgsTurtle;
+  } else if (token.match(/[^\s]+-neighbors/)) {
+    return SpecialReporter0ArgsLink;
+  } else if (token.match(/[^\s]+-on/)) {
+    return SpecialReporter1ArgsTurtle;
+  } else if (token.match(/[^\s]+-(with|neighbor\\?)/)) {
+    return SpecialReporter1ArgsLink;
+  } else if (token.match(/^(my|my-in|my-out)-[^\s]+/)) {
+    return SpecialReporter0ArgsLinkP;
   } else if (token.match(/^is-[^\s]+\\?$/)) {
-    return SpecialReporter1Args;
+    return SpecialReporter1ArgsBoth;
   } else if (token.match(/^in-[^\s]+-from$/)) {
-    return SpecialReporter1Args;
+    return SpecialReporter1ArgsLink;
   } else if (token.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-    return SpecialReporter0Args;
+    return SpecialReporter0ArgsLink;
   } else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-    return SpecialReporter1Args;
+    return SpecialReporter1ArgsLink;
   } else if (token.match(/^out-[^\s]+-to$/)) {
-    return SpecialReporter1Args;
+    return SpecialReporter1ArgsLink;
   } else {
     return -1;
   }
@@ -239,10 +251,10 @@ const specializeSpecialCommand = function (token: string) {
     }
   }
 
-  if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
-    return SpecialCommandCreate;
-  } else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
-    return SpecialCommandCreate;
+  if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
+    return SpecialCommandCreateLink;
+  } else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+    return SpecialCommandCreateTurtle;
   } else {
     return -1;
   }

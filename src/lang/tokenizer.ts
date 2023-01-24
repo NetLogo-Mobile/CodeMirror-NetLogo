@@ -185,10 +185,11 @@ function matchBreed(token: string) {
         parseContext?.state.field(preprocessStateExtension).SingularBreeds
       ) ?? [];
   let foundMatch = false;
-
+  let matchedBreed = '';
   for (let b of breedNames) {
-    if (token.includes(b)) {
+    if (token.includes(b) && b.length > matchedBreed.length) {
       foundMatch = true;
+      matchedBreed = b;
     }
   }
   if (!foundMatch) {
@@ -200,23 +201,40 @@ function matchBreed(token: string) {
       .SingularBreeds.includes(token)
   ) {
     tag = SpecialReporter;
-  } else if (token.match(/[^\s]+-own/)) {
+  } else if (token.match(new RegExp(`^${matchedBreed}-own$`, 'i'))) {
     tag = Own;
-  } else if (token.match(/[^\s]+-(at|here|on|with|neighbor\\?|neighbors)$/)) {
+  } else if (
+    token.match(
+      new RegExp(
+        `^${matchedBreed}-(at|here|on|with|neighbor\\?|neighbors)$`,
+        'i'
+      )
+    )
+  ) {
     tag = SpecialReporter;
-  } else if (token.match(/^(my-in|my-out)-[^\s]+/)) {
+  } else if (token.match(new RegExp(`^(my-in|my-out)-${matchedBreed}$`, 'i'))) {
     tag = SpecialReporter;
-  } else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+  } else if (
+    token.match(
+      new RegExp(`^(hatch|sprout|create|create-ordered)-${matchedBreed}$`, 'i')
+    )
+  ) {
     tag = SpecialCommand;
-  } else if (token.match(/^is-[^\s]+\\?$/)) {
+  } else if (token.match(new RegExp(`^is-${matchedBreed}\\?$`, 'i'))) {
     tag = SpecialReporter;
-  } else if (token.match(/^in-[^\s]+-from$/)) {
+  } else if (token.match(new RegExp(`^in-${matchedBreed}-from$`, 'i'))) {
     tag = SpecialReporter;
-  } else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?|neighbors)$/)) {
+  } else if (
+    token.match(
+      new RegExp(`^(in|out)-${matchedBreed}-(neighbor\\?|neighbors)$`, 'i')
+    )
+  ) {
     tag = SpecialReporter;
-  } else if (token.match(/^out-[^\s]+-to$/)) {
+  } else if (token.match(new RegExp(`^out-${matchedBreed}-to$`, 'i'))) {
     tag = SpecialReporter;
-  } else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
+  } else if (
+    token.match(new RegExp(`^create-${matchedBreed}-(to|from|with)$`, 'i'))
+  ) {
     tag = SpecialCommand;
   }
   return tag;
