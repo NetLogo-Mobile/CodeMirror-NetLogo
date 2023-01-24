@@ -24544,28 +24544,36 @@ if(!String.prototype.matchAll) {
      SpecialReporter4Args = 46,
      SpecialReporter5Args = 47,
      SpecialReporter6Args = 48,
-     Command0Args = 49,
-     Command1Args = 50,
-     Command2Args = 51,
-     Command3Args = 52,
-     Command4Args = 53,
-     Command5Args = 54,
-     Command6Args = 55,
-     Command0ArgsVar = 56,
-     Command1ArgsVar = 57,
-     Command2ArgsVar = 58,
-     Command3ArgsVar = 59,
-     Command4ArgsVar = 60,
-     Command5ArgsVar = 61,
-     Command6ArgsVar = 62,
-     SpecialCommand0Args = 63,
-     SpecialCommand1Args = 64,
-     SpecialCommand2Args = 65,
-     SpecialCommand3Args = 66,
-     SpecialCommand4Args = 67,
-     SpecialCommand5Args = 68,
-     SpecialCommand6Args = 69,
-     SpecialCommandCreate = 70;
+     SpecialReporter1ArgsBoth = 49,
+     SpecialReporter0ArgsLink = 50,
+     SpecialReporter1ArgsLink = 51,
+     SpecialReporter2ArgsTurtle = 52,
+     SpecialReporter0ArgsTurtle = 53,
+     SpecialReporter1ArgsTurtle = 54,
+     SpecialReporter0ArgsLinkP = 55,
+     Command0Args = 56,
+     Command1Args = 57,
+     Command2Args = 58,
+     Command3Args = 59,
+     Command4Args = 60,
+     Command5Args = 61,
+     Command6Args = 62,
+     Command0ArgsVar = 63,
+     Command1ArgsVar = 64,
+     Command2ArgsVar = 65,
+     Command3ArgsVar = 66,
+     Command4ArgsVar = 67,
+     Command5ArgsVar = 68,
+     Command6ArgsVar = 69,
+     SpecialCommand0Args = 70,
+     SpecialCommand1Args = 71,
+     SpecialCommand2Args = 72,
+     SpecialCommand3Args = 73,
+     SpecialCommand4Args = 74,
+     SpecialCommand5Args = 75,
+     SpecialCommand6Args = 76,
+     SpecialCommandCreateTurtle = 77,
+     SpecialCommandCreateLink = 78;
 
    /** StatePreprocess: Editor state for the NetLogo Language. */
    class StatePreprocess {
@@ -24660,10 +24668,11 @@ if(!String.prototype.matchAll) {
    /** Breed: Dynamic metadata of a single breed. */
    class Breed {
        /** Build a breed. */
-       constructor(Singular, Plural, Variables) {
+       constructor(Singular, Plural, Variables, isLinkBreed) {
            this.Singular = Singular;
            this.Plural = Plural;
            this.Variables = Variables;
+           this.isLinkBreed = isLinkBreed;
        }
    }
    /** Procedure: Dynamic metadata of a procedure. */
@@ -24944,9 +24953,11 @@ if(!String.prototype.matchAll) {
        let parseContext = ParseContext.get();
        let breedNames = (_a = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).PluralBreeds.concat(parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).SingularBreeds)) !== null && _a !== void 0 ? _a : [];
        let foundMatch = false;
+       let matchedBreed = '';
        for (let b of breedNames) {
-           if (token.includes(b)) {
+           if (token.includes(b) && b.length > matchedBreed.length) {
                foundMatch = true;
+               matchedBreed = b;
            }
        }
        if (!foundMatch) {
@@ -24955,31 +24966,31 @@ if(!String.prototype.matchAll) {
        if (parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).SingularBreeds.includes(token)) {
            tag = SpecialReporter;
        }
-       else if (token.match(/[^\s]+-own/)) {
+       else if (token.match(new RegExp(`^${matchedBreed}-own$`, 'i'))) {
            tag = Own;
        }
-       else if (token.match(/[^\s]+-(at|here|on|with|neighbor\\?|neighbors)$/)) {
+       else if (token.match(new RegExp(`^${matchedBreed}-(at|here|on|with|neighbor\\?|neighbors)$`, 'i'))) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^(my-in|my-out)-[^\s]+/)) {
+       else if (token.match(new RegExp(`^(my-in|my-out)-${matchedBreed}$`, 'i'))) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+       else if (token.match(new RegExp(`^(hatch|sprout|create|create-ordered)-${matchedBreed}$`, 'i'))) {
            tag = SpecialCommand;
        }
-       else if (token.match(/^is-[^\s]+\\?$/)) {
+       else if (token.match(new RegExp(`^is-${matchedBreed}\\?$`, 'i'))) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^in-[^\s]+-from$/)) {
+       else if (token.match(new RegExp(`^in-${matchedBreed}-from$`, 'i'))) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?|neighbors)$/)) {
+       else if (token.match(new RegExp(`^(in|out)-${matchedBreed}-(neighbor\\?|neighbors)$`, 'i'))) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^out-[^\s]+-to$/)) {
+       else if (token.match(new RegExp(`^out-${matchedBreed}-to$`, 'i'))) {
            tag = SpecialReporter;
        }
-       else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
+       else if (token.match(new RegExp(`^create-${matchedBreed}-(to|from|with)$`, 'i'))) {
            tag = SpecialCommand;
        }
        return tag;
@@ -25103,31 +25114,37 @@ if(!String.prototype.matchAll) {
            return SpecialReporter1Args;
        }
        if (token.match(/[^\s]+-(at)/)) {
-           return SpecialReporter2Args;
+           return SpecialReporter2ArgsTurtle;
        }
-       else if (token.match(/[^\s]+-(here|neighbors)/)) {
-           return SpecialReporter0Args;
+       else if (token.match(/[^\s]+-here/)) {
+           return SpecialReporter0ArgsTurtle;
        }
-       else if (token.match(/[^\s]+-(on|with|neighbor\\?)/)) {
-           return SpecialReporter1Args;
+       else if (token.match(/[^\s]+-neighbors/)) {
+           return SpecialReporter0ArgsLink;
        }
-       else if (token.match(/^(my-in|my-out)-[^\s]+/)) {
-           return SpecialReporter0Args;
+       else if (token.match(/[^\s]+-on/)) {
+           return SpecialReporter1ArgsTurtle;
+       }
+       else if (token.match(/[^\s]+-(with|neighbor\\?)/)) {
+           return SpecialReporter1ArgsLink;
+       }
+       else if (token.match(/^(my|my-in|my-out)-[^\s]+/)) {
+           return SpecialReporter0ArgsLinkP;
        }
        else if (token.match(/^is-[^\s]+\\?$/)) {
-           return SpecialReporter1Args;
+           return SpecialReporter1ArgsBoth;
        }
        else if (token.match(/^in-[^\s]+-from$/)) {
-           return SpecialReporter1Args;
+           return SpecialReporter1ArgsLink;
        }
        else if (token.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-           return SpecialReporter0Args;
+           return SpecialReporter0ArgsLink;
        }
        else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-           return SpecialReporter1Args;
+           return SpecialReporter1ArgsLink;
        }
        else if (token.match(/^out-[^\s]+-to$/)) {
-           return SpecialReporter1Args;
+           return SpecialReporter1ArgsLink;
        }
        else {
            return -1;
@@ -25230,11 +25247,11 @@ if(!String.prototype.matchAll) {
                return -1;
            }
        }
-       if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
-           return SpecialCommandCreate;
+       if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
+           return SpecialCommandCreateLink;
        }
-       else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
-           return SpecialCommandCreate;
+       else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+           return SpecialCommandCreateTurtle;
        }
        else {
            return -1;
@@ -25244,20 +25261,20 @@ if(!String.prototype.matchAll) {
    // This file was generated by lezer-generator. You probably shouldn't edit it.
    const parser$3 = LRParser.deserialize({
      version: 14,
-     states: "!#UQYQROOO!aQPO'#DxO!fQPO'#DzOOQO'#D|'#D|O!kQPO'#D{O!pQPO'#EPOOQQ'#Eu'#EuO!uQRO'#EvOOQQ'#Ev'#EvOOQQ'#EQ'#EQOOQQ'#Ek'#EkQYQROOO#jQRO'#EVOOQQ'#En'#EnQ$qQROOO$vQRO,5:dO%OQRO,5:fO%WQRO,5:gO%]QRO,5:kO%eQPO,5;bOOQQ-E8i-E8iOOQQ'#EW'#EWO'^QRO,5:qOOQQ-E8l-E8lOOQQ'#El'#ElO'hQRO1G0OOOQQ1G0O1G0OOOQQ'#Em'#EmO'pQRO1G0QOOQQ1G0Q1G0QOOQQ'#D}'#D}O'xQRO1G0RO(QQRO1G0VOOQQ1G0V1G0VOOQQ1G0|1G0|O(YQRO'#EXO(bQRO'#EiO(gQRO'#EjOOQQ'#Eh'#EhO(xQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO,cQRO'#EZO/xQRO'#EZOOQQ'#EZ'#EZOOQQ'#EY'#EYOOQQ'#Eo'#EoO0PQRO1G0]OOQQ1G0]1G0]O0PQRO1G0]OOQQ-E8j-E8jOOQQ7+%j7+%jOOQQ-E8k-E8kOOQQ7+%l7+%lOOQO'#EO'#EOO0WQPO7+%mOOQQ7+%q7+%qO0]QRO,5:sOOQQ,5:s,5:sO0eQRO,5;TOOQQ'#E`'#E`O0eQRO,5;UO6OQRO'#E]O8YQRO'#EpOOQQ'#E_'#E_O,cQRO'#E_O,cQRO'#E_O,cQRO'#E_O,cQRO'#E_O,cQRO'#E_O,cQRO'#E_O:[QRO'#E_OOQQ'#E^'#E^OOQQ'#E['#E[O<QQRO,5:uO?kQRO,5:uO?kQRO,5:uO?kQRO,5:uO?kQRO,5:uO?kQRO,5:uOAjQRO,5:uOE^QRO,5:uOGVQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uOH{QRO'#EZOIdQPO,5:tOOQQ-E8m-E8mOOQQ7+%w7+%wOIiQRO7+%wOOQQ<<IX<<IXOOQQ1G0_1G0_OIpQRO'#E_OI{QRO'#E_OMoQRO1G0oO! uQRO1G0pO!#{QRO'#EmO!$aQRO'#EdO!(ZQRO'#EXO!-OQRO,5:wO!0lQRO,5:wO!0sQRO,5;QO!2xQRO'#EbOOQQ'#Eq'#EqO!3aQRO,5:{OOQO'#Ed'#EdO!3oQPO,5:}O!3tQRO,5;QO!4SQRO,5;RO,cQRO,5:yO,cQRO,5:yO,cQRO,5:yOOQQ,5:y,5:yO?kQRO,5:yO?kQRO,5:yO?kQRO,5:yO?kQRO,5:yO?kQRO,5:yO!4bQRO,5:yOGVQRO,5:yO,cQRO,5:yO,cQRO,5:yO,cQRO,5:yO,cQRO,5:yO,cQRO,5:yO!6dQRO,5:xOOQQ-E8n-E8nO!6rQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO!:]QRO1G0aOOQQ1G0a1G0aO!<UQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO!>TQRO,5:uOGVQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uO,cQRO,5:uOOQQ1G0`1G0`OOQQ<<Ic<<IcO!?|QRO,5:yO!CpQRO,5:sO!DaQRO,5:sOOQQ1G0c1G0cO!DhQRO'#E_O!FmQRO1G0lOOQQ'#Eb'#EbOOQQ-E8o-E8oOOQQ1G0g1G0gO!F{QRO1G0iOOQQ1G0l1G0lOOQQ1G0m1G0mOOQQ1G0e1G0eO?kQRO1G0eO!IYQRO1G0eO?kQRO1G0eO?kQRO1G0eO?kQRO1G0eO!KXQRO1G0eO!<UQRO1G0eO?kQRO1G0eO?kQRO1G0eO?kQRO1G0eO?kQRO1G0eOOQQ1G0d1G0dO!MZQRO7+%{O?kQRO7+%{O?kQRO7+%{O?kQRO7+%{OOQQ7+%{7+%{O#!tQRO7+%{O!<UQRO7+%{O?kQRO7+%{O?kQRO7+%{O?kQRO7+%{O#$mQRO1G0aO!<UQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO?kQRO1G0aO#&fQRO1G0eO#*YQPO7+&WOOQQ7+&T7+&TO#*_QRO7+&TOOQQ7+&P7+&PO?kQRO7+&PO?kQRO7+&PO?kQRO7+&PO#*fQRO7+&PO!<UQRO7+&PO?kQRO7+&PO?kQRO7+&PO?kQRO7+&PO#,hQRO<<IgO?kQRO<<IgO?kQRO<<IgOOQQ<<Ig<<IgO#0RQRO<<IgO!<UQRO<<IgO?kQRO<<IgO?kQRO<<IgO#1zQRO7+%{O!<UQRO7+%{O?kQRO7+%{O?kQRO7+%{O?kQRO7+%{O#3sQRO7+&POOQQ<<Ir<<IrOOQQ<<Io<<IoOOQQ<<Ik<<IkO?kQRO<<IkO?kQRO<<IkO#7gQRO<<IkO!<UQRO<<IkO?kQRO<<IkO?kQRO<<IkO#9iQROAN?RO?kQROAN?ROOQQAN?RAN?RO#=SQROAN?RO!<UQROAN?RO?kQROAN?RO#>{QRO<<IgO!<UQRO<<IgO?kQRO<<IgO?kQRO<<IgO#@tQRO<<IkOOQQAN?VAN?VO?kQROAN?VO#DhQROAN?VO!<UQROAN?VO?kQROAN?VO#FjQROG24mOOQQG24mG24mO#JTQROG24mO!<UQROG24mO#K|QROAN?RO!<UQROAN?RO?kQROAN?RO#MuQROAN?VOOQQG24qG24qO$#iQROG24qO!<UQROG24qOOQQLD*XLD*XO$%kQROLD*XO$'dQROG24mO!<UQROG24mO$)]QROG24qPOQQLD*]LD*]O$-PQROLD*]OOQQ!$'Ms!$'MsO$/RQROLD*XPOQQ!$'Mw!$'MwO,cQRO'#E_O$0zQRO'#E_O$2|QRO'#EmO$3TQRO,5:wO$5VQRO,5:wO,cQRO,5:yO$5^QRO,5:yO$7SQRO,5:yO?kQRO,5:yO$8xQRO,5:yO?kQRO1G0eO$:zQRO1G0eO$<}QRO1G0eO?kQRO7+&PO$?PQRO7+&PO?kQRO<<IkO$ARQRO<<IkO?kQROAN?VO$CTQROAN?VO$EVQROG24qOGVQRO'#EZO:[QRO,5;TO:[QRO,5;UO$GXQRO'#E]O$G`QRO'#E]OGVQRO'#E_O,cQRO'#E_O$GgQRO,5:uO$IiQRO'#E_OGVQRO,5:yO,cQRO,5:yOGVQRO,5:yO!<UQRO,5:yO?kQRO,5:yO!<UQRO1G0eO$ItQRO1G0eO?kQRO1G0eO!<UQRO7+&PO?kQRO7+&PO!<UQRO<<IkO?kQRO<<IkO!<UQROAN?VO,cQRO'#E_O,cQRO,5:yOGVQRO,5:yO$JRQRO,5:yO?kQRO,5:yO?kQRO1G0eO$KwQRO1G0eO$LVQRO1G0eO?kQRO7+&PO?kQRO<<IkO?kQROAN?VO$LeQRO'#EiO(gQRO'#EjO$LjQRO'#EpO,cQRO'#E_O,cQRO'#E_O,cQRO,5:yO?kQRO,5:yO?kQRO,5:yO?kQRO1G0eO?kQRO1G0eO?kQRO7+&PO?kQRO7+&PO?kQRO<<IkO,cQRO'#E_O$LzQRO'#E_O,cQRO,5:yO,cQRO,5:yO?kQRO,5:yO?kQRO1G0eO?kQRO7+&PO?kQRO<<IkO,cQRO'#E_O,cQRO'#E_O?kQRO,5:yO?kQRO,5:yO?kQRO1G0eO?kQRO1G0eO?kQRO7+&PO,cQRO'#E_O?kQRO,5:yO?kQRO1G0eO?kQRO7+&PO,cQRO'#E_O,cQRO'#E_O?kQRO,5:yO?kQRO,5:yO?kQRO1G0eO,cQRO'#E_O?kQRO,5:yO?kQRO1G0eO,cQRO'#E_O,cQRO'#E_O?kQRO,5:yO,cQRO'#E_O?kQRO,5:yO,cQRO'#E_O,cQRO'#E_",
-     stateData: "$MV~O#hOS!iOS~ORQOSPOTROVTOY[O^WO`WOaWOcWOdWOeWOfWOgWOjRO!uVO!wWO!xWO~O!m_O~O!m`O~O!maO~O!mbO~O^WO`WOaWOcWOdWOeWOfWOgWO!uVO!wWO!xWO~O^eOieOzeO{eO|eO}eO!OeO!PeO!QeO!aeO!beO!ceO!deO!eeO!feO!geO!heO~OY[O~ObhO!kjO~O^kO!kmO~O^nO~O^kO!kqO~O!vrO~OWuOXtOg!QO!RwO!SxO!TyO!UzO!V{O!W|O!X}O!YwO!ZxO![yO!]zO!^{O!_|O!`}O!awO!bxO!cyO!dzO!e{O!f|O!g}O!h!OO!u!PO~OZ!UO!msO~P%jObhO!k!XO~O^kO!k!ZO~O^![O{![O~O^kO!k!^O~O^kO!k!`O~O^!aO~O^!bOc!bOd!bOe!bOj!bO~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}XX!}XZ!}Xg!}X!R!}X!S!}X!T!}X!U!}X!V!}X!W!}X!X!}X!Y!}X!Z!}X![!}X!]!}X!^!}X!_!}X!`!}X!a!}X!b!}X!c!}X!d!}X!e!}X!f!}X!g!}X!h!}X!u!}X!k!}X~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nO~P(gOW(POX(OOg!QO!R!wO!S!xO!T!yO!U!zO!V!{O!W!|O!X!}O!Y!wO!Z!xO![!yO!]!zO!^!{O!_!|O!`!}O!a!wO!b!xO!c!yO!d!zO!e!{O!f!|O!g!}O!h']O~O!u#OO~P.XOZ#RO~P%jO!k#TO~O^kO!k#UO~Of!nOl#WOm&wOn'cOo(SOp(fOq(qOr(yOs#WOt&wOu'cOv(SOw(fOx(qOy(yOz#WO{&wO|'cO}(SO!O(fO!P(qO!Q(yO!m'`O!u!mO!w!nO!x!nO~P(gOWuOXtO^#ZOc!bOd!bOe!bOf#aOg!QOj!bOl&xOm'sOn(]Oo(lOp(uOq({Or)OOs&xOt'sOu(]Ov(lOw(uOx({Oy)OOz&xO{'sO|(]O}(lO!O(uO!P({O!Q)OO!RwO!SxO!TyO!UzO!V{O!W|O!X}O!YwO!ZxO![yO!]zO!^{O!_|O!`}O!awO!bxO!cyO!dzO!e{O!f|O!g}O!h!OO!m#]O!u#`O!w#aO!x#aO#X#WP~O!k#^O~P2ZO^#dXc#dXd#dXe#dXf#dXj#dXl#dXm#dXn#dXo#dXp#dXq#dXr#dXs#dXt#dXu#dXv#dXw#dXx#dXy#dXz#dX{#dX|#dX}#dX!O#dX!P#dX!Q#dX!m#dX!u#dX!w#dX!x#dX~OP#hOQ#iOk#jOW#dXX#dXZ#dXg#dX!R#dX!S#dX!T#dX!U#dX!V#dX!W#dX!X#dX!Y#dX!Z#dX![#dX!]#dX!^#dX!_#dX!`#dX!a#dX!b#dX!c#dX!d#dX!e#dX!f#dX!g#dX!h#dX!k#dX~P6VOf!nOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!m!dO!u!mO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}aX!}aZ!}ag!}a!R!}a!S!}a!T!}a!U!}a!V!}a!W!}a!X!}a!Y!}a!Z!}a![!}a!]!}a!^!}a!_!}a!`!}a!a!}a!b!}a!c!}a!d!}a!e!}a!f!}a!g!}a!h!}a!u!}a!k!}a~P(gOP#hOQ#iOf!nOk#jOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nO~P(gOP#hOQ#iOf!nOk#jOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOW#dXX#dXZ#dXg#dX!R#dX!S#dX!T#dX!U#dX!V#dX!W#dX!X#dX!Y#dX!Z#dX![#dX!]#dX!^#dX!_#dX!`#dX!a#dX!b#dX!c#dX!d#dX!e#dX!f#dX!g#dX!h#dX!k#dX~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}X~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO~P(gO!Y$WO!Z$XO![$YO!]$ZO!^$[O!_$]O!`$^O~O!v$_O~OZ$`O~P%jOP&|OQ'gOk&}O~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RXQ#RXW#RXX#RXZ#RXg#RXk#RX!R#RX!S#RX!T#RX!U#RX!V#RX!W#RX!X#RX!Y#RX!Z#RX![#RX!]#RX!^#RX!_#RX!`#RX!a#RX!b#RX!c#RX!d#RX!e#RX!f#RX!g#RX!h#RX!u#RX!k#RX~P(gOP#OXQ#OXW#]iX#]iZ#]ig#]ik#OX!R#]i!S#]i!T#]i!U#]i!V#]i!W#]i!X#]i!Y#]i!Z#]i![#]i!]#]i!^#]i!_#]i!`#]i!a#]i!b#]i!c#]i!d#]i!e#]i!f#]i!g#]i!h#]i!u#]i!v#]i!k#]i~OP#OXQ#OXW#^iX#^iZ#^ig#^ik#OX!R#^i!S#^i!T#^i!U#^i!V#^i!W#^i!X#^i!Y#^i!Z#^i![#^i!]#^i!^#^i!_#^i!`#^i!a#^i!b#^i!c#^i!d#^i!e#^i!f#^i!g#^i!h#^i!u#^i!v#^i!k#^i~OP#SXQ#SX^#aXk#SX!k#SX#X#aX~O^kO#X#WX~OWuOXtOc!bOd!bOe!bOf#aOg!QOj!bOl&xOm'sOn(]Oo(lOp(uOq({Or)OOs&xOt'sOu(]Ov(lOw(uOx({Oy)OOz&xO{'sO|(]O}(lO!O(uO!P({O!Q)OO!RwO!SxO!TyO!UzO!V{O!W|O!X}O!YwO!ZxO![yO!]zO!^{O!_|O!`}O!awO!bxO!cyO!dzO!e{O!f|O!g}O!h!OO!m#]O!u#`O!w#aO!x#aO#X#WP~O^&yO!k$cO~P!$iOP#PaP#TaQ#PaQ#Ta^#Pa^#Tac#Pac#Tad#Pad#Tae#Pae#Taf#Paf#Taj#Paj#Tak#Pak#Tal#Pal#Tam#Pam#Tan#Pan#Tao#Pao#Tap#Pap#Taq#Paq#Tar#Par#Tas#Pas#Tat#Pat#Tau#Pau#Tav#Pav#Taw#Paw#Tax#Pax#Tay#Pay#Taz#Paz#Ta{#Pa{#Ta|#Pa|#Ta}#Pa}#Ta!O#Pa!O#Ta!P#Pa!P#Ta!Q#Pa!Q#Ta!m#Pa!m#Ta!u#Pa!u#Ta!w#Pa!w#Ta!x#Pa!x#Ta!v#Ta~OW#PaW#TaX#PaX#TaZ#PaZ#Tag#Pag#Ta!R#Pa!R#Ta!S#Pa!S#Ta!T#Pa!T#Ta!U#Pa!U#Ta!V#Pa!V#Ta!W#Pa!W#Ta!X#Pa!X#Ta!Y#Pa!Y#Ta!Z#Pa!Z#Ta![#Pa![#Ta!]#Pa!]#Ta!^#Pa!^#Ta!_#Pa!_#Ta!`#Pa!`#Ta!a#Pa!a#Ta!b#Pa!b#Ta!c#Pa!c#Ta!d#Pa!d#Ta!e#Pa!e#Ta!f#Pa!f#Ta!g#Pa!g#Ta!h#Pa!h#Ta!k#Pa!k#Ta~P!(eO!k$dO~P%jO^!bOc!bOd!bOe!bOf!nOj!bOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!m!dO!u$eO!w!nO!x!nO~P.XOP#QXQ#QXf#UXk#QX!k#UX!w#UX!x#UX~Of$gO!k$iO!w$gO!x$gO~O#X$jO~O!k$kOP#QXQ#QXk#QX~O!k$lOP#QXQ#QXk#QX~Of!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RXQ#RXk#RX!v#RX~P(gO!v$yOP#OXQ#OXk#OX~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}iX!}iZ!}ig!}i!R!}i!S!}i!T!}i!U!}i!V!}i!W!}i!X!}i!Y!}i!Z!}i![!}i!]!}i!^!}i!_!}i!`!}i!a!}i!b!}i!c!}i!d!}i!e!}i!f!}i!g!}i!h!}i!u!}i!k!}i~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}a~P(gOP#hOQ#iOf!nOk#jOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v$QO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RaQ#RaW#RaX#RaZ#Rag#Rak#Ra!R#Ra!S#Ra!T#Ra!U#Ra!V#Ra!W#Ra!X#Ra!Y#Ra!Z#Ra![#Ra!]#Ra!^#Ra!_#Ra!`#Ra!a#Ra!b#Ra!c#Ra!d#Ra!e#Ra!f#Ra!g#Ra!h#Ra!u#Ra!k#Ra~P(gO^kO!k#UO#X#WX~OP#PaP#TaQ#PaQ#Tak#Pak#Ta~O#X!{a~P!C{O^!bOc!bOd!bOe!bOf!nOj!bOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!m!dO!u!mO!w!nO!x!nO~PH{O!v%]OP#QXQ#QXk#QX~O!k%^O~P%jO^#Ric#Rid#Rie#Rif#Rij#Rik#Ril#Rim#Rin#Rio#Rip#Riq#Rir#Ris#Rit#Riu#Riv#Riw#Rix#Riy#Riz#Ri{#Ri|#Ri}#Ri!O#Ri!P#Ri!Q#Ri!m#Ri!u#Ri!w#Ri!x#Ri~OP#hOQ#iOW#RiX#RiZ#Rig#Ri!R#Ri!S#Ri!T#Ri!U#Ri!V#Ri!W#Ri!X#Ri!Y#Ri!Z#Ri![#Ri!]#Ri!^#Ri!_#Ri!`#Ri!a#Ri!b#Ri!c#Ri!d#Ri!e#Ri!f#Ri!g#Ri!h#Ri!k#Ri~P!GSOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RaQ#Rak#Ra!v#Ra~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}qX!}qZ!}qg!}q!R!}q!S!}q!T!}q!U!}q!V!}q!W!}q!X!}q!Y!}q!Z!}q![!}q!]!}q!^!}q!_!}q!`!}q!a!}q!b!}q!c!}q!d!}q!e!}q!f!}q!g!}q!h!}q!u!}q!k!}q~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}i~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v%OO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RiQ#RiW#RiX#RiZ#Rig#Rik#Ri!R#Ri!S#Ri!T#Ri!U#Ri!V#Ri!W#Ri!X#Ri!Y#Ri!Z#Ri![#Ri!]#Ri!^#Ri!_#Ri!`#Ri!a#Ri!b#Ri!c#Ri!d#Ri!e#Ri!f#Ri!g#Ri!h#Ri!u#Ri!k#Ri~P(gO!k%wO~O!k%xO~P%jOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RiQ#Rik#Ri!v#Ri~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}yX!}yZ!}yg!}y!R!}y!S!}y!T!}y!U!}y!V!}y!W!}y!X!}y!Y!}y!Z!}y![!}y!]!}y!^!}y!_!}y!`!}y!a!}y!b!}y!c!}y!d!}y!e!}y!f!}y!g!}y!h!}y!u!}y!k!}y~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}q~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v%lO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RqQ#RqW#RqX#RqZ#Rqg#Rqk#Rq!R#Rq!S#Rq!T#Rq!U#Rq!V#Rq!W#Rq!X#Rq!Y#Rq!Z#Rq![#Rq!]#Rq!^#Rq!_#Rq!`#Rq!a#Rq!b#Rq!c#Rq!d#Rq!e#Rq!f#Rq!g#Rq!h#Rq!u#Rq!k#Rq~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RqQ#Rqk#Rq!v#Rq~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}!RX!}!RZ!}!Rg!}!R!R!}!R!S!}!R!T!}!R!U!}!R!V!}!R!W!}!R!X!}!R!Y!}!R!Z!}!R![!}!R!]!}!R!^!}!R!_!}!R!`!}!R!a!}!R!b!}!R!c!}!R!d!}!R!e!}!R!f!}!R!g!}!R!h!}!R!u!}!R!k!}!R~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}y~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v&SO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#RyQ#RyW#RyX#RyZ#Ryg#Ryk#Ry!R#Ry!S#Ry!T#Ry!U#Ry!V#Ry!W#Ry!X#Ry!Y#Ry!Z#Ry![#Ry!]#Ry!^#Ry!_#Ry!`#Ry!a#Ry!b#Ry!c#Ry!d#Ry!e#Ry!f#Ry!g#Ry!h#Ry!u#Ry!k#Ry~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#RyQ#Ryk#Ry!v#Ry~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOW!}!ZX!}!ZZ!}!Zg!}!Z!R!}!Z!S!}!Z!T!}!Z!U!}!Z!V!}!Z!W!}!Z!X!}!Z!Y!}!Z!Z!}!Z![!}!Z!]!}!Z!^!}!Z!_!}!Z!`!}!Z!a!}!Z!b!}!Z!c!}!Z!d!}!Z!e!}!Z!f!}!Z!g!}!Z!h!}!Z!u!}!Z!k!}!Z~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}!R~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v&cO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#R!RQ#R!RW#R!RX#R!RZ#R!Rg#R!Rk#R!R!R#R!R!S#R!R!T#R!R!U#R!R!V#R!R!W#R!R!X#R!R!Y#R!R!Z#R!R![#R!R!]#R!R!^#R!R!_#R!R!`#R!R!a#R!R!b#R!R!c#R!R!d#R!R!e#R!R!f#R!R!g#R!R!h#R!R!u#R!R!k#R!R~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#R!RQ#R!Rk#R!R!v#R!R~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v!}!Z~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v&mO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!w!nO!x!nOP#R!ZQ#R!ZW#R!ZX#R!ZZ#R!Zg#R!Zk#R!Z!R#R!Z!S#R!Z!T#R!Z!U#R!Z!V#R!Z!W#R!Z!X#R!Z!Y#R!Z!Z#R!Z![#R!Z!]#R!Z!^#R!Z!_#R!Z!`#R!Z!a#R!Z!b#R!Z!c#R!Z!d#R!Z!e#R!Z!f#R!Z!g#R!Z!h#R!Z!u#R!Z!k#R!Z~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nOP#R!ZQ#R!Zk#R!Z!v#R!Z~P(gOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!v&tO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RXQ#RXk#RX!k#RX~P(gO!k#aX~P!#{OW#TaX#TaZ#Tag#Ta!R#Ta!S#Ta!T#Ta!U#Ta!V#Ta!W#Ta!X#Ta!Y#Ta!Z#Ta![#Ta!]#Ta!^#Ta!_#Ta!`#Ta!a#Ta!b#Ta!c#Ta!d#Ta!e#Ta!f#Ta!g#Ta!h#Ta!u#Ta!k#Ta!v#Pa!v#Ta~P!C{O!v#Pa~P!(eOf!nOl#WOm&wOn'cOo(SOp(fOq(qOr(yOs#WOt&wOu'cOv(SOw(fOx(qOy(yOz#WO{&wO|'cO}(SO!O(fO!P(qO!Q(yO!m!dO!u!mO!w!nO!x!nO~P(gOf!nOl&xOm'sOn(]Oo(lOp(uOq({Or)OOs&xOt'sOu(]Ov(lOw(uOx({Oy)OOz&xO{'sO|(]O}(lO!O(uO!P({O!Q)OO!m!dO!u!mO!w!nO!x!nO~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RaQ#Rak#Ra!k#Ra~P(gOP&|OQ'gOW#RiX#RiZ#Rig#Rik#Ri!R#Ri!S#Ri!T#Ri!U#Ri!V#Ri!W#Ri!X#Ri!Y#Ri!Z#Ri![#Ri!]#Ri!^#Ri!_#Ri!`#Ri!a#Ri!b#Ri!c#Ri!d#Ri!e#Ri!f#Ri!g#Ri!h#Ri!u#Ri!k#Ri~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RiQ#Rik#Ri!k#Ri~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RqQ#Rqk#Rq!k#Rq~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#RyQ#Ryk#Ry!k#Ry~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#R!RQ#R!Rk#R!R!k#R!R~P(gOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!m!dO!u!mO!w!nO!x!nOP#R!ZQ#R!Zk#R!Z!k#R!Z~P(gO!k&zO~P2ZO!k&{O~P2ZOP'fOQ(TOf!nOk'hOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!m'aO!u!mO!w!nO!x!nO!v#dX~P(gOP'tOQ(_Ok'OO~OP'fOQ(TO!v#Ri~P!GSOf!nOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!m'`O!u!mO!w!nO!x!nO~P(gOP'tOQ(_Ok#Ri!k#Ri~OP'uOQ(`Ok#Ri!v#Ri~O^'^O~OP'fOQ(TOk'hO!v#dX~P6VOP'uOQ(`Ok'vO~O",
-     goto: "!#a#kPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP#lP#l#l#p#t#w#l#zPPPP$O$T$W$a$n%P/}5Z:m?}EcJoEcJvP/}/}J|K]K]KlKrKxLbLiMO!#PPPP#z!#YTUOZTSOZRoaR!]oTYOZV]OZ^Rf[Q!VfX#d!d#]'`'ag!Sf!T!V!d#S#]#_$j%_'`'af!Rf!T!V!d#S#]#_$j%_'`'aT#P!P#`#U!ewx!g!p!q!v#W#h#l#z#{$a$n$z${%[%a%i%j%v%z&Q&R&[&^&b&i&q&w&x&|'P'Q'R'T'U'V'W'X'Y'Z'['s't'w'x'{'|'}Q!qyQ!rzQ!s{Q!t|Q!u}Q!v!OS#V!a!cQ#l!hQ#m!iQ#n!jQ#o!kQ#p!lQ#{!rQ#|!sQ#}!tQ$O!uQ$R!yQ$S!zQ$T!{Q$U!|Q$V!}S$n#i#mQ$o#jQ$p#nQ$q#oQ$r#pQ$t#sQ$u#tQ$v#uQ$w#vQ$x#wQ${#|Q$|#}Q$}$OQ%Q$SQ%R$TQ%S$UQ%T$VQ%V$YQ%W$ZQ%X$[Q%Y$]Q%Z$^Q%a$pQ%b$qQ%c$rS%e$u(`Q%f$vQ%g$wQ%h$xQ%j$|Q%k$}Q%n%RQ%o%SQ%p%TQ%r%WQ%s%XQ%t%YQ%u%ZQ%z%bQ%{%cQ%}%fQ&O%gQ&P%hQ&R%kQ&U%oQ&V%pQ&X%sQ&Y%tQ&Z%uQ&^%{Q&`&OQ&a&PQ&e&VQ&g&YQ&h&ZQ&l&aQ&p&hQ'P'cS'R'g'jQ'S&}Q'U'mQ'W'oQ'Y'qQ'd']W'e!d#]'`'aQ'i(RQ'j(SS'k(T(UQ'l'hQ'm(VQ'n(WQ'o(XQ'p(YQ'q(ZQ'r([Q'w(]S'x(_(aQ'y'OQ'z'vQ'{(bQ'|(cQ'}(d#S(Q!w!x#q#r$P$R$W$X$s$t%P%Q%U%V%d%e%m%n%q%r%|%}&T&U&W&X&_&`&d&e&f&g&k&l&n&o&p&s&u'b'd'f'i'k'n'p'r'uQ(U(eQ(V(fQ(W(gQ(X(hQ(Y(iQ(Z(jQ([(kY(^!m#`$e'^'_Q(a(lQ(b(mQ(c(nQ(d(oQ(g(pQ(h(qQ(i(rQ(j(sQ(k(tQ(m(uQ(n(vQ(o(wQ(r(xQ(s(yQ(t(zQ(v({Q(w(|Q(z(}R(|)O+e!owxyz{|}!O!a!c!d!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#]#`#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'`'a'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O+U!owxyz{|}!O!d!g!h!i!j!k!l!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#]#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'`'a'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OS#X!a'^S#Y!c'_V#x!m#`$e+Y!nwxyz{|}!O!a!c!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OW#f!d#]'`'aR$f#`Q!cu+[!nwxyz{|}!O!a!c!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#`#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OW#g!d#]'`'aR'_(P+e!nwxyz{|}!O!a!c!d!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#]#`#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'`'a'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OZ#b!d#]#c'`'aX#e!d#]'`'ak!Qf!P!T!V!d#S#]#_#`$j%_'`'akvf!P!T!V!d#S#]#_#`$j%_'`'aQZORdZQi_R!WiQl`QpbY!Ylp!_#[$bQ!_sU#[!d'`'aR$b#]S^OZRg^Q!TfW#Q!T#S#_%_Q#S!VW#_!d#]'`'aR%_$jU!pwx!OS#k!g'b!j#y!p#z$P$a$s$z%P%U%[%d%i%m%q%v%|&Q&T&W&[&_&b&d&f&i&k&n&o&q&s&u'Q'T'V'X'Z'[S#z!q!vU$P!w!x']S$a#W&wW$m#h#l'f'iS$s#q#rQ$z#{S%P$R'dS%U$W$XS%[&|'PS%`$n'kS%d$t'uQ%i${Q%m%QQ%q%VQ%v'RS%y%a'nQ%|%eQ&Q%jQ&T%nQ&W%rQ&['US&]%z'pQ&_%}Q&b&RQ&d&UQ&f&XQ&i'WS&j&^'rQ&k&`Q&n&eQ&o&gQ&q'YQ&s&lQ&u&pS'Q&x'sS'T't'wQ'V'xQ'X'{Q'Z'|R'['}W#c!d#]'`'aR$h#cSXOZRcV",
-     nodeNames: "⚠ ReporterLeft1Args ReporterLeft2Args GlobalStr ExtensionStr BreedStr PlusMinus Own Set Let To End And Or Identifier Directive Command Reporter Extension TurtleVar PatchVar LinkVar Constant Unsupported SpecialReporter SpecialCommand BreedToken AndOr Reporter0Args Reporter1Args Reporter2Args Reporter3Args Reporter4Args Reporter5Args Reporter6Args Reporter0ArgsVar Reporter1ArgsVar Reporter2ArgsVar Reporter3ArgsVar Reporter4ArgsVar Reporter5ArgsVar Reporter6ArgsVar SpecialReporter0Args SpecialReporter1Args SpecialReporter2Args SpecialReporter3Args SpecialReporter4Args SpecialReporter5Args SpecialReporter6Args Command0Args Command1Args Command2Args Command3Args Command4Args Command5Args Command6Args Command0ArgsVar Command1ArgsVar Command2ArgsVar Command3ArgsVar Command4ArgsVar Command5ArgsVar Command6ArgsVar SpecialCommand0Args SpecialCommand1Args SpecialCommand2Args SpecialCommand3Args SpecialCommand4Args SpecialCommand5Args SpecialCommand6Args SpecialCommandCreate LineComment Program CloseBracket Extensions OpenBracket Globals Breed BreedDeclarative BreedPlural BreedSingular BreedsOwn Unrecognized OpenParen CloseParen Numeric String Procedure ProcedureName Arguments ProcedureContent CommandStatement Arg CodeBlock Value ReporterStatement VariableName List Literal AnonymousProcedure AnonArguments Arrow ReporterBlock Property VariableDeclaration NewVariableDeclaration SetVariable",
-     maxTerm: 118,
+     states: "!#UQYQROOO!aQPO'#EQO!fQPO'#ESOOQO'#EU'#EUO!kQPO'#ETO!pQPO'#EXOOQQ'#E}'#E}O!uQRO'#FOOOQQ'#FO'#FOOOQQ'#EY'#EYOOQQ'#Es'#EsQYQROOO#jQRO'#E_OOQQ'#Ev'#EvQ%ZQROOO%`QRO,5:lO%hQRO,5:nO%pQRO,5:oO%uQRO,5:sO%}QPO,5;jOOQQ-E8q-E8qOOQQ'#E`'#E`O'yQRO,5:yOOQQ-E8t-E8tOOQQ'#Et'#EtO(TQRO1G0WOOQQ1G0W1G0WOOQQ'#Eu'#EuO(]QRO1G0YOOQQ1G0Y1G0YOOQQ'#EV'#EVO(eQRO1G0ZO(mQRO1G0_OOQQ1G0_1G0_OOQQ1G1U1G1UO(uQRO'#EaO(}QRO'#EqO)SQRO'#ErOOQQ'#Ep'#EpO)eQRO'#EcO-hQRO'#EcO-hQRO'#EcO-hQRO'#EcO-hQRO'#EcO-hQRO'#EcO-hQRO'#EcO-hQRO'#EcO1gQRO'#EcOOQQ'#Ec'#EcOOQQ'#Eb'#EbOOQQ'#Ew'#EwO1nQRO1G0eOOQQ1G0e1G0eO1nQRO1G0eOOQQ-E8r-E8rOOQQ7+%r7+%rOOQQ-E8s-E8sOOQQ7+%t7+%tOOQO'#EW'#EWO1uQPO7+%uOOQQ7+%y7+%yO1zQRO,5:{OOQQ,5:{,5:{O2SQRO,5;]OOQQ'#Eh'#EhO2SQRO,5;^O8lQRO'#EeO;]QRO'#ExOOQQ'#Eg'#EgO-hQRO'#EgO-hQRO'#EgO-hQRO'#EgO-hQRO'#EgO-hQRO'#EgO-hQRO'#EgO=bQRO'#EgOOQQ'#Ef'#EfOOQQ'#Ed'#EdO?mQRO,5:}OCpQRO,5:}OCpQRO,5:}OCpQRO,5:}OCpQRO,5:}OCpQRO,5:}OFUQRO,5:}OJbQRO,5:}OLpQRO,5:}O-hQRO,5:}O-hQRO,5:}O-hQRO,5:}O-hQRO,5:}O-hQRO,5:}ON{QRO'#EcO! dQPO,5:|OOQQ-E8u-E8uOOQQ7+&P7+&PO! iQRO7+&POOQQ<<Ia<<IaOOQQ1G0g1G0gO! pQRO'#EgO! {QRO'#EgO!&XQRO1G0wO!(bQRO1G0xO!*kQRO'#EuO!+PQRO'#ElO!/cQRO'#EaO!5SQRO,5;PO!8vQRO,5;PO!8}QRO,5;YO!;iQRO'#EjOOQQ'#Ey'#EyO!<QQRO,5;TOOQO'#El'#ElO!<`QPO,5;VO!<eQRO,5;YO!<sQRO,5;ZO-hQRO,5;RO-hQRO,5;RO-hQRO,5;ROOQQ,5;R,5;ROCpQRO,5;ROCpQRO,5;ROCpQRO,5;ROCpQRO,5;ROCpQRO,5;RO!=RQRO,5;ROLpQRO,5;RO-hQRO,5;RO-hQRO,5;RO-hQRO,5;RO-hQRO,5;RO-hQRO,5;RO!?jQRO,5;QOOQQ-E8v-E8vO!?xQRO1G0iOCpQRO1G0iOCpQRO1G0iOCpQRO1G0iOCpQRO1G0iO!C{QRO1G0iOOQQ1G0i1G0iO!FZQRO1G0iOCpQRO1G0iOCpQRO1G0iOCpQRO1G0iOCpQRO1G0iO!HoQRO,5:}OLpQRO,5:}O-hQRO,5:}O-hQRO,5:}O-hQRO,5:}O-hQRO,5:}O-hQRO,5:}OOQQ1G0h1G0hOOQQ<<Ik<<IkO!J}QRO,5;RO# ZQRO,5:{O# zQRO,5:{OOQQ1G0k1G0kO#!RQRO'#EgO#$mQRO1G0tOOQQ'#Ej'#EjOOQQ-E8w-E8wOOQQ1G0o1G0oO#${QRO1G0qOOQQ1G0t1G0tOOQQ1G0u1G0uOOQQ1G0m1G0mOCpQRO1G0mO#'oQRO1G0mOCpQRO1G0mOCpQRO1G0mOCpQRO1G0mO#)qQRO1G0mO!FZQRO1G0mOCpQRO1G0mOCpQRO1G0mOCpQRO1G0mOCpQRO1G0mOOQQ1G0l1G0lO#,YQRO7+&TOCpQRO7+&TOCpQRO7+&TOCpQRO7+&TOOQQ7+&T7+&TO#0]QRO7+&TO!FZQRO7+&TOCpQRO7+&TOCpQRO7+&TOCpQRO7+&TO#2kQRO1G0iO!FZQRO1G0iOCpQRO1G0iOCpQRO1G0iOCpQRO1G0iOCpQRO1G0iO#4yQRO1G0mO#9VQPO7+&`OOQQ7+&]7+&]O#9[QRO7+&]OOQQ7+&X7+&XOCpQRO7+&XOCpQRO7+&XOCpQRO7+&XO#9cQRO7+&XO!FZQRO7+&XOCpQRO7+&XOCpQRO7+&XOCpQRO7+&XO#;zQRO<<IoOCpQRO<<IoOCpQRO<<IoOOQQ<<Io<<IoO#?}QRO<<IoO!FZQRO<<IoOCpQRO<<IoOCpQRO<<IoO#B]QRO7+&TO!FZQRO7+&TOCpQRO7+&TOCpQRO7+&TOCpQRO7+&TO#DkQRO7+&XOOQQ<<Iz<<IzOOQQ<<Iw<<IwOOQQ<<Is<<IsOCpQRO<<IsOCpQRO<<IsO#HwQRO<<IsO!FZQRO<<IsOCpQRO<<IsOCpQRO<<IsO#K`QROAN?ZOCpQROAN?ZOOQQAN?ZAN?ZO$ cQROAN?ZO!FZQROAN?ZOCpQROAN?ZO$#qQRO<<IoO!FZQRO<<IoOCpQRO<<IoOCpQRO<<IoO$&PQRO<<IsOOQQAN?_AN?_OCpQROAN?_O$*]QROAN?_O!FZQROAN?_OCpQROAN?_O$,tQROG24uOOQQG24uG24uO$0wQROG24uO!FZQROG24uO$3VQROAN?ZO!FZQROAN?ZOCpQROAN?ZO$5eQROAN?_OOQQG24yG24yO$9qQROG24yO!FZQROG24yOOQQLD*aLD*aO$<YQROLD*aO$>hQROG24uO!FZQROG24uO$@vQROG24yPOQQLD*eLD*eO$ESQROLD*eOOQQ!$'M{!$'M{O$GkQROLD*aPOQQ!$'NP!$'NPO-hQRO'#EgO$IyQRO'#EgO$LbQRO'#EuO$LiQRO,5;PO$NnQRO,5;PO-hQRO,5;RO$NuQRO,5;RO%#QQRO,5;ROCpQRO,5;RO%%]QRO,5;ROCpQRO1G0mO%'tQRO1G0mO%)zQRO1G0mOCpQRO7+&XO%,cQRO7+&XOCpQRO<<IsO%.zQRO<<IsOCpQROAN?_O%1cQROAN?_O%3zQROG24yOLpQRO'#EcO=bQRO,5;]O=bQRO,5;^O%6cQRO'#EeO%6jQRO'#EeOLpQRO'#EgO-hQRO'#EgO%6qQRO,5:}O%9YQRO'#EgOLpQRO,5;RO-hQRO,5;ROLpQRO,5;RO!FZQRO,5;ROCpQRO,5;RO!FZQRO1G0mO%9eQRO1G0mOCpQRO1G0mO!FZQRO7+&XOCpQRO7+&XO!FZQRO<<IsOCpQRO<<IsO!FZQROAN?_O-hQRO'#EgO-hQRO,5;ROLpQRO,5;RO%9rQRO,5;ROCpQRO,5;ROCpQRO1G0mO%;}QRO1G0mO%<]QRO1G0mOCpQRO7+&XOCpQRO<<IsOCpQROAN?_O%<kQRO'#EqO)SQRO'#ErO%<pQRO'#ExO-hQRO'#EgO-hQRO'#EgO-hQRO,5;ROCpQRO,5;ROCpQRO,5;ROCpQRO1G0mOCpQRO1G0mOCpQRO7+&XOCpQRO7+&XOCpQRO<<IsO-hQRO'#EgO%=QQRO'#EgO-hQRO,5;RO-hQRO,5;ROCpQRO,5;ROCpQRO1G0mOCpQRO7+&XOCpQRO<<IsO-hQRO'#EgO-hQRO'#EgOCpQRO,5;ROCpQRO,5;ROCpQRO1G0mOCpQRO1G0mOCpQRO7+&XO-hQRO'#EgOCpQRO,5;ROCpQRO1G0mOCpQRO7+&XO-hQRO'#EgO-hQRO'#EgOCpQRO,5;ROCpQRO,5;ROCpQRO1G0mO-hQRO'#EgOCpQRO,5;ROCpQRO1G0mO-hQRO'#EgO-hQRO'#EgOCpQRO,5;RO-hQRO'#EgOCpQRO,5;RO-hQRO'#EgO-hQRO'#Eg",
+     stateData: "%=]~O#pOS!qOS~ORQOSPOTROVTOY[O^WO`WOaWOcWOdWOeWOfWOgWOjRO!}VO#PWO#QWO~O!u_O~O!u`O~O!uaO~O!ubO~O^WO`WOaWOcWOdWOeWOfWOgWO!}VO#PWO#QWO~O^eOieOzeO{eO|eO}eO!OeO!PeO!QeO!ReO!SeO!TeO!UeO!VeO!WeO!XeO!heO!ieO!jeO!keO!leO!meO!neO!oeO!peO~OY[O~ObhO!sjO~O^kO!smO~O^nO~O^kO!sqO~O#OrO~OWuOXtOg!QO!YwO!ZxO![yO!]zO!^{O!_|O!`}O!awO!bxO!cyO!dzO!e{O!f|O!g}O!hwO!ixO!jyO!kzO!l{O!m|O!n}O!o!OO!p!OO!}!PO~OZ!UO!usO~P&SObhO!s!XO~O^kO!s!ZO~O^![O{![O~O^kO!s!^O~O^kO!s!`O~O^!aO~O^!bOc!bOd!bOe!bOj!bO~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOW#VXX#VXZ#VXg#VX!Y#VX!Z#VX![#VX!]#VX!^#VX!_#VX!`#VX!a#VX!b#VX!c#VX!d#VX!e#VX!f#VX!g#VX!h#VX!i#VX!j#VX!k#VX!l#VX!m#VX!n#VX!o#VX!p#VX!}#VX!s#VX~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nO~P)SOW(POX(OOg!QO!Y!wO!Z!xO![!yO!]!zO!^!{O!_!|O!`!}O!a!wO!b!xO!c!yO!d!zO!e!{O!f!|O!g!}O!h!wO!i!xO!j!yO!k!zO!l!{O!m!|O!n!}O!o']O!p']O~O!}#OO~P/sOZ#RO~P&SO!s#TO~O^kO!s#UO~Of!nOl#WOm&wOn'cOo(SOp(fOq(qOr(yOs#WOt&wOu'cOv(SOw(fOx(qOy(yOz#WO{&wO|'cO}(SO!O(fO!P(qO!Q(yO!R&wO!S#WO!T&wO!U'cO!V#WO!W&wO!X#WO!u'`O!}!mO#P!nO#Q!nO~P)SOWuOXtO^#ZOc!bOd!bOe!bOf#aOg!QOj!bOl&xOm'sOn(]Oo(lOp(uOq({Or)OOs&xOt'sOu(]Ov(lOw(uOx({Oy)OOz&xO{'sO|(]O}(lO!O(uO!P({O!Q)OO!R'sO!S&xO!T'sO!U(]O!V&xO!W'sO!X&xO!YwO!ZxO![yO!]zO!^{O!_|O!`}O!awO!bxO!cyO!dzO!e{O!f|O!g}O!hwO!ixO!jyO!kzO!l{O!m|O!n}O!o!OO!p!OO!u#]O!}#`O#P#aO#Q#aO#a#`P~O!s#^O~P4_O^#lXc#lXd#lXe#lXf#lXj#lXl#lXm#lXn#lXo#lXp#lXq#lXr#lXs#lXt#lXu#lXv#lXw#lXx#lXy#lXz#lX{#lX|#lX}#lX!O#lX!P#lX!Q#lX!R#lX!S#lX!T#lX!U#lX!V#lX!W#lX!X#lX!u#lX!}#lX#P#lX#Q#lX~OP#hOQ#iOk#jOW#lXX#lXZ#lXg#lX!Y#lX!Z#lX![#lX!]#lX!^#lX!_#lX!`#lX!a#lX!b#lX!c#lX!d#lX!e#lX!f#lX!g#lX!h#lX!i#lX!j#lX!k#lX!l#lX!m#lX!n#lX!o#lX!p#lX!s#lX~P8sOf!nOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!R#rO!S#qO!T#rO!U#sO!V#qO!W#rO!X#qO!u!dO!}!mO#P!nO#Q!nO~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOW#VaX#VaZ#Vag#Va!Y#Va!Z#Va![#Va!]#Va!^#Va!_#Va!`#Va!a#Va!b#Va!c#Va!d#Va!e#Va!f#Va!g#Va!h#Va!i#Va!j#Va!k#Va!l#Va!m#Va!n#Va!o#Va!p#Va!}#Va!s#Va~P)SOP#hOQ#iOf!nOk#jOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nO~P)SOP#hOQ#iOf!nOk#jOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nOW#lXX#lXZ#lXg#lX!Y#lX!Z#lX![#lX!]#lX!^#lX!_#lX!`#lX!a#lX!b#lX!c#lX!d#lX!e#lX!f#lX!g#lX!h#lX!i#lX!j#lX!k#lX!l#lX!m#lX!n#lX!o#lX!p#lX!s#lX~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO#O#VX~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO~P)SO!a$WO!b$XO!c$YO!d$ZO!e$[O!f$]O!g$^O~O#O$_O~OZ$`O~P&SOP&|OQ'gOk&}O~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOP#ZXQ#ZXW#ZXX#ZXZ#ZXg#ZXk#ZX!Y#ZX!Z#ZX![#ZX!]#ZX!^#ZX!_#ZX!`#ZX!a#ZX!b#ZX!c#ZX!d#ZX!e#ZX!f#ZX!g#ZX!h#ZX!i#ZX!j#ZX!k#ZX!l#ZX!m#ZX!n#ZX!o#ZX!p#ZX!}#ZX!s#ZX~P)SOP#WXQ#WXW#eiX#eiZ#eig#eik#WX!Y#ei!Z#ei![#ei!]#ei!^#ei!_#ei!`#ei!a#ei!b#ei!c#ei!d#ei!e#ei!f#ei!g#ei!h#ei!i#ei!j#ei!k#ei!l#ei!m#ei!n#ei!o#ei!p#ei!}#ei#O#ei!s#ei~OP#WXQ#WXW#fiX#fiZ#fig#fik#WX!Y#fi!Z#fi![#fi!]#fi!^#fi!_#fi!`#fi!a#fi!b#fi!c#fi!d#fi!e#fi!f#fi!g#fi!h#fi!i#fi!j#fi!k#fi!l#fi!m#fi!n#fi!o#fi!p#fi!}#fi#O#fi!s#fi~OP#[XQ#[X^#iXk#[X!s#[X#a#iX~O^kO#a#`X~OWuOXtOc!bOd!bOe!bOf#aOg!QOj!bOl&xOm'sOn(]Oo(lOp(uOq({Or)OOs&xOt'sOu(]Ov(lOw(uOx({Oy)OOz&xO{'sO|(]O}(lO!O(uO!P({O!Q)OO!R'sO!S&xO!T'sO!U(]O!V&xO!W'sO!X&xO!YwO!ZxO![yO!]zO!^{O!_|O!`}O!awO!bxO!cyO!dzO!e{O!f|O!g}O!hwO!ixO!jyO!kzO!l{O!m|O!n}O!o!OO!p!OO!u#]O!}#`O#P#aO#Q#aO#a#`P~O^&yO!s$cO~P!+XOP#XaP#]aQ#XaQ#]a^#Xa^#]ac#Xac#]ad#Xad#]ae#Xae#]af#Xaf#]aj#Xaj#]ak#Xak#]al#Xal#]am#Xam#]an#Xan#]ao#Xao#]ap#Xap#]aq#Xaq#]ar#Xar#]as#Xas#]at#Xat#]au#Xau#]av#Xav#]aw#Xaw#]ax#Xax#]ay#Xay#]az#Xaz#]a{#Xa{#]a|#Xa|#]a}#Xa}#]a!O#Xa!O#]a!P#Xa!P#]a!Q#Xa!Q#]a!R#Xa!R#]a!S#Xa!S#]a!T#Xa!T#]a!U#Xa!U#]a!V#Xa!V#]a!W#Xa!W#]a!X#Xa!X#]a!u#Xa!u#]a!}#Xa!}#]a#P#Xa#P#]a#Q#Xa#Q#]a#O#]a~OW#XaW#]aX#XaX#]aZ#XaZ#]ag#Xag#]a!Y#Xa!Y#]a!Z#Xa!Z#]a![#Xa![#]a!]#Xa!]#]a!^#Xa!^#]a!_#Xa!_#]a!`#Xa!`#]a!a#Xa!a#]a!b#Xa!b#]a!c#Xa!c#]a!d#Xa!d#]a!e#Xa!e#]a!f#Xa!f#]a!g#Xa!g#]a!h#Xa!h#]a!i#Xa!i#]a!j#Xa!j#]a!k#Xa!k#]a!l#Xa!l#]a!m#Xa!m#]a!n#Xa!n#]a!o#Xa!o#]a!p#Xa!p#]a!s#Xa!s#]a~P!/mO!s$dO~P&SO^!bOc!bOd!bOe!bOf!nOj!bOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!R#rO!S#qO!T#rO!U#sO!V#qO!W#rO!X#qO!u!dO!}$eO#P!nO#Q!nO~P/sOP#YXQ#YXf#^Xk#YX!s#^X#P#^X#Q#^X~Of$gO!s$iO#P$gO#Q$gO~O#a$jO~O!s$kOP#YXQ#YXk#YX~O!s$lOP#YXQ#YXk#YX~Of!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nOP#ZXQ#ZXk#ZX#O#ZX~P)SO#O$yOP#WXQ#WXk#WX~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOW#ViX#ViZ#Vig#Vi!Y#Vi!Z#Vi![#Vi!]#Vi!^#Vi!_#Vi!`#Vi!a#Vi!b#Vi!c#Vi!d#Vi!e#Vi!f#Vi!g#Vi!h#Vi!i#Vi!j#Vi!k#Vi!l#Vi!m#Vi!n#Vi!o#Vi!p#Vi!}#Vi!s#Vi~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO#O#Va~P)SOP#hOQ#iOf!nOk#jOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#O$QO#P!nO#Q!nO~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOP#ZaQ#ZaW#ZaX#ZaZ#Zag#Zak#Za!Y#Za!Z#Za![#Za!]#Za!^#Za!_#Za!`#Za!a#Za!b#Za!c#Za!d#Za!e#Za!f#Za!g#Za!h#Za!i#Za!j#Za!k#Za!l#Za!m#Za!n#Za!o#Za!p#Za!}#Za!s#Za~P)SO^kO!s#UO#a#`X~OP#XaP#]aQ#XaQ#]ak#Xak#]a~O#a#Ta~P# fO^!bOc!bOd!bOe!bOf!nOj!bOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!R#rO!S#qO!T#rO!U#sO!V#qO!W#rO!X#qO!u!dO!}!mO#P!nO#Q!nO~PN{O#O%]OP#YXQ#YXk#YX~O!s%^O~P&SO^#Zic#Zid#Zie#Zif#Zij#Zik#Zil#Zim#Zin#Zio#Zip#Ziq#Zir#Zis#Zit#Ziu#Ziv#Ziw#Zix#Ziy#Ziz#Zi{#Zi|#Zi}#Zi!O#Zi!P#Zi!Q#Zi!R#Zi!S#Zi!T#Zi!U#Zi!V#Zi!W#Zi!X#Zi!u#Zi!}#Zi#P#Zi#Q#Zi~OP#hOQ#iOW#ZiX#ZiZ#Zig#Zi!Y#Zi!Z#Zi![#Zi!]#Zi!^#Zi!_#Zi!`#Zi!a#Zi!b#Zi!c#Zi!d#Zi!e#Zi!f#Zi!g#Zi!h#Zi!i#Zi!j#Zi!k#Zi!l#Zi!m#Zi!n#Zi!o#Zi!p#Zi!s#Zi~P#%SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nOP#ZaQ#Zak#Za#O#Za~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOW#VqX#VqZ#Vqg#Vq!Y#Vq!Z#Vq![#Vq!]#Vq!^#Vq!_#Vq!`#Vq!a#Vq!b#Vq!c#Vq!d#Vq!e#Vq!f#Vq!g#Vq!h#Vq!i#Vq!j#Vq!k#Vq!l#Vq!m#Vq!n#Vq!o#Vq!p#Vq!}#Vq!s#Vq~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO#O#Vi~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#O%OO#P!nO#Q!nO~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOP#ZiQ#ZiW#ZiX#ZiZ#Zig#Zik#Zi!Y#Zi!Z#Zi![#Zi!]#Zi!^#Zi!_#Zi!`#Zi!a#Zi!b#Zi!c#Zi!d#Zi!e#Zi!f#Zi!g#Zi!h#Zi!i#Zi!j#Zi!k#Zi!l#Zi!m#Zi!n#Zi!o#Zi!p#Zi!}#Zi!s#Zi~P)SO!s%wO~O!s%xO~P&SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nOP#ZiQ#Zik#Zi#O#Zi~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOW#VyX#VyZ#Vyg#Vy!Y#Vy!Z#Vy![#Vy!]#Vy!^#Vy!_#Vy!`#Vy!a#Vy!b#Vy!c#Vy!d#Vy!e#Vy!f#Vy!g#Vy!h#Vy!i#Vy!j#Vy!k#Vy!l#Vy!m#Vy!n#Vy!o#Vy!p#Vy!}#Vy!s#Vy~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO#O#Vq~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#O%lO#P!nO#Q!nO~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOP#ZqQ#ZqW#ZqX#ZqZ#Zqg#Zqk#Zq!Y#Zq!Z#Zq![#Zq!]#Zq!^#Zq!_#Zq!`#Zq!a#Zq!b#Zq!c#Zq!d#Zq!e#Zq!f#Zq!g#Zq!h#Zq!i#Zq!j#Zq!k#Zq!l#Zq!m#Zq!n#Zq!o#Zq!p#Zq!}#Zq!s#Zq~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nOP#ZqQ#Zqk#Zq#O#Zq~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOW#V!RX#V!RZ#V!Rg#V!R!Y#V!R!Z#V!R![#V!R!]#V!R!^#V!R!_#V!R!`#V!R!a#V!R!b#V!R!c#V!R!d#V!R!e#V!R!f#V!R!g#V!R!h#V!R!i#V!R!j#V!R!k#V!R!l#V!R!m#V!R!n#V!R!o#V!R!p#V!R!}#V!R!s#V!R~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO#O#Vy~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#O&SO#P!nO#Q!nO~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOP#ZyQ#ZyW#ZyX#ZyZ#Zyg#Zyk#Zy!Y#Zy!Z#Zy![#Zy!]#Zy!^#Zy!_#Zy!`#Zy!a#Zy!b#Zy!c#Zy!d#Zy!e#Zy!f#Zy!g#Zy!h#Zy!i#Zy!j#Zy!k#Zy!l#Zy!m#Zy!n#Zy!o#Zy!p#Zy!}#Zy!s#Zy~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nOP#ZyQ#Zyk#Zy#O#Zy~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOW#V!ZX#V!ZZ#V!Zg#V!Z!Y#V!Z!Z#V!Z![#V!Z!]#V!Z!^#V!Z!_#V!Z!`#V!Z!a#V!Z!b#V!Z!c#V!Z!d#V!Z!e#V!Z!f#V!Z!g#V!Z!h#V!Z!i#V!Z!j#V!Z!k#V!Z!l#V!Z!m#V!Z!n#V!Z!o#V!Z!p#V!Z!}#V!Z!s#V!Z~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO#O#V!R~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#O&cO#P!nO#Q!nO~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOP#Z!RQ#Z!RW#Z!RX#Z!RZ#Z!Rg#Z!Rk#Z!R!Y#Z!R!Z#Z!R![#Z!R!]#Z!R!^#Z!R!_#Z!R!`#Z!R!a#Z!R!b#Z!R!c#Z!R!d#Z!R!e#Z!R!f#Z!R!g#Z!R!h#Z!R!i#Z!R!j#Z!R!k#Z!R!l#Z!R!m#Z!R!n#Z!R!o#Z!R!p#Z!R!}#Z!R!s#Z!R~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nOP#Z!RQ#Z!Rk#Z!R#O#Z!R~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO#O#V!Z~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#O&mO#P!nO#Q!nO~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO#P!nO#Q!nOP#Z!ZQ#Z!ZW#Z!ZX#Z!ZZ#Z!Zg#Z!Zk#Z!Z!Y#Z!Z!Z#Z!Z![#Z!Z!]#Z!Z!^#Z!Z!_#Z!Z!`#Z!Z!a#Z!Z!b#Z!Z!c#Z!Z!d#Z!Z!e#Z!Z!f#Z!Z!g#Z!Z!h#Z!Z!i#Z!Z!j#Z!Z!k#Z!Z!l#Z!Z!m#Z!Z!n#Z!Z!o#Z!Z!p#Z!Z!}#Z!Z!s#Z!Z~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nOP#Z!ZQ#Z!Zk#Z!Z#O#Z!Z~P)SOf!nOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#O&tO#P!nO#Q!nO~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nOP#ZXQ#ZXk#ZX!s#ZX~P)SO!s#iX~P!*kOW#]aX#]aZ#]ag#]a!Y#]a!Z#]a![#]a!]#]a!^#]a!_#]a!`#]a!a#]a!b#]a!c#]a!d#]a!e#]a!f#]a!g#]a!h#]a!i#]a!j#]a!k#]a!l#]a!m#]a!n#]a!o#]a!p#]a!}#]a!s#]a#O#Xa#O#]a~P# fO#O#Xa~P!/mOf!nOl#WOm&wOn'cOo(SOp(fOq(qOr(yOs#WOt&wOu'cOv(SOw(fOx(qOy(yOz#WO{&wO|'cO}(SO!O(fO!P(qO!Q(yO!R&wO!S#WO!T&wO!U'cO!V#WO!W&wO!X#WO!u!dO!}!mO#P!nO#Q!nO~P)SOf!nOl&xOm'sOn(]Oo(lOp(uOq({Or)OOs&xOt'sOu(]Ov(lOw(uOx({Oy)OOz&xO{'sO|(]O}(lO!O(uO!P({O!Q)OO!R'sO!S&xO!T'sO!U(]O!V&xO!W'sO!X&xO!u!dO!}!mO#P!nO#Q!nO~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nOP#ZaQ#Zak#Za!s#Za~P)SOP&|OQ'gOW#ZiX#ZiZ#Zig#Zik#Zi!Y#Zi!Z#Zi![#Zi!]#Zi!^#Zi!_#Zi!`#Zi!a#Zi!b#Zi!c#Zi!d#Zi!e#Zi!f#Zi!g#Zi!h#Zi!i#Zi!j#Zi!k#Zi!l#Zi!m#Zi!n#Zi!o#Zi!p#Zi!}#Zi!s#Zi~Of!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nOP#ZiQ#Zik#Zi!s#Zi~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nOP#ZqQ#Zqk#Zq!s#Zq~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nOP#ZyQ#Zyk#Zy!s#Zy~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nOP#Z!RQ#Z!Rk#Z!R!s#Z!R~P)SOf!nOl!fOm!gOn!hOo!iOp!jOq!kOr!lOs!fOt!gOu!hOv!iOw!jOx!kOy!lOz!fO{!gO|!hO}!iO!O!jO!P!kO!Q!lO!R!gO!S!fO!T!gO!U!hO!V!fO!W!gO!X!fO!u!dO!}!mO#P!nO#Q!nOP#Z!ZQ#Z!Zk#Z!Z!s#Z!Z~P)SO!s&zO~P4_O!s&{O~P4_OP'fOQ(TOf!nOk'hOl!fOm'bOn(ROo(eOp(pOq(xOr(}Os!fOt'bOu(ROv(eOw(pOx(xOy(}Oz!fO{'bO|(RO}(eO!O(pO!P(xO!Q(}O!R'bO!S!fO!T'bO!U(RO!V!fO!W'bO!X!fO!u'aO!}!mO#P!nO#Q!nO#O#lX~P)SOP'tOQ(_Ok'OO~OP'fOQ(TO#O#Zi~P#%SOf!nOl#qOm#rOn#sOo#tOp#uOq#vOr#wOs#qOt#rOu#sOv#tOw#uOx#vOy#wOz#qO{#rO|#sO}#tO!O#uO!P#vO!Q#wO!R#rO!S#qO!T#rO!U#sO!V#qO!W#rO!X#qO!u'`O!}!mO#P!nO#Q!nO~P)SOP'tOQ(_Ok#Zi!s#Zi~OP'uOQ(`Ok#Zi#O#Zi~O^'^O~OP'fOQ(TOk'hO#O#lX~P8sOP'uOQ(`Ok'vO~O",
+     goto: "!#i#sPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP#tP#t#t#x#|$P#t$SPPPP$W$]$`$i$v%X0V5c:u@VEkJwEkKOP0V0VKUKeKeKtKzLQLjLqMW!#XPPP$S!#bTUOZTSOZRoaR!]oTYOZV]OZ^Rf[Q!VfX#d!d#]'`'ag!Sf!T!V!d#S#]#_$j%_'`'af!Rf!T!V!d#S#]#_$j%_'`'aT#P!P#`#U!ewx!g!p!q!v#W#h#l#z#{$a$n$z${%[%a%i%j%v%z&Q&R&[&^&b&i&q&w&x&|'P'Q'R'T'U'V'W'X'Y'Z'['s't'w'x'{'|'}Q!qyQ!rzQ!s{Q!t|Q!u}Q!v!OS#V!a!cQ#l!hQ#m!iQ#n!jQ#o!kQ#p!lQ#{!rQ#|!sQ#}!tQ$O!uQ$R!yQ$S!zQ$T!{Q$U!|Q$V!}S$n#i#mQ$o#jQ$p#nQ$q#oQ$r#pQ$t#sQ$u#tQ$v#uQ$w#vQ$x#wQ${#|Q$|#}Q$}$OQ%Q$SQ%R$TQ%S$UQ%T$VQ%V$YQ%W$ZQ%X$[Q%Y$]Q%Z$^Q%a$pQ%b$qQ%c$rS%e$u(`Q%f$vQ%g$wQ%h$xQ%j$|Q%k$}Q%n%RQ%o%SQ%p%TQ%r%WQ%s%XQ%t%YQ%u%ZQ%z%bQ%{%cQ%}%fQ&O%gQ&P%hQ&R%kQ&U%oQ&V%pQ&X%sQ&Y%tQ&Z%uQ&^%{Q&`&OQ&a&PQ&e&VQ&g&YQ&h&ZQ&l&aQ&p&hQ'P'cS'R'g'jQ'S&}Q'U'mQ'W'oQ'Y'qQ'd']W'e!d#]'`'aQ'i(RQ'j(SS'k(T(UQ'l'hQ'm(VQ'n(WQ'o(XQ'p(YQ'q(ZQ'r([Q'w(]S'x(_(aQ'y'OQ'z'vQ'{(bQ'|(cQ'}(d#S(Q!w!x#q#r$P$R$W$X$s$t%P%Q%U%V%d%e%m%n%q%r%|%}&T&U&W&X&_&`&d&e&f&g&k&l&n&o&p&s&u'b'd'f'i'k'n'p'r'uQ(U(eQ(V(fQ(W(gQ(X(hQ(Y(iQ(Z(jQ([(kY(^!m#`$e'^'_Q(a(lQ(b(mQ(c(nQ(d(oQ(g(pQ(h(qQ(i(rQ(j(sQ(k(tQ(m(uQ(n(vQ(o(wQ(r(xQ(s(yQ(t(zQ(v({Q(w(|Q(z(}R(|)O+e!owxyz{|}!O!a!c!d!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#]#`#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'`'a'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O+U!owxyz{|}!O!d!g!h!i!j!k!l!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#]#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'`'a'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OS#X!a'^S#Y!c'_V#x!m#`$e+Y!nwxyz{|}!O!a!c!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OW#f!d#]'`'aR$f#`Q!cu+[!nwxyz{|}!O!a!c!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#`#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OW#g!d#]'`'aR'_(P+e!nwxyz{|}!O!a!c!d!g!h!i!j!k!l!m!p!q!r!s!t!u!v!w!x!y!z!{!|!}#W#]#`#h#i#j#l#m#n#o#p#q#r#s#t#u#v#w#z#{#|#}$O$P$R$S$T$U$V$W$X$Y$Z$[$]$^$a$e$n$p$q$r$s$t$u$v$w$x$z${$|$}%P%Q%R%S%T%U%V%W%X%Y%Z%[%a%b%c%d%e%f%g%h%i%j%k%m%n%o%p%q%r%s%t%u%v%z%{%|%}&O&P&Q&R&T&U&V&W&X&Y&Z&[&^&_&`&a&b&d&e&f&g&h&i&k&l&n&o&p&q&s&u&w&x&|&}'O'P'Q'R'T'U'V'W'X'Y'Z'[']'^'_'`'a'b'c'd'f'g'h'i'j'k'm'n'o'p'q'r's't'u'v'w'x'{'|'}(R(S(T(U(V(W(X(Y(Z([(](_(`(a(b(c(d(e(f(g(h(i(j(k(l(m(n(o(p(q(r(s(t(u(v(w(x(y(z({(|(})OZ#b!d#]#c'`'aX#e!d#]'`'ak!Qf!P!T!V!d#S#]#_#`$j%_'`'akvf!P!T!V!d#S#]#_#`$j%_'`'aQZORdZQi_R!WiQl`QpbY!Ylp!_#[$bQ!_sU#[!d'`'aR$b#]S^OZRg^Q!TfW#Q!T#S#_%_Q#S!VW#_!d#]'`'aR%_$jU!pwx!OS#k!g'b!j#y!p#z$P$a$s$z%P%U%[%d%i%m%q%v%|&Q&T&W&[&_&b&d&f&i&k&n&o&q&s&u'Q'T'V'X'Z'[S#z!q!vU$P!w!x']S$a#W&wW$m#h#l'f'iS$s#q#rQ$z#{S%P$R'dS%U$W$XS%[&|'PS%`$n'kS%d$t'uQ%i${Q%m%QQ%q%VQ%v'RS%y%a'nQ%|%eQ&Q%jQ&T%nQ&W%rQ&['US&]%z'pQ&_%}Q&b&RQ&d&UQ&f&XQ&i'WS&j&^'rQ&k&`Q&n&eQ&o&gQ&q'YQ&s&lQ&u&pS'Q&x'sS'T't'wQ'V'xQ'X'{Q'Z'|R'['}W#c!d#]'`'aR$h#cSXOZRcV",
+     nodeNames: "⚠ ReporterLeft1Args ReporterLeft2Args GlobalStr ExtensionStr BreedStr PlusMinus Own Set Let To End And Or Identifier Directive Command Reporter Extension TurtleVar PatchVar LinkVar Constant Unsupported SpecialReporter SpecialCommand BreedToken AndOr Reporter0Args Reporter1Args Reporter2Args Reporter3Args Reporter4Args Reporter5Args Reporter6Args Reporter0ArgsVar Reporter1ArgsVar Reporter2ArgsVar Reporter3ArgsVar Reporter4ArgsVar Reporter5ArgsVar Reporter6ArgsVar SpecialReporter0Args SpecialReporter1Args SpecialReporter2Args SpecialReporter3Args SpecialReporter4Args SpecialReporter5Args SpecialReporter6Args SpecialReporter1ArgsBoth SpecialReporter0ArgsLink SpecialReporter1ArgsLink SpecialReporter2ArgsTurtle SpecialReporter0ArgsTurtle SpecialReporter1ArgsTurtle SpecialReporter0ArgsLinkP Command0Args Command1Args Command2Args Command3Args Command4Args Command5Args Command6Args Command0ArgsVar Command1ArgsVar Command2ArgsVar Command3ArgsVar Command4ArgsVar Command5ArgsVar Command6ArgsVar SpecialCommand0Args SpecialCommand1Args SpecialCommand2Args SpecialCommand3Args SpecialCommand4Args SpecialCommand5Args SpecialCommand6Args SpecialCommandCreateTurtle SpecialCommandCreateLink LineComment Program CloseBracket Extensions OpenBracket Globals Breed BreedDeclarative BreedPlural BreedSingular BreedsOwn Unrecognized OpenParen CloseParen Numeric String Procedure ProcedureName Arguments ProcedureContent CommandStatement Arg CodeBlock Value ReporterStatement VariableName List Literal AnonymousProcedure AnonArguments Arrow ReporterBlock Property VariableDeclaration NewVariableDeclaration SetVariable",
+     maxTerm: 126,
      nodeProps: [
-       ["openedBy", 73,"OpenBracket"],
-       ["closedBy", 75,"CloseBracket"]
+       ["openedBy", 81,"OpenBracket"],
+       ["closedBy", 83,"CloseBracket"]
      ],
-     skippedNodes: [0,6,12,13,15,24,71],
+     skippedNodes: [0,6,12,13,15,24,79],
      repeatNodeCount: 7,
-     tokenData: "%r~R]XYzYZz]^zpqzrs!]xy#yyz$O}!O$T!O!P$a!Q![$o!]!^%P!}#O%h#P#Q%m~!PS#h~XYzYZz]^zpqz~!`VOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s<%lO!]~!zO!x~~!}RO;'S!];'S;=`#W;=`O!]~#ZWOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s;=`<%l!]<%lO!]~#vP;=`<%l!]~$OO!u~~$TO!v~~$WR!O!P$a!Q![$o!`!a$z~$dP!Q![$g~$lP!w~!Q![$g~$tQ!w~!O!P$g!Q![$o~%PO#X~~%US!i~OY%PZ;'S%P;'S;=`%b<%lO%P~%eP;=`<%l%P~%mO!m~~%rO!k~",
+     tokenData: "%r~R]XYzYZz]^zpqzrs!]xy#yyz$O}!O$T!O!P$a!Q![$o!]!^%P!}#O%h#P#Q%m~!PS#p~XYzYZz]^zpqz~!`VOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s<%lO!]~!zO#Q~~!}RO;'S!];'S;=`#W;=`O!]~#ZWOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s;=`<%l!]<%lO!]~#vP;=`<%l!]~$OO!}~~$TO#O~~$WR!O!P$a!Q![$o!`!a$z~$dP!Q![$g~$lP#P~!Q![$g~$tQ#P~!O!P$g!Q![$o~%PO#a~~%US!q~OY%PZ;'S%P;'S;=`%b<%lO%P~%eP;=`<%l%P~%mO!u~~%rO!s~",
      tokenizers: [0, keyword],
-     topRules: {"Program":[0,72]},
+     topRules: {"Program":[0,80]},
      specialized: [{term: 17, get: (value, stack) => (specializeReporter(value) << 1), external: specializeReporter},{term: 24, get: (value, stack) => (specializeSpecialReporter(value) << 1), external: specializeSpecialReporter},{term: 16, get: (value, stack) => (specializeCommand(value) << 1), external: specializeCommand},{term: 25, get: (value, stack) => (specializeSpecialCommand(value) << 1), external: specializeSpecialCommand}],
      tokenPrec: 0
    });
@@ -25297,6 +25314,13 @@ if(!String.prototype.matchAll) {
            }
            return breedNames;
        }
+       GetBreeds() {
+           var breedList = [];
+           for (let breed of this.Breeds.values()) {
+               breedList.push(breed);
+           }
+           return breedList;
+       }
        /** GetBreedVariables: Get variable names related to breeds. */
        GetBreedVariables() {
            var breedNames = [];
@@ -25334,9 +25358,9 @@ if(!String.prototype.matchAll) {
                return this;
            this.Breeds = new Map();
            this.Procedures = new Map();
-           this.Breeds.set('turtle', new Breed('turtle', 'turtles', []));
-           this.Breeds.set('patch', new Breed('patch', 'patches', []));
-           this.Breeds.set('link', new Breed('link', 'links', []));
+           this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], false));
+           this.Breeds.set('patch', new Breed('patch', 'patches', [], false));
+           this.Breeds.set('link', new Breed('link', 'links', [], true));
            while (true) {
                // get extensions
                if (Cursor.node.name == 'Extensions') {
@@ -25357,9 +25381,13 @@ if(!String.prototype.matchAll) {
                if (Cursor.node.name == 'Breed') {
                    const Plural = Cursor.node.getChildren('BreedPlural');
                    const Singular = Cursor.node.getChildren('BreedSingular');
+                   let isLinkBreed = false;
+                   Cursor.node.getChildren('BreedDeclarative').map((node) => {
+                       isLinkBreed = node.getChildren('BreedStr').length == 1;
+                   });
                    if (Plural.length == 1 && Singular.length == 1) {
                        let singular = this.getText(State, Singular[0]);
-                       let breed = new Breed(singular, this.getText(State, Plural[0]), []);
+                       let breed = new Breed(singular, this.getText(State, Plural[0]), [], isLinkBreed);
                        this.Breeds.set(singular, breed);
                    }
                }
@@ -27845,19 +27873,25 @@ if(!String.prototype.matchAll) {
    // BreedLinter: To check breed commands/reporters for valid breed names
    const BreedLinter = buildLinter((view, parseState) => {
        const diagnostics = [];
-       const breedNames = parseState.GetBreedNames();
-       const breedVars = parseState.GetBreedVariables();
+       const breeds = parseState.GetBreeds();
        syntaxTree(view.state)
            .cursor()
            .iterate((noderef) => {
-           if (noderef.name == 'BreedFirst' ||
-               noderef.name == 'BreedMiddle' ||
-               noderef.name == 'BreedLast') {
+           if (noderef.name == 'SpecialReporter1ArgsBoth' ||
+               noderef.name == 'SpecialReporter0ArgsTurtle' ||
+               noderef.name == 'SpecialReporter1ArgsTurtle' ||
+               noderef.name == 'SpecialReporter2ArgsTurtle' ||
+               noderef.name == 'SpecialReporter0ArgsLink' ||
+               noderef.name == 'SpecialReporter0ArgsLinkP' ||
+               noderef.name == 'SpecialReporter1ArgsLink' ||
+               noderef.name == 'SpecialCommandCreateTurtle' ||
+               noderef.name == 'SpecialCommandCreateLink' ||
+               noderef.name == 'Own') {
                const Node = noderef.node;
                const value = view.state
                    .sliceDoc(noderef.from, noderef.to)
                    .toLowerCase();
-               if (!checkValidBreed(Node, value, view.state, parseState, breedNames, breedVars)) {
+               if (!checkValidBreed(Node, value, view.state, parseState, breeds)) {
                    diagnostics.push({
                        from: noderef.from,
                        to: noderef.to,
@@ -27879,32 +27913,46 @@ if(!String.prototype.matchAll) {
    });
    // Checks if the term in the structure of a breed command/reporter is the name
    // of an actual breed
-   const checkValidBreed = function (node, value, state, parseState, breedNames, breedVars) {
-       var _a;
+   const checkValidBreed = function (node, value, state, parseState, breeds) {
        let isValid = true;
-       const values = value.split('-');
-       // These are broken up into BreedFirst, BreedMiddle, BreedLast so I know where to
-       // check for the breed name. Entirely possible we don't need this and can just search
-       // the whole string.
-       if (node.name == 'BreedFirst') {
-           const val = values[0];
-           if (!breedNames.includes(val)) {
-               isValid = false;
+       let pluralTurtle = [];
+       let singularTurtle = [];
+       let pluralLink = [];
+       let singularLink = [];
+       for (let b of breeds) {
+           if (b.isLinkBreed) {
+               pluralLink.push(b.Plural);
+               singularLink.push(b.Singular);
+           }
+           else {
+               pluralTurtle.push(b.Plural);
+               singularTurtle.push(b.Singular);
            }
        }
-       else if (node.name == 'BreedLast') {
-           let val = values[values.length - 1];
-           val = val.replace('?', '');
-           if (!breedNames.includes(val)) {
-               isValid = false;
-           }
+       // console.log(pluralTurtle,singularTurtle,pluralLink,singularLink)
+       if (node.name == 'SpecialCommandCreateLink') {
+           isValid = listItemInString(value, singularLink.concat(pluralLink));
        }
-       else if (node.name == 'BreedMiddle') {
-           const val = values[1];
-           if (!breedNames.includes(val)) {
-               isValid = false;
-           }
+       else if (node.name == 'SpecialReporter0ArgsLink' ||
+           node.name == 'SpecialReporter1ArgsLink') {
+           isValid = listItemInString(value, singularLink);
        }
+       else if (node.name == 'SpecialReporter1ArgsBoth') {
+           isValid = listItemInString(value, singularLink.concat(singularTurtle));
+       }
+       else if (node.name == 'Own') {
+           isValid = listItemInString(value, pluralLink.concat(pluralTurtle));
+       }
+       else if (node.name == 'SpecialCommandCreateTurtle' ||
+           node.name == 'SpecialReporter2ArgsTurtle' ||
+           node.name == 'SpecialReporter1ArgsTurtle' ||
+           node.name == 'SpecialReporter0ArgsTurtle') {
+           isValid = listItemInString(value, pluralTurtle);
+       }
+       else if (node.name == 'SpecialReporter0ArgsLinkP') {
+           isValid = listItemInString(value, pluralLink);
+       }
+       // if(node.name=='SpecialCommandCreateLink'){console.log(isValid)}
        // some procedure names I've come across accidentally use the structure of a
        // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
        // before declaring it invalid
@@ -27912,15 +27960,25 @@ if(!String.prototype.matchAll) {
            if (parseState.Procedures.get(value)) {
                isValid = true;
            }
-           else if (((_a = node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Own') {
-               isValid = true;
-           }
        }
-       if (!isValid) {
+       if (!isValid && node.name != 'Own') {
+           const breedNames = parseState.GetBreedNames();
+           const breedVars = parseState.GetBreedVariables();
            // Why do we need this one? We need it to check if it is actually a valid identifier
            isValid = checkValid$1(node, value, state, parseState, breedNames, breedVars);
        }
        return isValid;
+   };
+   const listItemInString = function (str, lst) {
+       // console.log(str,lst)
+       let found = false;
+       for (let l of lst) {
+           if (str.includes(l)) {
+               found = true;
+               break;
+           }
+       }
+       return found;
    };
 
    // UnrecognizedLinter: Checks if something at the top layer isn't a procedure, global, etc.
