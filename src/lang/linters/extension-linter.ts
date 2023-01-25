@@ -1,23 +1,14 @@
 import { syntaxTree } from '@codemirror/language';
-import { linter, Diagnostic } from '@codemirror/lint';
-import { SyntaxNode } from '@lezer/common';
-import { EditorState } from '@codemirror/state';
-import { preprocessStateExtension } from '../../codemirror/extension-regex-state';
-import { PrimitiveManager } from '../primitives/primitives';
-import { NetLogoType } from '../classes';
+import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 
-let primitives = PrimitiveManager;
-
-// Checks anything labelled 'Identifier'
 export const ExtensionLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
       if (noderef.name.includes('Args') && !noderef.name.includes('Special')) {
-        const Node = noderef.node;
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();

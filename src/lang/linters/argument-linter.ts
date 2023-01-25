@@ -9,7 +9,7 @@ import { Localized } from '../../i18n/localized';
 
 let primitives = PrimitiveManager;
 
-// Checks anything labelled 'Identifier'
+// Checks number of arguments
 export const ArgumentLinter = linter((view) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)

@@ -44,7 +44,7 @@ BreedSingular {
 }
 
 BreedPlural {
-  Identifier
+  Identifier | SpecialReporter1Args
 }
 
 BreedVars {
