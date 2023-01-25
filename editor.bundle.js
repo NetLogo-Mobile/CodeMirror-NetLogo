@@ -25797,6 +25797,7 @@ if(!String.prototype.matchAll) {
        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
        'Invalid extension _.': (Name) => `"${Name}" has not been declared as an extension`,
        'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name`,
+       'Invalid breed procedure _': (Name) => `Did you want to declare "${Name}" as a breed?`,
        '~VariableName': (Name) => `A variable. `,
        '~ProcedureName': (Name) => `The name of a procedure. `,
        '~Arguments/Identifier': (Name) => `The name of an argument. `,
@@ -25828,6 +25829,7 @@ if(!String.prototype.matchAll) {
        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
        'Invalid extension _.': (Name) => `${Name} has not been declared as an extension`,
        'Breed name _ already used.': (Name) => `${Name} is already used as a breed name`,
+       'Invalid breed procedure _': (Name) => `Did you want to declare "${Name}" as a breed?`,
        '~VariableName': (Name) => `变量名称。`,
        '~ProcedureName': (Name) => `过程或函数的名称。`,
        '~Arguments/Identifier': (Name) => `参数名称。`,
@@ -27753,12 +27755,39 @@ if(!String.prototype.matchAll) {
                const Node = noderef.node;
                const value = view.state.sliceDoc(noderef.from, noderef.to);
                if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
-                   diagnostics.push({
-                       from: noderef.from,
-                       to: noderef.to,
-                       severity: 'warning',
-                       message: Localized.Get('Unrecognized identifier _', value),
-                   });
+                   let result = checkBreedLike(value);
+                   console.log(result);
+                   if (!result[0]) {
+                       diagnostics.push({
+                           from: noderef.from,
+                           to: noderef.to,
+                           severity: 'warning',
+                           message: Localized.Get('Unrecognized identifier _', value),
+                       });
+                   }
+                   else {
+                       let first = value.indexOf('-');
+                       let last = value.lastIndexOf('-');
+                       let str = '';
+                       if (result[1] == 'Last') {
+                           str = value.substring(first + 1);
+                       }
+                       else if (result[1] == 'First') {
+                           str = value.substring(0, last);
+                       }
+                       else if (result[1] == 'Middle') {
+                           str = value.substring(first + 1, last);
+                       }
+                       else {
+                           str = value.substring(first + 1, value.length - 1);
+                       }
+                       diagnostics.push({
+                           from: noderef.from,
+                           to: noderef.to,
+                           severity: 'warning',
+                           message: Localized.Get('Invalid breed procedure _', str),
+                       });
+                   }
                }
            }
        });
@@ -27825,6 +27854,63 @@ if(!String.prototype.matchAll) {
            }
        }
        return procedureVars.includes(value);
+   };
+   const checkBreedLike = function (str) {
+       let result = false;
+       let location = '';
+       if (str.match(/[^\s]+-(at)/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/[^\s]+-here/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/[^\s]+-neighbors/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/[^\s]+-on/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/^(my|my-in|my-out)-[^\s]+/)) {
+           result = true;
+           location = 'Last';
+       }
+       else if (str.match(/^is-[^\s]+\\?$/)) {
+           result = true;
+           location = 'Question';
+       }
+       else if (str.match(/^in-[^\s]+-from$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^out-[^\s]+-to$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+           result = true;
+           location = 'Last';
+       }
+       return [result, location];
    };
 
    // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
