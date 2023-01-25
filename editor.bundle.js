@@ -25806,7 +25806,7 @@ if(!String.prototype.matchAll) {
        'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
        'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
        'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo.`,
-       'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" is not a valid primitive`,
+       'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
        'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
        'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
