@@ -32,6 +32,8 @@ const zh_cn: Record<string, Function> = {
     Actual: string
   ) =>
     `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
+  'Invalid extension _.': (Name: string) =>
+    `${Name} has not been declared as an extension`,
 
   '~VariableName': (Name: string) => `变量名称。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,

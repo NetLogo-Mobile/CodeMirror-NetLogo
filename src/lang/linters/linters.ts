@@ -5,6 +5,7 @@ import { UnrecognizedLinter } from './unrecognized-linter';
 import { ArgumentLinter } from './argument-linter';
 import { CompilerLinter, RuntimeLinter } from './runtime-linter';
 import { UnsupportedLinter } from './unsupported-linter';
+import { ExtensionLinter } from './extension-linter';
 
 export const netlogoLinters = [
   CompilerLinter,
@@ -15,4 +16,5 @@ export const netlogoLinters = [
   BreedLinter,
   ArgumentLinter,
   UnsupportedLinter,
+  ExtensionLinter,
 ];

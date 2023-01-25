@@ -13,7 +13,8 @@ const en_us: Record<string, Function> = {
     Name: string,
     Expected: string,
     Actual: string
-  ) => `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
+  ) =>
+    `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
   'Left args for _. Expected _, found _.': (
     Name: string,
     Expected: string,
@@ -32,6 +33,8 @@ const en_us: Record<string, Function> = {
     Actual: string
   ) =>
     `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
+  'Invalid extension _.': (Name: string) =>
+    `${Name} has not been declared as an extension`,
 
   '~VariableName': (Name: string) => `A variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,
