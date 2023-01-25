@@ -148,6 +148,7 @@ export const keyword = new ExternalTokenizer((input) => {
 // JC: For performance, can we turn this into a Bool[256] that requires O(1) to check?
 function isValidKeyword(ch: number) {
   return (
+    ch >= 160 || // Unicode characters
     ch == 33 || // !
     ch == 39 || // '
     ch == 63 || // ?
@@ -163,13 +164,7 @@ function isValidKeyword(ch: number) {
     ch == 94 ||
     ch == 95 ||
     // a-z
-    (ch >= 97 && ch <= 122) ||
-    // non-English characters
-    (ch >= 128 && ch <= 154) ||
-    (ch >= 160 && ch <= 165) ||
-    (ch >= 181 && ch <= 183) ||
-    (ch >= 210 && ch <= 216) ||
-    (ch >= 224 && ch <= 237)
+    (ch >= 97 && ch <= 122)
   );
 }
 
