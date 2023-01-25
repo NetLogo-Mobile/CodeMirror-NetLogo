@@ -25795,7 +25795,7 @@ if(!String.prototype.matchAll) {
        'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
        'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
-       'Invalid extension _.': (Name) => `"${Name}" was not found from the "extensions" section. Did you forget to add it there?`,
+       'Invalid extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
        'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
        'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
        '~VariableName': (Name) => `A variable. `,
