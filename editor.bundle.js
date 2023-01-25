@@ -25810,6 +25810,7 @@ if(!String.prototype.matchAll) {
        'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
        'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
+       'Invalid extension _.': (Name) => `${Name} has not been declared as an extension`,
        '~VariableName': (Name) => `A variable. `,
        '~ProcedureName': (Name) => `The name of a procedure. `,
        '~Arguments/Identifier': (Name) => `The name of an argument. `,
@@ -25839,6 +25840,7 @@ if(!String.prototype.matchAll) {
        'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要 ${Expected} 个左侧参数，但代码中只有 ${Actual} 个。`,
        'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
+       'Invalid extension _.': (Name) => `${Name} has not been declared as an extension`,
        '~VariableName': (Name) => `变量名称。`,
        '~ProcedureName': (Name) => `过程或函数的名称。`,
        '~Arguments/Identifier': (Name) => `参数名称。`,
@@ -28245,6 +28247,40 @@ if(!String.prototype.matchAll) {
        return diagnostics;
    });
 
+   // Checks anything labelled 'Identifier'
+   const ExtensionLinter = buildLinter((view, parseState) => {
+       const diagnostics = [];
+       syntaxTree(view.state)
+           .cursor()
+           .iterate((noderef) => {
+           if (noderef.name.includes('Args') && !noderef.name.includes('Special')) {
+               noderef.node;
+               const value = view.state
+                   .sliceDoc(noderef.from, noderef.to)
+                   .toLowerCase();
+               let vals = value.split(':');
+               if (vals.length > 1) {
+                   let found = false;
+                   for (let e of parseState.Extensions) {
+                       if (vals[0] == e) {
+                           found = true;
+                           break;
+                       }
+                   }
+                   if (!found) {
+                       diagnostics.push({
+                           from: noderef.from,
+                           to: noderef.to,
+                           severity: 'error',
+                           message: Localized.Get('Invalid extension _.', vals[0]),
+                       });
+                   }
+               }
+           }
+       });
+       return diagnostics;
+   });
+
    const netlogoLinters = [
        CompilerLinter,
        RuntimeLinter,
@@ -28254,6 +28290,7 @@ if(!String.prototype.matchAll) {
        BreedLinter,
        ArgumentLinter,
        UnsupportedLinter,
+       ExtensionLinter,
    ];
 
    /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
