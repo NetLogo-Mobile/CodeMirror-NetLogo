@@ -13,7 +13,7 @@ const en_us: Record<string, Function> = {
     Name: string,
     Expected: string,
     Actual: string
-  ) => `"${Name}" is not a valid primitive`,
+  ) => `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
   'Left args for _. Expected _, found _.': (
     Name: string,
     Expected: string,
