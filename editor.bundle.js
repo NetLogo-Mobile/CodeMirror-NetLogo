@@ -24922,7 +24922,8 @@ if(!String.prototype.matchAll) {
    // Check if the character is valid for a keyword.
    // JC: For performance, can we turn this into a Bool[256] that requires O(1) to check?
    function isValidKeyword(ch) {
-       return (ch == 33 || // !
+       return (ch >= 160 || // Unicode characters
+           ch == 33 || // !
            ch == 39 || // '
            ch == 63 || // ?
            // 0-9
@@ -24937,13 +24938,7 @@ if(!String.prototype.matchAll) {
            ch == 94 ||
            ch == 95 ||
            // a-z
-           (ch >= 97 && ch <= 122) ||
-           // non-English characters
-           (ch >= 128 && ch <= 154) ||
-           (ch >= 160 && ch <= 165) ||
-           (ch >= 181 && ch <= 183) ||
-           (ch >= 210 && ch <= 216) ||
-           (ch >= 224 && ch <= 237));
+           (ch >= 97 && ch <= 122));
    }
    // JC: Two issues with this approach: first, CJK breed names won't work; second, you can potentially do /\w+-(own|at|here)/ without doing many times
    // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
@@ -25986,9 +25981,9 @@ if(!String.prototype.matchAll) {
                    }
                    // Reporters & Commands are very special
                    var name = ref.name;
-                   if (name.indexOf('Reporter') != -1 && name.endsWith('Args'))
+                   if (name.indexOf('Reporter') != -1 && name.indexOf('Args') != -1)
                        name = 'Reporter';
-                   if (name.indexOf('Command') != -1 && name.endsWith('Args'))
+                   if (name.indexOf('Command') != -1 && name.indexOf('Args') != -1)
                        name = 'Command';
                    // Check the category name
                    if (Dictionary.Check(`~${name}`))
