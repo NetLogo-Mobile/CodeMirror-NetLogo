@@ -65,6 +65,13 @@ ProcedureName {
   SpecialReporter4Args |
   SpecialReporter5Args |
   SpecialReporter6Args |
+  SpecialReporter1ArgsBoth |
+  SpecialReporter0ArgsLink |
+  SpecialReporter1ArgsLink |
+  SpecialReporter2ArgsTurtle |
+  SpecialReporter0ArgsTurtle |
+  SpecialReporter1ArgsTurtle |
+  SpecialReporter0ArgsLinkP |
   SpecialCommand0Args |
   SpecialCommand1Args |
   SpecialCommand2Args |
@@ -72,7 +79,8 @@ ProcedureName {
   SpecialCommand4Args |
   SpecialCommand5Args |
   SpecialCommand6Args |
-  SpecialCommandCreate
+  SpecialCommandCreateTurtle |
+  SpecialCommandCreateLink
 }
 
 Arguments {
@@ -150,9 +158,9 @@ Property {
 ReporterStatement { 
   Arg !leftArgs ReporterLeft1Args !lastArgs Arg+ |
   Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg+ |
-  SpecialReporter0Args !lastArgs Arg* ~statement |
-  SpecialReporter1Args !lastArgs Arg+ |
-  SpecialReporter2Args Arg !lastArgs Arg+ |
+  (SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP) !lastArgs Arg* ~statement |
+  (SpecialReporter1Args | SpecialReporter1ArgsTurtle | SpecialReporter1ArgsLink | SpecialReporter1ArgsBoth) !lastArgs Arg+ |
+  (SpecialReporter2Args | SpecialReporter2ArgsTurtle) Arg !lastArgs Arg+ |
   SpecialReporter3Args Arg Arg !lastArgs Arg+ |
   SpecialReporter4Args Arg Arg Arg !lastArgs Arg+ |
   SpecialReporter5Args Arg Arg Arg Arg !lastArgs Arg+ |
@@ -182,8 +190,10 @@ CommandStatement {
   SpecialCommand4Args Arg Arg Arg !lastArgs Arg+ |
   SpecialCommand5Args Arg Arg Arg Arg !lastArgs Arg+ |
   SpecialCommand6Args Arg Arg Arg Arg Arg !lastArgs Arg+ |
-  SpecialCommandCreate !lastArgs Arg+ |
-  SpecialCommandCreate Arg !lastArgs Arg+ |
+  SpecialCommandCreateTurtle !lastArgs Arg+ |
+  SpecialCommandCreateTurtle Arg !lastArgs Arg+ |
+  SpecialCommandCreateLink !lastArgs Arg+ |
+  SpecialCommandCreateLink Arg !lastArgs Arg+ |
   (Command0Args | Command0ArgsVar) !lastArgs Arg* ~statement |
   (Command1Args | Command1ArgsVar) !lastArgs Arg+ |
   (Command2Args | Command2ArgsVar) Arg !lastArgs Arg+ |
@@ -218,6 +228,13 @@ CommandReporter {
   SpecialReporter4Args |
   SpecialReporter5Args |
   SpecialReporter6Args |
+  SpecialReporter1ArgsBoth |
+  SpecialReporter0ArgsLink ~statement |
+  SpecialReporter1ArgsLink |
+  SpecialReporter2ArgsTurtle |
+  SpecialReporter0ArgsTurtle ~statement |
+  SpecialReporter1ArgsTurtle |
+  SpecialReporter0ArgsLinkP ~statement |
   SpecialCommand0Args ~statement |
   SpecialCommand1Args |
   SpecialCommand2Args |
@@ -225,7 +242,8 @@ CommandReporter {
   SpecialCommand4Args |
   SpecialCommand5Args |
   SpecialCommand6Args |
-  SpecialCommandCreate |
+  SpecialCommandCreateTurtle |
+  SpecialCommandCreateLink |
   Reporter0Args ~statement |
   Reporter1Args |
   Reporter2Args |
@@ -312,7 +330,7 @@ expression {
   To, 
   End, 
   And,
-  Or
+  Or,
   Identifier, 
   Directive,
   Command, 
@@ -353,7 +371,14 @@ expression {
   SpecialReporter3Args,
   SpecialReporter4Args,
   SpecialReporter5Args,
-  SpecialReporter6Args
+  SpecialReporter6Args,
+  SpecialReporter1ArgsBoth,
+  SpecialReporter0ArgsLink,
+  SpecialReporter1ArgsLink,
+  SpecialReporter2ArgsTurtle,
+  SpecialReporter0ArgsTurtle,
+  SpecialReporter1ArgsTurtle,
+  SpecialReporter0ArgsLinkP
 }
 
 @external specialize {Command} specializeCommand from './specializer' {
@@ -381,5 +406,6 @@ expression {
   SpecialCommand4Args,
   SpecialCommand5Args,
   SpecialCommand6Args,
-  SpecialCommandCreate
+  SpecialCommandCreateTurtle,
+  SpecialCommandCreateLink
 }

@@ -94,6 +94,7 @@ export const NetLogoLanguage = LRLanguage.define({
         ExtensionStr: t.strong,
         GlobalStr: t.strong,
         'BreedDeclarative/BreedToken': t.strong,
+        BreedStr: t.strong,
         Own: t.strong,
         // Procedures
         To: t.strong,

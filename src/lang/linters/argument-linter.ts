@@ -16,6 +16,33 @@ export const ArgumentLinter = linter((view) => {
     .cursor()
     .iterate((noderef) => {
       if (
+        (noderef.name == 'SetVariable' &&
+          (noderef.node.getChildren('VariableName').length != 1 ||
+            noderef.node.getChildren('Value').length != 1)) ||
+        (noderef.name == 'NewVariableDeclaration' &&
+          (noderef.node.getChildren('Identifier').length != 1 ||
+            noderef.node.getChildren('Value').length != 1))
+      ) {
+        let func = noderef.name == 'SetVariable' ? 'Set' : 'Let';
+        let expected = 2;
+        let actual =
+          noderef.name == 'SetVariable'
+            ? noderef.node.getChildren('VariableName').length +
+              noderef.node.getChildren('Value').length
+            : noderef.node.getChildren('Identifier').length +
+              noderef.node.getChildren('Value').length;
+        diagnostics.push({
+          from: noderef.from,
+          to: noderef.to,
+          severity: 'error',
+          message: Localized.Get(
+            'Too few right args for _. Expected _, found _.',
+            func,
+            expected.toString(),
+            actual.toString()
+          ),
+        });
+      } else if (
         (noderef.name == 'ReporterStatement' ||
           noderef.name == 'CommandStatement') &&
         noderef.node.getChildren('Arg')

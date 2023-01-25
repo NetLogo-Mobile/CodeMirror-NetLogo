@@ -90,11 +90,19 @@ export class Breed {
   public Plural: string;
   /** Variables: Variables defined for the breed. */
   public Variables: string[];
+  /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
+  public isLinkBreed: boolean;
   /** Build a breed. */
-  public constructor(Singular: string, Plural: string, Variables: string[]) {
+  public constructor(
+    Singular: string,
+    Plural: string,
+    Variables: string[],
+    isLinkBreed: boolean
+  ) {
     this.Singular = Singular;
     this.Plural = Plural;
     this.Variables = Variables;
+    this.isLinkBreed = isLinkBreed;
   }
 }
 

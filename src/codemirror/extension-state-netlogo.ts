@@ -43,6 +43,13 @@ export class StateNetLogo {
     }
     return breedNames;
   }
+  public GetBreeds(): Breed[] {
+    var breedList: Breed[] = [];
+    for (let breed of this.Breeds.values()) {
+      breedList.push(breed);
+    }
+    return breedList;
+  }
   /** GetBreedVariables: Get variable names related to breeds. */
   public GetBreedVariables(): string[] {
     var breedNames: string[] = [];
@@ -80,9 +87,9 @@ export class StateNetLogo {
     if (!Cursor.firstChild()) return this;
     this.Breeds = new Map<string, Breed>();
     this.Procedures = new Map<string, Procedure>();
-    this.Breeds.set('turtle', new Breed('turtle', 'turtles', []));
-    this.Breeds.set('patch', new Breed('patch', 'patches', []));
-    this.Breeds.set('link', new Breed('link', 'links', []));
+    this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], false));
+    this.Breeds.set('patch', new Breed('patch', 'patches', [], false));
+    this.Breeds.set('link', new Breed('link', 'links', [], true));
     while (true) {
       // get extensions
       if (Cursor.node.name == 'Extensions') {
@@ -103,9 +110,18 @@ export class StateNetLogo {
       if (Cursor.node.name == 'Breed') {
         const Plural = Cursor.node.getChildren('BreedPlural');
         const Singular = Cursor.node.getChildren('BreedSingular');
+        let isLinkBreed = false;
+        Cursor.node.getChildren('BreedDeclarative').map((node) => {
+          isLinkBreed = node.getChildren('BreedStr').length == 1;
+        });
         if (Plural.length == 1 && Singular.length == 1) {
           let singular = this.getText(State, Singular[0]);
-          let breed = new Breed(singular, this.getText(State, Plural[0]), []);
+          let breed = new Breed(
+            singular,
+            this.getText(State, Plural[0]),
+            [],
+            isLinkBreed
+          );
           this.Breeds.set(singular, breed);
         }
       }
