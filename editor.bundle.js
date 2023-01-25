@@ -25679,13 +25679,6 @@ if(!String.prototype.matchAll) {
                    Reporter6ArgsVar: tags$1.operator,
                    ReporterLeft1Args: tags$1.operator,
                    ReporterLeft2Args: tags$1.operator,
-                   SpecialReporter0Args: tags$1.operator,
-                   SpecialReporter1Args: tags$1.operator,
-                   SpecialReporter2Args: tags$1.operator,
-                   SpecialReporter3Args: tags$1.operator,
-                   SpecialReporter4Args: tags$1.operator,
-                   SpecialReporter5Args: tags$1.operator,
-                   SpecialReporter6Args: tags$1.operator,
                    Command: tags$1.variableName,
                    Command0Args: tags$1.variableName,
                    Command1Args: tags$1.variableName,
@@ -25694,14 +25687,6 @@ if(!String.prototype.matchAll) {
                    Command4Args: tags$1.variableName,
                    Command5Args: tags$1.variableName,
                    Command6Args: tags$1.variableName,
-                   SpecialCommand0Args: tags$1.variableName,
-                   SpecialCommand1Args: tags$1.variableName,
-                   SpecialCommand2Args: tags$1.variableName,
-                   SpecialCommand3Args: tags$1.variableName,
-                   SpecialCommand4Args: tags$1.variableName,
-                   SpecialCommand5Args: tags$1.variableName,
-                   SpecialCommand6Args: tags$1.variableName,
-                   SpecialCommandCreate: tags$1.variableName,
                    Command0ArgsVar: tags$1.variableName,
                    Command1ArgsVar: tags$1.variableName,
                    Command2ArgsVar: tags$1.variableName,
@@ -27764,17 +27749,17 @@ if(!String.prototype.matchAll) {
        syntaxTree(view.state)
            .cursor()
            .iterate((noderef) => {
-           if (noderef.name != 'Identifier')
-               return;
-           const Node = noderef.node;
-           const value = view.state.sliceDoc(noderef.from, noderef.to);
-           if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
-               diagnostics.push({
-                   from: noderef.from,
-                   to: noderef.to,
-                   severity: 'warning',
-                   message: Localized.Get('Unrecognized identifier _', value),
-               });
+           if (noderef.name == 'Identifier') {
+               const Node = noderef.node;
+               const value = view.state.sliceDoc(noderef.from, noderef.to);
+               if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
+                   diagnostics.push({
+                       from: noderef.from,
+                       to: noderef.to,
+                       severity: 'warning',
+                       message: Localized.Get('Unrecognized identifier _', value),
+                   });
+               }
            }
        });
        return diagnostics;
