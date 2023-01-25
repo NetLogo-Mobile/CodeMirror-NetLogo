@@ -14,18 +14,26 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
-      if (noderef.name != 'Identifier') return;
-      const Node = noderef.node;
-      const value = view.state.sliceDoc(noderef.from, noderef.to);
-      if (
-        !checkValid(Node, value, view.state, parseState, breedNames, breedVars)
-      ) {
-        diagnostics.push({
-          from: noderef.from,
-          to: noderef.to,
-          severity: 'warning',
-          message: Localized.Get('Unrecognized identifier _', value),
-        });
+      if (noderef.name == 'Identifier') {
+        const Node = noderef.node;
+        const value = view.state.sliceDoc(noderef.from, noderef.to);
+        if (
+          !checkValid(
+            Node,
+            value,
+            view.state,
+            parseState,
+            breedNames,
+            breedVars
+          )
+        ) {
+          diagnostics.push({
+            from: noderef.from,
+            to: noderef.to,
+            severity: 'warning',
+            message: Localized.Get('Unrecognized identifier _', value),
+          });
+        }
       }
     });
   return diagnostics;
@@ -104,3 +112,5 @@ export const checkValid = function (
   }
   return procedureVars.includes(value);
 };
+
+const checkBreedLike = function (str: string) {};
