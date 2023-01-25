@@ -36,6 +36,8 @@ const zh_cn: Record<string, Function> = {
     `${Name} has not been declared as an extension`,
   'Breed name _ already used.': (Name: string) =>
     `${Name} is already used as a breed name`,
+  'Invalid breed procedure _': (Name: string) =>
+    `Did you want to declare "${Name}" as a breed?`,
 
   '~VariableName': (Name: string) => `变量名称。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,

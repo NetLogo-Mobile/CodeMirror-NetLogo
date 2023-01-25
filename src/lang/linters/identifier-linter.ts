@@ -27,12 +27,35 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
             breedVars
           )
         ) {
-          diagnostics.push({
-            from: noderef.from,
-            to: noderef.to,
-            severity: 'warning',
-            message: Localized.Get('Unrecognized identifier _', value),
-          });
+          let result = checkBreedLike(value);
+          console.log(result);
+          if (!result[0]) {
+            diagnostics.push({
+              from: noderef.from,
+              to: noderef.to,
+              severity: 'warning',
+              message: Localized.Get('Unrecognized identifier _', value),
+            });
+          } else {
+            let first = value.indexOf('-');
+            let last = value.lastIndexOf('-');
+            let str = '';
+            if (result[1] == 'Last') {
+              str = value.substring(first + 1);
+            } else if (result[1] == 'First') {
+              str = value.substring(0, last);
+            } else if (result[1] == 'Middle') {
+              str = value.substring(first + 1, last);
+            } else {
+              str = value.substring(first + 1, value.length - 1);
+            }
+            diagnostics.push({
+              from: noderef.from,
+              to: noderef.to,
+              severity: 'warning',
+              message: Localized.Get('Invalid breed procedure _', str),
+            });
+          }
         }
       }
     });
@@ -113,4 +136,48 @@ export const checkValid = function (
   return procedureVars.includes(value);
 };
 
-const checkBreedLike = function (str: string) {};
+const checkBreedLike = function (str: string) {
+  let result = false;
+  let location = '';
+  if (str.match(/[^\s]+-(at)/)) {
+    result = true;
+    location = 'First';
+  } else if (str.match(/[^\s]+-here/)) {
+    result = true;
+    location = 'First';
+  } else if (str.match(/[^\s]+-neighbors/)) {
+    result = true;
+    location = 'First';
+  } else if (str.match(/[^\s]+-on/)) {
+    result = true;
+    location = 'First';
+  } else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
+    result = true;
+    location = 'First';
+  } else if (str.match(/^(my|my-in|my-out)-[^\s]+/)) {
+    result = true;
+    location = 'Last';
+  } else if (str.match(/^is-[^\s]+\\?$/)) {
+    result = true;
+    location = 'Question';
+  } else if (str.match(/^in-[^\s]+-from$/)) {
+    result = true;
+    location = 'Middle';
+  } else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
+    result = true;
+    location = 'Middle';
+  } else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
+    result = true;
+    location = 'Middle';
+  } else if (str.match(/^out-[^\s]+-to$/)) {
+    result = true;
+    location = 'Middle';
+  } else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
+    result = true;
+    location = 'Middle';
+  } else if (str.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+    result = true;
+    location = 'Last';
+  }
+  return [result, location];
+};

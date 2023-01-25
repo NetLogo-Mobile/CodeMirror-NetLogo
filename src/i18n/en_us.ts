@@ -37,6 +37,8 @@ const en_us: Record<string, Function> = {
     `"${Name}" has not been declared as an extension`,
   'Breed name _ already used.': (Name: string) =>
     `"${Name}" is already used as a breed name`,
+  'Invalid breed procedure _': (Name: string) =>
+    `Did you want to declare "${Name}" as a breed?`,
 
   '~VariableName': (Name: string) => `A variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,
