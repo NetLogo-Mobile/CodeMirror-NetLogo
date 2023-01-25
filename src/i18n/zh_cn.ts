@@ -33,11 +33,11 @@ const zh_cn: Record<string, Function> = {
   ) =>
     `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
   'Invalid extension _.': (Name: string) =>
-    `${Name} has not been declared as an extension`,
+    `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
   'Breed name _ already used.': (Name: string) =>
-    `${Name} is already used as a breed name`,
+    `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
   'Invalid breed procedure _': (Name: string) =>
-    `Did you want to declare "${Name}" as a breed?`,
+    `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
 
   '~VariableName': (Name: string) => `变量名称。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,
