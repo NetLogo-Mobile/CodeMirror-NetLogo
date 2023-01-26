@@ -25798,6 +25798,7 @@ if(!String.prototype.matchAll) {
        'Invalid extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
        'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
        'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
+       'Missing command before _': (Name) => `This statement needs to start with a command`,
        '~VariableName': (Name) => `A variable. `,
        '~ProcedureName': (Name) => `The name of a procedure. `,
        '~Arguments/Identifier': (Name) => `The name of an argument. `,
@@ -27756,7 +27757,6 @@ if(!String.prototype.matchAll) {
                const value = view.state.sliceDoc(noderef.from, noderef.to);
                if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
                    let result = checkBreedLike(value);
-                   console.log(result);
                    if (!result[0]) {
                        diagnostics.push({
                            from: noderef.from,
@@ -28092,6 +28092,7 @@ if(!String.prototype.matchAll) {
        syntaxTree(view.state)
            .cursor()
            .iterate((noderef) => {
+           var _a;
            if ((noderef.name == 'SetVariable' &&
                (noderef.node.getChildren('VariableName').length != 1 ||
                    noderef.node.getChildren('Value').length != 1)) ||
@@ -28119,6 +28120,14 @@ if(!String.prototype.matchAll) {
                const value = view.state
                    .sliceDoc(noderef.from, noderef.to)
                    .toLowerCase();
+               if (((_a = Node.firstChild) === null || _a === void 0 ? void 0 : _a.name) == '⚠') {
+                   diagnostics.push({
+                       from: Node.from,
+                       to: Node.to,
+                       severity: 'warning',
+                       message: Localized.Get('Missing command before _', value),
+                   });
+               }
                let args = getArgs(Node);
                if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
                    // We need to make the error message much more clearer. It will also help debug.
@@ -28372,7 +28381,6 @@ if(!String.prototype.matchAll) {
                    });
                }
                seen.push(value);
-               console.log(seen);
            }
        });
        return diagnostics;
