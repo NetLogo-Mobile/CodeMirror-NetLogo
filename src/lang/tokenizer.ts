@@ -35,6 +35,10 @@ import {
   SpecialReporter,
   BreedToken,
   AndOr,
+  APCommand,
+  APReporterFlip,
+  APReporterVar,
+  APReporter,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -69,6 +73,14 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(GlobalStr);
   } else if (token == 'extensions') {
     input.acceptToken(ExtensionStr);
+  } else if (token == 'foreach') {
+    input.acceptToken(APCommand);
+  } else if (token == 'n-values') {
+    input.acceptToken(APReporterFlip);
+  } else if (token == 'map') {
+    input.acceptToken(APReporterVar);
+  } else if (token == 'reduce' || token == 'filter' || token == 'sort-by') {
+    input.acceptToken(APReporter);
   } else if (
     [
       '+',

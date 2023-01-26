@@ -138,11 +138,18 @@ export const getArgs = function (Node: SyntaxNode) {
     // console.log(cursor.node.name,args)
     if (!seenFunc && cursor.node.name == 'Arg') {
       args.leftArgs = cursor.node;
-    } else if (seenFunc && cursor.node.name == 'Arg') {
+    } else if (
+      seenFunc &&
+      (cursor.node.name == 'Arg' ||
+        cursor.node.name == 'Commands' ||
+        cursor.node.name == 'Reporters')
+    ) {
       args.rightArgs.push(cursor.node);
     } else if (
-      cursor.node.name.includes('Command') ||
-      cursor.node.name.includes('Reporter')
+      (cursor.node.name.includes('Command') &&
+        !cursor.node.name.includes('Commands')) ||
+      (cursor.node.name.includes('Reporter') &&
+        !cursor.node.name.includes('Reporters'))
     ) {
       // console.log(cursor.node.name)
       args.func = cursor.node;
@@ -152,6 +159,7 @@ export const getArgs = function (Node: SyntaxNode) {
       done = true;
     }
   }
+  // console.log(args)
   return args;
 };
 
@@ -166,6 +174,7 @@ export const checkValid = function (
   }
 ) {
   let func = state.sliceDoc(args.func?.from, args.func?.to).toLowerCase();
+  // console.log("FUNC:",func)
   if (args.func?.name.includes('Special')) {
     let numArgs =
       state.field(preprocessStateExtension).Commands[func] ??
