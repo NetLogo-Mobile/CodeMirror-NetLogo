@@ -38,6 +38,8 @@ const zh_cn: Record<string, Function> = {
     `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
   'Invalid breed procedure _': (Name: string) =>
     `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
+  'Missing command before _': (Name: string) =>
+    `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
 
   '~VariableName': (Name: string) => `变量名称。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,
