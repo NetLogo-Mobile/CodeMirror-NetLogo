@@ -183,7 +183,11 @@ ReporterStatement {
   OpenParen Reporter4ArgsVar Arg Arg Arg Arg+ !close CloseParen |
   OpenParen Reporter5ArgsVar Arg Arg Arg Arg Arg+ !close CloseParen |
   OpenParen Reporter6ArgsVar Arg Arg Arg Arg Arg Arg+ !close CloseParen |
-  Arg !comparative AndOr Arg
+  Arg !comparative AndOr Arg |
+  APReporter Reporters !lastArgs Arg |
+  APReporterFlip Arg !lastArgs Reporters |
+  APReporterVar Reporters !lastArgs Arg |
+  OpenParen APReporterVar Reporters Arg+ !close CloseParen
 }
 
 CommandStatement {
@@ -213,7 +217,9 @@ CommandStatement {
   OpenParen Command5ArgsVar Arg Arg Arg Arg Arg+ !close CloseParen |
   OpenParen Command6ArgsVar Arg Arg Arg Arg Arg Arg+ !close CloseParen |
   VariableDeclaration |
-  Unsupported
+  Unsupported |
+  APCommand !leftArgs Arg !lastArgs Commands |
+  OpenParen APCommand Arg+ Commands !close CloseParen
 }
 
 Arg {  
@@ -223,23 +229,23 @@ Arg {
   Property
 }
 
-CommandReporter {
+Commands {
   SpecialCommand | 
-  SpecialReporter0Args ~statement |
-  SpecialReporter1Args |
-  SpecialReporter2Args |
-  SpecialReporter3Args |
-  SpecialReporter4Args |
-  SpecialReporter5Args |
-  SpecialReporter6Args |
-  SpecialReporter1ArgsBoth |
-  SpecialReporter0ArgsLink ~statement |
-  SpecialReporter1ArgsLink |
-  SpecialReporter2ArgsTurtle |
-  SpecialReporter0ArgsTurtle ~statement |
-  SpecialReporter1ArgsTurtle |
-  SpecialReporter0ArgsLinkP ~statement |
-  SpecialCommand0Args ~statement |
+  Command0Args |
+  Command1Args |
+  Command2Args |
+  Command3Args |
+  Command4Args |
+  Command5Args |
+  Command6Args |
+  Command0ArgsVar |
+  Command1ArgsVar |
+  Command2ArgsVar |
+  Command3ArgsVar |
+  Command4ArgsVar |
+  Command5ArgsVar |
+  Command6ArgsVar |
+  SpecialCommand0Args |
   SpecialCommand1Args |
   SpecialCommand2Args |
   SpecialCommand3Args |
@@ -248,34 +254,39 @@ CommandReporter {
   SpecialCommand6Args |
   SpecialCommandCreateTurtle |
   SpecialCommandCreateLink |
-  Reporter0Args ~statement |
+  AnonymousProcedure
+}
+
+Reporters{
+  Reporter0Args |
   Reporter1Args |
   Reporter2Args |
   Reporter3Args |
   Reporter4Args |
   Reporter5Args |
   Reporter6Args |
-  Command0Args ~statement |
-  Command1Args |
-  Command2Args |
-  Command3Args |
-  Command4Args |
-  Command5Args |
-  Command6Args |
-  Reporter0ArgsVar ~statement |
+  Reporter0ArgsVar |
   Reporter1ArgsVar |
   Reporter2ArgsVar |
   Reporter3ArgsVar |
   Reporter4ArgsVar |
   Reporter5ArgsVar |
   Reporter6ArgsVar |
-  Command0ArgsVar ~statement |
-  Command1ArgsVar |
-  Command2ArgsVar |
-  Command3ArgsVar |
-  Command4ArgsVar |
-  Command5ArgsVar |
-  Command6ArgsVar
+  SpecialReporter0Args |
+  SpecialReporter1Args |
+  SpecialReporter2Args |
+  SpecialReporter3Args |
+  SpecialReporter4Args |
+  SpecialReporter5Args |
+  SpecialReporter6Args |
+  SpecialReporter1ArgsBoth |
+  SpecialReporter0ArgsLink |
+  SpecialReporter1ArgsLink |
+  SpecialReporter2ArgsTurtle |
+  SpecialReporter0ArgsTurtle |
+  SpecialReporter1ArgsTurtle |
+  SpecialReporter0ArgsLinkP |
+  AnonymousProcedure
 }
 
 @tokens {
@@ -348,7 +359,11 @@ expression {
   SpecialReporter,
   SpecialCommand,
   BreedToken,
-  AndOr
+  AndOr,
+  APCommand,
+  APReporterFlip,
+  APReporterVar,
+  APReporter
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {
