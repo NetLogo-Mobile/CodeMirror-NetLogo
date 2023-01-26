@@ -28,7 +28,6 @@ export const BreedNameLinter = buildLinter((view, parseState) => {
           });
         }
         seen.push(value);
-        console.log(seen);
       }
     });
   return diagnostics;

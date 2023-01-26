@@ -28,7 +28,6 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
           )
         ) {
           let result = checkBreedLike(value);
-          console.log(result);
           if (!result[0]) {
             diagnostics.push({
               from: noderef.from,

@@ -39,6 +39,8 @@ const en_us: Record<string, Function> = {
     `"${Name}" is already used as a breed name. Try to take a different name.`,
   'Invalid breed procedure _': (Name: string) =>
     `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
+  'Missing command before _': (Name: string) =>
+    `This statement needs to start with a command`,
 
   '~VariableName': (Name: string) => `A variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,

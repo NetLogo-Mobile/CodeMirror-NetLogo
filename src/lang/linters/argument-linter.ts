@@ -51,6 +51,14 @@ export const ArgumentLinter = linter((view) => {
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
+        if (Node.firstChild?.name == '⚠') {
+          diagnostics.push({
+            from: Node.from,
+            to: Node.to,
+            severity: 'warning',
+            message: Localized.Get('Missing command before _', value),
+          });
+        }
         let args = getArgs(Node);
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
           // We need to make the error message much more clearer. It will also help debug.
