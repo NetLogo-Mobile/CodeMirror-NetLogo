@@ -27777,7 +27777,9 @@ if(!String.prototype.matchAll) {
            if (noderef.name == 'Identifier') {
                const Node = noderef.node;
                const value = view.state.sliceDoc(noderef.from, noderef.to);
+               //check if it meets some initial criteria for validity
                if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
+                   //check if the identifier looks like a breed procedure (e.g. "create-___")
                    let result = checkBreedLike(value);
                    if (!result[0]) {
                        diagnostics.push({
@@ -27788,6 +27790,7 @@ if(!String.prototype.matchAll) {
                        });
                    }
                    else {
+                       //pull out name of possible intended breed
                        let first = value.indexOf('-');
                        let last = value.lastIndexOf('-');
                        let str = '';
@@ -27864,6 +27867,7 @@ if(!String.prototype.matchAll) {
                    procedureVars.push(variable.Name);
                }
            });
+           //pulls out all local variables within the anonymous procedures up until current position
            procedure === null || procedure === void 0 ? void 0 : procedure.AnonymousProcedures.map((anonProc) => {
                if (Node.from >= anonProc.PositionStart &&
                    Node.to <= anonProc.PositionEnd) {
@@ -27875,8 +27879,11 @@ if(!String.prototype.matchAll) {
                procedureVars.push(...procedure.Arguments);
            }
        }
+       //checks if the identifier is in the list of possible variables
        return procedureVars.includes(value);
    };
+   //identify if the term looks like a breed procedure (e.g. "create-___")
+   //If so, also identify where to look within the term to find the intended breed name
    const checkBreedLike = function (str) {
        let result = false;
        let location = '';
@@ -28004,9 +28011,10 @@ if(!String.prototype.matchAll) {
        return diagnostics;
    });
    // Checks if the term in the structure of a breed command/reporter is the name
-   // of an actual breed
+   // of an actual breed, and in the correct singular/plural form
    const checkValidBreed = function (node, value, state, parseState, breeds) {
        let isValid = true;
+       //collect possible breed names in the correct categories
        let pluralTurtle = [];
        let singularTurtle = [];
        let pluralLink = [];
@@ -28021,7 +28029,7 @@ if(!String.prototype.matchAll) {
                singularTurtle.push(b.Singular);
            }
        }
-       // console.log(pluralTurtle,singularTurtle,pluralLink,singularLink)
+       //check for correct breed name (depending on function type)
        if (node.name == 'SpecialCommandCreateLink') {
            isValid = listItemInString(value, singularLink.concat(pluralLink));
        }
@@ -28044,7 +28052,6 @@ if(!String.prototype.matchAll) {
        else if (node.name == 'SpecialReporter0ArgsLinkP') {
            isValid = listItemInString(value, pluralLink);
        }
-       // if(node.name=='SpecialCommandCreateLink'){console.log(isValid)}
        // some procedure names I've come across accidentally use the structure of a
        // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
        // before declaring it invalid
@@ -28056,13 +28063,14 @@ if(!String.prototype.matchAll) {
        if (!isValid && node.name != 'Own') {
            const breedNames = parseState.GetBreedNames();
            const breedVars = parseState.GetBreedVariables();
-           // Why do we need this one? We need it to check if it is actually a valid identifier
+           // Why do we need this one?
+           //We need it to check if it is actually a valid identifier, e.g. a variable name
            isValid = checkValid$1(node, value, state, parseState, breedNames, breedVars);
        }
        return isValid;
    };
+   //checks if any member of a list is in a string
    const listItemInString = function (str, lst) {
-       // console.log(str,lst)
        let found = false;
        for (let l of lst) {
            if (str.includes(l)) {
@@ -28073,7 +28081,7 @@ if(!String.prototype.matchAll) {
        return found;
    };
 
-   // UnrecognizedLinter: Checks if something at the top layer isn't a procedure, global, etc.
+   // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
    const UnrecognizedLinter = buildLinter((view, parseState) => {
        const diagnostics = [];
        syntaxTree(view.state)
@@ -28115,7 +28123,9 @@ if(!String.prototype.matchAll) {
            .cursor()
            .iterate((noderef) => {
            var _a;
-           if ((noderef.name == 'SetVariable' &&
+           if (
+           //checking let/set statements
+           (noderef.name == 'SetVariable' &&
                (noderef.node.getChildren('VariableName').length != 1 ||
                    noderef.node.getChildren('Value').length != 1)) ||
                (noderef.name == 'NewVariableDeclaration' &&
@@ -28142,6 +28152,7 @@ if(!String.prototype.matchAll) {
                const value = view.state
                    .sliceDoc(noderef.from, noderef.to)
                    .toLowerCase();
+               //checking if missing command (it shows up as a specific grammatical structure)
                if (((_a = Node.firstChild) === null || _a === void 0 ? void 0 : _a.name) == '⚠') {
                    diagnostics.push({
                        from: Node.from,
@@ -28151,13 +28162,15 @@ if(!String.prototype.matchAll) {
                    });
                }
                let args = getArgs(Node);
+               //ensures there is a primitive to check
                if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
-                   // We need to make the error message much more clearer. It will also help debug.
+                   //identify the errors and terms to be conveyed in error message
                    const result = checkValid(Node, value, view.state, args);
                    let error_type = result[0];
                    let func = result[1];
                    let expected = result[2];
                    let actual = result[3];
+                   //create error messages
                    if (error_type == 'no primitive') {
                        diagnostics.push({
                            from: noderef.from,
@@ -28195,6 +28208,7 @@ if(!String.prototype.matchAll) {
        });
        return diagnostics;
    });
+   //collects everything used as an argument so it can be counted
    const getArgs = function (Node) {
        let cursor = Node.cursor();
        let args = { leftArgs: null, rightArgs: [], func: null };
@@ -28204,21 +28218,24 @@ if(!String.prototype.matchAll) {
            return args;
        }
        while (done == false) {
-           // console.log(cursor.node.name,args)
+           //collect nodes containing left args
            if (!seenFunc && cursor.node.name == 'Arg') {
                args.leftArgs = cursor.node;
            }
-           else if (seenFunc &&
+           else if (
+           //collect nodes containing right args ('Commands'/'Reporters' are specifically for map, filter, etc.)
+           seenFunc &&
                (cursor.node.name == 'Arg' ||
                    cursor.node.name == 'Commands' ||
                    cursor.node.name == 'Reporters')) {
                args.rightArgs.push(cursor.node);
            }
-           else if ((cursor.node.name.includes('Command') &&
+           else if (
+           //identify the node containing primitive
+           (cursor.node.name.includes('Command') &&
                !cursor.node.name.includes('Commands')) ||
                (cursor.node.name.includes('Reporter') &&
                    !cursor.node.name.includes('Reporters'))) {
-               // console.log(cursor.node.name)
                args.func = cursor.node;
                seenFunc = true;
            }
@@ -28226,13 +28243,14 @@ if(!String.prototype.matchAll) {
                done = true;
            }
        }
-       // console.log(args)
        return args;
    };
+   //checks if correct number of arguments are present
    const checkValid = function (Node, value, state, args) {
        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+       //get the text/name of the primitive
        let func = state.sliceDoc((_a = args.func) === null || _a === void 0 ? void 0 : _a.from, (_b = args.func) === null || _b === void 0 ? void 0 : _b.to).toLowerCase();
-       // console.log("FUNC:",func)
+       //checking for "Special" cases (custom and breed procedures)
        if ((_c = args.func) === null || _c === void 0 ? void 0 : _c.name.includes('Special')) {
            let numArgs = (_f = (_e = (_d = state.field(preprocessStateExtension).Commands[func]) !== null && _d !== void 0 ? _d : state.field(preprocessStateExtension).Reporters[func]) !== null && _e !== void 0 ? _e : getBreedCommandArgs(func)) !== null && _f !== void 0 ? _f : getBreedProcedureArgs(args.func.name);
            return [
@@ -28244,11 +28262,14 @@ if(!String.prototype.matchAll) {
        }
        else {
            let primitive = primitives.GetNamedPrimitive(func);
+           //checks for terms used as primitives but don't exist in our dataset
            if (!primitive) {
                console.log('no primitive', (_g = args.func) === null || _g === void 0 ? void 0 : _g.name, func);
                return ['no primitive', func, 0, 0];
            }
-           else if ((((_h = primitive.LeftArgumentType) === null || _h === void 0 ? void 0 : _h.Types[0]) == NetLogoType.Unit &&
+           else if (
+           //checks for incorrect numbers of arguments on the left side
+           (((_h = primitive.LeftArgumentType) === null || _h === void 0 ? void 0 : _h.Types[0]) == NetLogoType.Unit &&
                args.leftArgs) ||
                (((_j = primitive.LeftArgumentType) === null || _j === void 0 ? void 0 : _j.Types[0]) != NetLogoType.Unit &&
                    !args.leftArgs)) {
@@ -28259,15 +28280,18 @@ if(!String.prototype.matchAll) {
                return ['left', func, expected, actual];
            }
            else {
+               //find the minimum and maximum acceptable numbers of right-side arguments
                let rightArgMin = (_m = (_l = primitive.MinimumOption) !== null && _l !== void 0 ? _l : primitive.DefaultOption) !== null && _m !== void 0 ? _m : primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
                    .length;
                let rightArgMax = primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length > 0
                    ? 100
                    : primitive.RightArgumentTypes.length;
+               //ensure at least minimum # right args present
                if (args.rightArgs.length < rightArgMin) {
                    console.log(args.rightArgs);
                    console.log(func, 'rightargs', rightArgMin, rightArgMax, args.rightArgs.length);
                    return ['rightmin', func, rightArgMin, args.rightArgs.length];
+                   //ensure at most max # right args present
                }
                else if (args.rightArgs.length > rightArgMax) {
                    return ['rightmax', func, rightArgMax, args.rightArgs.length];
@@ -28278,6 +28302,7 @@ if(!String.prototype.matchAll) {
            }
        }
    };
+   //get number of args for breed procedures that are commands
    const getBreedCommandArgs = function (func) {
        if (func.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
            return 2;
@@ -28289,6 +28314,7 @@ if(!String.prototype.matchAll) {
            return null;
        }
    };
+   //parse # args from node name
    const getBreedProcedureArgs = function (func_type) {
        let match = func_type.match(/[A-Za-z]*(\d)[A-Za-z]*/);
        if (match) {
@@ -28324,20 +28350,13 @@ if(!String.prototype.matchAll) {
        });
    });
 
-   // UnrecognizedLinter: Checks if something at the top layer isn't a procedure, global, etc.
+   // UnsupportedLinter: Checks for unsupported primitives
    const UnsupportedLinter = buildLinter((view, parseState) => {
        const diagnostics = [];
        syntaxTree(view.state)
            .cursor()
            .iterate((node) => {
            if (node.name == 'Unsupported') {
-               // let curr = node.node
-               // let parents: string []=[]
-               // while (curr.parent){
-               //   parents.push(curr.parent.name)
-               //   curr = curr.parent
-               // }
-               // console.log(parents)
                const value = view.state.sliceDoc(node.from, node.to);
                diagnostics.push({
                    from: node.from,
@@ -28358,6 +28377,7 @@ if(!String.prototype.matchAll) {
        return diagnostics;
    });
 
+   //Checks if extension primitives are used without declaring the extension
    const ExtensionLinter = buildLinter((view, parseState) => {
        const diagnostics = [];
        syntaxTree(view.state)
@@ -28390,7 +28410,7 @@ if(!String.prototype.matchAll) {
        return diagnostics;
    });
 
-   // Checks anything labelled 'Identifier'
+   // Ensures no duplicate breed names
    const BreedNameLinter = buildLinter((view, parseState) => {
        const diagnostics = [];
        let seen = [];
