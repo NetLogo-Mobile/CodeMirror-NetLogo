@@ -25625,7 +25625,12 @@ if(!String.prototype.matchAll) {
                (parentName != 'Procedure' || nodeName == 'To'))
                return { from, options: this.GetParentKeywords(grandparentName, state) };
            // Otherwise, try to build a full list
-           if (nodeName == 'Identifier' || nodeName == 'Extension') {
+           if (nodeName == 'Identifier' ||
+               nodeName == 'Extension' ||
+               nodeName.includes('Reporter') ||
+               nodeName.includes('Command') ||
+               nodeName == 'Set' ||
+               nodeName == 'Let') {
                let results = this.SharedIdentifiers;
                // Extensions
                const extensionNames = state.Extensions.join(',');
