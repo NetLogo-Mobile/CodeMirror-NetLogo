@@ -2,10 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
-import {
-  stateExtension,
-  StateNetLogo,
-} from '../../codemirror/extension-state-netlogo';
+import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { checkValid } from './identifier-linter';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
@@ -58,7 +55,7 @@ export const BreedLinter = buildLinter((view, parseState) => {
 });
 
 // Checks if the term in the structure of a breed command/reporter is the name
-// of an actual breed
+// of an actual breed, and in the correct singular/plural form
 const checkValidBreed = function (
   node: SyntaxNode,
   value: string,
@@ -67,6 +64,8 @@ const checkValidBreed = function (
   breeds: Breed[]
 ) {
   let isValid = true;
+
+  //collect possible breed names in the correct categories
   let pluralTurtle: string[] = [];
   let singularTurtle: string[] = [];
   let pluralLink: string[] = [];
@@ -80,8 +79,7 @@ const checkValidBreed = function (
       singularTurtle.push(b.Singular);
     }
   }
-  // console.log(pluralTurtle,singularTurtle,pluralLink,singularLink)
-
+  //check for correct breed name (depending on function type)
   if (node.name == 'SpecialCommandCreateLink') {
     isValid = listItemInString(value, singularLink.concat(pluralLink));
   } else if (
@@ -103,9 +101,6 @@ const checkValidBreed = function (
   } else if (node.name == 'SpecialReporter0ArgsLinkP') {
     isValid = listItemInString(value, pluralLink);
   }
-
-  // if(node.name=='SpecialCommandCreateLink'){console.log(isValid)}
-
   // some procedure names I've come across accidentally use the structure of a
   // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
   // before declaring it invalid
@@ -117,14 +112,15 @@ const checkValidBreed = function (
   if (!isValid && node.name != 'Own') {
     const breedNames = parseState.GetBreedNames();
     const breedVars = parseState.GetBreedVariables();
-    // Why do we need this one? We need it to check if it is actually a valid identifier
+    // Why do we need this one?
+    //We need it to check if it is actually a valid identifier, e.g. a variable name
     isValid = checkValid(node, value, state, parseState, breedNames, breedVars);
   }
   return isValid;
 };
 
+//checks if any member of a list is in a string
 const listItemInString = function (str: string, lst: string[]) {
-  // console.log(str,lst)
   let found = false;
   for (let l of lst) {
     if (str.includes(l)) {

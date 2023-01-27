@@ -16,6 +16,7 @@ export const ArgumentLinter = linter((view) => {
     .cursor()
     .iterate((noderef) => {
       if (
+        //checking let/set statements
         (noderef.name == 'SetVariable' &&
           (noderef.node.getChildren('VariableName').length != 1 ||
             noderef.node.getChildren('Value').length != 1)) ||
@@ -51,6 +52,7 @@ export const ArgumentLinter = linter((view) => {
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
+        //checking if missing command (it shows up as a specific grammatical structure)
         if (Node.firstChild?.name == '⚠') {
           diagnostics.push({
             from: Node.from,
@@ -60,13 +62,15 @@ export const ArgumentLinter = linter((view) => {
           });
         }
         let args = getArgs(Node);
+        //ensures there is a primitive to check
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
-          // We need to make the error message much more clearer. It will also help debug.
+          //identify the errors and terms to be conveyed in error message
           const result = checkValid(Node, value, view.state, args);
           let error_type = result[0];
           let func = result[1];
           let expected = result[2];
           let actual = result[3];
+          //create error messages
           if (error_type == 'no primitive') {
             diagnostics.push({
               from: noderef.from,
@@ -122,6 +126,7 @@ export const ArgumentLinter = linter((view) => {
   return diagnostics;
 });
 
+//collects everything used as an argument so it can be counted
 export const getArgs = function (Node: SyntaxNode) {
   let cursor = Node.cursor();
   let args: {
@@ -135,10 +140,11 @@ export const getArgs = function (Node: SyntaxNode) {
     return args;
   }
   while (done == false) {
-    // console.log(cursor.node.name,args)
+    //collect nodes containing left args
     if (!seenFunc && cursor.node.name == 'Arg') {
       args.leftArgs = cursor.node;
     } else if (
+      //collect nodes containing right args ('Commands'/'Reporters' are specifically for map, filter, etc.)
       seenFunc &&
       (cursor.node.name == 'Arg' ||
         cursor.node.name == 'Commands' ||
@@ -146,12 +152,12 @@ export const getArgs = function (Node: SyntaxNode) {
     ) {
       args.rightArgs.push(cursor.node);
     } else if (
+      //identify the node containing primitive
       (cursor.node.name.includes('Command') &&
         !cursor.node.name.includes('Commands')) ||
       (cursor.node.name.includes('Reporter') &&
         !cursor.node.name.includes('Reporters'))
     ) {
-      // console.log(cursor.node.name)
       args.func = cursor.node;
       seenFunc = true;
     }
@@ -159,10 +165,10 @@ export const getArgs = function (Node: SyntaxNode) {
       done = true;
     }
   }
-  // console.log(args)
   return args;
 };
 
+//checks if correct number of arguments are present
 export const checkValid = function (
   Node: SyntaxNode,
   value: string,
@@ -173,8 +179,9 @@ export const checkValid = function (
     func: SyntaxNode | null;
   }
 ) {
+  //get the text/name of the primitive
   let func = state.sliceDoc(args.func?.from, args.func?.to).toLowerCase();
-  // console.log("FUNC:",func)
+  //checking for "Special" cases (custom and breed procedures)
   if (args.func?.name.includes('Special')) {
     let numArgs =
       state.field(preprocessStateExtension).Commands[func] ??
@@ -189,10 +196,12 @@ export const checkValid = function (
     ];
   } else {
     let primitive = primitives.GetNamedPrimitive(func);
+    //checks for terms used as primitives but don't exist in our dataset
     if (!primitive) {
       console.log('no primitive', args.func?.name, func);
       return ['no primitive', func, 0, 0];
     } else if (
+      //checks for incorrect numbers of arguments on the left side
       (primitive.LeftArgumentType?.Types[0] == NetLogoType.Unit &&
         args.leftArgs) ||
       (primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit &&
@@ -205,6 +214,7 @@ export const checkValid = function (
       console.log('left', expected, actual);
       return ['left', func, expected, actual];
     } else {
+      //find the minimum and maximum acceptable numbers of right-side arguments
       let rightArgMin =
         primitive.MinimumOption ??
         primitive.DefaultOption ??
@@ -214,6 +224,7 @@ export const checkValid = function (
         primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length > 0
           ? 100
           : primitive.RightArgumentTypes.length;
+      //ensure at least minimum # right args present
       if (args.rightArgs.length < rightArgMin) {
         console.log(args.rightArgs);
         console.log(
@@ -224,6 +235,7 @@ export const checkValid = function (
           args.rightArgs.length
         );
         return ['rightmin', func, rightArgMin, args.rightArgs.length];
+        //ensure at most max # right args present
       } else if (args.rightArgs.length > rightArgMax) {
         return ['rightmax', func, rightArgMax, args.rightArgs.length];
       } else {
@@ -233,6 +245,7 @@ export const checkValid = function (
   }
 };
 
+//get number of args for breed procedures that are commands
 const getBreedCommandArgs = function (func: string) {
   if (func.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
     return 2;
@@ -243,6 +256,7 @@ const getBreedCommandArgs = function (func: string) {
   }
 };
 
+//parse # args from node name
 const getBreedProcedureArgs = function (func_type: string) {
   let match = func_type.match(/[A-Za-z]*(\d)[A-Za-z]*/);
   if (match) {

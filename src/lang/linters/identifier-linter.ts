@@ -17,6 +17,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
       if (noderef.name == 'Identifier') {
         const Node = noderef.node;
         const value = view.state.sliceDoc(noderef.from, noderef.to);
+        //check if it meets some initial criteria for validity
         if (
           !checkValid(
             Node,
@@ -27,6 +28,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
             breedVars
           )
         ) {
+          //check if the identifier looks like a breed procedure (e.g. "create-___")
           let result = checkBreedLike(value);
           if (!result[0]) {
             diagnostics.push({
@@ -36,6 +38,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
               message: Localized.Get('Unrecognized identifier _', value),
             });
           } else {
+            //pull out name of possible intended breed
             let first = value.indexOf('-');
             let last = value.lastIndexOf('-');
             let str = '';
@@ -117,6 +120,7 @@ export const checkValid = function (
         procedureVars.push(variable.Name);
       }
     });
+    //pulls out all local variables within the anonymous procedures up until current position
     procedure?.AnonymousProcedures.map((anonProc) => {
       if (
         Node.from >= anonProc.PositionStart &&
@@ -132,9 +136,12 @@ export const checkValid = function (
       procedureVars.push(...procedure.Arguments);
     }
   }
+  //checks if the identifier is in the list of possible variables
   return procedureVars.includes(value);
 };
 
+//identify if the term looks like a breed procedure (e.g. "create-___")
+//If so, also identify where to look within the term to find the intended breed name
 const checkBreedLike = function (str: string) {
   let result = false;
   let location = '';

@@ -1,14 +1,9 @@
 import { syntaxTree } from '@codemirror/language';
-import { linter, Diagnostic } from '@codemirror/lint';
-import { SyntaxNode } from '@lezer/common';
-import { EditorState } from '@codemirror/state';
-import { preprocessStateExtension } from '../../codemirror/extension-regex-state';
-import { PrimitiveManager } from '../primitives/primitives';
-import { NetLogoType } from '../classes';
+import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 
-// Checks anything labelled 'Identifier'
+// Ensures no duplicate breed names
 export const BreedNameLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   let seen: string[] = [];

@@ -3,7 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 
-// UnrecognizedLinter: Checks if something at the top layer isn't a procedure, global, etc.
+// UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
 export const UnrecognizedLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
