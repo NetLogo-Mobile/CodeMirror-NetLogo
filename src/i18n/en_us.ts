@@ -42,7 +42,7 @@ const en_us: Record<string, Function> = {
   'Missing command before _': (Name: string) =>
     `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
 
-  '~VariableName': (Name: string) => `A variable. `,
+  '~VariableName': (Name: string) => `A local variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,
   '~Arguments/Identifier': (Name: string) => `The name of an argument. `,
   '~PatchVar': (Name: string) => `A built-in variable for every patch. `,
@@ -55,13 +55,17 @@ const en_us: Record<string, Function> = {
   '~Numeric': (Name: string) => `A number. `,
   '~String': (Name: string) => `A string, which is a sequence of characters.`,
   '~LineComment': (Name: string) =>
-    `Comments do nothing in the program, but could help others read the code.`,
-  '~Globals/Identifier': (Name: string) => `A model-defined global variable.`,
+    `Comments do nothing in the program, but could help others read the code. `,
+  '~Globals/Identifier': (Name: string) => `A model-defined global variable. `,
+  '~WidgetGlobal': (Name: string) => `A widget-defined global variable. `,
   '~BreedVars/Identifier': (Name: string) =>
-    `A model-defined variable for a breed.`,
-  '~BreedPlural': (Name: string) => `The plural name of a model-defined breed.`,
+    `A model-defined variable for a breed. `,
+  '~BreedPlural': (Name: string) =>
+    `The plural name of a model-defined breed. `,
   '~BreedSingular': (Name: string) =>
-    `The singular name of a model-defined breed.`,
+    `The singular name of a model-defined breed. `,
+  '~Set': (Name: string) => `Used to define a pre-existing variable. `,
+  '~Let': (Name: string) => `Used to create a new variable. `,
 };
 
 export { en_us };

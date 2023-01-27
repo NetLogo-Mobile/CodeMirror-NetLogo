@@ -60,6 +60,9 @@ const zh_cn: Record<string, Function> = {
     `某类模型中定义的海龟或链接具有的变量。`,
   '~BreedPlural': (Name: string) => `某类模型中定义的海龟的复数名称。`,
   '~BreedSingular': (Name: string) => `某类模型中定义的海龟的单数名称。`,
+  '~WidgetGlobal': (Name: string) => `A widget-defined global variable. `,
+  '~Set': (Name: string) => `Used to define a pre-existing variable. `,
+  '~Let': (Name: string) => `Used to create a new variable. `,
 };
 
 export { zh_cn };

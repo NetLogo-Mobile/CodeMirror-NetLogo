@@ -1,8 +1,10 @@
 import { Tooltip, showTooltip } from '@codemirror/view';
 import { StateField, EditorState } from '@codemirror/state';
+import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { Dictionary } from '../i18n/dictionary';
 import { SyntaxNode } from '@lezer/common';
+import { stateExtension } from './extension-state-netlogo';
 
 /** TooltipExtension: Extension for displaying language-specific tooltips. */
 export const tooltipExtension = StateField.define<readonly Tooltip[]>({
@@ -17,7 +19,7 @@ export const tooltipExtension = StateField.define<readonly Tooltip[]>({
 });
 
 function getCursorTooltips(state: EditorState): readonly Tooltip[] {
-  var Result = state.selection.ranges
+  return state.selection.ranges
     .filter(
       (range) =>
         !range.empty &&
@@ -30,6 +32,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         lastTo = 0;
       var closestTerm = '';
       var parentName = '';
+      var create = true;
       syntaxTree(state).iterate({
         enter: (ref) => {
           if (ref.from == ref.to || ref.to == range.from) return true;
@@ -46,8 +49,9 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
           if (name.indexOf('Command') != -1 && name.indexOf('Args') != -1)
             name = 'Command';
           // Check the category name
-          if (Dictionary.Check(`~${name}`)) closestTerm = `~${name}`;
-          else if (Dictionary.Check(`~${parentName}/${name}`))
+          if (Dictionary.Check(`~${name}`)) {
+            closestTerm = `~${name}`;
+          } else if (Dictionary.Check(`~${parentName}/${name}`))
             closestTerm = `~${parentName}/${name}`;
           else console.log(name);
           parentName = name;
@@ -56,12 +60,18 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         to: range.to,
       });
       // If so, we won't display tips - that's unnecessary.
-      if (lastFrom == lastTo || multipleTokens) return null;
+      if (lastFrom == lastTo || multipleTokens) create = false;
       // Check if we can directly recognize the youngest children's full-word
       const term = state.sliceDoc(lastFrom, lastTo);
-      console.log('Term: ' + term);
+
+      if (state.field(stateExtension).Globals.includes(term)) {
+        closestTerm = '~Globals/Identifier';
+      } else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
+        closestTerm = '~WidgetGlobal';
+      }
       if (Dictionary.Check(term)) closestTerm = term;
-      if (closestTerm == '') return null;
+      if (closestTerm == '') create = false;
+      console.log('Term: ' + term, closestTerm, parentName);
       // TODO: We can still match more, esp. things defined in the model (StateNetLogo).
       // Return the tooltip
       return {
@@ -69,20 +79,25 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         above: false,
         strictSide: true,
         arrow: true,
-        create: () => {
+        create: (view: EditorView) => {
           const dom = document.createElement('div');
-          var message = Dictionary.Get(closestTerm, term);
-          if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
-            message += '➤';
-            dom.addEventListener('click', () => Dictionary.ClickHandler!(term));
-            dom.classList.add('cm-tooltip-extendable');
+          if (create) {
+            var message = Dictionary.Get(closestTerm, term);
+            if (
+              Dictionary.ClickHandler != null &&
+              !closestTerm.startsWith('~')
+            ) {
+              message += '➤';
+              dom.addEventListener('click', () =>
+                Dictionary.ClickHandler!(term)
+              );
+              dom.classList.add('cm-tooltip-extendable');
+            }
+            dom.classList.add('cm-tooltip-explain');
+            dom.innerText = message;
           }
-          dom.classList.add('cm-tooltip-explain');
-          dom.innerText = message;
           return { dom };
         },
       };
-    })
-    .filter((tooltip) => tooltip != null);
-  return Result as any; // Hacky!
+    });
 }
