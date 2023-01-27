@@ -25820,7 +25820,7 @@ if(!String.prototype.matchAll) {
        'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
        'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
        'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
-       '~VariableName': (Name) => `A variable. `,
+       '~VariableName': (Name) => `A local variable. `,
        '~ProcedureName': (Name) => `The name of a procedure. `,
        '~Arguments/Identifier': (Name) => `The name of an argument. `,
        '~PatchVar': (Name) => `A built-in variable for every patch. `,
@@ -25832,11 +25832,14 @@ if(!String.prototype.matchAll) {
        '~Extension': (Name) => `A NetLogo extension. `,
        '~Numeric': (Name) => `A number. `,
        '~String': (Name) => `A string, which is a sequence of characters.`,
-       '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code.`,
-       '~Globals/Identifier': (Name) => `A model-defined global variable.`,
-       '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed.`,
-       '~BreedPlural': (Name) => `The plural name of a model-defined breed.`,
-       '~BreedSingular': (Name) => `The singular name of a model-defined breed.`,
+       '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code. `,
+       '~Globals/Identifier': (Name) => `A model-defined global variable. `,
+       '~WidgetGlobal': (Name) => `A widget-defined global variable. `,
+       '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed. `,
+       '~BreedPlural': (Name) => `The plural name of a model-defined breed. `,
+       '~BreedSingular': (Name) => `The singular name of a model-defined breed. `,
+       '~Set': (Name) => `Used to define a pre-existing variable. `,
+       '~Let': (Name) => `Used to create a new variable. `,
    };
 
    const zh_cn = {
@@ -25870,6 +25873,9 @@ if(!String.prototype.matchAll) {
        '~BreedVars/Identifier': (Name) => `某类模型中定义的海龟或链接具有的变量。`,
        '~BreedPlural': (Name) => `某类模型中定义的海龟的复数名称。`,
        '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
+       '~WidgetGlobal': (Name) => `A widget-defined global variable. `,
+       '~Set': (Name) => `Used to define a pre-existing variable. `,
+       '~Let': (Name) => `Used to create a new variable. `,
    };
 
    /** LocalizationManager: Manage all localized texts. */
@@ -25939,6 +25945,9 @@ if(!String.prototype.matchAll) {
            this.RegisterBuiltin('~BreedVars/Identifier');
            this.RegisterBuiltin('~BreedPlural');
            this.RegisterBuiltin('~BreedSingular');
+           this.RegisterBuiltin('~WidgetGlobal');
+           this.RegisterBuiltin('~Set');
+           this.RegisterBuiltin('~Let');
        }
        // RegisterInternal: Register some built-in explanations.
        RegisterBuiltin(...Args) {
@@ -25974,7 +25983,7 @@ if(!String.prototype.matchAll) {
        provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
    });
    function getCursorTooltips(state) {
-       var Result = state.selection.ranges
+       return state.selection.ranges
            .filter((range) => !range.empty &&
            state.doc.lineAt(range.from).number == state.doc.lineAt(range.to).number)
            .map((range) => {
@@ -25983,6 +25992,7 @@ if(!String.prototype.matchAll) {
            var lastFrom = 0, lastTo = 0;
            var closestTerm = '';
            var parentName = '';
+           var create = true;
            syntaxTree(state).iterate({
                enter: (ref) => {
                    if (ref.from == ref.to || ref.to == range.from)
@@ -26000,8 +26010,9 @@ if(!String.prototype.matchAll) {
                    if (name.indexOf('Command') != -1 && name.indexOf('Args') != -1)
                        name = 'Command';
                    // Check the category name
-                   if (Dictionary.Check(`~${name}`))
+                   if (Dictionary.Check(`~${name}`)) {
                        closestTerm = `~${name}`;
+                   }
                    else if (Dictionary.Check(`~${parentName}/${name}`))
                        closestTerm = `~${parentName}/${name}`;
                    else
@@ -26013,14 +26024,20 @@ if(!String.prototype.matchAll) {
            });
            // If so, we won't display tips - that's unnecessary.
            if (lastFrom == lastTo || multipleTokens)
-               return null;
+               create = false;
            // Check if we can directly recognize the youngest children's full-word
            const term = state.sliceDoc(lastFrom, lastTo);
-           console.log('Term: ' + term);
+           if (state.field(stateExtension).Globals.includes(term)) {
+               closestTerm = '~Globals/Identifier';
+           }
+           else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
+               closestTerm = '~WidgetGlobal';
+           }
            if (Dictionary.Check(term))
                closestTerm = term;
            if (closestTerm == '')
-               return null;
+               create = false;
+           console.log('Term: ' + term, closestTerm, parentName);
            // TODO: We can still match more, esp. things defined in the model (StateNetLogo).
            // Return the tooltip
            return {
@@ -26028,22 +26045,23 @@ if(!String.prototype.matchAll) {
                above: false,
                strictSide: true,
                arrow: true,
-               create: () => {
+               create: (view) => {
                    const dom = document.createElement('div');
-                   var message = Dictionary.Get(closestTerm, term);
-                   if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
-                       message += '➤';
-                       dom.addEventListener('click', () => Dictionary.ClickHandler(term));
-                       dom.classList.add('cm-tooltip-extendable');
+                   if (create) {
+                       var message = Dictionary.Get(closestTerm, term);
+                       if (Dictionary.ClickHandler != null &&
+                           !closestTerm.startsWith('~')) {
+                           message += '➤';
+                           dom.addEventListener('click', () => Dictionary.ClickHandler(term));
+                           dom.classList.add('cm-tooltip-extendable');
+                       }
+                       dom.classList.add('cm-tooltip-explain');
+                       dom.innerText = message;
                    }
-                   dom.classList.add('cm-tooltip-explain');
-                   dom.innerText = message;
                    return { dom };
                },
            };
-       })
-           .filter((tooltip) => tooltip != null);
-       return Result; // Hacky!
+       });
    }
 
    const lightTheme = EditorView.theme({
