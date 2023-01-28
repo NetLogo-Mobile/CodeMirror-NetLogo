@@ -55,14 +55,12 @@ const zh_cn: Record<string, Function> = {
   '~String': (Name: string) => `字符串，或者说一串文字。`,
   '~LineComment': (Name: string) =>
     `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,
-  '~Globals/Identifier': (Name: string) => `模型中定义的全局变量。`,
+  '~Globals/Identifier': (Name: string) => `模型代码中定义的全局变量。`,
   '~BreedVars/Identifier': (Name: string) =>
     `某类模型中定义的海龟或链接具有的变量。`,
   '~BreedPlural': (Name: string) => `某类模型中定义的海龟的复数名称。`,
   '~BreedSingular': (Name: string) => `某类模型中定义的海龟的单数名称。`,
-  '~WidgetGlobal': (Name: string) => `A widget-defined global variable. `,
-  '~Set': (Name: string) => `Used to define a pre-existing variable. `,
-  '~Let': (Name: string) => `Used to create a new variable. `,
+  '~WidgetGlobal': (Name: string) => `通过界面组件定义的全局变量。 `,
 };
 
 export { zh_cn };
