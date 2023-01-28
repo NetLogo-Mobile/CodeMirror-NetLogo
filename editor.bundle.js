@@ -25833,13 +25833,11 @@ if(!String.prototype.matchAll) {
        '~Numeric': (Name) => `A number. `,
        '~String': (Name) => `A string, which is a sequence of characters.`,
        '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code. `,
-       '~Globals/Identifier': (Name) => `A model-defined global variable. `,
+       '~Globals/Identifier': (Name) => `A code-defined global variable. `,
        '~WidgetGlobal': (Name) => `A widget-defined global variable. `,
        '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed. `,
        '~BreedPlural': (Name) => `The plural name of a model-defined breed. `,
        '~BreedSingular': (Name) => `The singular name of a model-defined breed. `,
-       '~Set': (Name) => `Used to define a pre-existing variable. `,
-       '~Let': (Name) => `Used to create a new variable. `,
    };
 
    const zh_cn = {
@@ -25946,8 +25944,6 @@ if(!String.prototype.matchAll) {
            this.RegisterBuiltin('~BreedPlural');
            this.RegisterBuiltin('~BreedSingular');
            this.RegisterBuiltin('~WidgetGlobal');
-           this.RegisterBuiltin('~Set');
-           this.RegisterBuiltin('~Let');
        }
        // RegisterInternal: Register some built-in explanations.
        RegisterBuiltin(...Args) {
@@ -26969,11 +26965,18 @@ if(!String.prototype.matchAll) {
    let _properties = null;
    function properties() {
        if (!_properties && typeof document == "object" && document.body) {
-           let names = [];
-           for (let prop in document.body.style) {
-               if (!/[A-Z]|^-|^(item|length)$/.test(prop))
-                   names.push(prop);
-           }
+           let { style } = document.body, names = [], seen = new Set;
+           for (let prop in style)
+               if (prop != "cssText" && prop != "cssFloat") {
+                   if (typeof style[prop] == "string") {
+                       if (/[A-Z]/.test(prop))
+                           prop = prop.replace(/[A-Z]/g, ch => "-" + ch.toLowerCase());
+                       if (!seen.has(prop)) {
+                           names.push(prop);
+                           seen.add(prop);
+                       }
+                   }
+               }
            _properties = names.sort().map(name => ({ type: "property", label: name }));
        }
        return _properties || [];
