@@ -26,8 +26,6 @@ class DictionaryManager {
     this.RegisterBuiltin('~BreedPlural');
     this.RegisterBuiltin('~BreedSingular');
     this.RegisterBuiltin('~WidgetGlobal');
-    this.RegisterBuiltin('~Set');
-    this.RegisterBuiltin('~Let');
   }
   // RegisterInternal: Register some built-in explanations.
   private RegisterBuiltin(...Args: string[]) {

@@ -56,7 +56,7 @@ const en_us: Record<string, Function> = {
   '~String': (Name: string) => `A string, which is a sequence of characters.`,
   '~LineComment': (Name: string) =>
     `Comments do nothing in the program, but could help others read the code. `,
-  '~Globals/Identifier': (Name: string) => `A model-defined global variable. `,
+  '~Globals/Identifier': (Name: string) => `A code-defined global variable. `,
   '~WidgetGlobal': (Name: string) => `A widget-defined global variable. `,
   '~BreedVars/Identifier': (Name: string) =>
     `A model-defined variable for a breed. `,
@@ -64,8 +64,6 @@ const en_us: Record<string, Function> = {
     `The plural name of a model-defined breed. `,
   '~BreedSingular': (Name: string) =>
     `The singular name of a model-defined breed. `,
-  '~Set': (Name: string) => `Used to define a pre-existing variable. `,
-  '~Let': (Name: string) => `Used to create a new variable. `,
 };
 
 export { en_us };
