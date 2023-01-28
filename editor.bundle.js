@@ -25867,13 +25867,11 @@ if(!String.prototype.matchAll) {
        '~Numeric': (Name) => `一个数字。`,
        '~String': (Name) => `字符串，或者说一串文字。`,
        '~LineComment': (Name) => `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,
-       '~Globals/Identifier': (Name) => `模型中定义的全局变量。`,
+       '~Globals/Identifier': (Name) => `模型代码中定义的全局变量。`,
        '~BreedVars/Identifier': (Name) => `某类模型中定义的海龟或链接具有的变量。`,
        '~BreedPlural': (Name) => `某类模型中定义的海龟的复数名称。`,
        '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
-       '~WidgetGlobal': (Name) => `A widget-defined global variable. `,
-       '~Set': (Name) => `Used to define a pre-existing variable. `,
-       '~Let': (Name) => `Used to create a new variable. `,
+       '~WidgetGlobal': (Name) => `通过界面组件定义的全局变量。 `,
    };
 
    /** LocalizationManager: Manage all localized texts. */
