@@ -25346,6 +25346,42 @@ if(!String.prototype.matchAll) {
            }
            return breedNames;
        }
+       getBreedFromVar(varName) {
+           for (let breed of this.Breeds.values()) {
+               if (breed.Variables.includes(varName)) {
+                   return breed.Singular;
+               }
+           }
+           return '';
+       }
+       IsTermArgVar(varName, to) {
+           let procedureName = '';
+           for (let proc of this.Procedures.values()) {
+               if (proc.Arguments.includes(varName)) {
+                   procedureName = proc.Name;
+                   continue;
+               }
+               for (let localVar of proc.Variables) {
+                   if (localVar.Name == varName && localVar.CreationPos <= to) {
+                       procedureName = proc.Name;
+                   }
+               }
+               if (procedureName != '') {
+                   continue;
+               }
+               for (let anonProc of proc.AnonymousProcedures) {
+                   if (anonProc.Arguments.includes(varName)) {
+                       procedureName = 'anonymous';
+                   }
+                   for (let localVar of anonProc.Variables) {
+                       if (localVar.Name == varName && localVar.CreationPos <= to) {
+                           procedureName = 'anonymous';
+                       }
+                   }
+               }
+           }
+           return procedureName;
+       }
        // #endregion
        // #region "Version Control"
        /** SetDirty: Make the state dirty. */
@@ -25828,7 +25864,7 @@ if(!String.prototype.matchAll) {
        'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
        '~VariableName': (Name) => `A local variable. `,
        '~ProcedureName': (Name) => `The name of a procedure. `,
-       '~Arguments/Identifier': (Name) => `The name of an argument. `,
+       '~Arguments': (Name) => `The name of an argument. `,
        '~PatchVar': (Name) => `A built-in variable for every patch. `,
        '~TurtleVar': (Name) => `A built-in variable for every turtle. `,
        '~LinkVar': (Name) => `A built-in variable for every link. `,
@@ -25844,7 +25880,8 @@ if(!String.prototype.matchAll) {
        '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed. `,
        '~BreedPlural': (Name) => `The plural name of a model-defined breed. `,
        '~BreedSingular': (Name) => `The singular name of a model-defined breed. `,
-       '~BreedVariable': (Name) => `A custom variable for a given breed. `,
+       '~BreedVariable': (Name) => `A custom variable for the ${Name} breed. `,
+       '~LocalVariable': (Name) => `A local variable within the ${Name} procedure. `,
    };
 
    const zh_cn = {
@@ -25879,7 +25916,8 @@ if(!String.prototype.matchAll) {
        '~BreedPlural': (Name) => `某类模型中定义的海龟的复数名称。`,
        '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
        '~WidgetGlobal': (Name) => `通过界面组件定义的全局变量。 `,
-       '~BreedVariable': (Name) => `A custom variable for a given breed. `,
+       '~BreedVariable': (Name) => `A custom variable for the ${Name} breed. `,
+       '~LocalVariable': (Name) => `A local variable within the ${Name} procedure. `,
    };
 
    /** LocalizationManager: Manage all localized texts. */
@@ -25893,7 +25931,7 @@ if(!String.prototype.matchAll) {
            if (!Bundle.hasOwnProperty(Key))
                Bundle = en_us;
            if (!Bundle.hasOwnProperty(Key))
-               return `Unknown message: ${Key}`;
+               return null;
            try {
                return Bundle[Key].apply(this, Args);
            }
@@ -25996,6 +26034,7 @@ if(!String.prototype.matchAll) {
            var closestTerm = '';
            var parentName = '';
            var create = true;
+           var secondTerm = '';
            syntaxTree(state).iterate({
                enter: (ref) => {
                    if (ref.from == ref.to || ref.to == range.from)
@@ -26013,19 +26052,22 @@ if(!String.prototype.matchAll) {
                    if (name.indexOf('Command') != -1 && name.indexOf('Args') != -1)
                        name = 'Command';
                    // Check the category name
-                   if (closestTerm == '~BreedSingular') ;
-                   else if (Dictionary.Check(`~${name}`)) {
+                   console.log(name, Localized.Get(`~${name}`));
+                   if (closestTerm == '~BreedSingular' || closestTerm == '~Arguments') ;
+                   else if (Dictionary.Check(`~${name}`) ||
+                       Localized.Get(`~${name}`)) {
                        closestTerm = `~${name}`;
                    }
-                   else if (Dictionary.Check(`~${parentName}/${name}`))
+                   else if (Dictionary.Check(`~${parentName}/${name}`) ||
+                       Localized.Get(`~${parentName}/${name}`))
                        closestTerm = `~${parentName}/${name}`;
-                   else
-                       console.log(name, parentName);
+                   console.log(name, parentName);
                    parentName = name;
                },
                from: range.from,
                to: range.to,
            });
+           console.log(closestTerm);
            // If so, we won't display tips - that's unnecessary.
            if (lastFrom == lastTo || multipleTokens)
                create = false;
@@ -26039,6 +26081,15 @@ if(!String.prototype.matchAll) {
            }
            else if (state.field(stateExtension).GetBreedVariables().includes(term)) {
                closestTerm = '~BreedVariable';
+               secondTerm = state.field(stateExtension).getBreedFromVar(term);
+           }
+           else if (closestTerm == '~VariableName' ||
+               (parentName == 'Identifier' && closestTerm == '')) {
+               let result = state.field(stateExtension).IsTermArgVar(term, lastTo);
+               if (result != '') {
+                   closestTerm = '~LocalVariable';
+                   secondTerm = result;
+               }
            }
            if (Dictionary.Check(term))
                closestTerm = term;
@@ -26055,7 +26106,7 @@ if(!String.prototype.matchAll) {
                create: (view) => {
                    const dom = document.createElement('div');
                    if (create) {
-                       var message = Dictionary.Get(closestTerm, term);
+                       var message = Localized.Get(closestTerm, secondTerm);
                        if (Dictionary.ClickHandler != null &&
                            !closestTerm.startsWith('~')) {
                            message += '➤';
