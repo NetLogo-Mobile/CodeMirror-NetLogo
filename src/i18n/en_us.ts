@@ -44,7 +44,7 @@ const en_us: Record<string, Function> = {
 
   '~VariableName': (Name: string) => `A local variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,
-  '~Arguments/Identifier': (Name: string) => `The name of an argument. `,
+  '~Arguments': (Name: string) => `The name of an argument. `,
   '~PatchVar': (Name: string) => `A built-in variable for every patch. `,
   '~TurtleVar': (Name: string) => `A built-in variable for every turtle. `,
   '~LinkVar': (Name: string) => `A built-in variable for every link. `,
@@ -64,7 +64,10 @@ const en_us: Record<string, Function> = {
     `The plural name of a model-defined breed. `,
   '~BreedSingular': (Name: string) =>
     `The singular name of a model-defined breed. `,
-  '~BreedVariable': (Name: string) => `A custom variable for a given breed. `,
+  '~BreedVariable': (Name: string) =>
+    `A custom variable for the ${Name} breed. `,
+  '~LocalVariable': (Name: string) =>
+    `A local variable within the ${Name} procedure. `,
 };
 
 export { en_us };

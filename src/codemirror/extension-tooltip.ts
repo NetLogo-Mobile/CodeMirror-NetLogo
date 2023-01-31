@@ -5,6 +5,7 @@ import { syntaxTree } from '@codemirror/language';
 import { Dictionary } from '../i18n/dictionary';
 import { SyntaxNode } from '@lezer/common';
 import { stateExtension } from './extension-state-netlogo';
+import { Localized } from '../i18n/localized';
 
 /** TooltipExtension: Extension for displaying language-specific tooltips. */
 export const tooltipExtension = StateField.define<readonly Tooltip[]>({
@@ -33,6 +34,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
       var closestTerm = '';
       var parentName = '';
       var create = true;
+      var secondTerm = '';
       syntaxTree(state).iterate({
         enter: (ref) => {
           if (ref.from == ref.to || ref.to == range.from) return true;
@@ -49,17 +51,25 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
           if (name.indexOf('Command') != -1 && name.indexOf('Args') != -1)
             name = 'Command';
           // Check the category name
-          if (closestTerm == '~BreedSingular') {
-          } else if (Dictionary.Check(`~${name}`)) {
+          console.log(name, Localized.Get(`~${name}`));
+          if (closestTerm == '~BreedSingular' || closestTerm == '~Arguments') {
+          } else if (
+            Dictionary.Check(`~${name}`) ||
+            Localized.Get(`~${name}`)
+          ) {
             closestTerm = `~${name}`;
-          } else if (Dictionary.Check(`~${parentName}/${name}`))
+          } else if (
+            Dictionary.Check(`~${parentName}/${name}`) ||
+            Localized.Get(`~${parentName}/${name}`)
+          )
             closestTerm = `~${parentName}/${name}`;
-          else console.log(name, parentName);
+          console.log(name, parentName);
           parentName = name;
         },
         from: range.from,
         to: range.to,
       });
+      console.log(closestTerm);
       // If so, we won't display tips - that's unnecessary.
       if (lastFrom == lastTo || multipleTokens) create = false;
       // Check if we can directly recognize the youngest children's full-word
@@ -73,7 +83,18 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         state.field(stateExtension).GetBreedVariables().includes(term)
       ) {
         closestTerm = '~BreedVariable';
+        secondTerm = state.field(stateExtension).getBreedFromVar(term);
+      } else if (
+        closestTerm == '~VariableName' ||
+        (parentName == 'Identifier' && closestTerm == '')
+      ) {
+        let result = state.field(stateExtension).IsTermArgVar(term, lastTo);
+        if (result != '') {
+          closestTerm = '~LocalVariable';
+          secondTerm = result;
+        }
       }
+
       if (Dictionary.Check(term)) closestTerm = term;
       if (closestTerm == '') create = false;
       console.log('Term: ' + term, closestTerm, parentName);
@@ -87,7 +108,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         create: (view: EditorView) => {
           const dom = document.createElement('div');
           if (create) {
-            var message = Dictionary.Get(closestTerm, term);
+            var message = Localized.Get(closestTerm, secondTerm);
             if (
               Dictionary.ClickHandler != null &&
               !closestTerm.startsWith('~')

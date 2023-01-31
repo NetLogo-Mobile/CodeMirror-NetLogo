@@ -9,6 +9,7 @@ import {
 } from '../lang/classes';
 import { SyntaxNode } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
+import { resourceLimits } from 'worker_threads';
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
@@ -57,6 +58,43 @@ export class StateNetLogo {
       breedNames = breedNames.concat(breed.Variables);
     }
     return breedNames;
+  }
+  public getBreedFromVar(varName: string): string {
+    for (let breed of this.Breeds.values()) {
+      if (breed.Variables.includes(varName)) {
+        return breed.Singular;
+      }
+    }
+    return '';
+  }
+  public IsTermArgVar(varName: string, to: number): string {
+    let procedureName = '';
+    for (let proc of this.Procedures.values()) {
+      if (proc.Arguments.includes(varName)) {
+        procedureName = proc.Name;
+        continue;
+      }
+      for (let localVar of proc.Variables) {
+        if (localVar.Name == varName && localVar.CreationPos <= to) {
+          procedureName = proc.Name;
+        }
+      }
+      if (procedureName != '') {
+        continue;
+      }
+      for (let anonProc of proc.AnonymousProcedures) {
+        if (anonProc.Arguments.includes(varName)) {
+          procedureName = 'anonymous';
+        }
+        for (let localVar of anonProc.Variables) {
+          if (localVar.Name == varName && localVar.CreationPos <= to) {
+            procedureName = 'anonymous';
+          }
+        }
+      }
+    }
+
+    return procedureName;
   }
   // #endregion
 

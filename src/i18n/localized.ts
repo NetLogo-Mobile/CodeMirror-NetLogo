@@ -8,7 +8,7 @@ class LocalizationManager {
   public Get(Key: string, ...Args: string[]) {
     var Bundle = this.Current;
     if (!Bundle.hasOwnProperty(Key)) Bundle = en_us;
-    if (!Bundle.hasOwnProperty(Key)) return `Unknown message: ${Key}`;
+    if (!Bundle.hasOwnProperty(Key)) return null;
     try {
       return Bundle[Key].apply(this, Args);
     } catch {
