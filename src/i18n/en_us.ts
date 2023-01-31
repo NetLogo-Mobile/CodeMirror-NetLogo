@@ -64,6 +64,7 @@ const en_us: Record<string, Function> = {
     `The plural name of a model-defined breed. `,
   '~BreedSingular': (Name: string) =>
     `The singular name of a model-defined breed. `,
+  '~BreedVariable': (Name: string) => `A custom variable for a given breed. `,
 };
 
 export { en_us };

@@ -61,6 +61,7 @@ const zh_cn: Record<string, Function> = {
   '~BreedPlural': (Name: string) => `某类模型中定义的海龟的复数名称。`,
   '~BreedSingular': (Name: string) => `某类模型中定义的海龟的单数名称。`,
   '~WidgetGlobal': (Name: string) => `通过界面组件定义的全局变量。 `,
+  '~BreedVariable': (Name: string) => `A custom variable for a given breed. `,
 };
 
 export { zh_cn };

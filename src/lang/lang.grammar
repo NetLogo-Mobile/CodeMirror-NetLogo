@@ -254,7 +254,8 @@ Commands {
   SpecialCommand6Args |
   SpecialCommandCreateTurtle |
   SpecialCommandCreateLink |
-  AnonymousProcedure
+  AnonymousProcedure |
+  Identifier
 }
 
 Reporters{
@@ -286,7 +287,8 @@ Reporters{
   SpecialReporter0ArgsTurtle |
   SpecialReporter1ArgsTurtle |
   SpecialReporter0ArgsLinkP |
-  AnonymousProcedure
+  AnonymousProcedure |
+  Identifier
 }
 
 @tokens {

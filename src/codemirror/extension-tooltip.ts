@@ -49,11 +49,12 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
           if (name.indexOf('Command') != -1 && name.indexOf('Args') != -1)
             name = 'Command';
           // Check the category name
-          if (Dictionary.Check(`~${name}`)) {
+          if (closestTerm == '~BreedSingular') {
+          } else if (Dictionary.Check(`~${name}`)) {
             closestTerm = `~${name}`;
           } else if (Dictionary.Check(`~${parentName}/${name}`))
             closestTerm = `~${parentName}/${name}`;
-          else console.log(name);
+          else console.log(name, parentName);
           parentName = name;
         },
         from: range.from,
@@ -68,6 +69,10 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         closestTerm = '~Globals/Identifier';
       } else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
         closestTerm = '~WidgetGlobal';
+      } else if (
+        state.field(stateExtension).GetBreedVariables().includes(term)
+      ) {
+        closestTerm = '~BreedVariable';
       }
       if (Dictionary.Check(term)) closestTerm = term;
       if (closestTerm == '') create = false;
@@ -78,7 +83,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         pos: range.from,
         above: false,
         strictSide: true,
-        arrow: true,
+        arrow: create,
         create: (view: EditorView) => {
           const dom = document.createElement('div');
           if (create) {
