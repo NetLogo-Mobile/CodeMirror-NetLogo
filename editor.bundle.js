@@ -16717,6 +16717,31 @@ if(!String.prototype.matchAll) {
        return tree ? syntaxIndentation(context, tree, pos) : null;
    }
    /**
+   Create a change set that auto-indents all lines touched by the
+   given document range.
+   */
+   function indentRange(state, from, to) {
+       let updated = Object.create(null);
+       let context = new IndentContext(state, { overrideIndentation: start => { var _a; return (_a = updated[start]) !== null && _a !== void 0 ? _a : -1; } });
+       let changes = [];
+       for (let pos = from; pos <= to;) {
+           let line = state.doc.lineAt(pos);
+           pos = line.to + 1;
+           let indent = getIndentation(context, line.from);
+           if (indent == null)
+               continue;
+           if (!/\S/.test(line.text))
+               indent = 0;
+           let cur = /^\s*/.exec(line.text)[0];
+           let norm = indentString(state, indent);
+           if (cur != norm) {
+               updated[line.from] = indent;
+               changes.push({ from: line.from, to: line.from + cur.length, insert: norm });
+           }
+       }
+       return state.changes(changes);
+   }
+   /**
    Indentation contexts are used when calling [indentation
    services](https://codemirror.net/6/docs/ref/#language.indentService). They provide helper utilities
    useful in indentation logic, and can selectively override the
@@ -28544,6 +28569,35 @@ if(!String.prototype.matchAll) {
        BreedNameLinter,
    ];
 
+   const pretty = function (view) {
+       let changes = [];
+       let doc = view.state.doc.toString();
+       //eliminate extra spacing
+       let new_doc = doc.replace(/\s+/g, ' ');
+       new_doc = new_doc.replace(/^\s+/, '');
+       view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+       //give certain nodes their own lines
+       syntaxTree(view.state)
+           .cursor()
+           .iterate((node) => {
+           var _a;
+           if ((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' ||
+               node.name == 'End' ||
+               node.name == 'CommandStatement') &&
+               node.from > 0) {
+               changes.push({ from: node.from, insert: '\n' });
+           }
+           if ((node.name == 'To' || node.name == 'Own') && node.from > 0) {
+               changes.push({ from: node.from, insert: '\n' });
+           }
+       });
+       view.dispatch({ changes: changes });
+       //add indentation
+       view.dispatch({
+           changes: indentRange(view.state, 0, view.state.doc.toString().length),
+       });
+   };
+
    /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
    class GalapagosEditor {
        /** FindField: Records the find input of search panel. */
@@ -28927,6 +28981,10 @@ if(!String.prototype.matchAll) {
            if (this.Options.OnUpdate != null) {
                this.Options.OnUpdate(update.docChanged, update);
            }
+       }
+       // #endregion
+       Prettying() {
+           pretty(this.CodeMirror);
        }
    }
    /** Export classes globally. */
