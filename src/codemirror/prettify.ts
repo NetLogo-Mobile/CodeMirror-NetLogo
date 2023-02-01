@@ -7,9 +7,9 @@ export const prettify = function (view: EditorView) {
   let doc = view.state.doc.toString();
 
   //eliminate extra spacing
-  let new_doc = doc.replace(/\n+/g, '\n');
+  let new_doc = doc.replace(/\n\s+/g, '\n');
   new_doc = new_doc.replace(/ +/g, ' ');
-  console.log(new_doc);
+  // console.log(new_doc);
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
 
   doc = view.state.doc.toString();
@@ -19,21 +19,26 @@ export const prettify = function (view: EditorView) {
     .iterate((node) => {
       if (
         (node.node.parent?.name == 'Program' ||
+          node.name == 'To' ||
           node.name == 'End' ||
+          node.name == 'Own' ||
           node.name == 'CommandStatement' ||
           (node.node.parent?.name == 'CodeBlock' &&
             node.name == 'CloseBracket')) &&
-        node.from > 0 &&
-        doc[node.from - 2] != '\n' &&
-        doc[node.from - 1] != '\n'
+        node.from > 0
       ) {
-        changes.push(getChange(node.from, doc));
-      }
-      if ((node.name == 'To' || node.name == 'Own') && node.from > 0) {
         changes.push(getChange(node.from, doc));
       }
     });
   view.dispatch({ changes: changes });
+
+  //ensure spacing is correct
+  doc = view.state.doc.toString();
+  new_doc = doc.replace(/\n\s+/g, '\n');
+  console.log(new_doc.match(/\n\s+/g));
+  new_doc = new_doc.replace(/(\nto[ -])/g, '\n$1');
+  new_doc = new_doc.replace(/(\n[\w-]+-own)/g, '\n$1');
+  view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
 
   //add indentation
   view.dispatch({
