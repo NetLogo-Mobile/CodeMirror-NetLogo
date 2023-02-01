@@ -63,13 +63,13 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
             Localized.Get(`~${parentName}/${name}`)
           )
             closestTerm = `~${parentName}/${name}`;
-          console.log(name, parentName);
+          // console.log(name, parentName);
           parentName = name;
         },
         from: range.from,
         to: range.to,
       });
-      console.log(closestTerm);
+      // console.log(closestTerm);
       // If so, we won't display tips - that's unnecessary.
       if (lastFrom == lastTo || multipleTokens) create = false;
       // Check if we can directly recognize the youngest children's full-word
@@ -88,7 +88,9 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         closestTerm == '~VariableName' ||
         (parentName == 'Identifier' && closestTerm == '')
       ) {
-        let result = state.field(stateExtension).IsTermArgVar(term, lastTo);
+        let result = state
+          .field(stateExtension)
+          .IsTermArgVar(term, lastFrom, lastTo);
         if (result != '') {
           closestTerm = '~LocalVariable';
           secondTerm = result;

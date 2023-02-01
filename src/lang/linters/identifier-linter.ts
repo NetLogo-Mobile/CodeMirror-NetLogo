@@ -98,6 +98,18 @@ export const checkValid = function (
   // checks if identifier is a breed name or variable
   if (breedNames.includes(value) || breedVars.includes(value)) return true;
   // checks if identifier is a variable already declared in the procedure
+  // collects list of valid local variables for given position
+  let procedureVars = getLocalVars(Node, state, parseState);
+  //checks if the identifier is in the list of possible variables
+  return procedureVars.includes(value);
+};
+
+// collects list of valid local variables for given position
+export const getLocalVars = function (
+  Node: SyntaxNode,
+  state: EditorState,
+  parseState: StateNetLogo
+) {
   // get the procedure name
   let curr_node = Node;
   let procedureName = '';
@@ -136,8 +148,7 @@ export const checkValid = function (
       procedureVars.push(...procedure.Arguments);
     }
   }
-  //checks if the identifier is in the list of possible variables
-  return procedureVars.includes(value);
+  return procedureVars;
 };
 
 //identify if the term looks like a breed procedure (e.g. "create-___")

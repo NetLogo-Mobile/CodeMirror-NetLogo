@@ -17,6 +17,7 @@ import {
 } from '@codemirror/autocomplete';
 import { syntaxTree } from '@codemirror/language';
 import { PrimitiveManager } from './primitives/primitives';
+import { getLocalVars } from './linters/identifier-linter';
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 /* Possible Types of Autocompletion Tokens:
@@ -172,7 +173,13 @@ export class AutoCompletion {
           type: Procedure.IsCommand ? 'Command-Custom' : 'Reporter-Custom',
         });
       }
-
+      // Valid local variables
+      results.push(
+        ...this.KeywordsToCompletions(
+          getLocalVars(node, Context.state, state),
+          'Variable-Local'
+        )
+      );
       return { from, options: results };
     }
 

@@ -67,7 +67,7 @@ export class StateNetLogo {
     }
     return '';
   }
-  public IsTermArgVar(varName: string, to: number): string {
+  public IsTermArgVar(varName: string, from: number, to: number): string {
     let procedureName = '';
     for (let proc of this.Procedures.values()) {
       if (proc.Arguments.includes(varName)) {
@@ -83,12 +83,14 @@ export class StateNetLogo {
         continue;
       }
       for (let anonProc of proc.AnonymousProcedures) {
-        if (anonProc.Arguments.includes(varName)) {
-          procedureName = 'anonymous';
-        }
-        for (let localVar of anonProc.Variables) {
-          if (localVar.Name == varName && localVar.CreationPos <= to) {
+        if (anonProc.PositionStart <= from && anonProc.PositionEnd >= to) {
+          if (anonProc.Arguments.includes(varName)) {
             procedureName = 'anonymous';
+          }
+          for (let localVar of anonProc.Variables) {
+            if (localVar.Name == varName && localVar.CreationPos <= to) {
+              procedureName = 'anonymous';
+            }
           }
         }
       }
@@ -203,8 +205,8 @@ export class StateNetLogo {
           }
           if (noderef.name == 'AnonymousProcedure') {
             let anonProc = new AnonymousProcedure();
-            anonProc.PositionStart = Cursor.node.from;
-            anonProc.PositionEnd = Cursor.node.to;
+            anonProc.PositionStart = noderef.from;
+            anonProc.PositionEnd = noderef.to;
             anonProc.Variables = procedure.Variables;
             let args: string[] = [];
             let Node = noderef.node;
