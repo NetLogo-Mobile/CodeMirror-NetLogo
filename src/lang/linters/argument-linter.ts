@@ -123,7 +123,11 @@ export const ArgumentLinter = linter((view) => {
         }
       }
     });
-  return diagnostics;
+  return diagnostics.filter(
+    (d) =>
+      d.from >= view.state.selection.ranges[0].to ||
+      d.to <= view.state.selection.ranges[0].from
+  );
 });
 
 //collects everything used as an argument so it can be counted
