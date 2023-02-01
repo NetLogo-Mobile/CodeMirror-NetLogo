@@ -25354,7 +25354,7 @@ if(!String.prototype.matchAll) {
            }
            return '';
        }
-       IsTermArgVar(varName, to) {
+       IsTermArgVar(varName, from, to) {
            let procedureName = '';
            for (let proc of this.Procedures.values()) {
                if (proc.Arguments.includes(varName)) {
@@ -25370,12 +25370,14 @@ if(!String.prototype.matchAll) {
                    continue;
                }
                for (let anonProc of proc.AnonymousProcedures) {
-                   if (anonProc.Arguments.includes(varName)) {
-                       procedureName = 'anonymous';
-                   }
-                   for (let localVar of anonProc.Variables) {
-                       if (localVar.Name == varName && localVar.CreationPos <= to) {
+                   if (anonProc.PositionStart <= from && anonProc.PositionEnd >= to) {
+                       if (anonProc.Arguments.includes(varName)) {
                            procedureName = 'anonymous';
+                       }
+                       for (let localVar of anonProc.Variables) {
+                           if (localVar.Name == varName && localVar.CreationPos <= to) {
+                               procedureName = 'anonymous';
+                           }
                        }
                    }
                }
@@ -25481,8 +25483,8 @@ if(!String.prototype.matchAll) {
                        }
                        if (noderef.name == 'AnonymousProcedure') {
                            let anonProc = new AnonymousProcedure();
-                           anonProc.PositionStart = Cursor.node.from;
-                           anonProc.PositionEnd = Cursor.node.to;
+                           anonProc.PositionStart = noderef.from;
+                           anonProc.PositionEnd = noderef.to;
                            anonProc.Variables = procedure.Variables;
                            let args = [];
                            let Node = noderef.node;
@@ -25580,6 +25582,314 @@ if(!String.prototype.matchAll) {
            return Original;
        },
    });
+
+   const en_us = {
+       'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
+       'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
+       'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
+       'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
+       'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo.`,
+       'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
+       'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
+       'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
+       'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
+       'Invalid extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+       'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
+       'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
+       'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
+       '~VariableName': (Name) => `A local variable. `,
+       '~ProcedureName': (Name) => `The name of a procedure. `,
+       '~Arguments': (Name) => `The name of an argument. `,
+       '~PatchVar': (Name) => `A built-in variable for every patch. `,
+       '~TurtleVar': (Name) => `A built-in variable for every turtle. `,
+       '~LinkVar': (Name) => `A built-in variable for every link. `,
+       '~Reporter': (Name) => `A NetLogo reporter. `,
+       '~Command': (Name) => `A NetLogo command. `,
+       '~Constant': (Name) => `A NetLogo constant. `,
+       '~Extension': (Name) => `A NetLogo extension. `,
+       '~Numeric': (Name) => `A number. `,
+       '~String': (Name) => `A string, which is a sequence of characters.`,
+       '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code. `,
+       '~Globals/Identifier': (Name) => `A code-defined global variable. `,
+       '~WidgetGlobal': (Name) => `A widget-defined global variable. `,
+       '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed. `,
+       '~BreedPlural': (Name) => `The plural name of a model-defined breed. `,
+       '~BreedSingular': (Name) => `The singular name of a model-defined breed. `,
+       '~BreedVariable': (Name) => `A custom variable for the ${Name} breed. `,
+       '~LocalVariable': (Name) => `A local variable within the ${Name} procedure. `,
+   };
+
+   const zh_cn = {
+       'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
+       'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
+       'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
+       'Unrecognized statement _': (Name) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
+       'Unsupported statement _': (Name) => `此版本 NetLogo 不支持 "${Name}"。`,
+       'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" 不是有效的原语。预计 "${Expected}" 却得到 "${Actual}"。`,
+       'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要 ${Expected} 个左侧参数，但代码中只有 ${Actual} 个。`,
+       'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
+       'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
+       'Invalid extension _.': (Name) => `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
+       'Breed name _ already used.': (Name) => `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
+       'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
+       'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
+       '~VariableName': (Name) => `变量名称。`,
+       '~ProcedureName': (Name) => `过程或函数的名称。`,
+       '~Arguments/Identifier': (Name) => `参数名称。`,
+       '~PatchVar': (Name) => `格子的内置变量。`,
+       '~TurtleVar': (Name) => `海龟的内置变量。`,
+       '~LinkVar': (Name) => `链接的内置变量。`,
+       '~Reporter': (Name) => `NetLogo 语言的内置函数。`,
+       '~Command': (Name) => `NetLogo 语言的内置命令。`,
+       '~Constant': (Name) => `NetLogo 语言规定的常量。`,
+       '~Extension': (Name) => `NetLogo 语言的扩展。`,
+       '~Numeric': (Name) => `一个数字。`,
+       '~String': (Name) => `字符串，或者说一串文字。`,
+       '~LineComment': (Name) => `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,
+       '~Globals/Identifier': (Name) => `模型代码中定义的全局变量。`,
+       '~BreedVars/Identifier': (Name) => `某类模型中定义的海龟或链接具有的变量。`,
+       '~BreedPlural': (Name) => `某类模型中定义的海龟的复数名称。`,
+       '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
+       '~WidgetGlobal': (Name) => `通过界面组件定义的全局变量。 `,
+       '~BreedVariable': (Name) => `A custom variable for the ${Name} breed. `,
+       '~LocalVariable': (Name) => `A local variable within the ${Name} procedure. `,
+   };
+
+   /** LocalizationManager: Manage all localized texts. */
+   class LocalizationManager {
+       constructor() {
+           this.Current = en_us;
+       }
+       /** Get: Get a localized key. */
+       Get(Key, ...Args) {
+           var Bundle = this.Current;
+           if (!Bundle.hasOwnProperty(Key))
+               Bundle = en_us;
+           if (!Bundle.hasOwnProperty(Key))
+               return null;
+           try {
+               return Bundle[Key].apply(this, Args);
+           }
+           catch (_a) {
+               return `Error in producing message: ${Key}`;
+           }
+       }
+       /** Switch: Switch to another language. */
+       Switch(Locale) {
+           switch (Locale.toLowerCase()) {
+               case 'zh_cn':
+               case 'chinese':
+                   this.Current = zh_cn;
+                   break;
+               default:
+                   this.Current = en_us;
+                   break;
+           }
+       }
+   }
+   /** Singleton */
+   const Localized = new LocalizationManager();
+   /** Global singleton */
+   try {
+       window.EditorLocalized = Localized;
+   }
+   catch (error) { }
+
+   const buildLinter = function (Source) {
+       var LastVersion = 0;
+       var Cached;
+       return linter((view) => {
+           const State = view.state.field(stateExtension);
+           if (State.GetDirty() || State.GetVersion() > LastVersion) {
+               State.ParseState(view.state);
+               Cached = Source(view, State);
+               LastVersion = State.GetVersion();
+           }
+           return Cached;
+       });
+   };
+
+   // IdentifierLinter: Checks anything labelled 'Identifier'
+   const IdentifierLinter = buildLinter((view, parseState) => {
+       const diagnostics = [];
+       const breedNames = parseState.GetBreedNames();
+       const breedVars = parseState.GetBreedVariables();
+       syntaxTree(view.state)
+           .cursor()
+           .iterate((noderef) => {
+           if (noderef.name == 'Identifier') {
+               const Node = noderef.node;
+               const value = view.state.sliceDoc(noderef.from, noderef.to);
+               //check if it meets some initial criteria for validity
+               if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
+                   //check if the identifier looks like a breed procedure (e.g. "create-___")
+                   let result = checkBreedLike(value);
+                   if (!result[0]) {
+                       diagnostics.push({
+                           from: noderef.from,
+                           to: noderef.to,
+                           severity: 'warning',
+                           message: Localized.Get('Unrecognized identifier _', value),
+                       });
+                   }
+                   else {
+                       //pull out name of possible intended breed
+                       let first = value.indexOf('-');
+                       let last = value.lastIndexOf('-');
+                       let str = '';
+                       if (result[1] == 'Last') {
+                           str = value.substring(first + 1);
+                       }
+                       else if (result[1] == 'First') {
+                           str = value.substring(0, last);
+                       }
+                       else if (result[1] == 'Middle') {
+                           str = value.substring(first + 1, last);
+                       }
+                       else {
+                           str = value.substring(first + 1, value.length - 1);
+                       }
+                       diagnostics.push({
+                           from: noderef.from,
+                           to: noderef.to,
+                           severity: 'warning',
+                           message: Localized.Get('Invalid breed procedure _', str),
+                       });
+                   }
+               }
+           }
+       });
+       return diagnostics;
+   });
+   // always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
+   const acceptableIdentifiers = [
+       'Unrecognized',
+       'NewVariableDeclaration',
+       'ProcedureName',
+       'Arguments',
+       'Globals',
+       'BreedSingular',
+       'BreedPlural',
+       'BreedsOwn',
+   ];
+   // Checks identifiers for valid variable/procedure/breed names
+   const checkValid$1 = function (Node, value, state, parseState, breedNames, breedVars) {
+       var _a, _b;
+       value = value.toLowerCase();
+       // checks if parent is in a category that is always valid (e.g. 'Globals')
+       if (acceptableIdentifiers.includes((_b = (_a = Node.parent) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : ''))
+           return true;
+       // checks if identifier is a global variable
+       if (parseState.Globals.includes(value) ||
+           parseState.WidgetGlobals.includes(value) ||
+           parseState.Procedures.has(value))
+           return true;
+       // checks if identifier is a breed name or variable
+       if (breedNames.includes(value) || breedVars.includes(value))
+           return true;
+       // checks if identifier is a variable already declared in the procedure
+       // collects list of valid local variables for given position
+       let procedureVars = getLocalVars(Node, state, parseState);
+       //checks if the identifier is in the list of possible variables
+       return procedureVars.includes(value);
+   };
+   // collects list of valid local variables for given position
+   const getLocalVars = function (Node, state, parseState) {
+       // get the procedure name
+       let curr_node = Node;
+       let procedureName = '';
+       while (curr_node.parent) {
+           curr_node = curr_node.parent;
+           if (curr_node.name == 'Procedure') {
+               curr_node.getChildren('ProcedureName').map((child) => {
+                   procedureName = state.sliceDoc(child.from, child.to);
+               });
+               break;
+           }
+       }
+       // gets list of procedure variables from own procedure, as well as list of all procedure names
+       let procedureVars = [];
+       if (procedureName != '') {
+           let procedure = parseState.Procedures.get(procedureName.toLowerCase());
+           procedure === null || procedure === void 0 ? void 0 : procedure.Variables.map((variable) => {
+               // makes sure the variable has already been created
+               if (variable.CreationPos < Node.from) {
+                   procedureVars.push(variable.Name);
+               }
+           });
+           //pulls out all local variables within the anonymous procedures up until current position
+           procedure === null || procedure === void 0 ? void 0 : procedure.AnonymousProcedures.map((anonProc) => {
+               if (Node.from >= anonProc.PositionStart &&
+                   Node.to <= anonProc.PositionEnd) {
+                   anonProc.Variables.map((variable) => variable.Name).forEach((name) => procedureVars.push(name));
+                   procedureVars.push(...anonProc.Arguments);
+               }
+           });
+           if (procedure === null || procedure === void 0 ? void 0 : procedure.Arguments) {
+               procedureVars.push(...procedure.Arguments);
+           }
+       }
+       return procedureVars;
+   };
+   //identify if the term looks like a breed procedure (e.g. "create-___")
+   //If so, also identify where to look within the term to find the intended breed name
+   const checkBreedLike = function (str) {
+       let result = false;
+       let location = '';
+       if (str.match(/[^\s]+-(at)/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/[^\s]+-here/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/[^\s]+-neighbors/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/[^\s]+-on/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
+           result = true;
+           location = 'First';
+       }
+       else if (str.match(/^(my|my-in|my-out)-[^\s]+/)) {
+           result = true;
+           location = 'Last';
+       }
+       else if (str.match(/^is-[^\s]+\\?$/)) {
+           result = true;
+           location = 'Question';
+       }
+       else if (str.match(/^in-[^\s]+-from$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^out-[^\s]+-to$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
+           result = true;
+           location = 'Middle';
+       }
+       else if (str.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+           result = true;
+           location = 'Last';
+       }
+       return [result, location];
+   };
 
    /** AutoCompletion: Auto completion service for a NetLogo model. */
    /* Possible Types of Autocompletion Tokens:
@@ -25696,6 +26006,8 @@ if(!String.prototype.matchAll) {
                        type: Procedure.IsCommand ? 'Command-Custom' : 'Reporter-Custom',
                    });
                }
+               // Valid local variables
+               results.push(...this.KeywordsToCompletions(getLocalVars(node, Context.state, state), 'Variable-Local'));
                return { from, options: results };
            }
            // Failed
@@ -25848,118 +26160,6 @@ if(!String.prototype.matchAll) {
        return EditorView.updateListener.of(callback);
    };
 
-   const en_us = {
-       'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
-       'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
-       'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
-       'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
-       'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo.`,
-       'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
-       'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
-       'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
-       'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
-       'Invalid extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
-       'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
-       'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
-       'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
-       '~VariableName': (Name) => `A local variable. `,
-       '~ProcedureName': (Name) => `The name of a procedure. `,
-       '~Arguments': (Name) => `The name of an argument. `,
-       '~PatchVar': (Name) => `A built-in variable for every patch. `,
-       '~TurtleVar': (Name) => `A built-in variable for every turtle. `,
-       '~LinkVar': (Name) => `A built-in variable for every link. `,
-       '~Reporter': (Name) => `A NetLogo reporter. `,
-       '~Command': (Name) => `A NetLogo command. `,
-       '~Constant': (Name) => `A NetLogo constant. `,
-       '~Extension': (Name) => `A NetLogo extension. `,
-       '~Numeric': (Name) => `A number. `,
-       '~String': (Name) => `A string, which is a sequence of characters.`,
-       '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code. `,
-       '~Globals/Identifier': (Name) => `A code-defined global variable. `,
-       '~WidgetGlobal': (Name) => `A widget-defined global variable. `,
-       '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed. `,
-       '~BreedPlural': (Name) => `The plural name of a model-defined breed. `,
-       '~BreedSingular': (Name) => `The singular name of a model-defined breed. `,
-       '~BreedVariable': (Name) => `A custom variable for the ${Name} breed. `,
-       '~LocalVariable': (Name) => `A local variable within the ${Name} procedure. `,
-   };
-
-   const zh_cn = {
-       'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
-       'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
-       'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
-       'Unrecognized statement _': (Name) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
-       'Unsupported statement _': (Name) => `此版本 NetLogo 不支持 "${Name}"。`,
-       'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" 不是有效的原语。预计 "${Expected}" 却得到 "${Actual}"。`,
-       'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要 ${Expected} 个左侧参数，但代码中只有 ${Actual} 个。`,
-       'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
-       'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
-       'Invalid extension _.': (Name) => `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
-       'Breed name _ already used.': (Name) => `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
-       'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
-       'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
-       '~VariableName': (Name) => `变量名称。`,
-       '~ProcedureName': (Name) => `过程或函数的名称。`,
-       '~Arguments/Identifier': (Name) => `参数名称。`,
-       '~PatchVar': (Name) => `格子的内置变量。`,
-       '~TurtleVar': (Name) => `海龟的内置变量。`,
-       '~LinkVar': (Name) => `链接的内置变量。`,
-       '~Reporter': (Name) => `NetLogo 语言的内置函数。`,
-       '~Command': (Name) => `NetLogo 语言的内置命令。`,
-       '~Constant': (Name) => `NetLogo 语言规定的常量。`,
-       '~Extension': (Name) => `NetLogo 语言的扩展。`,
-       '~Numeric': (Name) => `一个数字。`,
-       '~String': (Name) => `字符串，或者说一串文字。`,
-       '~LineComment': (Name) => `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,
-       '~Globals/Identifier': (Name) => `模型代码中定义的全局变量。`,
-       '~BreedVars/Identifier': (Name) => `某类模型中定义的海龟或链接具有的变量。`,
-       '~BreedPlural': (Name) => `某类模型中定义的海龟的复数名称。`,
-       '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
-       '~WidgetGlobal': (Name) => `通过界面组件定义的全局变量。 `,
-       '~BreedVariable': (Name) => `A custom variable for the ${Name} breed. `,
-       '~LocalVariable': (Name) => `A local variable within the ${Name} procedure. `,
-   };
-
-   /** LocalizationManager: Manage all localized texts. */
-   class LocalizationManager {
-       constructor() {
-           this.Current = en_us;
-       }
-       /** Get: Get a localized key. */
-       Get(Key, ...Args) {
-           var Bundle = this.Current;
-           if (!Bundle.hasOwnProperty(Key))
-               Bundle = en_us;
-           if (!Bundle.hasOwnProperty(Key))
-               return null;
-           try {
-               return Bundle[Key].apply(this, Args);
-           }
-           catch (_a) {
-               return `Error in producing message: ${Key}`;
-           }
-       }
-       /** Switch: Switch to another language. */
-       Switch(Locale) {
-           switch (Locale.toLowerCase()) {
-               case 'zh_cn':
-               case 'chinese':
-                   this.Current = zh_cn;
-                   break;
-               default:
-                   this.Current = en_us;
-                   break;
-           }
-       }
-   }
-   /** Singleton */
-   const Localized = new LocalizationManager();
-   /** Global singleton */
-   try {
-       window.EditorLocalized = Localized;
-   }
-   catch (error) { }
-
    /** DictionaryManager: Dictionary support. */
    class DictionaryManager {
        constructor() {
@@ -26061,13 +26261,13 @@ if(!String.prototype.matchAll) {
                    else if (Dictionary.Check(`~${parentName}/${name}`) ||
                        Localized.Get(`~${parentName}/${name}`))
                        closestTerm = `~${parentName}/${name}`;
-                   console.log(name, parentName);
+                   // console.log(name, parentName);
                    parentName = name;
                },
                from: range.from,
                to: range.to,
            });
-           console.log(closestTerm);
+           // console.log(closestTerm);
            // If so, we won't display tips - that's unnecessary.
            if (lastFrom == lastTo || multipleTokens)
                create = false;
@@ -26085,7 +26285,9 @@ if(!String.prototype.matchAll) {
            }
            else if (closestTerm == '~VariableName' ||
                (parentName == 'Identifier' && closestTerm == '')) {
-               let result = state.field(stateExtension).IsTermArgVar(term, lastTo);
+               let result = state
+                   .field(stateExtension)
+                   .IsTermArgVar(term, lastFrom, lastTo);
                if (result != '') {
                    closestTerm = '~LocalVariable';
                    secondTerm = result;
@@ -27834,196 +28036,6 @@ if(!String.prototype.matchAll) {
        view.dispatch(changes, { userEvent: "input.type", scrollIntoView: true });
        return true;
    });
-
-   const buildLinter = function (Source) {
-       var LastVersion = 0;
-       var Cached;
-       return linter((view) => {
-           const State = view.state.field(stateExtension);
-           if (State.GetDirty() || State.GetVersion() > LastVersion) {
-               State.ParseState(view.state);
-               Cached = Source(view, State);
-               LastVersion = State.GetVersion();
-           }
-           return Cached;
-       });
-   };
-
-   // IdentifierLinter: Checks anything labelled 'Identifier'
-   const IdentifierLinter = buildLinter((view, parseState) => {
-       const diagnostics = [];
-       const breedNames = parseState.GetBreedNames();
-       const breedVars = parseState.GetBreedVariables();
-       syntaxTree(view.state)
-           .cursor()
-           .iterate((noderef) => {
-           if (noderef.name == 'Identifier') {
-               const Node = noderef.node;
-               const value = view.state.sliceDoc(noderef.from, noderef.to);
-               //check if it meets some initial criteria for validity
-               if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
-                   //check if the identifier looks like a breed procedure (e.g. "create-___")
-                   let result = checkBreedLike(value);
-                   if (!result[0]) {
-                       diagnostics.push({
-                           from: noderef.from,
-                           to: noderef.to,
-                           severity: 'warning',
-                           message: Localized.Get('Unrecognized identifier _', value),
-                       });
-                   }
-                   else {
-                       //pull out name of possible intended breed
-                       let first = value.indexOf('-');
-                       let last = value.lastIndexOf('-');
-                       let str = '';
-                       if (result[1] == 'Last') {
-                           str = value.substring(first + 1);
-                       }
-                       else if (result[1] == 'First') {
-                           str = value.substring(0, last);
-                       }
-                       else if (result[1] == 'Middle') {
-                           str = value.substring(first + 1, last);
-                       }
-                       else {
-                           str = value.substring(first + 1, value.length - 1);
-                       }
-                       diagnostics.push({
-                           from: noderef.from,
-                           to: noderef.to,
-                           severity: 'warning',
-                           message: Localized.Get('Invalid breed procedure _', str),
-                       });
-                   }
-               }
-           }
-       });
-       return diagnostics;
-   });
-   // always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
-   const acceptableIdentifiers = [
-       'Unrecognized',
-       'NewVariableDeclaration',
-       'ProcedureName',
-       'Arguments',
-       'Globals',
-       'BreedSingular',
-       'BreedPlural',
-       'BreedsOwn',
-   ];
-   // Checks identifiers for valid variable/procedure/breed names
-   const checkValid$1 = function (Node, value, state, parseState, breedNames, breedVars) {
-       var _a, _b;
-       value = value.toLowerCase();
-       // checks if parent is in a category that is always valid (e.g. 'Globals')
-       if (acceptableIdentifiers.includes((_b = (_a = Node.parent) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : ''))
-           return true;
-       // checks if identifier is a global variable
-       if (parseState.Globals.includes(value) ||
-           parseState.WidgetGlobals.includes(value) ||
-           parseState.Procedures.has(value))
-           return true;
-       // checks if identifier is a breed name or variable
-       if (breedNames.includes(value) || breedVars.includes(value))
-           return true;
-       // checks if identifier is a variable already declared in the procedure
-       // get the procedure name
-       let curr_node = Node;
-       let procedureName = '';
-       while (curr_node.parent) {
-           curr_node = curr_node.parent;
-           if (curr_node.name == 'Procedure') {
-               curr_node.getChildren('ProcedureName').map((child) => {
-                   procedureName = state.sliceDoc(child.from, child.to);
-               });
-               break;
-           }
-       }
-       // gets list of procedure variables from own procedure, as well as list of all procedure names
-       let procedureVars = [];
-       if (procedureName != '') {
-           let procedure = parseState.Procedures.get(procedureName.toLowerCase());
-           procedure === null || procedure === void 0 ? void 0 : procedure.Variables.map((variable) => {
-               // makes sure the variable has already been created
-               if (variable.CreationPos < Node.from) {
-                   procedureVars.push(variable.Name);
-               }
-           });
-           //pulls out all local variables within the anonymous procedures up until current position
-           procedure === null || procedure === void 0 ? void 0 : procedure.AnonymousProcedures.map((anonProc) => {
-               if (Node.from >= anonProc.PositionStart &&
-                   Node.to <= anonProc.PositionEnd) {
-                   anonProc.Variables.map((variable) => variable.Name).forEach((name) => procedureVars.push(name));
-                   procedureVars.push(...anonProc.Arguments);
-               }
-           });
-           if (procedure === null || procedure === void 0 ? void 0 : procedure.Arguments) {
-               procedureVars.push(...procedure.Arguments);
-           }
-       }
-       //checks if the identifier is in the list of possible variables
-       return procedureVars.includes(value);
-   };
-   //identify if the term looks like a breed procedure (e.g. "create-___")
-   //If so, also identify where to look within the term to find the intended breed name
-   const checkBreedLike = function (str) {
-       let result = false;
-       let location = '';
-       if (str.match(/[^\s]+-(at)/)) {
-           result = true;
-           location = 'First';
-       }
-       else if (str.match(/[^\s]+-here/)) {
-           result = true;
-           location = 'First';
-       }
-       else if (str.match(/[^\s]+-neighbors/)) {
-           result = true;
-           location = 'First';
-       }
-       else if (str.match(/[^\s]+-on/)) {
-           result = true;
-           location = 'First';
-       }
-       else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
-           result = true;
-           location = 'First';
-       }
-       else if (str.match(/^(my|my-in|my-out)-[^\s]+/)) {
-           result = true;
-           location = 'Last';
-       }
-       else if (str.match(/^is-[^\s]+\\?$/)) {
-           result = true;
-           location = 'Question';
-       }
-       else if (str.match(/^in-[^\s]+-from$/)) {
-           result = true;
-           location = 'Middle';
-       }
-       else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-           result = true;
-           location = 'Middle';
-       }
-       else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-           result = true;
-           location = 'Middle';
-       }
-       else if (str.match(/^out-[^\s]+-to$/)) {
-           result = true;
-           location = 'Middle';
-       }
-       else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
-           result = true;
-           location = 'Middle';
-       }
-       else if (str.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
-           result = true;
-           location = 'Last';
-       }
-       return [result, location];
-   };
 
    // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
    const UnrecognizedGlobalLinter = buildLinter((view, parseState) => {
