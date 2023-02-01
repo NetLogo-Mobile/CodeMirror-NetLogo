@@ -26106,8 +26106,12 @@ if(!String.prototype.matchAll) {
                }),
                // Indentations
                indentNodeProp.add({
-                   CodeBlock: delimitedIndent({ closing: '[', align: false }),
+                   CodeBlock: delimitedIndent({ closing: ']', align: false }),
                    AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
+                   Extensions: delimitedIndent({ closing: ']', align: false }),
+                   Globals: delimitedIndent({ closing: ']', align: false }),
+                   Breed: delimitedIndent({ closing: ']', align: false }),
+                   BreedsOwn: delimitedIndent({ closing: ']', align: false }),
                    Procedure: (context) => /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
                        ? context.baseIndent
                        : context.lineIndent(context.node.from) + context.unit,
@@ -26314,7 +26318,7 @@ if(!String.prototype.matchAll) {
                    }
                }
            }
-           if (closestTerm == "")
+           if (closestTerm == '')
                return getEmptyTooltip();
            console.log('Term: ' + term, closestTerm, parentName);
            // Return the tooltip
@@ -26325,9 +26329,8 @@ if(!String.prototype.matchAll) {
                arrow: true,
                create: (view) => {
                    const dom = document.createElement('div');
-                   var message = Localized.Get(closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : "");
-                   if (Dictionary.ClickHandler != null &&
-                       !closestTerm.startsWith('~')) {
+                   var message = Localized.Get(closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '');
+                   if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
                        message += '➤';
                        dom.addEventListener('click', () => Dictionary.ClickHandler(term));
                        dom.classList.add('cm-tooltip-extendable');
@@ -28577,22 +28580,28 @@ if(!String.prototype.matchAll) {
        let changes = [];
        let doc = view.state.doc.toString();
        //eliminate extra spacing
-       let new_doc = doc.replace(/\s+/g, ' ');
-       new_doc = new_doc.replace(/^\s+/, '');
+       let new_doc = doc.replace(/\n+/g, '\n');
+       new_doc = new_doc.replace(/ +/g, ' ');
+       console.log(new_doc);
        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+       doc = view.state.doc.toString();
        //give certain nodes their own lines
        syntaxTree(view.state)
            .cursor()
            .iterate((node) => {
-           var _a;
+           var _a, _b;
            if ((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' ||
                node.name == 'End' ||
-               node.name == 'CommandStatement') &&
-               node.from > 0) {
-               changes.push({ from: node.from, insert: '\n' });
+               node.name == 'CommandStatement' ||
+               (((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) == 'CodeBlock' &&
+                   node.name == 'CloseBracket')) &&
+               node.from > 0 &&
+               doc[node.from - 2] != '\n' &&
+               doc[node.from - 1] != '\n') {
+               changes.push(getChange(node.from, doc));
            }
            if ((node.name == 'To' || node.name == 'Own') && node.from > 0) {
-               changes.push({ from: node.from, insert: '\n' });
+               changes.push(getChange(node.from, doc));
            }
        });
        view.dispatch({ changes: changes });
@@ -28600,6 +28609,14 @@ if(!String.prototype.matchAll) {
        view.dispatch({
            changes: indentRange(view.state, 0, view.state.doc.toString().length),
        });
+   };
+   const getChange = function (from, doc) {
+       if (doc[from - 1] == ' ') {
+           return { from: from - 1, to: from, insert: '\n' };
+       }
+       else {
+           return { from: from, to: from, insert: '\n' };
+       }
    };
 
    /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
