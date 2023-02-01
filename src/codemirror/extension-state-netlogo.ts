@@ -117,15 +117,18 @@ export class StateNetLogo {
     if (!this.IsDirty) return this;
     const Cursor = syntaxTree(State).cursor();
     if (!Cursor.firstChild()) return this;
+    // Clear some global states to avoid contamination
     this.Breeds = new Map<string, Breed>();
     this.Procedures = new Map<string, Procedure>();
+    this.Extensions = [];
+    this.Globals = [];
     this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], false));
     this.Breeds.set('patch', new Breed('patch', 'patches', [], false));
     this.Breeds.set('link', new Breed('link', 'links', [], true));
+    // Start parsing
     while (true) {
       // get extensions
       if (Cursor.node.name == 'Extensions') {
-        this.Extensions = [];
         Cursor.node.getChildren('Extension').map((node) => {
           this.Extensions.push(this.getText(State, node));
         });
@@ -133,10 +136,6 @@ export class StateNetLogo {
       // get global variables
       if (Cursor.node.name == 'Globals') {
         this.Globals = this.getVariables(Cursor.node, State);
-        // this.Globals = [];
-        // Cursor.node.getChildren('Identifier').map((Node) => {
-        //   this.Globals.push(State.sliceDoc(Node.from, Node.to).toLowerCase());
-        // });
       }
       // get breeds
       if (Cursor.node.name == 'Breed') {
@@ -165,10 +164,6 @@ export class StateNetLogo {
           breedName = breedName.substring(0, breedName.length - 4);
         });
         let breedVars = this.getVariables(Cursor.node, State);
-        // const breedVars: string[] = [];
-        // Cursor.node.getChildren('Identifier').map((node) => {
-        //   breedVars.push(State.sliceDoc(node.from, node.to).toLowerCase());
-        // });
         for (let breed of this.Breeds.values()) {
           if (breed.Plural == breedName) {
             breed.Variables = breedVars;

@@ -44,7 +44,7 @@ import {
 } from './lang.terms.js';
 
 import { ParseContext } from '@codemirror/language';
-import { preprocessStateExtension } from '../codemirror/extension-regex-state';
+import { preprocessStateExtension } from '../codemirror/extension-state-preprocess';
 import { PrimitiveManager } from './primitives/primitives';
 
 // Keyword tokenizer
