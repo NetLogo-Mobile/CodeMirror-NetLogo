@@ -9,7 +9,6 @@ import {
 } from '../lang/classes';
 import { SyntaxNode } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
-import { resourceLimits } from 'worker_threads';
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
@@ -59,44 +58,37 @@ export class StateNetLogo {
     }
     return breedNames;
   }
-  public getBreedFromVar(varName: string): string {
+  /** GetBreedFromVariable: Find the breed which defines a certain variable. */
+  public GetBreedFromVariable(varName: string): string | null {
     for (let breed of this.Breeds.values()) {
-      if (breed.Variables.includes(varName)) {
-        return breed.Singular;
-      }
+      if (breed.Variables.includes(varName)) return breed.Plural;
     }
-    return '';
+    return null;
   }
-  public IsTermArgVar(varName: string, from: number, to: number): string {
-    let procedureName = '';
+  /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
+  public GetProcedureFromVariable(varName: string, from: number, to: number): string | null {
     for (let proc of this.Procedures.values()) {
-      if (proc.Arguments.includes(varName)) {
-        procedureName = proc.Name;
-        continue;
-      }
+      if (proc.PositionEnd < from || proc.PositionStart > to) continue;
+      // Check the argument list in a procedure
+      if (proc.Arguments.includes(varName))
+        return proc.Name;
+      // Check the local variable list in a procedure
       for (let localVar of proc.Variables) {
-        if (localVar.Name == varName && localVar.CreationPos <= to) {
-          procedureName = proc.Name;
-        }
+        if (localVar.Name == varName && localVar.CreationPos <= to)
+          return proc.Name;
       }
-      if (procedureName != '') {
-        continue;
-      }
+      // Check the anonymous arguments in a procedure
       for (let anonProc of proc.AnonymousProcedures) {
-        if (anonProc.PositionStart <= from && anonProc.PositionEnd >= to) {
-          if (anonProc.Arguments.includes(varName)) {
-            procedureName = 'anonymous';
-          }
-          for (let localVar of anonProc.Variables) {
-            if (localVar.Name == varName && localVar.CreationPos <= to) {
-              procedureName = 'anonymous';
-            }
-          }
+        if (anonProc.PositionEnd > from || anonProc.PositionStart < to) continue;
+        if (anonProc.Arguments.includes(varName))
+          return '{anonymous}';
+        for (let localVar of anonProc.Variables) {
+          if (localVar.Name == varName && localVar.CreationPos <= to) 
+            return '{anonymous}';
         }
       }
     }
-
-    return procedureName;
+    return null;
   }
   // #endregion
 

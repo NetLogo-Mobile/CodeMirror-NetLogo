@@ -36,7 +36,7 @@ import { css } from '@codemirror/lang-css';
 import { netlogoLinters } from './lang/linters/linters';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
-import { pretty } from './codemirror/pretty.js';
+import { prettify } from './codemirror/prettify.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -221,6 +221,11 @@ export class GalapagosEditor {
   /** Focus: Make the editor gain the focus (if possible). */
   Focus() {
     this.CodeMirror.focus();
+  }
+
+  /** Prettify: Prettify the NetLogo code. */
+  Prettify() {
+    prettify(this.CodeMirror);
   }
 
   /** CloseCompletion: Forcible close the auto completion. */
@@ -511,10 +516,6 @@ export class GalapagosEditor {
     }
   }
   // #endregion
-
-  Prettying() {
-    pretty(this.CodeMirror);
-  }
 }
 
 /** Export classes globally. */

@@ -20,6 +20,7 @@ export const tooltipExtension = StateField.define<readonly Tooltip[]>({
 });
 
 function getCursorTooltips(state: EditorState): readonly Tooltip[] {
+  var State = state.field(stateExtension);
   return state.selection.ranges
     .filter(
       (range) =>
@@ -29,12 +30,11 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
     .map((range) => {
       // Check what to display & if the selected range covers more than one token
       var multipleTokens = false;
-      var lastFrom = 0,
-        lastTo = 0;
+      var lastFrom = 0, lastTo = 0;
       var closestTerm = '';
       var parentName = '';
-      var create = true;
-      var secondTerm = '';
+      var secondTerm: string | null = null;
+      // Iterate inside the tree
       syntaxTree(state).iterate({
         enter: (ref) => {
           if (ref.from == ref.to || ref.to == range.from) return true;
@@ -74,61 +74,69 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
       });
 
       // If so, we won't display tips - that's unnecessary.
-      if (lastFrom == lastTo || multipleTokens) create = false;
+      if (lastFrom == lastTo || multipleTokens) return getEmptyTooltip();
+
       // Check if we can directly recognize the youngest children's full-word
       const term = state.sliceDoc(lastFrom, lastTo);
-
-      if (state.field(stateExtension).Globals.includes(term)) {
+      if (Dictionary.Check(term)) {
+        closestTerm = term;
+      } else if (state.field(stateExtension).Globals.includes(term)) {
         closestTerm = '~Globals/Identifier';
       } else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
         closestTerm = '~WidgetGlobal';
-      } else if (
-        state.field(stateExtension).GetBreedVariables().includes(term)
-      ) {
-        closestTerm = '~BreedVariable';
-        secondTerm = state.field(stateExtension).getBreedFromVar(term);
-      } else if (
-        closestTerm == '~VariableName' ||
-        (parentName == 'Identifier' && closestTerm == '')
-      ) {
-        let result = state
-          .field(stateExtension)
-          .IsTermArgVar(term, lastFrom, lastTo);
-        if (result != '') {
-          closestTerm = '~LocalVariable';
-          secondTerm = result;
+      } else {
+        secondTerm = State.GetBreedFromVariable(term);
+        if (secondTerm != null) {
+          closestTerm = '~BreedVariable';
+        } else {
+          if (
+            closestTerm == '~VariableName' ||
+            (parentName == 'Identifier' && closestTerm == '')
+          ) {
+            secondTerm = State.GetProcedureFromVariable(term, lastFrom, lastTo);
+            if (secondTerm != null) closestTerm = '~LocalVariable';
+          }
         }
       }
-
-      if (Dictionary.Check(term)) closestTerm = term;
-      if (closestTerm == '') create = false;
+      if (closestTerm == "") return getEmptyTooltip();
       console.log('Term: ' + term, closestTerm, parentName);
-      // TODO: We can still match more, esp. things defined in the model (StateNetLogo).
       // Return the tooltip
       return {
         pos: range.from,
         above: false,
         strictSide: true,
-        arrow: create,
+        arrow: true,
         create: (view: EditorView) => {
           const dom = document.createElement('div');
-          if (create) {
-            var message = Localized.Get(closestTerm, secondTerm);
-            if (
-              Dictionary.ClickHandler != null &&
-              !closestTerm.startsWith('~')
-            ) {
-              message += '➤';
-              dom.addEventListener('click', () =>
-                Dictionary.ClickHandler!(term)
-              );
-              dom.classList.add('cm-tooltip-extendable');
-            }
-            dom.classList.add('cm-tooltip-explain');
-            dom.innerText = message;
+          var message = Localized.Get(closestTerm, secondTerm ?? "");
+          if (
+            Dictionary.ClickHandler != null &&
+            !closestTerm.startsWith('~')
+          ) {
+            message += '➤';
+            dom.addEventListener('click', () =>
+              Dictionary.ClickHandler!(term)
+            );
+            dom.classList.add('cm-tooltip-extendable');
           }
+          dom.classList.add('cm-tooltip-explain');
+          dom.innerText = message;
           return { dom };
         },
       };
     });
+}
+
+/** getEmptyTooltip: Get an empty tooltip. */
+function getEmptyTooltip() {
+  return {
+    pos: 0,
+    above: false,
+    strictSide: true,
+    arrow: false,
+    create: (view: EditorView) => {
+      const dom = document.createElement('div')
+      return { dom };
+    },
+  };
 }

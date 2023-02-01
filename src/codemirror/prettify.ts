@@ -2,7 +2,7 @@ import { getIndentation, indentRange, syntaxTree } from '@codemirror/language';
 import { EditorView } from 'codemirror';
 import { SyntaxNode } from '@lezer/common';
 
-export const pretty = function (view: EditorView) {
+export const prettify = function (view: EditorView) {
   let changes: { from: number; insert: string; to?: number }[] = [];
   let doc = view.state.doc.toString();
 

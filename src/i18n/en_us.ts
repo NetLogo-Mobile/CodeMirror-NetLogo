@@ -42,7 +42,7 @@ const en_us: Record<string, Function> = {
   'Missing command before _': (Name: string) =>
     `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
 
-  '~VariableName': (Name: string) => `A local variable. `,
+  '~VariableName': (Name: string) => `A (unknown) variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,
   '~Arguments': (Name: string) => `The name of an argument. `,
   '~PatchVar': (Name: string) => `A built-in variable for every patch. `,
@@ -65,9 +65,9 @@ const en_us: Record<string, Function> = {
   '~BreedSingular': (Name: string) =>
     `The singular name of a model-defined breed. `,
   '~BreedVariable': (Name: string) =>
-    `A custom variable for the ${Name} breed. `,
+    `A custom variable for the "${Name}" breed. `,
   '~LocalVariable': (Name: string) =>
-    `A local variable within the ${Name} procedure. `,
+    `A local variable within the "${Name}" procedure or reporter. `,
 };
 
 export { en_us };

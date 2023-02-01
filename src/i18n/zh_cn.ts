@@ -41,9 +41,9 @@ const zh_cn: Record<string, Function> = {
   'Missing command before _': (Name: string) =>
     `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
 
-  '~VariableName': (Name: string) => `变量名称。`,
+  '~VariableName': (Name: string) => `一个（未知的）变量。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,
-  '~Arguments/Identifier': (Name: string) => `参数名称。`,
+  '~Arguments/Identifier': (Name: string) => `过程或函数定义的参数名称。`,
   '~PatchVar': (Name: string) => `格子的内置变量。`,
   '~TurtleVar': (Name: string) => `海龟的内置变量。`,
   '~LinkVar': (Name: string) => `链接的内置变量。`,
@@ -62,9 +62,9 @@ const zh_cn: Record<string, Function> = {
   '~BreedSingular': (Name: string) => `某类模型中定义的海龟的单数名称。`,
   '~WidgetGlobal': (Name: string) => `通过界面组件定义的全局变量。 `,
   '~BreedVariable': (Name: string) =>
-    `A custom variable for the ${Name} breed. `,
+    `种类 "${Name}" 定义的变量。`,
   '~LocalVariable': (Name: string) =>
-    `A local variable within the ${Name} procedure. `,
+    `"${Name}" 过程或函数定义的本地变量。 `,
 };
 
 export { zh_cn };
