@@ -25947,7 +25947,7 @@ if(!String.prototype.matchAll) {
                    results = results.concat(this.KeywordsToCompletions(State.Globals, 'Variable'));
                    break;
                case 'Program':
-                   results = results.concat(this.KeywordsToCompletions([...State.Breeds.values()].map((breed) => breed.Plural), 'Directive'));
+                   results = results.concat(this.KeywordsToCompletions([...State.Breeds.values()].map((breed) => breed.Plural + '-own'), 'Directive'));
                    break;
            }
            return results;
@@ -25977,12 +25977,13 @@ if(!String.prototype.matchAll) {
                (parentName != 'Procedure' || nodeName == 'To'))
                return { from, options: this.GetParentKeywords(grandparentName, state) };
            // Otherwise, try to build a full list
-           if (nodeName == 'Identifier' ||
+           if ((nodeName == 'Identifier' ||
                nodeName == 'Extension' ||
                nodeName.includes('Reporter') ||
                nodeName.includes('Command') ||
                nodeName == 'Set' ||
-               nodeName == 'Let') {
+               nodeName == 'Let') &&
+               parentName != 'Unrecognized') {
                let results = this.SharedIdentifiers;
                // Extensions
                const extensionNames = state.Extensions.join(',');
@@ -26252,8 +26253,9 @@ if(!String.prototype.matchAll) {
                    if (name.indexOf('Command') != -1 && name.indexOf('Args') != -1)
                        name = 'Command';
                    // Check the category name
-                   console.log(name, Localized.Get(`~${name}`));
-                   if (closestTerm == '~BreedSingular' || closestTerm == '~Arguments') ;
+                   if (closestTerm == '~BreedSingular' ||
+                       closestTerm == '~Arguments' ||
+                       closestTerm == '~ProcedureName') ;
                    else if (Dictionary.Check(`~${name}`) ||
                        Localized.Get(`~${name}`)) {
                        closestTerm = `~${name}`;
@@ -26261,13 +26263,11 @@ if(!String.prototype.matchAll) {
                    else if (Dictionary.Check(`~${parentName}/${name}`) ||
                        Localized.Get(`~${parentName}/${name}`))
                        closestTerm = `~${parentName}/${name}`;
-                   // console.log(name, parentName);
                    parentName = name;
                },
                from: range.from,
                to: range.to,
            });
-           // console.log(closestTerm);
            // If so, we won't display tips - that's unnecessary.
            if (lastFrom == lastTo || multipleTokens)
                create = false;
