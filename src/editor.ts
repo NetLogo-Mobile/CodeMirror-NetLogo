@@ -36,6 +36,7 @@ import { css } from '@codemirror/lang-css';
 import { netlogoLinters } from './lang/linters/linters';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
+import { pretty } from './codemirror/pretty.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -510,6 +511,10 @@ export class GalapagosEditor {
     }
   }
   // #endregion
+
+  Prettying() {
+    pretty(this.CodeMirror);
+  }
 }
 
 /** Export classes globally. */
