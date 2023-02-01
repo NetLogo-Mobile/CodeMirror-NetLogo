@@ -1,5 +1,5 @@
 import { ParseContext } from '@codemirror/language';
-import { preprocessStateExtension } from '../codemirror/extension-regex-state.js';
+import { preprocessStateExtension } from '../codemirror/extension-state-preprocess.js';
 import {
   ReportersAll,
   ReporterVarArgs,

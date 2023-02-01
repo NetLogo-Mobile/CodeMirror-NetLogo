@@ -26,7 +26,7 @@ import {
 import {
   preprocessStateExtension,
   StatePreprocess,
-} from './codemirror/extension-regex-state';
+} from './codemirror/extension-state-preprocess.js';
 import { tooltipExtension } from './codemirror/extension-tooltip';
 import { lightTheme } from './codemirror/theme-light';
 import { highlightTree } from '@lezer/highlight';
