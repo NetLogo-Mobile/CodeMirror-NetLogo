@@ -25371,43 +25371,40 @@ if(!String.prototype.matchAll) {
            }
            return breedNames;
        }
-       getBreedFromVar(varName) {
+       /** GetBreedFromVariable: Find the breed which defines a certain variable. */
+       GetBreedFromVariable(varName) {
            for (let breed of this.Breeds.values()) {
-               if (breed.Variables.includes(varName)) {
-                   return breed.Singular;
-               }
+               if (breed.Variables.includes(varName))
+                   return breed.Plural;
            }
-           return '';
+           return null;
        }
-       IsTermArgVar(varName, from, to) {
-           let procedureName = '';
+       /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
+       GetProcedureFromVariable(varName, from, to) {
            for (let proc of this.Procedures.values()) {
-               if (proc.Arguments.includes(varName)) {
-                   procedureName = proc.Name;
+               if (proc.PositionEnd < from || proc.PositionStart > to)
                    continue;
-               }
+               // Check the argument list in a procedure
+               if (proc.Arguments.includes(varName))
+                   return proc.Name;
+               // Check the local variable list in a procedure
                for (let localVar of proc.Variables) {
-                   if (localVar.Name == varName && localVar.CreationPos <= to) {
-                       procedureName = proc.Name;
-                   }
+                   if (localVar.Name == varName && localVar.CreationPos <= to)
+                       return proc.Name;
                }
-               if (procedureName != '') {
-                   continue;
-               }
+               // Check the anonymous arguments in a procedure
                for (let anonProc of proc.AnonymousProcedures) {
-                   if (anonProc.PositionStart <= from && anonProc.PositionEnd >= to) {
-                       if (anonProc.Arguments.includes(varName)) {
-                           procedureName = 'anonymous';
-                       }
-                       for (let localVar of anonProc.Variables) {
-                           if (localVar.Name == varName && localVar.CreationPos <= to) {
-                               procedureName = 'anonymous';
-                           }
-                       }
+                   if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
+                       continue;
+                   if (anonProc.Arguments.includes(varName))
+                       return '{anonymous}';
+                   for (let localVar of anonProc.Variables) {
+                       if (localVar.Name == varName && localVar.CreationPos <= to)
+                           return '{anonymous}';
                    }
                }
            }
-           return procedureName;
+           return null;
        }
        // #endregion
        // #region "Version Control"
@@ -25622,7 +25619,7 @@ if(!String.prototype.matchAll) {
        'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
        'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
        'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
-       '~VariableName': (Name) => `A local variable. `,
+       '~VariableName': (Name) => `A (unknown) variable. `,
        '~ProcedureName': (Name) => `The name of a procedure. `,
        '~Arguments': (Name) => `The name of an argument. `,
        '~PatchVar': (Name) => `A built-in variable for every patch. `,
@@ -25640,8 +25637,8 @@ if(!String.prototype.matchAll) {
        '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed. `,
        '~BreedPlural': (Name) => `The plural name of a model-defined breed. `,
        '~BreedSingular': (Name) => `The singular name of a model-defined breed. `,
-       '~BreedVariable': (Name) => `A custom variable for the ${Name} breed. `,
-       '~LocalVariable': (Name) => `A local variable within the ${Name} procedure. `,
+       '~BreedVariable': (Name) => `A custom variable for the "${Name}" breed. `,
+       '~LocalVariable': (Name) => `A local variable within the "${Name}" procedure or reporter. `,
    };
 
    const zh_cn = {
@@ -25658,9 +25655,9 @@ if(!String.prototype.matchAll) {
        'Breed name _ already used.': (Name) => `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
        'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
        'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
-       '~VariableName': (Name) => `变量名称。`,
+       '~VariableName': (Name) => `一个（未知的）变量。`,
        '~ProcedureName': (Name) => `过程或函数的名称。`,
-       '~Arguments/Identifier': (Name) => `参数名称。`,
+       '~Arguments/Identifier': (Name) => `过程或函数定义的参数名称。`,
        '~PatchVar': (Name) => `格子的内置变量。`,
        '~TurtleVar': (Name) => `海龟的内置变量。`,
        '~LinkVar': (Name) => `链接的内置变量。`,
@@ -25676,8 +25673,8 @@ if(!String.prototype.matchAll) {
        '~BreedPlural': (Name) => `某类模型中定义的海龟的复数名称。`,
        '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
        '~WidgetGlobal': (Name) => `通过界面组件定义的全局变量。 `,
-       '~BreedVariable': (Name) => `A custom variable for the ${Name} breed. `,
-       '~LocalVariable': (Name) => `A local variable within the ${Name} procedure. `,
+       '~BreedVariable': (Name) => `种类 "${Name}" 定义的变量。`,
+       '~LocalVariable': (Name) => `"${Name}" 过程或函数定义的本地变量。 `,
    };
 
    /** LocalizationManager: Manage all localized texts. */
@@ -26250,6 +26247,7 @@ if(!String.prototype.matchAll) {
        provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
    });
    function getCursorTooltips(state) {
+       var State = state.field(stateExtension);
        return state.selection.ranges
            .filter((range) => !range.empty &&
            state.doc.lineAt(range.from).number == state.doc.lineAt(range.to).number)
@@ -26259,8 +26257,8 @@ if(!String.prototype.matchAll) {
            var lastFrom = 0, lastTo = 0;
            var closestTerm = '';
            var parentName = '';
-           var create = true;
-           var secondTerm = '';
+           var secondTerm = null;
+           // Iterate inside the tree
            syntaxTree(state).iterate({
                enter: (ref) => {
                    if (ref.from == ref.to || ref.to == range.from)
@@ -26295,58 +26293,69 @@ if(!String.prototype.matchAll) {
            });
            // If so, we won't display tips - that's unnecessary.
            if (lastFrom == lastTo || multipleTokens)
-               create = false;
+               return getEmptyTooltip();
            // Check if we can directly recognize the youngest children's full-word
            const term = state.sliceDoc(lastFrom, lastTo);
-           if (state.field(stateExtension).Globals.includes(term)) {
+           if (Dictionary.Check(term)) {
+               closestTerm = term;
+           }
+           else if (state.field(stateExtension).Globals.includes(term)) {
                closestTerm = '~Globals/Identifier';
            }
            else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
                closestTerm = '~WidgetGlobal';
            }
-           else if (state.field(stateExtension).GetBreedVariables().includes(term)) {
-               closestTerm = '~BreedVariable';
-               secondTerm = state.field(stateExtension).getBreedFromVar(term);
-           }
-           else if (closestTerm == '~VariableName' ||
-               (parentName == 'Identifier' && closestTerm == '')) {
-               let result = state
-                   .field(stateExtension)
-                   .IsTermArgVar(term, lastFrom, lastTo);
-               if (result != '') {
-                   closestTerm = '~LocalVariable';
-                   secondTerm = result;
+           else {
+               secondTerm = State.GetBreedFromVariable(term);
+               if (secondTerm != null) {
+                   closestTerm = '~BreedVariable';
+               }
+               else {
+                   if (closestTerm == '~VariableName' ||
+                       (parentName == 'Identifier' && closestTerm == '')) {
+                       secondTerm = State.GetProcedureFromVariable(term, lastFrom, lastTo);
+                       if (secondTerm != null)
+                           closestTerm = '~LocalVariable';
+                   }
                }
            }
-           if (Dictionary.Check(term))
-               closestTerm = term;
-           if (closestTerm == '')
-               create = false;
+           if (closestTerm == "")
+               return getEmptyTooltip();
            console.log('Term: ' + term, closestTerm, parentName);
-           // TODO: We can still match more, esp. things defined in the model (StateNetLogo).
            // Return the tooltip
            return {
                pos: range.from,
                above: false,
                strictSide: true,
-               arrow: create,
+               arrow: true,
                create: (view) => {
                    const dom = document.createElement('div');
-                   if (create) {
-                       var message = Localized.Get(closestTerm, secondTerm);
-                       if (Dictionary.ClickHandler != null &&
-                           !closestTerm.startsWith('~')) {
-                           message += '➤';
-                           dom.addEventListener('click', () => Dictionary.ClickHandler(term));
-                           dom.classList.add('cm-tooltip-extendable');
-                       }
-                       dom.classList.add('cm-tooltip-explain');
-                       dom.innerText = message;
+                   var message = Localized.Get(closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : "");
+                   if (Dictionary.ClickHandler != null &&
+                       !closestTerm.startsWith('~')) {
+                       message += '➤';
+                       dom.addEventListener('click', () => Dictionary.ClickHandler(term));
+                       dom.classList.add('cm-tooltip-extendable');
                    }
+                   dom.classList.add('cm-tooltip-explain');
+                   dom.innerText = message;
                    return { dom };
                },
            };
        });
+   }
+   /** getEmptyTooltip: Get an empty tooltip. */
+   function getEmptyTooltip() {
+       return {
+           pos: 0,
+           above: false,
+           strictSide: true,
+           arrow: false,
+           create: (view) => {
+               const dom = document.createElement('div');
+               return { dom };
+           },
+       };
    }
 
    const lightTheme = EditorView.theme({
@@ -28569,7 +28578,7 @@ if(!String.prototype.matchAll) {
        BreedNameLinter,
    ];
 
-   const pretty = function (view) {
+   const prettify = function (view) {
        let changes = [];
        let doc = view.state.doc.toString();
        //eliminate extra spacing
@@ -28743,6 +28752,10 @@ if(!String.prototype.matchAll) {
        /** Focus: Make the editor gain the focus (if possible). */
        Focus() {
            this.CodeMirror.focus();
+       }
+       /** Prettify: Prettify the NetLogo code. */
+       Prettify() {
+           prettify(this.CodeMirror);
        }
        /** CloseCompletion: Forcible close the auto completion. */
        CloseCompletion() {
@@ -28981,10 +28994,6 @@ if(!String.prototype.matchAll) {
            if (this.Options.OnUpdate != null) {
                this.Options.OnUpdate(update.docChanged, update);
            }
-       }
-       // #endregion
-       Prettying() {
-           pretty(this.CodeMirror);
        }
    }
    /** Export classes globally. */
