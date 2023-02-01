@@ -51,8 +51,11 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
           if (name.indexOf('Command') != -1 && name.indexOf('Args') != -1)
             name = 'Command';
           // Check the category name
-          console.log(name, Localized.Get(`~${name}`));
-          if (closestTerm == '~BreedSingular' || closestTerm == '~Arguments') {
+          if (
+            closestTerm == '~BreedSingular' ||
+            closestTerm == '~Arguments' ||
+            closestTerm == '~ProcedureName'
+          ) {
           } else if (
             Dictionary.Check(`~${name}`) ||
             Localized.Get(`~${name}`)
@@ -63,13 +66,13 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
             Localized.Get(`~${parentName}/${name}`)
           )
             closestTerm = `~${parentName}/${name}`;
-          // console.log(name, parentName);
+
           parentName = name;
         },
         from: range.from,
         to: range.to,
       });
-      // console.log(closestTerm);
+
       // If so, we won't display tips - that's unnecessary.
       if (lastFrom == lastTo || multipleTokens) create = false;
       // Check if we can directly recognize the youngest children's full-word

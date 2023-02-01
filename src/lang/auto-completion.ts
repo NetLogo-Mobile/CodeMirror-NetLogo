@@ -91,7 +91,7 @@ export class AutoCompletion {
       case 'Program':
         results = results.concat(
           this.KeywordsToCompletions(
-            [...State.Breeds.values()].map((breed) => breed.Plural),
+            [...State.Breeds.values()].map((breed) => breed.Plural + '-own'),
             'Directive'
           )
         );
@@ -132,12 +132,13 @@ export class AutoCompletion {
 
     // Otherwise, try to build a full list
     if (
-      nodeName == 'Identifier' ||
-      nodeName == 'Extension' ||
-      nodeName.includes('Reporter') ||
-      nodeName.includes('Command') ||
-      nodeName == 'Set' ||
-      nodeName == 'Let'
+      (nodeName == 'Identifier' ||
+        nodeName == 'Extension' ||
+        nodeName.includes('Reporter') ||
+        nodeName.includes('Command') ||
+        nodeName == 'Set' ||
+        nodeName == 'Let') &&
+      parentName != 'Unrecognized'
     ) {
       let results = this.SharedIdentifiers;
       // Extensions
