@@ -87,8 +87,12 @@ export const NetLogoLanguage = LRLanguage.define({
       }),
       // Indentations
       indentNodeProp.add({
-        CodeBlock: delimitedIndent({ closing: '[', align: false }),
+        CodeBlock: delimitedIndent({ closing: ']', align: false }),
         AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
+        Extensions: delimitedIndent({ closing: ']', align: false }),
+        Globals: delimitedIndent({ closing: ']', align: false }),
+        Breed: delimitedIndent({ closing: ']', align: false }),
+        BreedsOwn: delimitedIndent({ closing: ']', align: false }),
         Procedure: (context) =>
           /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
             ? context.baseIndent

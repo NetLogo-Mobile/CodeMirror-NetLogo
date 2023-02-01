@@ -30,7 +30,8 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
     .map((range) => {
       // Check what to display & if the selected range covers more than one token
       var multipleTokens = false;
-      var lastFrom = 0, lastTo = 0;
+      var lastFrom = 0,
+        lastTo = 0;
       var closestTerm = '';
       var parentName = '';
       var secondTerm: string | null = null;
@@ -98,7 +99,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
           }
         }
       }
-      if (closestTerm == "") return getEmptyTooltip();
+      if (closestTerm == '') return getEmptyTooltip();
       console.log('Term: ' + term, closestTerm, parentName);
       // Return the tooltip
       return {
@@ -108,15 +109,10 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         arrow: true,
         create: (view: EditorView) => {
           const dom = document.createElement('div');
-          var message = Localized.Get(closestTerm, secondTerm ?? "");
-          if (
-            Dictionary.ClickHandler != null &&
-            !closestTerm.startsWith('~')
-          ) {
+          var message = Localized.Get(closestTerm, secondTerm ?? '');
+          if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
             message += '➤';
-            dom.addEventListener('click', () =>
-              Dictionary.ClickHandler!(term)
-            );
+            dom.addEventListener('click', () => Dictionary.ClickHandler!(term));
             dom.classList.add('cm-tooltip-extendable');
           }
           dom.classList.add('cm-tooltip-explain');
@@ -135,7 +131,7 @@ function getEmptyTooltip() {
     strictSide: true,
     arrow: false,
     create: (view: EditorView) => {
-      const dom = document.createElement('div')
+      const dom = document.createElement('div');
       return { dom };
     },
   };

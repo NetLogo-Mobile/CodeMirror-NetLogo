@@ -66,12 +66,15 @@ export class StateNetLogo {
     return null;
   }
   /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
-  public GetProcedureFromVariable(varName: string, from: number, to: number): string | null {
+  public GetProcedureFromVariable(
+    varName: string,
+    from: number,
+    to: number
+  ): string | null {
     for (let proc of this.Procedures.values()) {
       if (proc.PositionEnd < from || proc.PositionStart > to) continue;
       // Check the argument list in a procedure
-      if (proc.Arguments.includes(varName))
-        return proc.Name;
+      if (proc.Arguments.includes(varName)) return proc.Name;
       // Check the local variable list in a procedure
       for (let localVar of proc.Variables) {
         if (localVar.Name == varName && localVar.CreationPos <= to)
@@ -79,11 +82,11 @@ export class StateNetLogo {
       }
       // Check the anonymous arguments in a procedure
       for (let anonProc of proc.AnonymousProcedures) {
-        if (anonProc.PositionEnd > from || anonProc.PositionStart < to) continue;
-        if (anonProc.Arguments.includes(varName))
-          return '{anonymous}';
+        if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
+          continue;
+        if (anonProc.Arguments.includes(varName)) return '{anonymous}';
         for (let localVar of anonProc.Variables) {
-          if (localVar.Name == varName && localVar.CreationPos <= to) 
+          if (localVar.Name == varName && localVar.CreationPos <= to)
             return '{anonymous}';
         }
       }
