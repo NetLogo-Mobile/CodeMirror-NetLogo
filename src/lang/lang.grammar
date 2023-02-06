@@ -11,8 +11,8 @@
 }
 
 @top Program { 
-  (globalStatement | Unrecognized)*
-  Procedure*
+  (Unrecognized* globalStatement)*
+  Procedure* ~statement
 }
 
 @detectDelim
@@ -20,7 +20,7 @@
 @skip { space | LineComment }
 
 Unrecognized {
-  expression
+  expression | Procedure ~statement
 }
 
 globalStatement {

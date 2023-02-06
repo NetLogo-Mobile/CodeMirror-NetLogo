@@ -41,6 +41,9 @@ const en_us: Record<string, Function> = {
     `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
   'Missing command before _': (Name: string) =>
     `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
+  'Improperly placed procedure _': (Name: string) =>
+    `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
+  'Unmatched item _': (Name: string) => `This "${Name}" is unmatched.`,
 
   '~VariableName': (Name: string) => `A (unknown) variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,

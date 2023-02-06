@@ -16,22 +16,40 @@ export const UnrecognizedLinter = buildLinter((view, parseState) => {
           parents.push(curr.parent.name);
           curr = curr.parent;
         }
-        console.log(node.name, parents);
+
         const value = view.state.sliceDoc(node.from, node.to);
-        diagnostics.push({
-          from: node.from,
-          to: node.to,
-          severity: 'warning',
-          message: Localized.Get('Unrecognized statement _', value),
-          /* actions: [
-            {
-              name: 'Remove',
-              apply(view, from, to) {
-                view.dispatch({ changes: { from, to } });
+        console.log(value, node.name, parents);
+        if (['[', ']', ')', '(', '"'].includes(value)) {
+          diagnostics.push({
+            from: node.from,
+            to: node.to,
+            severity: 'warning',
+            message: Localized.Get('Unmatched item _', value),
+            /* actions: [
+              {
+                name: 'Remove',
+                apply(view, from, to) {
+                  view.dispatch({ changes: { from, to } });
+                },
               },
-            },
-          ], */
-        });
+            ], */
+          });
+        } else {
+          diagnostics.push({
+            from: node.from,
+            to: node.to,
+            severity: 'warning',
+            message: Localized.Get('Unrecognized statement _', value),
+            /* actions: [
+              {
+                name: 'Remove',
+                apply(view, from, to) {
+                  view.dispatch({ changes: { from, to } });
+                },
+              },
+            ], */
+          });
+        }
       }
     });
   return diagnostics;
