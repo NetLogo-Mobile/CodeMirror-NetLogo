@@ -28582,8 +28582,10 @@ if(!String.prototype.matchAll) {
        let doc = view.state.doc.toString();
        //eliminate extra spacing
        let new_doc = doc.replace(/\n\s+/g, '\n');
+       new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 ['); //needs to not happen if preceded by a comment
+       new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]'); //needs to not happen if preceded by a comment
+       new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
        new_doc = new_doc.replace(/ +/g, ' ');
-       // console.log(new_doc);
        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
        doc = view.state.doc.toString();
        //give certain nodes their own lines
@@ -28591,22 +28593,66 @@ if(!String.prototype.matchAll) {
            .cursor()
            .iterate((node) => {
            var _a, _b;
-           if ((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' ||
+           if (((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' && node.name != 'LineComment') ||
                node.name == 'To' ||
                node.name == 'End' ||
-               node.name == 'Own' ||
-               node.name == 'CommandStatement' ||
-               (((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) == 'CodeBlock' &&
-                   node.name == 'CloseBracket')) &&
+               (node.name == 'ProcedureContent' &&
+                   ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) != 'CodeBlock')) &&
                node.from > 0) {
-               changes.push(getChange(node.from, doc));
+               changes.push({ from: node.from, to: node.from, insert: '\n' });
+           }
+           else if (node.name == 'CodeBlock' &&
+               checkBlock(node.node, 'ProcedureContent', doc)) {
+               node.node.getChildren('ProcedureContent').map((child) => {
+                   changes.push({ from: child.from, to: child.from, insert: '\n' });
+               });
+               node.node.getChildren('CloseBracket').map((child) => {
+                   changes.push({ from: child.from, to: child.from, insert: '\n' });
+               });
+           }
+           else if (node.name == 'ReporterBlock' &&
+               checkBlock(node.node, 'ReporterContent', doc)) {
+               node.node.getChildren('ReporterContent').map((child) => {
+                   changes.push({ from: child.from, to: child.from, insert: '\n' });
+               });
+               node.node.getChildren('CloseBracket').map((child) => {
+                   changes.push({ from: child.from, to: child.from, insert: '\n' });
+               });
+           }
+           else if (node.name == 'AnonymousProcedure' &&
+               (checkBlock(node.node, 'ReporterContent', doc) ||
+                   checkBlock(node.node, 'ProcedureContent', doc))) {
+               console.log(changes.length);
+               node.node.getChildren('ProcedureContent').map((child) => {
+                   changes.push({ from: child.from, to: child.from, insert: '\n' });
+               });
+               node.node.getChildren('ReporterContent').map((child) => {
+                   changes.push({ from: child.from, to: child.from, insert: '\n' });
+               });
+               node.node.getChildren('CloseBracket').map((child) => {
+                   changes.push({ from: child.from, to: child.from, insert: '\n' });
+               });
+               console.log(changes.length);
+           }
+           if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
+               if (doc.substring(node.from, node.to).includes('\n')) {
+                   node.node.getChildren('CloseBracket').map((child) => {
+                       changes.push({ from: child.from, to: child.from, insert: '\n' });
+                   });
+                   node.node.getChildren('Extension').map((child) => {
+                       changes.push({ from: child.from, to: child.from, insert: '\n' });
+                   });
+                   node.node.getChildren('Identifier').map((child) => {
+                       changes.push({ from: child.from, to: child.from, insert: '\n' });
+                   });
+               }
            }
        });
        view.dispatch({ changes: changes });
        //ensure spacing is correct
        doc = view.state.doc.toString();
        new_doc = doc.replace(/\n\s+/g, '\n');
-       console.log(new_doc.match(/\n\s+/g));
+       new_doc = doc.replace(/\s+\n/g, '\n');
        new_doc = new_doc.replace(/(\nto[ -])/g, '\n$1');
        new_doc = new_doc.replace(/(\n[\w-]+-own)/g, '\n$1');
        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
@@ -28615,13 +28661,26 @@ if(!String.prototype.matchAll) {
            changes: indentRange(view.state, 0, view.state.doc.toString().length),
        });
    };
-   const getChange = function (from, doc) {
-       if (doc[from - 1] == ' ') {
-           return { from: from - 1, to: from, insert: '\n' };
-       }
-       else {
-           return { from: from, to: from, insert: '\n' };
-       }
+   //checks if code block needs to be multiline
+   const checkBlock = function (node, childName, doc) {
+       let count = 0;
+       let multiline = false;
+       let multilineChildren = false;
+       node.node.getChildren(childName).map((child) => {
+           count += 1;
+           multiline = doc.substring(child.from, child.to).includes('\n');
+           child.getChildren('CommandStatement').map((node) => {
+               node.getChildren('Arg').map((subnode) => {
+                   if (subnode.getChildren('CodeBlock').length > 0) {
+                       multilineChildren = true;
+                   }
+                   else if (subnode.getChildren('AnonymousProcedure').length > 0) {
+                       multilineChildren = true;
+                   }
+               });
+           });
+       });
+       return ((multiline || multilineChildren) && count == 1) || count > 1;
    };
 
    /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
