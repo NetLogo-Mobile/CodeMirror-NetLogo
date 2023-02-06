@@ -22809,6 +22809,7 @@ if(!String.prototype.matchAll) {
        // Apply a reduce action
        /// @internal
        reduce(action) {
+           var _a;
            let depth = action >> 19 /* Action.ReduceDepthShift */, type = action & 65535 /* Action.ValueMask */;
            let { parser } = this.p;
            let dPrec = parser.dynamicPrecedence(type);
@@ -22829,11 +22830,11 @@ if(!String.prototype.matchAll) {
            // expression and the state that we'll be staying in, which should
            // be moved to `this.state`).
            let base = this.stack.length - ((depth - 1) * 3) - (action & 262144 /* Action.StayFlag */ ? 6 : 0);
-           let start = base ? this.stack[base - 2] : 0, size = this.reducePos - start;
+           let start = base ? this.stack[base - 2] : this.p.ranges[0].from, size = this.reducePos - start;
            // This is a kludge to try and detect overly deep left-associative
            // trees, which will not increase the parse stack depth and thus
            // won't be caught by the regular stack-depth limit check.
-           if (size >= 2000 /* Recover.MinBigReduction */) {
+           if (size >= 2000 /* Recover.MinBigReduction */ && !((_a = this.p.parser.nodeSet.types[type]) === null || _a === void 0 ? void 0 : _a.isAnonymous)) {
                if (start == this.p.lastBigReductionStart) {
                    this.p.bigReductionCount++;
                    this.p.lastBigReductionSize = size;
@@ -26789,7 +26790,7 @@ if(!String.prototype.matchAll) {
            if (around.name == "JSXStartTag")
                around = around.parent;
            if (text == ">" && around.name == "JSXFragmentTag") {
-               return { range: EditorSelection.cursor(head + 1), changes: { from: head, insert: `><>` } };
+               return { range: EditorSelection.cursor(head + 1), changes: { from: head, insert: `></>` } };
            }
            else if (text == "/" && around.name == "JSXFragmentTag") {
                let empty = around.parent, base = empty === null || empty === void 0 ? void 0 : empty.parent;
