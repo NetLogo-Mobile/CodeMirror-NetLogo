@@ -150,9 +150,19 @@ export class AutoCompletion {
       results = results.concat(this.LastPrimitives);
       // Breeds
       if (state.Breeds.size > 0) {
-        results.push(
-          ...this.KeywordsToCompletions(state.GetBreedNames(), 'Breed')
+        let breeds = state.GetBreedNames();
+        breeds = breeds.filter(
+          (breed) =>
+            ![
+              'turtle',
+              'turtles',
+              'patch',
+              'patches',
+              'link',
+              'links',
+            ].includes(breed)
         );
+        results.push(...this.KeywordsToCompletions(breeds, 'Breed'));
         results.push(
           ...this.KeywordsToCompletions(
             state.GetBreedVariables(),

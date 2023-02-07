@@ -11,20 +11,37 @@ export const UnrecognizedGlobalLinter = buildLinter((view, parseState) => {
     .iterate((node) => {
       if (node.name == 'Unrecognized') {
         const value = view.state.sliceDoc(node.from, node.to);
-        diagnostics.push({
-          from: node.from,
-          to: node.to,
-          severity: 'warning',
-          message: Localized.Get('Unrecognized global statement _', value),
-          /* actions: [
-            {
-              name: 'Remove',
-              apply(view, from, to) {
-                view.dispatch({ changes: { from, to } });
+        if (node.node.getChildren('Procedure').length > 0) {
+          diagnostics.push({
+            from: node.from,
+            to: node.to,
+            severity: 'warning',
+            message: Localized.Get('Improperly placed procedure _', value),
+            /* actions: [
+              {
+                name: 'Remove',
+                apply(view, from, to) {
+                  view.dispatch({ changes: { from, to } });
+                },
               },
-            },
-          ], */
-        });
+            ], */
+          });
+        } else {
+          diagnostics.push({
+            from: node.from,
+            to: node.to,
+            severity: 'warning',
+            message: Localized.Get('Unrecognized global statement _', value),
+            /* actions: [
+              {
+                name: 'Remove',
+                apply(view, from, to) {
+                  view.dispatch({ changes: { from, to } });
+                },
+              },
+            ], */
+          });
+        }
       }
     });
   return diagnostics;

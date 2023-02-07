@@ -85,6 +85,19 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         closestTerm = '~Globals/Identifier';
       } else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
         closestTerm = '~WidgetGlobal';
+      } else if (state.field(stateExtension).GetBreedNames().includes(term)) {
+        let breeds = state.field(stateExtension).GetBreeds();
+        let plurals: string[] = [];
+        let singular: string[] = [];
+        for (let b of breeds) {
+          plurals.push(b.Plural);
+          singular.push(b.Singular);
+        }
+        if (plurals.includes(term)) {
+          closestTerm = '~BreedPlural';
+        } else {
+          closestTerm = '~BreedSingular';
+        }
       } else {
         secondTerm = State.GetBreedFromVariable(term);
         if (secondTerm != null) {

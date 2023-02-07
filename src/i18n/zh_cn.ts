@@ -40,6 +40,9 @@ const zh_cn: Record<string, Function> = {
     `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
   'Missing command before _': (Name: string) =>
     `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
+  'Improperly placed procedure _': (Name: string) =>
+    `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
+  'Unmatched item _': (Name: string) => `This "${Name}" is unmatched.`,
 
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,
