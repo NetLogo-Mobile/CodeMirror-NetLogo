@@ -101,6 +101,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
       }
       if (closestTerm == '') return getEmptyTooltip();
       console.log('Term: ' + term, closestTerm, parentName);
+
       // Return the tooltip
       return {
         pos: range.from,
@@ -109,7 +110,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         arrow: true,
         create: (view: EditorView) => {
           const dom = document.createElement('div');
-          var message = Localized.Get(closestTerm, secondTerm ?? '');
+          var message = Dictionary.Get(closestTerm, secondTerm ?? '');
           if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
             message += '➤';
             dom.addEventListener('click', () => Dictionary.ClickHandler!(term));
