@@ -28270,23 +28270,7 @@ if(!String.prototype.matchAll) {
                }
                const value = view.state.sliceDoc(node.from, node.to);
                console.log(value, node.name, parents);
-               if (['[', ']', ')', '(', '"'].includes(value)) {
-                   diagnostics.push({
-                       from: node.from,
-                       to: node.to,
-                       severity: 'warning',
-                       message: Localized.Get('Unmatched item _', value),
-                       /* actions: [
-                         {
-                           name: 'Remove',
-                           apply(view, from, to) {
-                             view.dispatch({ changes: { from, to } });
-                           },
-                         },
-                       ], */
-                   });
-               }
-               else {
+               if (!['[', ']', ')', '(', '"'].includes(value)) {
                    diagnostics.push({
                        from: node.from,
                        to: node.to,
@@ -28628,6 +28612,41 @@ if(!String.prototype.matchAll) {
        return diagnostics;
    });
 
+   // BracketLinter: Checks if all brackets have matches
+   const BracketLinter = buildLinter((view, parseState) => {
+       const diagnostics = [];
+       syntaxTree(view.state)
+           .cursor()
+           .iterate((node) => {
+           var _a, _b, _c, _d;
+           if ((node.name == 'OpenBracket' &&
+               ((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.getChildren('CloseBracket').length) != 1) ||
+               (node.name == 'CloseBracket' &&
+                   ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.getChildren('OpenBracket').length) != 1) ||
+               (node.name == 'OpenParen' &&
+                   ((_c = node.node.parent) === null || _c === void 0 ? void 0 : _c.getChildren('CloseParen').length) != 1) ||
+               (node.name == 'CloseParen' &&
+                   ((_d = node.node.parent) === null || _d === void 0 ? void 0 : _d.getChildren('OpenParen').length) != 1)) {
+               const value = view.state.sliceDoc(node.from, node.to);
+               diagnostics.push({
+                   from: node.from,
+                   to: node.to,
+                   severity: 'warning',
+                   message: Localized.Get('Unmatched item _', value),
+                   /* actions: [
+                           {
+                             name: 'Remove',
+                             apply(view, from, to) {
+                               view.dispatch({ changes: { from, to } });
+                             },
+                           },
+                         ], */
+               });
+           }
+       });
+       return diagnostics;
+   });
+
    const netlogoLinters = [
        CompilerLinter,
        RuntimeLinter,
@@ -28639,6 +28658,7 @@ if(!String.prototype.matchAll) {
        UnsupportedLinter,
        ExtensionLinter,
        BreedNameLinter,
+       BracketLinter,
    ];
 
    const prettify = function (view) {
