@@ -19,22 +19,7 @@ export const UnrecognizedLinter = buildLinter((view, parseState) => {
 
         const value = view.state.sliceDoc(node.from, node.to);
         console.log(value, node.name, parents);
-        if (['[', ']', ')', '(', '"'].includes(value)) {
-          diagnostics.push({
-            from: node.from,
-            to: node.to,
-            severity: 'warning',
-            message: Localized.Get('Unmatched item _', value),
-            /* actions: [
-              {
-                name: 'Remove',
-                apply(view, from, to) {
-                  view.dispatch({ changes: { from, to } });
-                },
-              },
-            ], */
-          });
-        } else {
+        if (!['[', ']', ')', '(', '"'].includes(value)) {
           diagnostics.push({
             from: node.from,
             to: node.to,
