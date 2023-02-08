@@ -4504,11 +4504,6 @@ if(!String.prototype.matchAll) {
            this.dom = null;
            this.dirty = 2 /* Dirty.Node */;
        }
-       get editorView() {
-           if (!this.parent)
-               throw new Error("Accessing view in orphan content view");
-           return this.parent.editorView;
-       }
        get overrideDOMText() { return null; }
        get posAtStart() {
            return this.parent ? this.parent.posBefore(this) : 0;
@@ -4532,7 +4527,7 @@ if(!String.prototype.matchAll) {
        // (side > 0) or directly on (when the browser supports it) the
        // given position.
        coordsAt(_pos, _side) { return null; }
-       sync(track) {
+       sync(view, track) {
            if (this.dirty & 2 /* Dirty.Node */) {
                let parent = this.dom;
                let prev = null, next;
@@ -4543,7 +4538,7 @@ if(!String.prototype.matchAll) {
                            if (!contentView || !contentView.parent && contentView.canReuseDOM(child))
                                child.reuseDOM(next);
                        }
-                       child.sync(track);
+                       child.sync(view, track);
                        child.dirty = 0 /* Dirty.Not */;
                    }
                    next = prev ? prev.nextSibling : parent.firstChild;
@@ -4567,7 +4562,7 @@ if(!String.prototype.matchAll) {
            else if (this.dirty & 1 /* Dirty.Child */) {
                for (let child of this.children)
                    if (child.dirty) {
-                       child.sync(track);
+                       child.sync(view, track);
                        child.dirty = 0 /* Dirty.Not */;
                    }
            }
@@ -4861,7 +4856,7 @@ if(!String.prototype.matchAll) {
        createDOM(textDOM) {
            this.setDOM(textDOM || document.createTextNode(this.text));
        }
-       sync(track) {
+       sync(view, track) {
            if (!this.dom)
                this.createDOM();
            if (this.dom.nodeValue != this.text) {
@@ -4922,12 +4917,12 @@ if(!String.prototype.matchAll) {
                this.dirty |= 4 /* Dirty.Attrs */ | 2 /* Dirty.Node */;
            }
        }
-       sync(track) {
+       sync(view, track) {
            if (!this.dom)
                this.setDOM(this.setAttrs(document.createElement(this.mark.tagName)));
            else if (this.dirty & 4 /* Dirty.Attrs */)
                this.setAttrs(this.dom);
-           super.sync(track);
+           super.sync(view, track);
        }
        merge(from, to, source, _hasStart, openStart, openEnd) {
            if (source && (!(source instanceof MarkView && source.mark.eq(this.mark)) ||
@@ -5011,12 +5006,12 @@ if(!String.prototype.matchAll) {
            this.length -= from;
            return result;
        }
-       sync() {
-           if (!this.dom || !this.widget.updateDOM(this.dom)) {
+       sync(view) {
+           if (!this.dom || !this.widget.updateDOM(this.dom, view)) {
                if (this.dom && this.prevWidget)
                    this.prevWidget.destroy(this.dom);
                this.prevWidget = null;
-               this.setDOM(this.widget.toDOM(this.editorView));
+               this.setDOM(this.widget.toDOM(view));
                this.dom.contentEditable = "false";
            }
        }
@@ -5049,7 +5044,7 @@ if(!String.prototype.matchAll) {
            let top = this;
            while (top.parent)
                top = top.parent;
-           let view = top.editorView, text = view && view.state.doc, start = this.posAtStart;
+           let { view } = top, text = view && view.state.doc, start = this.posAtStart;
            return text ? text.slice(start, start + this.length) : Text.empty;
        }
        domAtPos(pos) {
@@ -5341,7 +5336,7 @@ if(!String.prototype.matchAll) {
        couldn't (in which case the widget will be redrawn). The default
        implementation just returns false.
        */
-       updateDOM(dom) { return false; }
+       updateDOM(dom, view) { return false; }
        /**
        @internal
        */
@@ -5656,7 +5651,7 @@ if(!String.prototype.matchAll) {
                this.dirty |= 4 /* Dirty.Attrs */ | 2 /* Dirty.Node */;
            }
        }
-       sync(track) {
+       sync(view, track) {
            var _a;
            if (!this.dom) {
                this.setDOM(document.createElement("div"));
@@ -5673,7 +5668,7 @@ if(!String.prototype.matchAll) {
                this.dom.classList.add("cm-line");
                this.prevAttrs = undefined;
            }
-           super.sync(track);
+           super.sync(view, track);
            let last = this.dom.lastChild;
            while (last && ContentView.get(last) instanceof MarkView)
                last = last.lastChild;
@@ -5748,12 +5743,12 @@ if(!String.prototype.matchAll) {
            return end;
        }
        get children() { return noChildren; }
-       sync() {
-           if (!this.dom || !this.widget.updateDOM(this.dom)) {
+       sync(view) {
+           if (!this.dom || !this.widget.updateDOM(this.dom, view)) {
                if (this.dom && this.prevWidget)
                    this.prevWidget.destroy(this.dom);
                this.prevWidget = null;
-               this.setDOM(this.widget.toDOM(this.editorView));
+               this.setDOM(this.widget.toDOM(view));
                this.dom.contentEditable = "false";
            }
        }
@@ -6707,7 +6702,6 @@ if(!String.prototype.matchAll) {
            this.updateDeco();
            this.updateInner([new ChangedRange(0, 0, 0, view.state.doc.length)], 0);
        }
-       get editorView() { return this.view; }
        get length() { return this.view.state.doc.length; }
        // Update the document view to a given state. scrollIntoView can be
        // used as a hint to compute a new viewport that includes that
@@ -6767,7 +6761,7 @@ if(!String.prototype.matchAll) {
                // selection from the one it displays (issue #218). This tries
                // to detect that situation.
                let track = browser.chrome || browser.ios ? { node: observer.selectionRange.focusNode, written: false } : undefined;
-               this.sync(track);
+               this.sync(this.view, track);
                this.dirty = 0 /* Dirty.Not */;
                if (track && (track.written || observer.selectionRange.focusNode != track.node))
                    this.forceSelection = true;
@@ -7603,7 +7597,7 @@ if(!String.prototype.matchAll) {
                this.registeredEvents.push(type);
            }
            view.scrollDOM.addEventListener("mousedown", (event) => {
-               if (event.target == view.scrollDOM)
+               if (event.target == view.scrollDOM && event.clientY > view.contentDOM.getBoundingClientRect().bottom)
                    handleEvent(handlers.mousedown, event);
            });
            if (browser.chrome && browser.chrome_version == 102) { // FIXME remove at some point
@@ -7781,11 +7775,13 @@ if(!String.prototype.matchAll) {
            this.multiple = view.state.facet(EditorState.allowMultipleSelections) && addsSelectionRange(view, startEvent);
            this.dragMove = dragMovesSelection(view, startEvent);
            this.dragging = isInPrimarySelection(view, startEvent) && getClickType(startEvent) == 1 ? null : false;
+       }
+       start(event) {
            // When clicking outside of the selection, immediately apply the
            // effect of starting the selection
            if (this.dragging === false) {
-               startEvent.preventDefault();
-               this.select(startEvent);
+               event.preventDefault();
+               this.select(event);
            }
        }
        move(event) {
@@ -7977,9 +7973,11 @@ if(!String.prototype.matchAll) {
            style = basicMouseSelection(view, event);
        if (style) {
            let mustFocus = view.root.activeElement != view.contentDOM;
+           view.inputState.startMouseSelection(new MouseSelection(view, event, style, mustFocus));
            if (mustFocus)
                view.observer.ignore(() => focusPreventScroll(view.contentDOM));
-           view.inputState.startMouseSelection(new MouseSelection(view, event, style, mustFocus));
+           if (view.inputState.mouseSelection)
+               view.inputState.mouseSelection.start(event);
        }
    };
    function rangeForClick(view, pos, bias, type) {
@@ -9588,6 +9586,9 @@ if(!String.prototype.matchAll) {
        },
        "&dark .cm-cursor": {
            borderLeftColor: "#444"
+       },
+       ".cm-dropCursor": {
+           position: "absolute"
        },
        "&.cm-focused .cm-cursor": {
            display: "block"
@@ -12464,6 +12465,7 @@ if(!String.prototype.matchAll) {
            });
        }
    });
+   const knownHeight = /*@__PURE__*/new WeakMap();
    const tooltipPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
        constructor(view) {
            this.view = view;
@@ -12579,6 +12581,7 @@ if(!String.prototype.matchAll) {
            };
        }
        writeMeasure(measured) {
+           var _a;
            let { editor, space } = measured;
            let others = [];
            for (let i = 0; i < this.manager.tooltips.length; i++) {
@@ -12594,7 +12597,7 @@ if(!String.prototype.matchAll) {
                }
                let arrow = tooltip.arrow ? tView.dom.querySelector(".cm-tooltip-arrow") : null;
                let arrowHeight = arrow ? 7 /* Arrow.Size */ : 0;
-               let width = size.right - size.left, height = size.bottom - size.top;
+               let width = size.right - size.left, height = (_a = knownHeight.get(tView)) !== null && _a !== void 0 ? _a : size.bottom - size.top;
                let offset = tView.offset || noOffset, ltr = this.view.textDirection == Direction.LTR;
                let left = size.width > space.right - space.left ? (ltr ? space.left : space.right - size.width)
                    : ltr ? Math.min(pos.left - (arrow ? 14 /* Arrow.Offset */ : 0) + offset.x, space.right - width)
@@ -12611,6 +12614,7 @@ if(!String.prototype.matchAll) {
                        dom.style.top = Outside;
                        continue;
                    }
+                   knownHeight.set(tView, height);
                    dom.style.height = (height = spaceVert) + "px";
                }
                else if (dom.style.height) {
@@ -16202,13 +16206,13 @@ if(!String.prototype.matchAll) {
    }
    // Lezer-style Input object for a Text document.
    class DocInput {
-       constructor(doc, length = doc.length) {
+       constructor(doc) {
            this.doc = doc;
-           this.length = length;
            this.cursorPos = 0;
            this.string = "";
            this.cursor = doc.iter();
        }
+       get length() { return this.doc.length; }
        syncTo(pos) {
            this.string = this.cursor.next(pos - this.cursorPos).value;
            this.cursorPos = pos + this.string.length;
@@ -16656,17 +16660,18 @@ if(!String.prototype.matchAll) {
    */
    const indentService = /*@__PURE__*/Facet.define();
    /**
-   Facet for overriding the unit by which indentation happens.
-   Should be a string consisting either entirely of spaces or
-   entirely of tabs. When not set, this defaults to 2 spaces.
+   Facet for overriding the unit by which indentation happens. Should
+   be a string consisting either entirely of the same whitespace
+   character. When not set, this defaults to 2 spaces.
    */
    const indentUnit = /*@__PURE__*/Facet.define({
        combine: values => {
            if (!values.length)
                return "  ";
-           if (!/^(?: +|\t+)$/.test(values[0]))
+           let unit = values[0];
+           if (!unit || /\S/.test(unit) || Array.from(unit).some(e => e != unit[0]))
                throw new Error("Invalid indent unit: " + JSON.stringify(values[0]));
-           return values[0];
+           return unit;
        }
    });
    /**
@@ -16686,14 +16691,16 @@ if(!String.prototype.matchAll) {
    tabs.
    */
    function indentString(state, cols) {
-       let result = "", ts = state.tabSize;
-       if (state.facet(indentUnit).charCodeAt(0) == 9)
+       let result = "", ts = state.tabSize, ch = state.facet(indentUnit)[0];
+       if (ch == "\t") {
            while (cols >= ts) {
                result += "\t";
                cols -= ts;
            }
+           ch = " ";
+       }
        for (let i = 0; i < cols; i++)
-           result += " ";
+           result += ch;
        return result;
    }
    /**
@@ -25380,6 +25387,15 @@ if(!String.prototype.matchAll) {
            }
            return null;
        }
+       GetBreedFromProcedure(term) {
+           let breed = '';
+           for (let b of this.GetBreedNames()) {
+               if (term.includes(b) && b.length > breed.length) {
+                   breed = b;
+               }
+           }
+           return breed;
+       }
        /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
        GetProcedureFromVariable(varName, from, to) {
            for (let proc of this.Procedures.values()) {
@@ -25398,10 +25414,10 @@ if(!String.prototype.matchAll) {
                    if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
                        continue;
                    if (anonProc.Arguments.includes(varName))
-                       return '{anonymous}';
+                       return '{anonymous},' + proc.Name;
                    for (let localVar of anonProc.Variables) {
                        if (localVar.Name == varName && localVar.CreationPos <= to)
-                           return '{anonymous}';
+                           return '{anonymous},' + proc.Name;
                    }
                }
            }
@@ -25636,7 +25652,11 @@ if(!String.prototype.matchAll) {
        '~BreedPlural': (Name) => `The plural name of a model-defined breed. `,
        '~BreedSingular': (Name) => `The singular name of a model-defined breed. `,
        '~BreedVariable': (Name) => `A custom variable for the "${Name}" breed. `,
-       '~LocalVariable': (Name) => `A local variable within the "${Name}" procedure or reporter. `,
+       '~LocalVariable': (Name) => `A local variable within the "${Name.includes('{anonymous}') ? '{anonymous}' : Name}" procedure or reporter. `,
+       '~BreedReporter': (Name) => `A reporter for the "${Name}" breed. `,
+       '~CustomReporter': (Name) => `A user-defined reporter. `,
+       '~BreedCommand': (Name) => `A command for the "${Name}" breed. `,
+       '~CustomCommand': (Name) => `A user-defined command. `,
    };
 
    const zh_cn = {
@@ -25674,7 +25694,11 @@ if(!String.prototype.matchAll) {
        '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
        '~WidgetGlobal': (Name) => `通过界面组件定义的全局变量。 `,
        '~BreedVariable': (Name) => `种类 "${Name}" 定义的变量。`,
-       '~LocalVariable': (Name) => `"${Name}" 过程或函数定义的本地变量。 `,
+       '~LocalVariable': (Name) => `"${Name.includes('{anonymous}') ? '{anonymous}' : Name}" 过程或函数定义的本地变量。 `,
+       '~BreedReporter': (Name) => `A reporter for the "${Name}" breed. `,
+       '~CustomReporter': (Name) => `A user-defined reporter. `,
+       '~BreedCommand': (Name) => `A command for the "${Name}" breed. `,
+       '~CustomCommand': (Name) => `A user-defined command. `,
    };
 
    /** LocalizationManager: Manage all localized texts. */
@@ -26284,10 +26308,34 @@ if(!String.prototype.matchAll) {
                    }
                    // Reporters & Commands are very special
                    var name = ref.name;
-                   if (name.indexOf('Reporter') != -1 && name.indexOf('Args') != -1)
-                       name = 'Reporter';
-                   if (name.indexOf('Command') != -1 && name.indexOf('Args') != -1)
-                       name = 'Command';
+                   if (name.indexOf('Reporter') != -1 && name.indexOf('Args') != -1) {
+                       if (name.indexOf('Special') != -1) {
+                           if (name.indexOf('Turtle') != -1 ||
+                               name.indexOf('Link') != -1 ||
+                               name.indexOf('Both') != -1) {
+                               name = 'BreedReporter';
+                           }
+                           else {
+                               name = 'CustomReporter';
+                           }
+                       }
+                       else {
+                           name = 'Reporter';
+                       }
+                   }
+                   if (name.indexOf('Command') != -1) {
+                       if (name.indexOf('Special') != -1) {
+                           if (name.indexOf('Create') != -1) {
+                               name = 'BreedCommand';
+                           }
+                           else {
+                               name = 'CustomCommand';
+                           }
+                       }
+                       else {
+                           name = 'Command';
+                       }
+                   }
                    // Check the category name
                    if (closestTerm == '~BreedSingular' ||
                        closestTerm == '~Arguments' ||
@@ -26347,9 +26395,14 @@ if(!String.prototype.matchAll) {
                    }
                }
            }
+           if (closestTerm == '~BreedReporter' || closestTerm == '~BreedCommand') {
+               secondTerm = State.GetBreedFromProcedure(term);
+           }
+           console.log('Term: ' + term, closestTerm, parentName);
            if (closestTerm == '')
                return getEmptyTooltip$1();
-           console.log('Term: ' + term, closestTerm, parentName);
+           let result = getInternalLink(term, closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '', state);
+           console.log(result);
            // Return the tooltip
            return {
                pos: range.from,
@@ -26363,6 +26416,17 @@ if(!String.prototype.matchAll) {
                        message += '➤';
                        dom.addEventListener('click', () => Dictionary.ClickHandler(term));
                        dom.classList.add('cm-tooltip-extendable');
+                   }
+                   else if (result.hasLink) {
+                       message += '➤';
+                       dom.addEventListener('click', () => view.dispatch({
+                           selection: EditorSelection.create([
+                               EditorSelection.range(result.from, result.to),
+                           ]),
+                           effects: [
+                               EditorView.scrollIntoView(result.from, { y: 'center' }),
+                           ],
+                       }));
                    }
                    dom.classList.add('cm-tooltip-explain');
                    dom.innerText = message;
@@ -26383,6 +26447,164 @@ if(!String.prototype.matchAll) {
                return { dom };
            },
        };
+   }
+   function getInternalLink(term, closestTerm, secondTerm, state) {
+       let to = 0;
+       let from = 0;
+       let hasLink = false;
+       if (closestTerm == '~Globals/Identifier') {
+           syntaxTree(state)
+               .cursor()
+               .iterate((node) => {
+               if (node.name == 'Globals') {
+                   node.node.getChildren('Identifier').map((subnode) => {
+                       if (state.sliceDoc(subnode.from, subnode.to) == term) {
+                           to = subnode.to;
+                           from = subnode.from;
+                           hasLink = true;
+                       }
+                   });
+               }
+           });
+       }
+       else if (closestTerm == '~BreedVariable') {
+           syntaxTree(state)
+               .cursor()
+               .iterate((node) => {
+               if (node.name == 'BreedsOwn') {
+                   let correctNode = false;
+                   node.node.getChildren('Own').map((subnode) => {
+                       if (state.sliceDoc(subnode.from, subnode.to) ==
+                           secondTerm + '-own') {
+                           correctNode = true;
+                       }
+                   });
+                   if (correctNode) {
+                       node.node.getChildren('Identifier').map((subnode) => {
+                           if (state.sliceDoc(subnode.from, subnode.to) == term) {
+                               to = subnode.to;
+                               from = subnode.from;
+                               hasLink = true;
+                           }
+                       });
+                   }
+               }
+           });
+       }
+       else if (closestTerm == '~BreedSingular') {
+           syntaxTree(state)
+               .cursor()
+               .iterate((node) => {
+               if (node.name == 'Breed') {
+                   node.node.getChildren('BreedSingular').map((subnode) => {
+                       if (state.sliceDoc(subnode.from, subnode.to) == term) {
+                           to = subnode.to;
+                           from = subnode.from;
+                           hasLink = true;
+                       }
+                   });
+               }
+           });
+       }
+       else if (closestTerm == '~BreedPlural') {
+           syntaxTree(state)
+               .cursor()
+               .iterate((node) => {
+               if (node.name == 'Breed') {
+                   node.node.getChildren('BreedPlural').map((subnode) => {
+                       if (state.sliceDoc(subnode.from, subnode.to) == term) {
+                           to = subnode.to;
+                           from = subnode.from;
+                           hasLink = true;
+                       }
+                   });
+               }
+           });
+       }
+       else if (closestTerm == '~CustomReporter' ||
+           closestTerm == '~CustomCommand') {
+           console.log('here');
+           syntaxTree(state)
+               .cursor()
+               .iterate((node) => {
+               if (node.name == 'ProcedureName')
+                   console.log(state.sliceDoc(node.from, node.to));
+               if (node.name == 'ProcedureName' &&
+                   state.sliceDoc(node.from, node.to) == term) {
+                   to = node.to;
+                   from = node.from;
+                   hasLink = true;
+               }
+           });
+       }
+       else if (closestTerm == '~LocalVariable') {
+           let procName = secondTerm.replace('{anonymous},', '');
+           let proc = state.field(stateExtension).Procedures.get(procName);
+           if (proc === null || proc === void 0 ? void 0 : proc.Arguments.includes(term)) {
+               syntaxTree(state)
+                   .cursor()
+                   .iterate((node) => {
+                   var _a;
+                   if (node.name == 'Procedure') {
+                       let nameNode = node.node.getChild('ProcedureName');
+                       if (nameNode &&
+                           state.sliceDoc(nameNode.from, nameNode.to) == procName) {
+                           (_a = node.node
+                               .getChild('Arguments')) === null || _a === void 0 ? void 0 : _a.getChildren('Identifier').map((subnode) => {
+                               if (state.sliceDoc(subnode.from, subnode.to) == term) {
+                                   to = subnode.to;
+                                   from = subnode.from;
+                                   hasLink = true;
+                               }
+                           });
+                       }
+                   }
+               });
+           }
+           else if (proc && !secondTerm.includes('{anonymous}')) {
+               for (let vars of proc === null || proc === void 0 ? void 0 : proc.Variables) {
+                   if (vars.Name == term) {
+                       let subnode = syntaxTree(state).cursorAt(vars.CreationPos).node;
+                       to = subnode.to;
+                       from = subnode.from;
+                       hasLink = true;
+                   }
+               }
+           }
+           else if (proc) {
+               for (var anonProc of proc.AnonymousProcedures) {
+                   if (anonProc.Arguments.includes(term)) {
+                       syntaxTree(state).iterate({
+                           enter: (noderef) => {
+                               var _a, _b;
+                               if (noderef.name == 'Identifier' &&
+                                   (((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'AnonArguments' ||
+                                       ((_b = noderef.node.parent) === null || _b === void 0 ? void 0 : _b.name) == 'Arguments')) {
+                                   if (state.sliceDoc(noderef.from, noderef.to) == term) {
+                                       to = noderef.to;
+                                       from = noderef.from;
+                                       hasLink = true;
+                                   }
+                               }
+                           },
+                           to: anonProc.PositionStart,
+                           from: anonProc.PositionEnd,
+                       });
+                   }
+                   else {
+                       for (var vars of anonProc.Variables) {
+                           if (vars.Name == term) {
+                               let subnode = syntaxTree(state).cursorAt(vars.CreationPos).node;
+                               to = subnode.to;
+                               from = subnode.from;
+                               hasLink = true;
+                           }
+                       }
+                   }
+               }
+           }
+       }
+       return { hasLink, to, from };
    }
 
    const lightTheme = EditorView.theme({
