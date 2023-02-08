@@ -65,6 +65,16 @@ export class StateNetLogo {
     }
     return null;
   }
+
+  public GetBreedFromProcedure(term: string): string | null {
+    let breed = '';
+    for (let b of this.GetBreedNames()) {
+      if (term.includes(b) && b.length > breed.length) {
+        breed = b;
+      }
+    }
+    return breed;
+  }
   /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
   public GetProcedureFromVariable(
     varName: string,
@@ -84,10 +94,11 @@ export class StateNetLogo {
       for (let anonProc of proc.AnonymousProcedures) {
         if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
           continue;
-        if (anonProc.Arguments.includes(varName)) return '{anonymous}';
+        if (anonProc.Arguments.includes(varName))
+          return '{anonymous},' + proc.Name;
         for (let localVar of anonProc.Variables) {
           if (localVar.Name == varName && localVar.CreationPos <= to)
-            return '{anonymous}';
+            return '{anonymous},' + proc.Name;
         }
       }
     }

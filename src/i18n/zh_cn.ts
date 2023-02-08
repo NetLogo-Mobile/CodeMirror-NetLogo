@@ -65,7 +65,14 @@ const zh_cn: Record<string, Function> = {
   '~BreedSingular': (Name: string) => `某类模型中定义的海龟的单数名称。`,
   '~WidgetGlobal': (Name: string) => `通过界面组件定义的全局变量。 `,
   '~BreedVariable': (Name: string) => `种类 "${Name}" 定义的变量。`,
-  '~LocalVariable': (Name: string) => `"${Name}" 过程或函数定义的本地变量。 `,
+  '~LocalVariable': (Name: string) =>
+    `"${
+      Name.includes('{anonymous}') ? '{anonymous}' : Name
+    }" 过程或函数定义的本地变量。 `,
+  '~BreedReporter': (Name: string) => `A reporter for the "${Name}" breed. `,
+  '~CustomReporter': (Name: string) => `A user-defined reporter. `,
+  '~BreedCommand': (Name: string) => `A command for the "${Name}" breed. `,
+  '~CustomCommand': (Name: string) => `A user-defined command. `,
 };
 
 export { zh_cn };

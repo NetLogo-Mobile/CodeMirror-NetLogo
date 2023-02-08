@@ -70,7 +70,13 @@ const en_us: Record<string, Function> = {
   '~BreedVariable': (Name: string) =>
     `A custom variable for the "${Name}" breed. `,
   '~LocalVariable': (Name: string) =>
-    `A local variable within the "${Name}" procedure or reporter. `,
+    `A local variable within the "${
+      Name.includes('{anonymous}') ? '{anonymous}' : Name
+    }" procedure or reporter. `,
+  '~BreedReporter': (Name: string) => `A reporter for the "${Name}" breed. `,
+  '~CustomReporter': (Name: string) => `A user-defined reporter. `,
+  '~BreedCommand': (Name: string) => `A command for the "${Name}" breed. `,
+  '~CustomCommand': (Name: string) => `A user-defined command. `,
 };
 
 export { en_us };
