@@ -28888,9 +28888,10 @@ if(!String.prototype.matchAll) {
        let doc = view.state.doc.toString();
        //eliminate extra spacing
        let new_doc = doc.replace(/\n\s+/g, '\n');
-       new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 ['); //needs to not happen if preceded by a comment
-       new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]'); //needs to not happen if preceded by a comment
+       new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 [');
+       new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
        new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
+       new_doc = new_doc.replace(/(\[|\]|\(|\))/g, ' $1 ');
        new_doc = new_doc.replace(/ +/g, ' ');
        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
        doc = view.state.doc.toString();
