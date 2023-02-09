@@ -1,9 +1,6 @@
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { parser } from './lang.js';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { getIndent } from './indent.ts';
 
 import {
   LRLanguage,
@@ -17,7 +14,6 @@ import { styleTags, tags as t } from '@lezer/highlight';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { AutoCompletion } from './auto-completion';
 import { SyntaxNode } from '@lezer/common';
-import { css } from '@codemirror/lang-css';
 
 /** NetLogoLanguage: The NetLogo language. */
 export const NetLogoLanguage = LRLanguage.define({

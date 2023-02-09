@@ -91,7 +91,7 @@ export class GalapagosEditor {
         Dictionary.ClickHandler = Options.OnDictionaryClick;
         if (!this.Options.OneLine) {
           Extensions.push(tooltipExtension);
-          Extensions.push(hoverExtension);
+          // Extensions.push(hoverExtension);
           Extensions.push(...netlogoLinters);
         }
     }
