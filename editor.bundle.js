@@ -25673,7 +25673,7 @@ if(!String.prototype.matchAll) {
        'Breed name _ already used.': (Name) => `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
        'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
        'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
-       'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
+       'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
        'Unmatched item _': (Name) => `This "${Name}" is unmatched.`,
        '~VariableName': (Name) => `一个（未知的）变量。`,
        '~ProcedureName': (Name) => `过程或函数的名称。`,
@@ -25694,11 +25694,11 @@ if(!String.prototype.matchAll) {
        '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
        '~WidgetGlobal': (Name) => `通过界面组件定义的全局变量。 `,
        '~BreedVariable': (Name) => `种类 "${Name}" 定义的变量。`,
-       '~LocalVariable': (Name) => `"${Name.includes('{anonymous}') ? '{anonymous}' : Name}" 过程或函数定义的本地变量。 `,
-       '~BreedReporter': (Name) => `A reporter for the "${Name}" breed. `,
-       '~CustomReporter': (Name) => `A user-defined reporter. `,
-       '~BreedCommand': (Name) => `A command for the "${Name}" breed. `,
-       '~CustomCommand': (Name) => `A user-defined command. `,
+       '~LocalVariable': (Name) => `"${Name.includes('{anonymous}') ? '{匿名}' : Name}" 过程或函数定义的本地变量。 `,
+       '~BreedReporter': (Name) => `关于 "${Name}" 种类的函数。`,
+       '~CustomReporter': (Name) => `代码中定义的一个函数。`,
+       '~BreedCommand': (Name) => `关于 "${Name}" 种类的过程。 `,
+       '~CustomCommand': (Name) => `代码中定义的一个过程。`,
    };
 
    /** LocalizationManager: Manage all localized texts. */
@@ -26354,7 +26354,7 @@ if(!String.prototype.matchAll) {
            });
            // If so, we won't display tips - that's unnecessary.
            if (lastFrom == lastTo || multipleTokens)
-               return getEmptyTooltip$1();
+               return getEmptyTooltip();
            // Check if we can directly recognize the youngest children's full-word
            const term = state.sliceDoc(lastFrom, lastTo);
            if (Dictionary.Check(term)) {
@@ -26400,7 +26400,7 @@ if(!String.prototype.matchAll) {
            }
            console.log('Term: ' + term, closestTerm, parentName);
            if (closestTerm == '')
-               return getEmptyTooltip$1();
+               return getEmptyTooltip();
            let result = getInternalLink(term, closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '', state);
            console.log(result);
            // Return the tooltip
@@ -26436,7 +26436,7 @@ if(!String.prototype.matchAll) {
        });
    }
    /** getEmptyTooltip: Get an empty tooltip. */
-   function getEmptyTooltip$1() {
+   function getEmptyTooltip() {
        return {
            pos: 0,
            above: false,
@@ -28989,111 +28989,6 @@ if(!String.prototype.matchAll) {
        return ((multiline || multilineChildren) && count == 1) || count > 1;
    };
 
-   const hoverExtension = hoverTooltip((view, pos, side) => {
-       let node = syntaxTree(view.state).cursorAt(pos).node;
-       let closestTerm = '';
-       let parents = [];
-       let temp_node = node;
-       let term = view.state.sliceDoc(node.from, node.to);
-       var secondTerm = null;
-       while (temp_node.parent) {
-           parents.push(temp_node.parent.name);
-           temp_node = temp_node.parent;
-       }
-       if (Localized.Get(`~${node.name}`) || Dictionary.Check(`~${node.name}`)) {
-           closestTerm = `~${node.name}`;
-       }
-       else if (node.parent &&
-           (Localized.Get(`~${node.parent.name}/${node.name}`) ||
-               Dictionary.Check(`~${node.parent.name}/${node.name}`))) {
-           closestTerm = `~${node.parent.name}/${node.name}`;
-       }
-       else if (parents.includes('BreedSingular')) {
-           closestTerm = '~BreedSingular';
-       }
-       else if (parents.includes('Arguments')) {
-           closestTerm = '~Arguments';
-       }
-       else if (parents.includes('ProcedureName')) {
-           closestTerm = '~ProcedureName';
-       }
-       else if (view.state.field(stateExtension).Globals.includes(term)) {
-           closestTerm = '~Globals/Identifier';
-       }
-       else if (view.state.field(stateExtension).WidgetGlobals.includes(term)) {
-           closestTerm = '~WidgetGlobal';
-       }
-       else if (node.name.indexOf('Reporter') != -1 &&
-           node.name.indexOf('Args') != -1) {
-           closestTerm = '~Reporter';
-       }
-       else if (node.name.indexOf('Command') != -1 &&
-           node.name.indexOf('Args') != -1) {
-           closestTerm = '~Command';
-       }
-       else if (view.state.field(stateExtension).GetBreedNames().includes(term)) {
-           let breeds = view.state.field(stateExtension).GetBreeds();
-           let plurals = [];
-           let singular = [];
-           for (let b of breeds) {
-               plurals.push(b.Plural);
-               singular.push(b.Singular);
-           }
-           if (plurals.includes(term)) {
-               closestTerm = '~BreedPlural';
-           }
-           else {
-               closestTerm = '~BreedSingular';
-           }
-       }
-       else {
-           secondTerm = view.state.field(stateExtension).GetBreedFromVariable(term);
-           if (secondTerm != null) {
-               closestTerm = '~BreedVariable';
-           }
-           else {
-               if (closestTerm == '~VariableName' ||
-                   node.name == 'Identifier' ||
-                   (parents.includes('Identifier') && closestTerm == '')) {
-                   secondTerm = view.state
-                       .field(stateExtension)
-                       .GetProcedureFromVariable(term, node.from, node.to);
-                   if (secondTerm != null)
-                       closestTerm = '~LocalVariable';
-               }
-           }
-       }
-       // console.log(term,node.name,closestTerm,parents)
-       if (closestTerm == '')
-           return getEmptyTooltip();
-       return {
-           pos: node.from,
-           end: node.to,
-           above: false,
-           arrow: true,
-           strictSide: true,
-           create(view) {
-               let dom = document.createElement('div');
-               dom.classList.add('cm-tooltip-explain');
-               dom.innerText = Localized.Get(closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '');
-               return { dom };
-           },
-       };
-   });
-   /** getEmptyTooltip: Get an empty tooltip. */
-   function getEmptyTooltip() {
-       return {
-           pos: 0,
-           above: false,
-           strictSide: true,
-           arrow: false,
-           create: (view) => {
-               const dom = document.createElement('div');
-               return { dom };
-           },
-       };
-   }
-
    /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
    class GalapagosEditor {
        /** FindField: Records the find input of search panel. */
@@ -29133,7 +29028,7 @@ if(!String.prototype.matchAll) {
                    Dictionary.ClickHandler = Options.OnDictionaryClick;
                    if (!this.Options.OneLine) {
                        Extensions.push(tooltipExtension);
-                       Extensions.push(hoverExtension);
+                       // Extensions.push(hoverExtension);
                        Extensions.push(...netlogoLinters);
                    }
            }
