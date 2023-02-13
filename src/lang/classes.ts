@@ -115,13 +115,15 @@ export class Procedure {
   /** Variables: local variables defined for the procedure. */
   public Variables: LocalVariable[] = [];
   /** AnonymousProcedures: anonymous procedures defined for the procedure. */
-  public AnonymousProcedures: AnonymousProcedure[] = [];
+  public AnonymousProcedures: Procedure[] = [];
   /** PositionStart: The starting position of the procedure in the document. */
   public PositionStart: number = 0;
   /** PositionEnd: The end position of the procedure in the document. */
   public PositionEnd: number = 0;
   /** IsCommand: Is the procedure a command (to) instead of a reporter (to-report)? */
   public IsCommand: boolean = false;
+  /** IsCommand: Is the procedure anonymous? */
+  public isAnonymous: boolean = false;
 }
 
 /** Procedure: Dynamic metadata of an anonymous procedure. */
