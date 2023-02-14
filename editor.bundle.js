@@ -28462,25 +28462,37 @@ if(!String.prototype.matchAll) {
        syntaxTree(view.state)
            .cursor()
            .iterate((node) => {
+           var _a, _b, _c, _d, _e, _f, _g, _h, _j;
            if (node.name == 'Unrecognized') {
-               const value = view.state.sliceDoc(node.from, node.to);
                if (node.node.getChildren('Procedure').length > 0) {
-                   diagnostics.push({
-                       from: node.from,
-                       to: node.to,
-                       severity: 'warning',
-                       message: Localized.Get('Improperly placed procedure _', value),
-                       /* actions: [
-                         {
-                           name: 'Remove',
-                           apply(view, from, to) {
-                             view.dispatch({ changes: { from, to } });
-                           },
-                         },
-                       ], */
-                   });
+                   if (((_b = (_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.getChildren('Globals').length) !== null && _b !== void 0 ? _b : 0) > 0 ||
+                       ((_d = (_c = node.node.parent) === null || _c === void 0 ? void 0 : _c.getChildren('Extensions').length) !== null && _d !== void 0 ? _d : 0) > 0 ||
+                       ((_f = (_e = node.node.parent) === null || _e === void 0 ? void 0 : _e.getChildren('Breed').length) !== null && _f !== void 0 ? _f : 0) > 0 ||
+                       ((_h = (_g = node.node.parent) === null || _g === void 0 ? void 0 : _g.getChildren('BreedsOwn').length) !== null && _h !== void 0 ? _h : 0) > 0) {
+                       let value = view.state.sliceDoc(node.from, node.to).split('\n')[0];
+                       let nameNode = (_j = node.node
+                           .getChild('Procedure')) === null || _j === void 0 ? void 0 : _j.getChild('ProcedureName');
+                       if (nameNode) {
+                           value = view.state.sliceDoc(nameNode.from, nameNode.to);
+                       }
+                       diagnostics.push({
+                           from: node.from,
+                           to: node.to,
+                           severity: 'warning',
+                           message: Localized.Get('Improperly placed procedure _', value),
+                           /* actions: [
+                             {
+                               name: 'Remove',
+                               apply(view, from, to) {
+                                 view.dispatch({ changes: { from, to } });
+                               },
+                             },
+                           ], */
+                       });
+                   }
                }
                else {
+                   const value = view.state.sliceDoc(node.from, node.to);
                    diagnostics.push({
                        from: node.from,
                        to: node.to,
