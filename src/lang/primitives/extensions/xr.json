@@ -56,6 +56,12 @@
       "agentClassString": "OTPL"
     },
     {
+      "name": "colorize-wireframes",
+      "argTypes": [{ "types": ["list", "number"] }],
+      "returnType": "unit",
+      "agentClassString": "OTPL"
+    },
+    {
       "name": "show-wireframes",
       "argTypes": [],
       "returnType": "unit",
@@ -64,6 +70,12 @@
     {
       "name": "hide-wireframes",
       "argTypes": [],
+      "returnType": "unit",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "colorize-wireframe",
+      "argTypes": ["string", { "types": ["list", "number"] }],
       "returnType": "unit",
       "agentClassString": "OTPL"
     },

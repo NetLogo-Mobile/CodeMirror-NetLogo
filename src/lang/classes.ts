@@ -14,7 +14,7 @@ export interface Primitive {
   Precedence: number;
   /** AgentContext: Acceptable context for the primitive. */
   AgentContext: AgentContexts;
-  /** AgentContext: Context in the command block of the primitive. */
+  /** BlockContext: Context in the command block of the primitive. */
   BlockContext?: AgentContexts;
   /** DefaultOption: Default number of arguments. */
   DefaultOption?: number;
