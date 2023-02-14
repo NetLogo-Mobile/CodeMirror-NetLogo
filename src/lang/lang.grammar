@@ -11,8 +11,17 @@
 }
 
 @top Program { 
-  (Unrecognized* globalStatement)*
-  Procedure* ~statement
+  normalMode{
+    (Unrecognized* globalStatement)*
+    Procedure* ~statement
+  } |
+  OneLineMode{
+    ReporterStatement
+  } |
+  EmbeddedMode{
+    ProcedureContent+
+  }
+  
 }
 
 @detectDelim
@@ -20,7 +29,7 @@
 @skip { space | LineComment }
 
 Unrecognized {
-  expression | Procedure ~statement
+  Procedure ~statement
 }
 
 globalStatement {

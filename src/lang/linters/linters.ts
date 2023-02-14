@@ -8,6 +8,7 @@ import { UnsupportedLinter } from './unsupported-linter';
 import { ExtensionLinter } from './extension-linter';
 import { BreedNameLinter } from './breedname-linter';
 import { BracketLinter } from './bracket-linter';
+import { ModeLinter } from './mode-linter';
 
 export const netlogoLinters = [
   CompilerLinter,
@@ -21,4 +22,5 @@ export const netlogoLinters = [
   ExtensionLinter,
   BreedNameLinter,
   BracketLinter,
+  ModeLinter,
 ];

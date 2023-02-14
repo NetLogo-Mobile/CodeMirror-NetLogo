@@ -255,6 +255,17 @@ export class GalapagosEditor {
     }
   }
 
+  /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
+  SetMode(Mode: string, ForceLint?: boolean) {
+    var State = this.GetState();
+    var Current = State.Mode;
+    if (Current != Mode) {
+      State.Mode = Mode;
+      State.IncVersion();
+      if (ForceLint) this.ForceLint();
+    }
+  }
+
   /** SetCompilerErrors: Sync the compiler errors and present it on the editor. */
   // TODO: Some errors come with start 2147483647, which needs to be rendered as a tip without position.
   SetCompilerErrors(Errors: RuntimeError[]) {

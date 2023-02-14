@@ -31,6 +31,8 @@ export class StateNetLogo {
   private IsDirty: boolean = true;
   /** Version: Version of the state (for linter cache). */
   private Version: number = 0;
+  /** Mode: The editor's mode: normal, oneline, or embedded. */
+  public Mode: string = 'normal';
   // #endregion
 
   // #region "Utilities"
