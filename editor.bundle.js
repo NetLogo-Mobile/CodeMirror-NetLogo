@@ -16057,6 +16057,11 @@ if(!String.prototype.matchAll) {
        });
    }
    /**
+   Syntax node prop used to register sublangauges. Should be added to
+   the top level node type for the language.
+   */
+   const sublanguageProp = /*@__PURE__*/new NodeProp();
+   /**
    A language object manages parsing and per-language
    [metadata](https://codemirror.net/6/docs/ref/#state.EditorState.languageDataAt). Parse data is
    managed as a [Lezer](https://lezer.codemirror.net) tree. The class
@@ -16093,14 +16098,28 @@ if(!String.prototype.matchAll) {
            this.parser = parser;
            this.extension = [
                language.of(this),
-               EditorState.languageData.of((state, pos, side) => state.facet(languageDataFacetAt(state, pos, side)))
+               EditorState.languageData.of((state, pos, side) => {
+                   let top = topNodeAt(state, pos, side), data = top.type.prop(languageDataProp);
+                   if (!data)
+                       return [];
+                   let base = state.facet(data), sub = top.type.prop(sublanguageProp);
+                   if (sub) {
+                       let innerNode = top.resolve(pos - top.from, side);
+                       for (let sublang of sub)
+                           if (sublang.test(innerNode, state)) {
+                               let data = state.facet(sublang.facet);
+                               return sublang.type == "replace" ? data : data.concat(base);
+                           }
+                   }
+                   return base;
+               })
            ].concat(extraExtensions);
        }
        /**
        Query whether this language is active at the given position.
        */
        isActiveAt(state, pos, side = -1) {
-           return languageDataFacetAt(state, pos, side) == this.data;
+           return topNodeAt(state, pos, side).type.prop(languageDataProp) == this.data;
        }
        /**
        Find the document regions that were parsed using this language.
@@ -16155,16 +16174,14 @@ if(!String.prototype.matchAll) {
    @internal
    */
    Language.setState = /*@__PURE__*/StateEffect.define();
-   function languageDataFacetAt(state, pos, side) {
-       let topLang = state.facet(language);
-       if (!topLang)
-           return null;
-       let facet = topLang.data;
-       if (topLang.allowsNesting) {
-           for (let node = syntaxTree(state).topNode; node; node = node.enter(pos, side, IterMode.ExcludeBuffers))
-               facet = node.type.prop(languageDataProp) || facet;
+   function topNodeAt(state, pos, side) {
+       let topLang = state.facet(language), tree = syntaxTree(state).topNode;
+       if (!topLang || topLang.allowsNesting) {
+           for (let node = tree; node; node = node.enter(pos, side, IterMode.ExcludeBuffers))
+               if (node.type.isTop)
+                   tree = node;
        }
-       return facet;
+       return tree;
    }
    /**
    A subclass of [`Language`](https://codemirror.net/6/docs/ref/#language.Language) for use with Lezer
@@ -20496,9 +20513,12 @@ if(!String.prototype.matchAll) {
    */
    function ifNotIn(nodes, source) {
        return (context) => {
-           for (let pos = syntaxTree(context.state).resolveInner(context.pos, -1); pos; pos = pos.parent)
+           for (let pos = syntaxTree(context.state).resolveInner(context.pos, -1); pos; pos = pos.parent) {
                if (nodes.indexOf(pos.name) > -1)
                    return null;
+               if (pos.type.isTop)
+                   break;
+           }
            return source(context);
        };
    }
@@ -20603,13 +20623,18 @@ if(!String.prototype.matchAll) {
            // For single-character queries, only match when they occur right
            // at the start
            if (chars.length == 1) {
-               let first = codePointAt(word, 0);
-               return first == chars[0] ? [0, 0, codePointSize(first)]
-                   : first == folded[0] ? [-200 /* Penalty.CaseFold */, 0, codePointSize(first)] : null;
+               let first = codePointAt(word, 0), firstSize = codePointSize(first);
+               let score = firstSize == word.length ? 0 : -100 /* Penalty.NotFull */;
+               if (first == chars[0]) ;
+               else if (first == folded[0])
+                   score += -200 /* Penalty.CaseFold */;
+               else
+                   return null;
+               return [score, 0, firstSize];
            }
            let direct = word.indexOf(this.pattern);
            if (direct == 0)
-               return [0, 0, this.pattern.length];
+               return [word.length == this.pattern.length ? 0 : -100 /* Penalty.NotFull */, 0, this.pattern.length];
            let len = chars.length, anyTo = 0;
            if (direct < 0) {
                for (let i = 0, e = Math.min(word.length, 200); i < e && anyTo < len;) {
@@ -20665,7 +20690,7 @@ if(!String.prototype.matchAll) {
            if (byWordTo == len && byWord[0] == 0 && wordAdjacent)
                return this.result(-100 /* Penalty.ByWord */ + (byWordFolded ? -200 /* Penalty.CaseFold */ : 0), byWord, word);
            if (adjacentTo == len && adjacentStart == 0)
-               return [-200 /* Penalty.CaseFold */ - word.length, 0, adjacentEnd];
+               return [-200 /* Penalty.CaseFold */ - word.length + (adjacentEnd == word.length ? 0 : -100 /* Penalty.NotFull */), 0, adjacentEnd];
            if (direct > -1)
                return [-700 /* Penalty.NotStart */ - word.length, direct, direct + this.pattern.length];
            if (adjacentTo == len)
@@ -26027,6 +26052,53 @@ if(!String.prototype.matchAll) {
            }
            return results;
        }
+       getBreedCommands(state) {
+           let commands = [];
+           for (let b of state.Breeds.values()) {
+               if (!b.isLinkBreed) {
+                   commands.push('hatch-' + b.Plural);
+                   commands.push('sprout-' + b.Plural);
+                   commands.push('create-' + b.Plural);
+                   commands.push('create-ordered-' + b.Plural);
+               }
+               else {
+                   commands.push('create-' + b.Plural + '-to');
+                   commands.push('create-' + b.Singular + '-to');
+                   commands.push('create-' + b.Plural + '-from');
+                   commands.push('create-' + b.Singular + '-from');
+                   commands.push('create-' + b.Plural + '-with');
+                   commands.push('create-' + b.Singular + '-with');
+               }
+           }
+           return commands;
+       }
+       getBreedReporters(state) {
+           let reporters = [];
+           for (let b of state.Breeds.values()) {
+               if (!b.isLinkBreed) {
+                   reporters.push(b.Plural + '-at');
+                   reporters.push(b.Plural + '-here');
+                   reporters.push(b.Plural + '-on');
+                   reporters.push('is-' + b.Singular + '?');
+               }
+               else {
+                   reporters.push('out-' + b.Singular + '-to');
+                   reporters.push('out-' + b.Singular + '-neighbors');
+                   reporters.push('out-' + b.Singular + '-neighbor?');
+                   reporters.push('in-' + b.Singular + '-from');
+                   reporters.push('in-' + b.Singular + '-neighbors');
+                   reporters.push('in-' + b.Singular + '-neighbor?');
+                   reporters.push('my-' + b.Plural);
+                   reporters.push('my-in-' + b.Plural);
+                   reporters.push('my-out-' + b.Plural);
+                   reporters.push(b.Singular + '-neighbor?');
+                   reporters.push(b.Singular + '-neighbors');
+                   reporters.push(b.Singular + '-with');
+                   reporters.push('is-' + b.Singular + '?');
+               }
+           }
+           return reporters;
+       }
        /** GetCompletion: Get the completion hint at a given context. */
        GetCompletion(Context) {
            var _a, _b, _c, _d, _e;
@@ -26079,6 +26151,8 @@ if(!String.prototype.matchAll) {
                        'links',
                    ].includes(breed));
                    results.push(...this.KeywordsToCompletions(breeds, 'Breed'));
+                   results.push(...this.KeywordsToCompletions(this.getBreedCommands(state), 'Command'));
+                   results.push(...this.KeywordsToCompletions(this.getBreedReporters(state), 'Reporter'));
                    results.push(...this.KeywordsToCompletions(state.GetBreedVariables(), 'Variable-Breed'));
                }
                // Global Variables
@@ -27005,6 +27079,10 @@ if(!String.prototype.matchAll) {
            wordChars: "$"
        }
    });
+   const jsxSublanguage = {
+       test: node => /^JSX/.test(node.name),
+       facet: /*@__PURE__*/defineLanguageFacet({ commentTokens: { block: { open: "{/*", close: "*/}" } } })
+   };
    /**
    A language provider for TypeScript.
    */
@@ -27012,11 +27090,17 @@ if(!String.prototype.matchAll) {
    /**
    Language provider for JSX.
    */
-   const jsxLanguage = /*@__PURE__*/javascriptLanguage.configure({ dialect: "jsx" });
+   const jsxLanguage = /*@__PURE__*/javascriptLanguage.configure({
+       dialect: "jsx",
+       props: [/*@__PURE__*/sublanguageProp.add(n => n.isTop ? [jsxSublanguage] : undefined)]
+   });
    /**
    Language provider for JSX + TypeScript.
    */
-   const tsxLanguage = /*@__PURE__*/javascriptLanguage.configure({ dialect: "jsx ts" }, "typescript");
+   const tsxLanguage = /*@__PURE__*/javascriptLanguage.configure({
+       dialect: "jsx ts",
+       props: [/*@__PURE__*/sublanguageProp.add(n => n.isTop ? [jsxSublanguage] : undefined)]
+   }, "typescript");
    const keywords = /*@__PURE__*/"break case const continue default delete export extends false finally in instanceof let new return static super switch this throw true typeof var yield".split(" ").map(kw => ({ label: kw, type: "keyword" }));
    /**
    JavaScript support. Includes [snippet](https://codemirror.net/6/docs/ref/#lang-javascript.snippets)
