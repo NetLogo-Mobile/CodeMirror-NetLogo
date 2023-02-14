@@ -37,6 +37,7 @@ import { netlogoLinters } from './lang/linters/linters';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
 import { prettify } from './codemirror/prettify.js';
+import { hoverExtension } from './codemirror/extension-hover-tooltip.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -90,6 +91,7 @@ export class GalapagosEditor {
         Dictionary.ClickHandler = Options.OnDictionaryClick;
         if (!this.Options.OneLine) {
           Extensions.push(tooltipExtension);
+          // Extensions.push(hoverExtension);
           Extensions.push(...netlogoLinters);
         }
     }

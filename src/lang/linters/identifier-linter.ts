@@ -5,6 +5,7 @@ import { EditorState } from '@codemirror/state';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
+import { Procedure } from '../classes';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter = buildLinter((view, parseState) => {
@@ -31,6 +32,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
           //check if the identifier looks like a breed procedure (e.g. "create-___")
           let result = checkBreedLike(value);
           if (!result[0]) {
+            console.log(noderef.name, noderef.node.parent?.name);
             diagnostics.push({
               from: noderef.from,
               to: noderef.to,
@@ -70,6 +72,7 @@ const acceptableIdentifiers = [
   'NewVariableDeclaration',
   'ProcedureName',
   'Arguments',
+  'AnonArguments',
   'Globals',
   'BreedSingular',
   'BreedPlural',
@@ -133,21 +136,30 @@ export const getLocalVars = function (
       }
     });
     //pulls out all local variables within the anonymous procedures up until current position
-    procedure?.AnonymousProcedures.map((anonProc) => {
-      if (
-        Node.from >= anonProc.PositionStart &&
-        Node.to <= anonProc.PositionEnd
-      ) {
-        anonProc.Variables.map((variable) => variable.Name).forEach((name) =>
-          procedureVars.push(name)
-        );
-        procedureVars.push(...anonProc.Arguments);
-      }
-    });
+    if (procedure) {
+      procedureVars.push(...gatherAnonVars(procedure, Node));
+    }
     if (procedure?.Arguments) {
       procedureVars.push(...procedure.Arguments);
     }
   }
+  return procedureVars;
+};
+
+const gatherAnonVars = function (proc: Procedure, Node: SyntaxNode) {
+  let procedureVars: string[] = [];
+  proc.AnonymousProcedures.map((anonProc) => {
+    if (
+      Node.from >= anonProc.PositionStart &&
+      Node.to <= anonProc.PositionEnd
+    ) {
+      anonProc.Variables.map((variable) => variable.Name).forEach((name) =>
+        procedureVars.push(name)
+      );
+      procedureVars.push(...anonProc.Arguments);
+      procedureVars.push(...gatherAnonVars(anonProc, Node));
+    }
+  });
   return procedureVars;
 };
 

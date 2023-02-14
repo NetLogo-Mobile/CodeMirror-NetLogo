@@ -7,7 +7,7 @@ import {
   LocalVariable,
   Procedure,
 } from '../lang/classes';
-import { SyntaxNode } from '@lezer/common';
+import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
@@ -65,6 +65,16 @@ export class StateNetLogo {
     }
     return null;
   }
+
+  public GetBreedFromProcedure(term: string): string | null {
+    let breed = '';
+    for (let b of this.GetBreedNames()) {
+      if (term.includes(b) && b.length > breed.length) {
+        breed = b;
+      }
+    }
+    return breed;
+  }
   /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
   public GetProcedureFromVariable(
     varName: string,
@@ -84,10 +94,11 @@ export class StateNetLogo {
       for (let anonProc of proc.AnonymousProcedures) {
         if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
           continue;
-        if (anonProc.Arguments.includes(varName)) return '{anonymous}';
+        if (anonProc.Arguments.includes(varName))
+          return '{anonymous},' + proc.Name;
         for (let localVar of anonProc.Variables) {
           if (localVar.Name == varName && localVar.CreationPos <= to)
-            return '{anonymous}';
+            return '{anonymous},' + proc.Name;
         }
       }
     }
@@ -175,48 +186,7 @@ export class StateNetLogo {
       }
       // get procedures
       if (Cursor.node.name == 'Procedure') {
-        let procedure = new Procedure();
-        procedure.PositionStart = Cursor.node.from;
-        procedure.PositionEnd = Cursor.node.to;
-        procedure.IsCommand =
-          this.getText(
-            State,
-            Cursor.node.getChildren('To')[0].node
-          ).toLowerCase() == 'to';
-        Cursor.node.getChildren('ProcedureName').map((node) => {
-          procedure.Name = this.getText(State, node);
-        });
-        procedure.Arguments = this.getArgs(Cursor.node, State);
-        procedure.Variables = this.getLocalVars(Cursor.node, State, false);
-        // Anonymous procedure
-        Cursor.node.cursor().iterate((noderef) => {
-          if (noderef.node.to > Cursor.node.to) {
-            return false;
-          }
-          if (noderef.name == 'AnonymousProcedure') {
-            let anonProc = new AnonymousProcedure();
-            anonProc.PositionStart = noderef.from;
-            anonProc.PositionEnd = noderef.to;
-            anonProc.Variables = procedure.Variables;
-            let args: string[] = [];
-            let Node = noderef.node;
-            Node.getChildren('AnonArguments').map((node) => {
-              node.getChildren('Identifier').map((subnode) => {
-                args.push(this.getText(State, subnode));
-              });
-              node.getChildren('Arguments').map((subnode) => {
-                subnode.getChildren('Identifier').map((subsubnode) => {
-                  args.push(this.getText(State, subsubnode));
-                });
-              });
-            });
-            anonProc.Arguments = args;
-            anonProc.Variables = anonProc.Variables.concat(
-              this.getLocalVars(Node, State, true)
-            );
-            procedure.AnonymousProcedures.push(anonProc);
-          }
-        });
+        let procedure = this.getProcedure(Cursor.node, State);
         this.Procedures.set(procedure.Name, procedure);
       }
       if (!Cursor.nextSibling()) {
@@ -225,6 +195,98 @@ export class StateNetLogo {
         return this;
       }
     }
+  }
+
+  private getProcedure(node: SyntaxNode, State: EditorState): Procedure {
+    let procedure = new Procedure();
+    procedure.PositionStart = node.from;
+    procedure.PositionEnd = node.to;
+    procedure.IsCommand =
+      this.getText(State, node.getChildren('To')[0].node).toLowerCase() == 'to';
+    node.getChildren('ProcedureName').map((node) => {
+      procedure.Name = this.getText(State, node);
+    });
+    procedure.Arguments = this.getArgs(node, State);
+    procedure.Variables = this.getLocalVars(node, State, false);
+    procedure.AnonymousProcedures = this.searchAnonProcedure(
+      node,
+      State,
+      procedure
+    );
+    return procedure;
+  }
+
+  private searchAnonProcedure(
+    node: SyntaxNode,
+    State: EditorState,
+    procedure: Procedure
+  ): Procedure[] {
+    let anonymousProcedures: Procedure[] = [];
+    node.cursor().iterate((noderef) => {
+      if (noderef.node.to > node.to) {
+        return false;
+      }
+      if (
+        node != noderef.node &&
+        noderef.name == 'AnonymousProcedure' &&
+        !this.checkRanges(anonymousProcedures, noderef.node)
+      ) {
+        anonymousProcedures.push(
+          this.getAnonProcedure(noderef, State, procedure)
+        );
+      }
+    });
+    return anonymousProcedures;
+  }
+
+  private checkRanges(procedures: Procedure[], node: SyntaxNode): boolean {
+    let included = false;
+    for (let p of procedures) {
+      if (p.PositionStart <= node.from && p.PositionEnd >= node.to) {
+        included = true;
+      }
+    }
+    return included;
+  }
+
+  private getAnonProcedure(
+    noderef: SyntaxNodeRef,
+    State: EditorState,
+    procedure: Procedure
+  ): Procedure {
+    let anonProc = new Procedure();
+    anonProc.PositionStart = noderef.from;
+    anonProc.PositionEnd = noderef.to;
+    anonProc.Variables = procedure.Variables;
+    anonProc.isAnonymous = true;
+    anonProc.Name = '';
+    anonProc.IsCommand =
+      noderef.node.getChildren('ProcedureContent').length > 0;
+    let args: string[] = [];
+    let Node = noderef.node;
+    Node.getChildren('AnonArguments').map((node) => {
+      node.getChildren('Identifier').map((subnode) => {
+        args.push(this.getText(State, subnode));
+      });
+      node.getChildren('Arguments').map((subnode) => {
+        subnode.getChildren('Identifier').map((subsubnode) => {
+          args.push(this.getText(State, subsubnode));
+        });
+      });
+    });
+    anonProc.Arguments = args;
+    anonProc.Variables = anonProc.Variables.concat(
+      this.getLocalVars(Node, State, true)
+    );
+
+    if (anonProc.IsCommand) {
+      anonProc.AnonymousProcedures = this.searchAnonProcedure(
+        Node,
+        State,
+        anonProc
+      );
+    }
+    return anonProc;
   }
 
   // getText: Get the text of a node.

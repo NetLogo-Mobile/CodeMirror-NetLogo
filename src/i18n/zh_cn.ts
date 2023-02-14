@@ -41,7 +41,7 @@ const zh_cn: Record<string, Function> = {
   'Missing command before _': (Name: string) =>
     `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
   'Improperly placed procedure _': (Name: string) =>
-    `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
+    `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
   'Unmatched item _': (Name: string) => `This "${Name}" is unmatched.`,
 
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
@@ -65,7 +65,14 @@ const zh_cn: Record<string, Function> = {
   '~BreedSingular': (Name: string) => `某类模型中定义的海龟的单数名称。`,
   '~WidgetGlobal': (Name: string) => `通过界面组件定义的全局变量。 `,
   '~BreedVariable': (Name: string) => `种类 "${Name}" 定义的变量。`,
-  '~LocalVariable': (Name: string) => `"${Name}" 过程或函数定义的本地变量。 `,
+  '~LocalVariable': (Name: string) =>
+    `"${
+      Name.includes('{anonymous}') ? '{匿名}' : Name
+    }" 过程或函数定义的本地变量。 `,
+  '~BreedReporter': (Name: string) => `关于 "${Name}" 种类的函数。`,
+  '~CustomReporter': (Name: string) => `代码中定义的一个函数。`,
+  '~BreedCommand': (Name: string) => `关于 "${Name}" 种类的过程。 `,
+  '~CustomCommand': (Name: string) => `代码中定义的一个过程。`,
 };
 
 export { zh_cn };
