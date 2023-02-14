@@ -100,6 +100,53 @@ export class AutoCompletion {
     return results;
   }
 
+  private getBreedCommands(state: StateNetLogo): string[] {
+    let commands: string[] = [];
+    for (let b of state.Breeds.values()) {
+      if (!b.isLinkBreed) {
+        commands.push('hatch-' + b.Plural);
+        commands.push('sprout-' + b.Plural);
+        commands.push('create-' + b.Plural);
+        commands.push('create-ordered-' + b.Plural);
+      } else {
+        commands.push('create-' + b.Plural + '-to');
+        commands.push('create-' + b.Singular + '-to');
+        commands.push('create-' + b.Plural + '-from');
+        commands.push('create-' + b.Singular + '-from');
+        commands.push('create-' + b.Plural + '-with');
+        commands.push('create-' + b.Singular + '-with');
+      }
+    }
+    return commands;
+  }
+
+  private getBreedReporters(state: StateNetLogo): string[] {
+    let reporters: string[] = [];
+    for (let b of state.Breeds.values()) {
+      if (!b.isLinkBreed) {
+        reporters.push(b.Plural + '-at');
+        reporters.push(b.Plural + '-here');
+        reporters.push(b.Plural + '-on');
+        reporters.push('is-' + b.Singular + '?');
+      } else {
+        reporters.push('out-' + b.Singular + '-to');
+        reporters.push('out-' + b.Singular + '-neighbors');
+        reporters.push('out-' + b.Singular + '-neighbor?');
+        reporters.push('in-' + b.Singular + '-from');
+        reporters.push('in-' + b.Singular + '-neighbors');
+        reporters.push('in-' + b.Singular + '-neighbor?');
+        reporters.push('my-' + b.Plural);
+        reporters.push('my-in-' + b.Plural);
+        reporters.push('my-out-' + b.Plural);
+        reporters.push(b.Singular + '-neighbor?');
+        reporters.push(b.Singular + '-neighbors');
+        reporters.push(b.Singular + '-with');
+        reporters.push('is-' + b.Singular + '?');
+      }
+    }
+    return reporters;
+  }
+
   /** GetCompletion: Get the completion hint at a given context. */
   public GetCompletion(
     Context: CompletionContext
@@ -163,6 +210,15 @@ export class AutoCompletion {
             ].includes(breed)
         );
         results.push(...this.KeywordsToCompletions(breeds, 'Breed'));
+        results.push(
+          ...this.KeywordsToCompletions(this.getBreedCommands(state), 'Command')
+        );
+        results.push(
+          ...this.KeywordsToCompletions(
+            this.getBreedReporters(state),
+            'Reporter'
+          )
+        );
         results.push(
           ...this.KeywordsToCompletions(
             state.GetBreedVariables(),
