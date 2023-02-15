@@ -75,10 +75,14 @@ export class AgentContexts {
     this.Patch = true;
     this.Link = true;
     if (!Input) return;
+    if (Input == '?') {
+      this.Observer = false;
+      return;
+    }
     if (Input[0] != 'O') this.Observer = false;
     if (Input[1] != 'T') this.Turtle = false;
     if (Input[2] != 'P') this.Patch = false;
-    if (Input[3] != 'L') this.Patch = false;
+    if (Input[3] != 'L') this.Link = false;
   }
 }
 

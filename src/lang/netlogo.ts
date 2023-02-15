@@ -9,6 +9,7 @@ import {
   indentNodeProp,
   foldNodeProp,
   foldInside,
+  continuedIndent,
 } from '@codemirror/language';
 import { styleTags, tags as t } from '@lezer/highlight';
 import { closeBrackets } from '@codemirror/autocomplete';
@@ -93,6 +94,8 @@ export const NetLogoLanguage = LRLanguage.define({
           /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
             ? context.baseIndent
             : context.lineIndent(context.node.from) + context.unit,
+        ReporterContent: continuedIndent(),
+        ProcedureContent: continuedIndent(),
         // delimitedIndent({ closing: 'end' }),
         // Doesn't work well with "END" or "eND". Should do a bug report to CM6.
       }),

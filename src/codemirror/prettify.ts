@@ -135,6 +135,13 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
           });
           console.log(changes.length);
         }
+        // else if(node.name=='CommandStatement' && view.state.sliceDoc(node.from,node.to).startsWith('ifelse')){
+        //   node.node.getChildren('Arg').map((subnode)=>{
+        //     subnode.node.getChildren('CodeBlock').map(child=>{
+        //       changes.push({ from: child.from, to: child.from, insert: '\n' });
+        //     })
+        //   })
+        // }
         if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
           if (doc.substring(node.from, node.to).includes('\n')) {
             node.node.getChildren('CloseBracket').map((child) => {
