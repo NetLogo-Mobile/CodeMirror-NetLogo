@@ -5953,6 +5953,7 @@ if(!String.prototype.matchAll) {
    const exceptionSink = /*@__PURE__*/Facet.define();
    const updateListener = /*@__PURE__*/Facet.define();
    const inputHandler$1 = /*@__PURE__*/Facet.define();
+   const focusChangeEffect = /*@__PURE__*/Facet.define();
    const perLineTextDirection = /*@__PURE__*/Facet.define({
        combine: values => values.some(x => x)
    });
@@ -8202,8 +8203,18 @@ if(!String.prototype.matchAll) {
    };
    function updateForFocusChange(view) {
        setTimeout(() => {
-           if (view.hasFocus != view.inputState.notifiedFocused)
-               view.update([]);
+           if (view.hasFocus != view.inputState.notifiedFocused) {
+               let effects = [], focus = !view.inputState.notifiedFocused;
+               for (let getEffect of view.state.facet(focusChangeEffect)) {
+                   let effect = getEffect(view.state, focus);
+                   if (effect)
+                       effects.push(effect);
+               }
+               if (effects.length)
+                   view.dispatch({ effects });
+               else
+                   view.update([]);
+           }
        }, 10);
    }
    handlers.focus = view => {
@@ -8285,7 +8296,7 @@ if(!String.prototype.matchAll) {
        heightForGap(from, to) {
            let lines = this.doc.lineAt(to).number - this.doc.lineAt(from).number + 1;
            if (this.lineWrapping)
-               lines += Math.ceil(((to - from) - (lines * this.lineLength * 0.5)) / this.lineLength);
+               lines += Math.max(0, Math.ceil(((to - from) - (lines * this.lineLength * 0.5)) / this.lineLength));
            return this.lineHeight * lines;
        }
        heightForLine(length) {
@@ -8430,11 +8441,11 @@ if(!String.prototype.matchAll) {
        decomposeLeft(_to, result) { result.push(this); }
        decomposeRight(_from, result) { result.push(this); }
        applyChanges(decorations, oldDoc, oracle, changes) {
-           let me = this;
+           let me = this, doc = oracle.doc;
            for (let i = changes.length - 1; i >= 0; i--) {
                let { fromA, toA, fromB, toB } = changes[i];
-               let start = me.lineAt(fromA, QueryType$1.ByPosNoHeight, oldDoc, 0, 0);
-               let end = start.to >= toA ? start : me.lineAt(toA, QueryType$1.ByPosNoHeight, oldDoc, 0, 0);
+               let start = me.lineAt(fromA, QueryType$1.ByPosNoHeight, oracle.setDoc(oldDoc), 0, 0);
+               let end = start.to >= toA ? start : me.lineAt(toA, QueryType$1.ByPosNoHeight, oracle, 0, 0);
                toB += end.to - toA;
                toA = end.to;
                while (i > 0 && start.from <= changes[i - 1].toA) {
@@ -8442,11 +8453,11 @@ if(!String.prototype.matchAll) {
                    fromB = changes[i - 1].fromB;
                    i--;
                    if (fromA < start.from)
-                       start = me.lineAt(fromA, QueryType$1.ByPosNoHeight, oldDoc, 0, 0);
+                       start = me.lineAt(fromA, QueryType$1.ByPosNoHeight, oracle, 0, 0);
                }
                fromB += start.from - fromA;
                fromA = start.from;
-               let nodes = NodeBuilder.build(oracle, decorations, fromB, toB);
+               let nodes = NodeBuilder.build(oracle.setDoc(doc), decorations, fromB, toB);
                me = me.replace(fromA, toA, nodes);
            }
            return me.updateHeight(oracle, 0);
@@ -8513,15 +8524,15 @@ if(!String.prototype.matchAll) {
            super(length, height);
            this.type = type;
        }
-       blockAt(_height, _doc, top, offset) {
+       blockAt(_height, _oracle, top, offset) {
            return new BlockInfo(offset, this.length, top, this.height, this.type);
        }
-       lineAt(_value, _type, doc, top, offset) {
-           return this.blockAt(0, doc, top, offset);
+       lineAt(_value, _type, oracle, top, offset) {
+           return this.blockAt(0, oracle, top, offset);
        }
-       forEachLine(from, to, doc, top, offset, f) {
+       forEachLine(from, to, oracle, top, offset, f) {
            if (from <= offset + this.length && to >= offset)
-               f(this.blockAt(0, doc, top, offset));
+               f(this.blockAt(0, oracle, top, offset));
        }
        updateHeight(oracle, offset = 0, _force = false, measured) {
            if (measured && measured.from <= offset && measured.more)
@@ -8567,35 +8578,60 @@ if(!String.prototype.matchAll) {
    }
    class HeightMapGap extends HeightMap {
        constructor(length) { super(length, 0); }
-       lines(doc, offset) {
-           let firstLine = doc.lineAt(offset).number, lastLine = doc.lineAt(offset + this.length).number;
-           return { firstLine, lastLine, lineHeight: this.height / (lastLine - firstLine + 1) };
+       heightMetrics(oracle, offset) {
+           let firstLine = oracle.doc.lineAt(offset).number, lastLine = oracle.doc.lineAt(offset + this.length).number;
+           let lines = lastLine - firstLine + 1;
+           let perLine, perChar = 0;
+           if (oracle.lineWrapping) {
+               let totalPerLine = Math.min(this.height, oracle.lineHeight * lines);
+               perLine = totalPerLine / lines;
+               perChar = (this.height - totalPerLine) / (this.length - lines - 1);
+           }
+           else {
+               perLine = this.height / lines;
+           }
+           return { firstLine, lastLine, perLine, perChar };
        }
-       blockAt(height, doc, top, offset) {
-           let { firstLine, lastLine, lineHeight } = this.lines(doc, offset);
-           let line = Math.max(0, Math.min(lastLine - firstLine, Math.floor((height - top) / lineHeight)));
-           let { from, length } = doc.line(firstLine + line);
-           return new BlockInfo(from, length, top + lineHeight * line, lineHeight, BlockType.Text);
+       blockAt(height, oracle, top, offset) {
+           let { firstLine, lastLine, perLine, perChar } = this.heightMetrics(oracle, offset);
+           if (oracle.lineWrapping) {
+               let guess = offset + Math.round(Math.max(0, Math.min(1, (height - top) / this.height)) * this.length);
+               let line = oracle.doc.lineAt(guess), lineHeight = perLine + line.length * perChar;
+               let lineTop = Math.max(top, height - lineHeight / 2);
+               return new BlockInfo(line.from, line.length, lineTop, lineHeight, BlockType.Text);
+           }
+           else {
+               let line = Math.max(0, Math.min(lastLine - firstLine, Math.floor((height - top) / perLine)));
+               let { from, length } = oracle.doc.line(firstLine + line);
+               return new BlockInfo(from, length, top + perLine * line, perLine, BlockType.Text);
+           }
        }
-       lineAt(value, type, doc, top, offset) {
+       lineAt(value, type, oracle, top, offset) {
            if (type == QueryType$1.ByHeight)
-               return this.blockAt(value, doc, top, offset);
+               return this.blockAt(value, oracle, top, offset);
            if (type == QueryType$1.ByPosNoHeight) {
-               let { from, to } = doc.lineAt(value);
+               let { from, to } = oracle.doc.lineAt(value);
                return new BlockInfo(from, to - from, 0, 0, BlockType.Text);
            }
-           let { firstLine, lineHeight } = this.lines(doc, offset);
-           let { from, length, number } = doc.lineAt(value);
-           return new BlockInfo(from, length, top + lineHeight * (number - firstLine), lineHeight, BlockType.Text);
+           let { firstLine, perLine, perChar } = this.heightMetrics(oracle, offset);
+           let line = oracle.doc.lineAt(value), lineHeight = perLine + line.length * perChar;
+           let linesAbove = line.number - firstLine;
+           let lineTop = top + perLine * linesAbove + perChar * (line.from - offset - linesAbove);
+           return new BlockInfo(line.from, line.length, Math.max(top, Math.min(lineTop, top + this.height - lineHeight)), lineHeight, BlockType.Text);
        }
-       forEachLine(from, to, doc, top, offset, f) {
-           let { firstLine, lineHeight } = this.lines(doc, offset);
-           for (let pos = Math.max(from, offset), end = Math.min(offset + this.length, to); pos <= end;) {
-               let line = doc.lineAt(pos);
-               if (pos == from)
-                   top += lineHeight * (line.number - firstLine);
-               f(new BlockInfo(line.from, line.length, top, lineHeight, BlockType.Text));
-               top += lineHeight;
+       forEachLine(from, to, oracle, top, offset, f) {
+           from = Math.max(from, offset);
+           to = Math.min(to, offset + this.length);
+           let { firstLine, perLine, perChar } = this.heightMetrics(oracle, offset);
+           for (let pos = from, lineTop = top; pos <= to;) {
+               let line = oracle.doc.lineAt(pos);
+               if (pos == from) {
+                   let linesAbove = line.number - firstLine;
+                   lineTop += perLine * linesAbove + perChar * (from - offset - linesAbove);
+               }
+               let lineHeight = perLine + perChar * line.length;
+               f(new BlockInfo(line.from, line.length, lineTop, lineHeight, BlockType.Text));
+               lineTop += lineHeight;
                pos = line.to + 1;
            }
        }
@@ -8631,7 +8667,6 @@ if(!String.prototype.matchAll) {
                // they would already have been added to the heightmap (gaps
                // only contain plain text).
                let nodes = [], pos = Math.max(offset, measured.from), singleHeight = -1;
-               let wasChanged = oracle.heightChanged;
                if (measured.from > offset)
                    nodes.push(new HeightMapGap(measured.from - offset - 1).updateHeight(oracle, offset));
                while (pos <= end && measured.more) {
@@ -8651,8 +8686,9 @@ if(!String.prototype.matchAll) {
                if (pos <= end)
                    nodes.push(null, new HeightMapGap(end - pos).updateHeight(oracle, pos));
                let result = HeightMap.of(nodes);
-               oracle.heightChanged = wasChanged || singleHeight < 0 || Math.abs(result.height - this.height) >= Epsilon ||
-                   Math.abs(singleHeight - this.lines(oracle.doc, offset).lineHeight) >= Epsilon;
+               if (singleHeight < 0 || Math.abs(result.height - this.height) >= Epsilon ||
+                   Math.abs(singleHeight - this.heightMetrics(oracle, offset).perLine) >= Epsilon)
+                   oracle.heightChanged = true;
                return result;
            }
            else if (force || this.outdated) {
@@ -8671,40 +8707,40 @@ if(!String.prototype.matchAll) {
            this.size = left.size + right.size;
        }
        get break() { return this.flags & 1 /* Flag.Break */; }
-       blockAt(height, doc, top, offset) {
+       blockAt(height, oracle, top, offset) {
            let mid = top + this.left.height;
-           return height < mid ? this.left.blockAt(height, doc, top, offset)
-               : this.right.blockAt(height, doc, mid, offset + this.left.length + this.break);
+           return height < mid ? this.left.blockAt(height, oracle, top, offset)
+               : this.right.blockAt(height, oracle, mid, offset + this.left.length + this.break);
        }
-       lineAt(value, type, doc, top, offset) {
+       lineAt(value, type, oracle, top, offset) {
            let rightTop = top + this.left.height, rightOffset = offset + this.left.length + this.break;
            let left = type == QueryType$1.ByHeight ? value < rightTop : value < rightOffset;
-           let base = left ? this.left.lineAt(value, type, doc, top, offset)
-               : this.right.lineAt(value, type, doc, rightTop, rightOffset);
+           let base = left ? this.left.lineAt(value, type, oracle, top, offset)
+               : this.right.lineAt(value, type, oracle, rightTop, rightOffset);
            if (this.break || (left ? base.to < rightOffset : base.from > rightOffset))
                return base;
            let subQuery = type == QueryType$1.ByPosNoHeight ? QueryType$1.ByPosNoHeight : QueryType$1.ByPos;
            if (left)
-               return base.join(this.right.lineAt(rightOffset, subQuery, doc, rightTop, rightOffset));
+               return base.join(this.right.lineAt(rightOffset, subQuery, oracle, rightTop, rightOffset));
            else
-               return this.left.lineAt(rightOffset, subQuery, doc, top, offset).join(base);
+               return this.left.lineAt(rightOffset, subQuery, oracle, top, offset).join(base);
        }
-       forEachLine(from, to, doc, top, offset, f) {
+       forEachLine(from, to, oracle, top, offset, f) {
            let rightTop = top + this.left.height, rightOffset = offset + this.left.length + this.break;
            if (this.break) {
                if (from < rightOffset)
-                   this.left.forEachLine(from, to, doc, top, offset, f);
+                   this.left.forEachLine(from, to, oracle, top, offset, f);
                if (to >= rightOffset)
-                   this.right.forEachLine(from, to, doc, rightTop, rightOffset, f);
+                   this.right.forEachLine(from, to, oracle, rightTop, rightOffset, f);
            }
            else {
-               let mid = this.lineAt(rightOffset, QueryType$1.ByPos, doc, top, offset);
+               let mid = this.lineAt(rightOffset, QueryType$1.ByPos, oracle, top, offset);
                if (from < mid.from)
-                   this.left.forEachLine(from, mid.from - 1, doc, top, offset, f);
+                   this.left.forEachLine(from, mid.from - 1, oracle, top, offset, f);
                if (mid.to >= from && mid.from <= to)
                    f(mid);
                if (to > mid.to)
-                   this.right.forEachLine(mid.to + 1, to, doc, rightTop, rightOffset, f);
+                   this.right.forEachLine(mid.to + 1, to, oracle, rightTop, rightOffset, f);
            }
        }
        replace(from, to, nodes) {
@@ -9054,11 +9090,11 @@ if(!String.prototype.matchAll) {
            }
            this.viewports = viewports.sort((a, b) => a.from - b.from);
            this.scaler = this.heightMap.height <= 7000000 /* VP.MaxDOMHeight */ ? IdScaler :
-               new BigScaler(this.heightOracle.doc, this.heightMap, this.viewports);
+               new BigScaler(this.heightOracle, this.heightMap, this.viewports);
        }
        updateViewportLines() {
            this.viewportLines = [];
-           this.heightMap.forEachLine(this.viewport.from, this.viewport.to, this.state.doc, 0, 0, block => {
+           this.heightMap.forEachLine(this.viewport.from, this.viewport.to, this.heightOracle.setDoc(this.state.doc), 0, 0, block => {
                this.viewportLines.push(this.scaler.scale == 1 ? block : scaleBlock(block, this.scaler));
            });
        }
@@ -9098,8 +9134,9 @@ if(!String.prototype.matchAll) {
            let whiteSpace = style.whiteSpace;
            this.defaultTextDirection = style.direction == "rtl" ? Direction.RTL : Direction.LTR;
            let refresh = this.heightOracle.mustRefreshForWrapping(whiteSpace);
-           let measureContent = refresh || this.mustMeasureContent || this.contentDOMHeight != dom.clientHeight;
-           this.contentDOMHeight = dom.clientHeight;
+           let domRect = dom.getBoundingClientRect();
+           let measureContent = refresh || this.mustMeasureContent || this.contentDOMHeight != domRect.height;
+           this.contentDOMHeight = domRect.height;
            this.mustMeasureContent = false;
            let result = 0, bias = 0;
            // Vertical padding
@@ -9127,9 +9164,9 @@ if(!String.prototype.matchAll) {
            }
            if (!this.inView && !this.scrollTarget)
                return 0;
-           let contentWidth = dom.clientWidth;
+           let contentWidth = domRect.width;
            if (this.contentDOMWidth != contentWidth || this.editorHeight != view.scrollDOM.clientHeight) {
-               this.contentDOMWidth = contentWidth;
+               this.contentDOMWidth = domRect.width;
                this.editorHeight = view.scrollDOM.clientHeight;
                result |= 8 /* UpdateFlag.Geometry */;
            }
@@ -9158,7 +9195,8 @@ if(!String.prototype.matchAll) {
                    result |= 2 /* UpdateFlag.Height */;
            }
            let viewportChange = !this.viewportIsAppropriate(this.viewport, bias) ||
-               this.scrollTarget && (this.scrollTarget.range.head < this.viewport.from || this.scrollTarget.range.head > this.viewport.to);
+               this.scrollTarget && (this.scrollTarget.range.head < this.viewport.from ||
+                   this.scrollTarget.range.head > this.viewport.to);
            if (viewportChange)
                this.viewport = this.getViewport(bias, this.scrollTarget);
            this.updateForViewport();
@@ -9184,36 +9222,37 @@ if(!String.prototype.matchAll) {
            // bottom, depending on the bias (the change in viewport position
            // since the last update). It'll hold a number between 0 and 1
            let marginTop = 0.5 - Math.max(-0.5, Math.min(0.5, bias / 1000 /* VP.Margin */ / 2));
-           let map = this.heightMap, doc = this.state.doc, { visibleTop, visibleBottom } = this;
-           let viewport = new Viewport(map.lineAt(visibleTop - marginTop * 1000 /* VP.Margin */, QueryType$1.ByHeight, doc, 0, 0).from, map.lineAt(visibleBottom + (1 - marginTop) * 1000 /* VP.Margin */, QueryType$1.ByHeight, doc, 0, 0).to);
+           let map = this.heightMap, oracle = this.heightOracle;
+           let { visibleTop, visibleBottom } = this;
+           let viewport = new Viewport(map.lineAt(visibleTop - marginTop * 1000 /* VP.Margin */, QueryType$1.ByHeight, oracle, 0, 0).from, map.lineAt(visibleBottom + (1 - marginTop) * 1000 /* VP.Margin */, QueryType$1.ByHeight, oracle, 0, 0).to);
            // If scrollTarget is given, make sure the viewport includes that position
            if (scrollTarget) {
                let { head } = scrollTarget.range;
                if (head < viewport.from || head > viewport.to) {
                    let viewHeight = Math.min(this.editorHeight, this.pixelViewport.bottom - this.pixelViewport.top);
-                   let block = map.lineAt(head, QueryType$1.ByPos, doc, 0, 0), topPos;
+                   let block = map.lineAt(head, QueryType$1.ByPos, oracle, 0, 0), topPos;
                    if (scrollTarget.y == "center")
                        topPos = (block.top + block.bottom) / 2 - viewHeight / 2;
                    else if (scrollTarget.y == "start" || scrollTarget.y == "nearest" && head < viewport.from)
                        topPos = block.top;
                    else
                        topPos = block.bottom - viewHeight;
-                   viewport = new Viewport(map.lineAt(topPos - 1000 /* VP.Margin */ / 2, QueryType$1.ByHeight, doc, 0, 0).from, map.lineAt(topPos + viewHeight + 1000 /* VP.Margin */ / 2, QueryType$1.ByHeight, doc, 0, 0).to);
+                   viewport = new Viewport(map.lineAt(topPos - 1000 /* VP.Margin */ / 2, QueryType$1.ByHeight, oracle, 0, 0).from, map.lineAt(topPos + viewHeight + 1000 /* VP.Margin */ / 2, QueryType$1.ByHeight, oracle, 0, 0).to);
                }
            }
            return viewport;
        }
        mapViewport(viewport, changes) {
            let from = changes.mapPos(viewport.from, -1), to = changes.mapPos(viewport.to, 1);
-           return new Viewport(this.heightMap.lineAt(from, QueryType$1.ByPos, this.state.doc, 0, 0).from, this.heightMap.lineAt(to, QueryType$1.ByPos, this.state.doc, 0, 0).to);
+           return new Viewport(this.heightMap.lineAt(from, QueryType$1.ByPos, this.heightOracle, 0, 0).from, this.heightMap.lineAt(to, QueryType$1.ByPos, this.heightOracle, 0, 0).to);
        }
        // Checks if a given viewport covers the visible part of the
        // document and not too much beyond that.
        viewportIsAppropriate({ from, to }, bias = 0) {
            if (!this.inView)
                return true;
-           let { top } = this.heightMap.lineAt(from, QueryType$1.ByPos, this.state.doc, 0, 0);
-           let { bottom } = this.heightMap.lineAt(to, QueryType$1.ByPos, this.state.doc, 0, 0);
+           let { top } = this.heightMap.lineAt(from, QueryType$1.ByPos, this.heightOracle, 0, 0);
+           let { bottom } = this.heightMap.lineAt(to, QueryType$1.ByPos, this.heightOracle, 0, 0);
            let { visibleTop, visibleBottom } = this;
            return (from == 0 || top <= visibleTop - Math.max(10 /* VP.MinCoverMargin */, Math.min(-bias, 250 /* VP.MaxCoverMargin */))) &&
                (to == this.state.doc.length ||
@@ -9350,13 +9389,13 @@ if(!String.prototype.matchAll) {
        }
        lineBlockAt(pos) {
            return (pos >= this.viewport.from && pos <= this.viewport.to && this.viewportLines.find(b => b.from <= pos && b.to >= pos)) ||
-               scaleBlock(this.heightMap.lineAt(pos, QueryType$1.ByPos, this.state.doc, 0, 0), this.scaler);
+               scaleBlock(this.heightMap.lineAt(pos, QueryType$1.ByPos, this.heightOracle, 0, 0), this.scaler);
        }
        lineBlockAtHeight(height) {
-           return scaleBlock(this.heightMap.lineAt(this.scaler.fromDOM(height), QueryType$1.ByHeight, this.state.doc, 0, 0), this.scaler);
+           return scaleBlock(this.heightMap.lineAt(this.scaler.fromDOM(height), QueryType$1.ByHeight, this.heightOracle, 0, 0), this.scaler);
        }
        elementAtHeight(height) {
-           return scaleBlock(this.heightMap.blockAt(this.scaler.fromDOM(height), this.state.doc, 0, 0), this.scaler);
+           return scaleBlock(this.heightMap.blockAt(this.scaler.fromDOM(height), this.heightOracle, 0, 0), this.scaler);
        }
        get docHeight() {
            return this.scaler.toDOM(this.heightMap.height);
@@ -9430,11 +9469,11 @@ if(!String.prototype.matchAll) {
    // regions outside the viewports so that the total height is
    // VP.MaxDOMHeight.
    class BigScaler {
-       constructor(doc, heightMap, viewports) {
+       constructor(oracle, heightMap, viewports) {
            let vpHeight = 0, base = 0, domBase = 0;
            this.viewports = viewports.map(({ from, to }) => {
-               let top = heightMap.lineAt(from, QueryType$1.ByPos, doc, 0, 0).top;
-               let bottom = heightMap.lineAt(to, QueryType$1.ByPos, doc, 0, 0).bottom;
+               let top = heightMap.lineAt(from, QueryType$1.ByPos, oracle, 0, 0).top;
+               let bottom = heightMap.lineAt(to, QueryType$1.ByPos, oracle, 0, 0).bottom;
                vpHeight += bottom - top;
                return { from, to, top, bottom, domTop: 0, domBottom: 0 };
            });
@@ -9801,7 +9840,7 @@ if(!String.prototype.matchAll) {
            };
        }
        else if ((browser.mac || browser.android) && change && change.from == change.to && change.from == sel.head - 1 &&
-           /^\. ?$/.test(change.insert.toString())) {
+           /^\. ?$/.test(change.insert.toString()) && view.contentDOM.getAttribute("autocorrect") == "off") {
            // Detect insert-period-on-double-space Mac and Android behavior,
            // and transform it into a regular space insert.
            if (newSel && change.insert.length == 2)
@@ -11214,6 +11253,11 @@ if(!String.prototype.matchAll) {
    called and the default behavior is prevented.
    */
    EditorView.inputHandler = inputHandler$1;
+   /**
+   This facet can be used to provide functions that create effects
+   to be dispatched when the editor's focus state changes.
+   */
+   EditorView.focusChangeEffect = focusChangeEffect;
    /**
    By default, the editor assumes all its content has the same
    [text direction](https://codemirror.net/6/docs/ref/#view.Direction). Configure this with a `true`
@@ -17823,7 +17867,7 @@ if(!String.prototype.matchAll) {
    if available, otherwise falling back to block comments.
    */
    const toggleComment = target => {
-       let config = getConfig(target.state);
+       let { state } = target, line = state.doc.lineAt(state.selection.main.head), config = getConfig(target.state, line.from);
        return config.line ? toggleLineComment(target) : config.block ? toggleBlockCommentByLine(target) : false;
    };
    function command(f, option) {
@@ -17856,7 +17900,7 @@ if(!String.prototype.matchAll) {
    block comments.
    */
    const toggleBlockCommentByLine = /*@__PURE__*/command((o, s) => changeBlockComment(o, s, selectedLineRanges(s)), 0 /* CommentOption.Toggle */);
-   function getConfig(state, pos = state.selection.main.head) {
+   function getConfig(state, pos) {
        let data = state.languageDataAt("commentTokens", pos);
        return data.length ? data[0] : {};
    }
@@ -17942,7 +17986,7 @@ if(!String.prototype.matchAll) {
                let line = state.doc.lineAt(pos);
                if (line.from > prevLine && (from == to || to > line.from)) {
                    prevLine = line.from;
-                   let token = getConfig(state, pos).line;
+                   let token = getConfig(state, line.from).line;
                    if (!token)
                        continue;
                    let indent = /^\s*/.exec(line.text)[0].length;
@@ -18426,21 +18470,41 @@ if(!String.prototype.matchAll) {
    Move the selection one line down.
    */
    const cursorLineDown = view => cursorByLine(view, true);
-   function pageHeight(view) {
-       return Math.max(view.defaultLineHeight, Math.min(view.dom.clientHeight, innerHeight) - 5);
+   function pageInfo(view) {
+       let selfScroll = view.scrollDOM.clientHeight < view.scrollDOM.scrollHeight - 2;
+       let marginTop = 0, marginBottom = 0, height;
+       if (selfScroll) {
+           for (let source of view.state.facet(EditorView.scrollMargins)) {
+               let margins = source(view);
+               if (margins === null || margins === void 0 ? void 0 : margins.top)
+                   marginTop = Math.max(margins === null || margins === void 0 ? void 0 : margins.top, marginTop);
+               if (margins === null || margins === void 0 ? void 0 : margins.bottom)
+                   marginBottom = Math.max(margins === null || margins === void 0 ? void 0 : margins.bottom, marginBottom);
+           }
+           height = view.scrollDOM.clientHeight - marginTop - marginBottom;
+       }
+       else {
+           height = (view.dom.ownerDocument.defaultView || window).innerHeight;
+       }
+       return { marginTop, marginBottom, selfScroll,
+           height: Math.max(view.defaultLineHeight, height - 5) };
    }
    function cursorByPage(view, forward) {
+       let page = pageInfo(view);
        let { state } = view, selection = updateSel(state.selection, range => {
-           return range.empty ? view.moveVertically(range, forward, pageHeight(view)) : rangeEnd(range, forward);
+           return range.empty ? view.moveVertically(range, forward, page.height)
+               : rangeEnd(range, forward);
        });
        if (selection.eq(state.selection))
            return false;
-       let startPos = view.coordsAtPos(state.selection.main.head);
-       let scrollRect = view.scrollDOM.getBoundingClientRect();
        let effect;
-       if (startPos && startPos.top > scrollRect.top && startPos.bottom < scrollRect.bottom &&
-           startPos.top - scrollRect.top <= view.scrollDOM.scrollHeight - view.scrollDOM.scrollTop - view.scrollDOM.clientHeight)
-           effect = EditorView.scrollIntoView(selection.main.head, { y: "start", yMargin: startPos.top - scrollRect.top });
+       if (page.selfScroll) {
+           let startPos = view.coordsAtPos(state.selection.main.head);
+           let scrollRect = view.scrollDOM.getBoundingClientRect();
+           let scrollTop = scrollRect.top + page.marginTop, scrollBottom = scrollRect.bottom - page.marginBottom;
+           if (startPos && startPos.top > scrollTop && startPos.bottom < scrollBottom)
+               effect = EditorView.scrollIntoView(selection.main.head, { y: "start", yMargin: startPos.top - scrollTop });
+       }
        view.dispatch(setSel(state, selection), { effects: effect });
        return true;
    }
@@ -18567,7 +18631,7 @@ if(!String.prototype.matchAll) {
    */
    const selectLineDown = view => selectByLine(view, true);
    function selectByPage(view, forward) {
-       return extendSel(view, range => view.moveVertically(range, forward, pageHeight(view)));
+       return extendSel(view, range => view.moveVertically(range, forward, pageInfo(view).height));
    }
    /**
    Move the selection head one page up.
@@ -22391,8 +22455,11 @@ if(!String.prototype.matchAll) {
        var _a;
        let keys = inPanel ? assignKeys(diagnostic.actions) : [];
        return crelt("li", { class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity }, crelt("span", { class: "cm-diagnosticText" }, diagnostic.renderMessage ? diagnostic.renderMessage() : diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
-           let click = (e) => {
+           let fired = false, click = (e) => {
                e.preventDefault();
+               if (fired)
+                   return;
+               fired = true;
                let found = findDiagnostic(view.state.field(lintState).diagnostics, diagnostic);
                if (found)
                    action.apply(view, found.from, found.to);
@@ -22619,7 +22686,8 @@ if(!String.prototype.matchAll) {
            backgroundColor: "#444",
            color: "white",
            borderRadius: "3px",
-           marginLeft: "8px"
+           marginLeft: "8px",
+           cursor: "pointer"
        },
        ".cm-diagnosticSource": {
            fontSize: "70%",
@@ -26258,6 +26326,8 @@ if(!String.prototype.matchAll) {
                    Procedure: (context) => /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
                        ? context.baseIndent
                        : context.lineIndent(context.node.from) + context.unit,
+                   ReporterContent: continuedIndent(),
+                   ProcedureContent: continuedIndent(),
                    // delimitedIndent({ closing: 'end' }),
                    // Doesn't work well with "END" or "eND". Should do a bug report to CM6.
                }),
@@ -29205,6 +29275,13 @@ if(!String.prototype.matchAll) {
                    });
                    console.log(changes.length);
                }
+               // else if(node.name=='CommandStatement' && view.state.sliceDoc(node.from,node.to).startsWith('ifelse')){
+               //   node.node.getChildren('Arg').map((subnode)=>{
+               //     subnode.node.getChildren('CodeBlock').map(child=>{
+               //       changes.push({ from: child.from, to: child.from, insert: '\n' });
+               //     })
+               //   })
+               // }
                if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
                    if (doc.substring(node.from, node.to).includes('\n')) {
                        node.node.getChildren('CloseBracket').map((child) => {
