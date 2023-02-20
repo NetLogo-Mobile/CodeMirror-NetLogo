@@ -136,7 +136,7 @@ VariableName {
 }
 
 Value {
-  OpenParen Value CloseParen |
+  OpenParen !open Value !close CloseParen |
   String |
   Constant |
   ReporterStatement |
@@ -179,8 +179,8 @@ ReporterStatement {
   SpecialReporter5Args Arg Arg Arg Arg !lastArgs Arg+ |
   SpecialReporter6Args Arg Arg Arg Arg Arg !lastArgs Arg+ |
   (Reporter0Args | Reporter0ArgsVar) !lastArgs Arg* ~statement |
-  (Reporter1Args | Reporter1ArgsVar) !lastArgs Arg+ |
-  (Reporter2Args | Reporter2ArgsVar) Arg !lastArgs Arg+ |
+  (Reporter1Args | Reporter1ArgsVar | Reporter1ArgsVar0) !lastArgs Arg+ |
+  (Reporter2Args | Reporter2ArgsVar | Reporter2ArgsVar0) Arg !lastArgs Arg+ |
   (Reporter3Args | Reporter3ArgsVar) Arg Arg !lastArgs Arg+ |
   (Reporter4Args | Reporter4ArgsVar) Arg Arg Arg !lastArgs Arg+ |
   (Reporter5Args | Reporter5ArgsVar) Arg Arg Arg Arg !lastArgs Arg+ |
@@ -192,6 +192,8 @@ ReporterStatement {
   OpenParen Reporter4ArgsVar Arg Arg Arg Arg+ !close CloseParen |
   OpenParen Reporter5ArgsVar Arg Arg Arg Arg Arg+ !close CloseParen |
   OpenParen Reporter6ArgsVar Arg Arg Arg Arg Arg Arg+ !close CloseParen |
+  OpenParen Reporter2ArgsVar0 Arg* !close CloseParen |
+  OpenParen Reporter1ArgsVar0 Arg* !close CloseParen |
   Arg !comparative AndOr Arg |
   APReporter Reporters !lastArgs Arg |
   APReporterFlip Arg !lastArgs Reporters |
@@ -214,13 +216,14 @@ CommandStatement {
   (Command0Args | Command0ArgsVar) !lastArgs Arg* ~statement |
   (Command1Args | Command1ArgsVar) !lastArgs Arg+ |
   (Command2Args | Command2ArgsVar) Arg !lastArgs Arg+ |
-  (Command3Args | Command3ArgsVar) Arg Arg !lastArgs Arg+ |
+  (Command3Args | Command3ArgsVar | Command3ArgsVar2) Arg Arg !lastArgs Arg+ |
   (Command4Args | Command4ArgsVar) Arg Arg Arg !lastArgs Arg+ |
   (Command5Args | Command5ArgsVar) Arg Arg Arg Arg !lastArgs Arg+ |
   (Command6Args | Command6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg+ |
   OpenParen Command0ArgsVar Arg* !close CloseParen|
   OpenParen Command1ArgsVar Arg+ !close CloseParen |
   OpenParen Command2ArgsVar Arg Arg+ !close CloseParen |
+  OpenParen Command3ArgsVar2 Arg Arg+ !close CloseParen |
   OpenParen Command3ArgsVar Arg Arg Arg+ !close CloseParen |
   OpenParen Command4ArgsVar Arg Arg Arg Arg+ !close CloseParen |
   OpenParen Command5ArgsVar Arg Arg Arg Arg Arg+ !close CloseParen |
@@ -254,6 +257,7 @@ Commands {
   Command4ArgsVar |
   Command5ArgsVar |
   Command6ArgsVar |
+  Command3ArgsVar2 |
   SpecialCommand0Args |
   SpecialCommand1Args |
   SpecialCommand2Args |
@@ -282,6 +286,8 @@ Reporters{
   Reporter4ArgsVar |
   Reporter5ArgsVar |
   Reporter6ArgsVar |
+  Reporter2ArgsVar0 |
+  Reporter1ArgsVar0 |
   SpecialReporter0Args |
   SpecialReporter1Args |
   SpecialReporter2Args |
@@ -391,7 +397,9 @@ expression {
   Reporter3ArgsVar, 
   Reporter4ArgsVar,
   Reporter5ArgsVar,
-  Reporter6ArgsVar
+  Reporter6ArgsVar,
+  Reporter2ArgsVar0,
+  Reporter1ArgsVar0
 }
 
 @external specialize {SpecialReporter} specializeSpecialReporter from './specializer' {
@@ -425,7 +433,8 @@ expression {
   Command3ArgsVar, 
   Command4ArgsVar,
   Command5ArgsVar,
-  Command6ArgsVar
+  Command6ArgsVar,
+  Command3ArgsVar2
 }
 
 @external specialize {SpecialCommand} specializeSpecialCommand from './specializer' {

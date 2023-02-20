@@ -28,9 +28,12 @@ export class Primitives {
   /** BuildInstance: Build a primitive manager instance. */
   public static BuildInstance(): Primitives {
     var Result = new Primitives();
-    Dataset.forEach((Primitive) =>
-      Result.Register(Primitive.Extension, Primitive)
-    );
+    Dataset.forEach((Primitive) => {
+      Result.Register(Primitive.Extension, Primitive);
+      // if((Primitive.DefaultOption??-1)>=0 && (Primitive.MinimumOption??-1)>=0){
+      //   console.log(Primitive.Name,Primitive.DefaultOption,Primitive.MinimumOption,Primitive.ReturnType.Types[0] != NetLogoType.Unit)
+      // }
+    });
     return Result;
   }
 

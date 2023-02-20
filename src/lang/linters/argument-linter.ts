@@ -158,9 +158,11 @@ export const getArgs = function (Node: SyntaxNode) {
     } else if (
       //identify the node containing primitive
       (cursor.node.name.includes('Command') &&
-        !cursor.node.name.includes('Commands')) ||
+        !cursor.node.name.includes('Commands') &&
+        !cursor.node.name.includes('CommandStatement')) ||
       (cursor.node.name.includes('Reporter') &&
-        !cursor.node.name.includes('Reporters'))
+        !cursor.node.name.includes('Reporters') &&
+        !cursor.node.name.includes('ReporterStatement'))
     ) {
       args.func = cursor.node;
       seenFunc = true;

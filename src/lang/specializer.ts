@@ -17,6 +17,8 @@ import {
   Reporter4ArgsVar,
   Reporter5ArgsVar,
   Reporter6ArgsVar,
+  Reporter1ArgsVar0,
+  Reporter2ArgsVar0,
   SpecialReporter0Args,
   SpecialReporter1Args,
   SpecialReporter2Args,
@@ -45,6 +47,7 @@ import {
   Command4ArgsVar,
   Command5ArgsVar,
   Command6ArgsVar,
+  Command3ArgsVar2,
   SpecialCommand0Args,
   SpecialCommand1Args,
   SpecialCommand2Args,
@@ -62,6 +65,22 @@ import { PrimitiveManager } from './primitives/primitives';
 let primitives = PrimitiveManager;
 const specializeReporter = function (token: string) {
   token = token.toLowerCase();
+
+  if (
+    token == 'se' ||
+    token == 'list' ||
+    token == 'sentence' ||
+    token == 'word'
+  ) {
+    return Reporter2ArgsVar0;
+  } else if (
+    token == 'patch-set' ||
+    token == 'link-set' ||
+    token == 'turtle-set'
+  ) {
+    return Reporter1ArgsVar0;
+  }
+
   let reporter = primitives.GetPrimitive('', token);
   if (reporter) {
     let repeats = false;
@@ -174,6 +193,11 @@ const specializeSpecialReporter = function (token: string) {
 
 const specializeCommand = function (token: string) {
   token = token.toLowerCase();
+
+  if (token == 'ifelse' || token == 'if-else') {
+    return Command3ArgsVar2;
+  }
+
   let commands = primitives.GetPrimitive('', token);
   if (commands) {
     let repeats = false;
