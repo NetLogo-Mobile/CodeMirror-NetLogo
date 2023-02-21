@@ -281,13 +281,11 @@ export class StateNetLogo {
       this.getLocalVars(Node, State, true)
     );
 
-    if (anonProc.IsCommand) {
-      anonProc.AnonymousProcedures = this.searchAnonProcedure(
-        Node,
-        State,
-        anonProc
-      );
-    }
+    anonProc.AnonymousProcedures = this.searchAnonProcedure(
+      Node,
+      State,
+      anonProc
+    );
     return anonProc;
   }
 

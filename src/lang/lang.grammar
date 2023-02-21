@@ -102,7 +102,7 @@ ProcedureContent {
 }
 
 ReporterContent {
-  ReporterStatement |
+  ReporterStatement ~statement |
   OpenParen ReporterStatement !close CloseParen
 }
 
@@ -111,7 +111,11 @@ AnonArguments {
 }
 
 AnonymousProcedure {
-  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*) CloseBracket
+  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) CloseBracket
+}
+
+ShortAnonymousProcedure {
+  OpenBracket (ProcedureContent*|ReporterContent*|Value) CloseBracket
 }
 
 VariableDeclaration {
@@ -137,19 +141,19 @@ VariableName {
 
 Value {
   OpenParen !open Value !close CloseParen |
-  String |
-  Constant |
-  ReporterStatement |
+  String ~statement |
+  Constant ~statement |
+  ReporterStatement ~statement |
   VariableName |
   List |
-  Numeric |
+  Numeric ~statement|
   AnonymousProcedure
 }
 
 Literal {
-  Numeric |
-  String |
-  Constant
+  Numeric ~statement|
+  String ~statement|
+  Constant ~statement
 }
 
 List {
@@ -161,11 +165,11 @@ CodeBlock {
 }
 
 ReporterBlock {
-  OpenBracket ReporterContent CloseBracket
+  OpenBracket ReporterContent !close CloseBracket
 }
 
 Property {
-  OpenBracket VariableName CloseBracket
+  OpenBracket VariableName !close CloseBracket
 }
 
 ReporterStatement { 
@@ -268,6 +272,7 @@ Commands {
   SpecialCommandCreateTurtle |
   SpecialCommandCreateLink |
   AnonymousProcedure |
+  ShortAnonymousProcedure |
   Identifier
 }
 
@@ -303,6 +308,7 @@ Reporters{
   SpecialReporter1ArgsTurtle |
   SpecialReporter0ArgsLinkP |
   AnonymousProcedure |
+  ShortAnonymousProcedure |
   Identifier
 }
 

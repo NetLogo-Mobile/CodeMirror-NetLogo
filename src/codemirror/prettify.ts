@@ -68,6 +68,7 @@ const initialSpaceRemoval = function (doc: string) {
   new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
   new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
   new_doc = new_doc.replace(/(\[|\]|\(|\))/g, ' $1 ');
+  new_doc = new_doc.replace(/(\n)( +)(to[ -])/g, '$1$3');
   new_doc = new_doc.replace(/ +/g, ' ');
   return new_doc;
 };
