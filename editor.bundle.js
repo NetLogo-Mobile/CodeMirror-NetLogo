@@ -25673,7 +25673,8 @@ if(!String.prototype.matchAll) {
                    return false;
                }
                if (node != noderef.node &&
-                   noderef.name == 'AnonymousProcedure' &&
+                   (noderef.name == 'AnonymousProcedure' ||
+                       noderef.name == 'ShortAnonymousProcedure') &&
                    !this.checkRanges(anonymousProcedures, noderef.node)) {
                    anonymousProcedures.push(this.getAnonProcedure(noderef, State, procedure));
                }
@@ -29332,7 +29333,7 @@ if(!String.prototype.matchAll) {
                else if (node.name == 'AnonymousProcedure' &&
                    (checkBlock(node.node, 'ReporterContent', doc) ||
                        checkBlock(node.node, 'ProcedureContent', doc))) {
-                   console.log(changes.length);
+                   // console.log(changes.length);
                    node.node.getChildren('ProcedureContent').map((child) => {
                        changes.push({ from: child.from, to: child.from, insert: '\n' });
                    });
@@ -29342,7 +29343,7 @@ if(!String.prototype.matchAll) {
                    node.node.getChildren('CloseBracket').map((child) => {
                        changes.push({ from: child.from, to: child.from, insert: '\n' });
                    });
-                   console.log(changes.length);
+                   // console.log(changes.length);
                }
                // else if(node.name=='CommandStatement' && view.state.sliceDoc(node.from,node.to).startsWith('ifelse')){
                //   node.node.getChildren('Arg').map((subnode)=>{
