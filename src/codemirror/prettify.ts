@@ -124,7 +124,7 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
           (checkBlock(node.node, 'ReporterContent', doc) ||
             checkBlock(node.node, 'ProcedureContent', doc))
         ) {
-          console.log(changes.length);
+          // console.log(changes.length);
           node.node.getChildren('ProcedureContent').map((child) => {
             changes.push({ from: child.from, to: child.from, insert: '\n' });
           });
@@ -134,7 +134,7 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
           node.node.getChildren('CloseBracket').map((child) => {
             changes.push({ from: child.from, to: child.from, insert: '\n' });
           });
-          console.log(changes.length);
+          // console.log(changes.length);
         }
         // else if(node.name=='CommandStatement' && view.state.sliceDoc(node.from,node.to).startsWith('ifelse')){
         //   node.node.getChildren('Arg').map((subnode)=>{

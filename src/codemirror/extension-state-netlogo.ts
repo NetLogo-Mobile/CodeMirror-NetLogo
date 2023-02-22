@@ -230,7 +230,8 @@ export class StateNetLogo {
       }
       if (
         node != noderef.node &&
-        noderef.name == 'AnonymousProcedure' &&
+        (noderef.name == 'AnonymousProcedure' ||
+          noderef.name == 'ShortAnonymousProcedure') &&
         !this.checkRanges(anonymousProcedures, noderef.node)
       ) {
         anonymousProcedures.push(
