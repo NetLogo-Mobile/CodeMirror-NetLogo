@@ -6,9 +6,14 @@ import {
   Breed,
   LocalVariable,
   Procedure,
+  CodeBlock,
+  AgentContexts,
 } from '../lang/classes';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
+import { PrimitiveManager } from '../lang/primitives/primitives';
+
+let primitives = PrimitiveManager;
 
 /** StateNetLogo: Editor state for the NetLogo Language. */
 export class StateNetLogo {
@@ -150,11 +155,11 @@ export class StateNetLogo {
         });
       }
       // get global variables
-      if (Cursor.node.name == 'Globals') {
+      else if (Cursor.node.name == 'Globals') {
         this.Globals = this.getVariables(Cursor.node, State);
       }
       // get breeds
-      if (Cursor.node.name == 'Breed') {
+      else if (Cursor.node.name == 'Breed') {
         const Plural = Cursor.node.getChildren('BreedPlural');
         const Singular = Cursor.node.getChildren('BreedSingular');
         let isLinkBreed = false;
@@ -173,7 +178,7 @@ export class StateNetLogo {
         }
       }
       // get breed variables
-      if (Cursor.node.name == 'BreedsOwn') {
+      else if (Cursor.node.name == 'BreedsOwn') {
         let breedName = '';
         Cursor.node.getChildren('Own').map((node) => {
           breedName = this.getText(State, node);
@@ -187,10 +192,11 @@ export class StateNetLogo {
         }
       }
       // get procedures
-      if (Cursor.node.name == 'Procedure') {
+      else if (Cursor.node.name == 'Procedure') {
         let procedure = this.getProcedure(Cursor.node, State);
         this.Procedures.set(procedure.Name, procedure);
       }
+
       if (!Cursor.nextSibling()) {
         this.IncVersion();
         this.IsDirty = false;
@@ -215,7 +221,97 @@ export class StateNetLogo {
       State,
       procedure
     );
+    procedure.Context = this.getContext(node, State);
+    procedure.CodeBlocks = this.getCodeBlocks(
+      node,
+      State,
+      procedure.Context,
+      procedure.Variables,
+      procedure.Arguments
+    );
     return procedure;
+  }
+
+  private getContext(node: SyntaxNode, state: EditorState) {
+    let context = new AgentContexts();
+    node.getChildren('ProcedureContent').map((node2) => {
+      node2.getChildren('CommandStatement').map((node3) => {
+        let cursor = node3.cursor();
+        let child = cursor.firstChild();
+        while (child) {
+          if (
+            cursor.node.name.includes('Command') &&
+            !cursor.node.name.includes('Commands') &&
+            !cursor.node.name.includes('Special')
+          ) {
+            let c = this.getPrimitiveContext(cursor.node, state);
+            if (c) {
+              context = this.combineContexts(c, context);
+            }
+          }
+          child = cursor.nextSibling();
+        }
+      });
+    });
+    return context;
+  }
+
+  private getPrimitiveContext(node: SyntaxNode, state: EditorState) {
+    let prim = state.sliceDoc(node.from, node.to);
+    let prim_data = primitives.GetNamedPrimitive(prim);
+    return prim_data?.AgentContext;
+  }
+
+  private combineContexts(c1: AgentContexts, c2: AgentContexts) {
+    let final = new AgentContexts();
+    if (!c1.Observer || !c2.Observer) {
+      final.Observer = false;
+    }
+    if (!c1.Turtle || !c2.Turtle) {
+      final.Turtle = false;
+    }
+    if (!c1.Patch || !c2.Patch) {
+      final.Patch = false;
+    }
+    if (!c1.Link || !c2.Link) {
+      final.Link = false;
+    }
+    return final;
+  }
+
+  private getCodeBlocks(
+    node: SyntaxNode,
+    state: EditorState,
+    parentContext: AgentContexts,
+    vars: LocalVariable[],
+    args: string[]
+  ) {
+    let blocks: CodeBlock[] = [];
+    node.cursor().iterate((noderef) => {
+      if (noderef.node.to > node.to) {
+        return false;
+      }
+      if (noderef.name == 'CodeBlock' && noderef.node != node) {
+        let block = new CodeBlock();
+        block.PositionStart = noderef.from;
+        block.PositionEnd = noderef.to;
+        block.Context = parentContext;
+        block.Variables = vars.concat(
+          this.getLocalVars(noderef.node, state, true)
+        );
+        block.Arguments = args;
+        block.CodeBlocks = this.getCodeBlocks(
+          noderef.node,
+          state,
+          block.Context,
+          block.Variables,
+          block.Arguments
+        );
+
+        blocks.push(block);
+      }
+    });
+    return blocks;
   }
 
   private searchAnonProcedure(
@@ -261,7 +357,7 @@ export class StateNetLogo {
     anonProc.PositionStart = noderef.from;
     anonProc.PositionEnd = noderef.to;
     anonProc.Variables = procedure.Variables;
-    anonProc.isAnonymous = true;
+    anonProc.IsAnonymous = true;
     anonProc.Name = '';
     anonProc.IsCommand =
       noderef.node.getChildren('ProcedureContent').length > 0;
@@ -302,31 +398,79 @@ export class StateNetLogo {
     isAnon: Boolean
   ): LocalVariable[] {
     let localVars: LocalVariable[] = [];
-    Node.cursor().iterate((noderef) => {
-      if (noderef.node.to > Node.to) {
-        return false;
-      }
-      if (noderef.name == 'CommandStatement') {
-        noderef.node.getChildren('VariableDeclaration').map((node) => {
-          node.getChildren('NewVariableDeclaration').map((subnode) => {
-            subnode.getChildren('Identifier').map((subsubnode) => {
-              if (
-                !this.getParents(subsubnode).includes('AnonymousProcedure') ||
-                isAnon
-              ) {
-                const variable = new LocalVariable(
-                  this.getText(State, subsubnode),
-                  1,
-                  subsubnode.from
-                );
-                localVars.push(variable);
-              }
+    Node.getChildren('ProcedureContent').map((node1) => {
+      node1.getChildren('CommandStatement').map((node2) => {
+        node2.getChildren('VariableDeclaration').map((node3) => {
+          node3.getChildren('NewVariableDeclaration').map((node4) => {
+            node4.getChildren('Identifier').map((node5) => {
+              let variable = new LocalVariable(
+                this.getText(State, node5),
+                1,
+                node5.from
+              );
+              localVars.push(variable);
             });
           });
         });
-      }
+      });
     });
+    // let parentVars = this.getParentVars(Node,State)
+    // localVars=localVars.concat(parentVars.vars)
+
+    // Node.cursor().iterate((noderef) => {
+    //   if (noderef.node.to > Node.to) {
+    //     return false;
+    //   }
+    //   if (noderef.name == 'CommandStatement') {
+    //     noderef.node.getChildren('VariableDeclaration').map((node) => {
+    //       node.getChildren('NewVariableDeclaration').map((subnode) => {
+    //         subnode.getChildren('Identifier').map((subsubnode) => {
+    //           if (
+    //             !this.getParents(subsubnode).includes('AnonymousProcedure') ||
+    //             !this.getParents(subsubnode).includes('ShortAnonymousProcedure') ||
+    //             !this.getParents(subsubnode).includes('CodeBlock') ||
+    //             isAnon
+    //           ) {
+    //             const variable = new LocalVariable(
+    //               this.getText(State, subsubnode),
+    //               1,
+    //               subsubnode.from
+    //             );
+    //             localVars.push(variable);
+    //           }
+    //         });
+    //       });
+    //     });
+    //   }
+    // });
     return localVars;
+  }
+
+  private getParentVars(Node: SyntaxNode, state: EditorState) {
+    let from = Node.from;
+    let to = Node.to;
+    let vars: LocalVariable[] = [];
+    let args: string[] = [];
+    for (let p of this.Procedures.values()) {
+      if (p.PositionStart <= from && p.PositionEnd >= to) {
+        vars = vars.concat(p.Variables);
+        args = args.concat(p.Arguments);
+      }
+      for (let a of p.AnonymousProcedures) {
+        if (a.PositionStart <= from && a.PositionEnd >= to) {
+          vars = vars.concat(a.Variables);
+          args = args.concat(a.Arguments);
+        }
+      }
+      for (let b of p.CodeBlocks) {
+        if (b.PositionStart <= from && b.PositionEnd >= to) {
+          vars = vars.concat(b.Variables);
+        }
+      }
+    }
+    vars = [...new Set(vars)];
+    args = [...new Set(args)];
+    return { vars: vars, args: args };
   }
 
   private getParents(Node: SyntaxNode): string[] {
@@ -375,6 +519,7 @@ const stateExtension = StateField.define<StateNetLogo>({
   update: (Original: StateNetLogo, Transaction: Transaction) => {
     if (Transaction.docChanged) {
       console.log(Original);
+      console.log(Transaction.changes);
       Original.SetDirty();
     }
     return Original;

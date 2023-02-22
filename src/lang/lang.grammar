@@ -60,7 +60,7 @@ BreedVars {
   Identifier | BreedFirst | BreedMiddle | BreedLast
 }
 
-Procedure {
+Procedure [context='OTPL'] {
   To ProcedureName Arguments? ProcedureContent* End
 }
 
@@ -110,7 +110,7 @@ AnonArguments {
   Arguments | Identifier* ~statement
 }
 
-AnonymousProcedure {
+AnonymousProcedure[context='OTPL'] {
   OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) CloseBracket
 }
 
@@ -160,7 +160,7 @@ List {
   OpenBracket Literal* CloseBracket ~statement
 }
 
-CodeBlock {
+CodeBlock[context='OTPL'] {
   OpenBracket ProcedureContent* CloseBracket ~statement
 }
 
@@ -454,3 +454,5 @@ expression {
   SpecialCommandCreateTurtle,
   SpecialCommandCreateLink
 }
+
+@external prop context from './props'
