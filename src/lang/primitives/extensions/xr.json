@@ -56,6 +56,24 @@
       "agentClassString": "OTPL"
     },
     {
+      "name": "dx",
+      "argTypes": [],
+      "returnType": "number",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "dy",
+      "argTypes": [],
+      "returnType": "number",
+      "agentClassString": "OTPL"
+    },
+    {
+      "name": "heading",
+      "argTypes": [],
+      "returnType": "number",
+      "agentClassString": "OTPL"
+    },
+    {
       "name": "colorize-wireframes",
       "argTypes": [{ "types": ["list", "number"] }],
       "returnType": "unit",
