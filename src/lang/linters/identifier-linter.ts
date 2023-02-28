@@ -31,7 +31,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
         ) {
           console.log(value);
           //check if the identifier looks like a breed procedure (e.g. "create-___")
-          let result = checkBreedLike(value);
+          let result = parseState.checkBreedLike(value);
           if (!result[0]) {
             console.log(noderef.name, noderef.node.parent?.name);
             diagnostics.push({
@@ -185,52 +185,4 @@ const gatherCodeBlockVars = function (proc: Procedure, Node: SyntaxNode) {
       );
     }
   });
-};
-
-//identify if the term looks like a breed procedure (e.g. "create-___")
-//If so, also identify where to look within the term to find the intended breed name
-const checkBreedLike = function (str: string) {
-  let result = false;
-  let location = '';
-  if (str.match(/[^\s]+-(at)/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/[^\s]+-here/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/[^\s]+-neighbors/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/[^\s]+-on/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/^(my|my-in|my-out)-[^\s]+/)) {
-    result = true;
-    location = 'Last';
-  } else if (str.match(/^is-[^\s]+\\?$/)) {
-    result = true;
-    location = 'Question';
-  } else if (str.match(/^in-[^\s]+-from$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^out-[^\s]+-to$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
-    result = true;
-    location = 'Last';
-  }
-  return [result, location];
 };

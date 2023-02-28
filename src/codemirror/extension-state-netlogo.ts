@@ -248,6 +248,32 @@ export class StateNetLogo {
             if (c) {
               context = this.combineContexts(c, context);
             }
+          } else if (cursor.node.name == 'VariableDeclaration') {
+            let n = cursor.node
+              .getChild('SetVariable')
+              ?.getChild('VariableName');
+            let c = new AgentContexts();
+            if (n?.getChild('PatchVar')) {
+              c = new AgentContexts('-TP-');
+            } else if (n?.getChild('TurtleVar')) {
+              c = new AgentContexts('-T--');
+            } else if (n?.getChild('LinkVar')) {
+              c = new AgentContexts('---L');
+            } else if (n) {
+              let name = state.sliceDoc(n.from, n.to);
+              for (let breed of this.Breeds.values()) {
+                if (breed.Variables.includes(name)) {
+                  if (breed.isLinkBreed) {
+                    c = new AgentContexts('---L');
+                  } else if (breed.Singular == 'patch') {
+                    c = new AgentContexts('--P-');
+                  } else {
+                    c = new AgentContexts('-T--');
+                  }
+                }
+              }
+            }
+            context = this.combineContexts(c, context);
           }
           child = cursor.nextSibling();
         }
@@ -291,28 +317,180 @@ export class StateNetLogo {
       if (noderef.node.to > node.to) {
         return false;
       }
-      if (noderef.name == 'CodeBlock' && noderef.node != node) {
-        let block = new CodeBlock();
-        block.PositionStart = noderef.from;
-        block.PositionEnd = noderef.to;
-        block.Context = parentContext;
-        block.Variables = vars.concat(
-          this.getLocalVars(noderef.node, state, true)
-        );
-        block.Arguments = args;
-        block.CodeBlocks = this.getCodeBlocks(
-          noderef.node,
-          state,
-          block.Context,
-          block.Variables,
-          block.Arguments
-        );
-
-        blocks.push(block);
+      if (noderef.name == 'Arg') {
+        noderef.node.getChildren('CodeBlock').map((child) => {
+          let block = new CodeBlock();
+          let prim = this.getPrimitive(noderef.node, state);
+          block.Primitive = prim.name;
+          block.PositionStart = child.from;
+          block.PositionEnd = child.to;
+          block.Context = this.combineContexts(
+            this.getContext(child, state),
+            this.noContext(prim.context) ? parentContext : prim.context
+          );
+          if (this.noContext(block.Context)) {
+            console.log(
+              parentContext,
+              prim.context,
+              this.noContext(prim.context) ? parentContext : prim.context,
+              this.getContext(child, state)
+            );
+          }
+          block.Variables = vars.concat(
+            this.getLocalVars(child.node, state, true)
+          );
+          block.Arguments = args;
+          block.CodeBlocks = this.getCodeBlocks(
+            child.node,
+            state,
+            block.Context,
+            block.Variables,
+            block.Arguments
+          );
+          block.Breed = prim.breed;
+          blocks.push(block);
+        });
       }
     });
     return blocks;
   }
+
+  private getBreedName(value: string) {
+    let result = this.checkBreedLike(value);
+    let str = null;
+    if (result[0]) {
+      //pull out name of possible intended breed
+      let first = value.indexOf('-');
+      let last = value.lastIndexOf('-');
+      if (result[1] == 'Last') {
+        str = value.substring(first + 1);
+      } else if (result[1] == 'First') {
+        str = value.substring(0, last);
+      } else if (result[1] == 'Middle') {
+        str = value.substring(first + 1, last);
+      } else {
+        str = value.substring(first + 1, value.length - 1);
+      }
+    }
+    return str;
+  }
+
+  private noContext(c: AgentContexts) {
+    return !c.Observer && !c.Turtle && !c.Patch && !c.Link;
+  }
+
+  private getPrimitive(node: SyntaxNode, state: EditorState) {
+    let prim = {
+      name: '',
+      type: '',
+      isSpecial: false,
+      context: new AgentContexts('null'),
+      firstArg: node.parent?.getChild('Arg'),
+      breed: '',
+    };
+    let cursor = node.parent?.cursor();
+    if (cursor?.firstChild()) {
+      if (
+        !['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(
+          cursor.node.name
+        )
+      ) {
+        prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
+        prim.type = cursor.node.name;
+      }
+      while (cursor.nextSibling() && prim.name == '') {
+        if (
+          !['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(
+            cursor.node.name
+          )
+        ) {
+          prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
+          prim.type = cursor.node.name;
+        }
+      }
+    }
+    if (prim.type.includes('Special')) {
+      prim.isSpecial = true;
+      prim.breed = this.getBreedName(prim.name) ?? '';
+      prim.context = new AgentContexts('null');
+      if (prim.breed != '') {
+        let breed = null;
+        for (let b of this.Breeds.values()) {
+          if (
+            prim.breed.toLowerCase() == b.Singular ||
+            prim.breed.toLowerCase() == b.Plural
+          ) {
+            breed = b;
+          }
+        }
+        if (breed) {
+          if (breed.isLinkBreed) {
+            prim.context = new AgentContexts('---L');
+          } else if (breed.Singular == 'patch') {
+            prim.context = new AgentContexts('--P-');
+          } else {
+            prim.context = new AgentContexts('-T--');
+          }
+        }
+      }
+    } else {
+      prim.context =
+        primitives.GetNamedPrimitive(prim.name)?.BlockContext ??
+        new AgentContexts('null');
+    }
+    if (this.noContext(prim.context)) {
+      console.log(prim);
+    }
+    return prim;
+  }
+
+  //identify if the term looks like a breed procedure (e.g. "create-___")
+  //If so, also identify where to look within the term to find the intended breed name
+  public checkBreedLike = function (str: string) {
+    let result = false;
+    let location = '';
+    if (str.match(/[^\s]+-(at)/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/[^\s]+-here/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/[^\s]+-neighbors/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/[^\s]+-on/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/^(my|my-in|my-out)-[^\s]+/)) {
+      result = true;
+      location = 'Last';
+    } else if (str.match(/^is-[^\s]+\\?$/)) {
+      result = true;
+      location = 'Question';
+    } else if (str.match(/^in-[^\s]+-from$/)) {
+      result = true;
+      location = 'Middle';
+    } else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
+      result = true;
+      location = 'Middle';
+    } else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
+      result = true;
+      location = 'Middle';
+    } else if (str.match(/^out-[^\s]+-to$/)) {
+      result = true;
+      location = 'Middle';
+    } else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
+      result = true;
+      location = 'Middle';
+    } else if (str.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+      result = true;
+      location = 'Last';
+    }
+    return [result, location];
+  };
 
   private searchAnonProcedure(
     node: SyntaxNode,

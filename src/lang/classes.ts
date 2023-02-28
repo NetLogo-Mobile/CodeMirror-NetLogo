@@ -132,6 +132,7 @@ export class Procedure {
   public Context: AgentContexts = new AgentContexts();
   /** CodeBlocks: code blocks within the procedure. */
   public CodeBlocks: CodeBlock[] = [];
+  public isProcedure: boolean = true;
 }
 
 export class CodeBlock {
@@ -149,6 +150,9 @@ export class CodeBlock {
   public Arguments: string[] = [];
   /** AnonymousProcedures: anonymous procedures defined within the code block. */
   public AnonymousProcedures: Procedure[] = [];
+  public isProcedure: boolean = false;
+  public Primitive: string = '';
+  public Breed: string | null = null;
 }
 
 /** Procedure: Dynamic metadata of an anonymous procedure. */

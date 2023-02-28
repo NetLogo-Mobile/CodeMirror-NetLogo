@@ -15,6 +15,7 @@ import { Reporters } from './core/reporters.ts';
 import { NLArgument, NLPrimitive, NLWPrimitive } from './nlstructures.ts';
 
 /** PrimitiveImporter: A quick node.js script to import NL/NLW primitives for the editor. */
+// Use with 'npm run import'
 class PrimitiveImporter {
   /** Primitives: The list of imported primitives. */
   private Primitives: Primitive[] = [];
@@ -71,7 +72,10 @@ export const Dataset: Primitive[] = ${JSON.stringify(this.Primitives)}`
       ReturnType: this.ConvertToArgument(Source.syntax.ret),
       Precedence: Source.syntax.precedence,
       AgentContext: new AgentContexts(Source.syntax.agentClassString),
-      BlockContext: new AgentContexts(Source.syntax.blockAgentClassString),
+      BlockContext:
+        Source.syntax.blockAgentClassString == 'null'
+          ? new AgentContexts(Source.syntax.agentClassString)
+          : new AgentContexts(Source.syntax.blockAgentClassString),
       DefaultOption:
         Source.syntax.defaultOption == null
           ? undefined
