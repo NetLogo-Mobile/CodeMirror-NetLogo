@@ -26,6 +26,7 @@ export interface Primitive {
   IntroducesContext?: boolean;
   /** CanBeConcise: Unsure what this is for. */
   CanBeConcise?: boolean;
+  InheritParentContext?: boolean;
 }
 
 /** Argument: Static metadata of a NetLogo primitive's argument. */
@@ -153,6 +154,7 @@ export class CodeBlock {
   public isProcedure: boolean = false;
   public Primitive: string = '';
   public Breed: string | null = null;
+  public InheritParentContext: boolean = false;
 }
 
 /** Procedure: Dynamic metadata of an anonymous procedure. */

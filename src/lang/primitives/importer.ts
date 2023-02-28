@@ -88,6 +88,7 @@ export const Dataset: Primitive[] = ${JSON.stringify(this.Primitives)}`
       IntroducesContext:
         Source.syntax.introducesContext == 'true' ? true : undefined,
       CanBeConcise: Source.syntax.canBeConcise ? true : undefined,
+      InheritParentContext: Source.syntax.blockAgentClassString == 'null',
     };
     this.Primitives.push(Primitive);
   }

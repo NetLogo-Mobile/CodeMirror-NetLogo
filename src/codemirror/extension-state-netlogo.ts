@@ -288,7 +288,7 @@ export class StateNetLogo {
     return prim_data?.AgentContext;
   }
 
-  private combineContexts(c1: AgentContexts, c2: AgentContexts) {
+  public combineContexts(c1: AgentContexts, c2: AgentContexts) {
     let final = new AgentContexts();
     if (!c1.Observer || !c2.Observer) {
       final.Observer = false;
@@ -324,6 +324,7 @@ export class StateNetLogo {
           block.Primitive = prim.name;
           block.PositionStart = child.from;
           block.PositionEnd = child.to;
+          block.InheritParentContext = prim.inheritParentContext;
           block.Context = this.combineContexts(
             this.getContext(child, state),
             this.noContext(prim.context) ? parentContext : prim.context
@@ -375,7 +376,7 @@ export class StateNetLogo {
     return str;
   }
 
-  private noContext(c: AgentContexts) {
+  public noContext(c: AgentContexts) {
     return !c.Observer && !c.Turtle && !c.Patch && !c.Link;
   }
 
@@ -387,6 +388,7 @@ export class StateNetLogo {
       context: new AgentContexts('null'),
       firstArg: node.parent?.getChild('Arg'),
       breed: '',
+      inheritParentContext: false,
     };
     let cursor = node.parent?.cursor();
     if (cursor?.firstChild()) {
@@ -434,9 +436,9 @@ export class StateNetLogo {
         }
       }
     } else {
-      prim.context =
-        primitives.GetNamedPrimitive(prim.name)?.BlockContext ??
-        new AgentContexts('null');
+      let primitive = primitives.GetNamedPrimitive(prim.name);
+      prim.context = primitive?.BlockContext ?? new AgentContexts('null');
+      prim.inheritParentContext = primitive?.InheritParentContext ?? false;
     }
     if (this.noContext(prim.context)) {
       console.log(prim);
