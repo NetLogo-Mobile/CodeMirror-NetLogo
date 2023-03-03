@@ -26,6 +26,7 @@ export interface Primitive {
   IntroducesContext?: boolean;
   /** CanBeConcise: Unsure what this is for. */
   CanBeConcise?: boolean;
+  InheritParentContext?: boolean;
 }
 
 /** Argument: Static metadata of a NetLogo primitive's argument. */
@@ -127,7 +128,33 @@ export class Procedure {
   /** IsCommand: Is the procedure a command (to) instead of a reporter (to-report)? */
   public IsCommand: boolean = false;
   /** IsCommand: Is the procedure anonymous? */
-  public isAnonymous: boolean = false;
+  public IsAnonymous: boolean = false;
+  /** Context: The possible contexts for the procedure */
+  public Context: AgentContexts = new AgentContexts();
+  /** CodeBlocks: code blocks within the procedure. */
+  public CodeBlocks: CodeBlock[] = [];
+  public isProcedure: boolean = true;
+}
+
+export class CodeBlock {
+  /** PositionStart: The position at the start of the code block. */
+  public PositionStart: number = 0;
+  /** PositionEnd: The position at the end of the code block. */
+  public PositionEnd: number = 0;
+  /** Context: The possible contexts for the code block */
+  public Context: AgentContexts = new AgentContexts();
+  /** CodeBlocks: code blocks within the code block. */
+  public CodeBlocks: CodeBlock[] = [];
+  /** Variables: local variables defined for the code block. */
+  public Variables: LocalVariable[] = [];
+  /** Arguments: The arguments accessible within the code block. */
+  public Arguments: string[] = [];
+  /** AnonymousProcedures: anonymous procedures defined within the code block. */
+  public AnonymousProcedures: Procedure[] = [];
+  public isProcedure: boolean = false;
+  public Primitive: string = '';
+  public Breed: string | null = null;
+  public InheritParentContext: boolean = false;
 }
 
 /** Procedure: Dynamic metadata of an anonymous procedure. */

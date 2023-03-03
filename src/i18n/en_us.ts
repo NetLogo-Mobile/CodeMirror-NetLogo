@@ -44,6 +44,8 @@ const en_us: Record<string, Function> = {
   'Improperly placed procedure _': (Name: string) =>
     `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
   'Unmatched item _': (Name: string) => `This "${Name}" is unmatched.`,
+  'Invalid context _.': (Name: string) =>
+    `The context for this ${Name} is invalid.`,
 
   '~VariableName': (Name: string) => `A (unknown) variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,

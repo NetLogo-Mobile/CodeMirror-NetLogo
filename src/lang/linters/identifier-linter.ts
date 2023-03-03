@@ -5,7 +5,7 @@ import { EditorState } from '@codemirror/state';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
-import { Procedure } from '../classes';
+import { AnonymousProcedure, Procedure, CodeBlock } from '../classes';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter = buildLinter((view, parseState) => {
@@ -29,8 +29,9 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
             breedVars
           )
         ) {
+          console.log(value);
           //check if the identifier looks like a breed procedure (e.g. "create-___")
-          let result = checkBreedLike(value);
+          let result = parseState.checkBreedLike(value);
           if (!result[0]) {
             console.log(noderef.name, noderef.node.parent?.name);
             diagnostics.push({
@@ -137,7 +138,10 @@ export const getLocalVars = function (
     });
     //pulls out all local variables within the anonymous procedures up until current position
     if (procedure) {
-      procedureVars.push(...gatherAnonVars(procedure, Node));
+      procedureVars.push(
+        ...gatherAnonVars(procedure.AnonymousProcedures, Node)
+      );
+      procedureVars.push(...gatherAnonVars(procedure.CodeBlocks, Node));
     }
     if (procedure?.Arguments) {
       procedureVars.push(...procedure.Arguments);
@@ -146,67 +150,39 @@ export const getLocalVars = function (
   return procedureVars;
 };
 
-const gatherAnonVars = function (proc: Procedure, Node: SyntaxNode) {
+const gatherAnonVars = function (
+  group: CodeBlock[] | Procedure[],
+  Node: SyntaxNode
+) {
   let procedureVars: string[] = [];
-  proc.AnonymousProcedures.map((anonProc) => {
+  group.map((anonProc) => {
     if (
       Node.from >= anonProc.PositionStart &&
       Node.to <= anonProc.PositionEnd
     ) {
-      anonProc.Variables.map((variable) => variable.Name).forEach((name) =>
-        procedureVars.push(name)
-      );
+      // anonProc.Variables.map(variable => variable.Name).forEach(name =>
+      //   procedureVars.push(name)
+      // );
+      anonProc.Variables.map((variable) => {
+        if (variable.CreationPos <= Node.from) {
+          procedureVars.push(variable.Name);
+        }
+      });
       procedureVars.push(...anonProc.Arguments);
-      procedureVars.push(...gatherAnonVars(anonProc, Node));
+      procedureVars.push(...gatherAnonVars(anonProc.CodeBlocks, Node));
+      procedureVars.push(...gatherAnonVars(anonProc.AnonymousProcedures, Node));
     }
   });
   return procedureVars;
 };
 
-//identify if the term looks like a breed procedure (e.g. "create-___")
-//If so, also identify where to look within the term to find the intended breed name
-const checkBreedLike = function (str: string) {
-  let result = false;
-  let location = '';
-  if (str.match(/[^\s]+-(at)/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/[^\s]+-here/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/[^\s]+-neighbors/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/[^\s]+-on/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
-    result = true;
-    location = 'First';
-  } else if (str.match(/^(my|my-in|my-out)-[^\s]+/)) {
-    result = true;
-    location = 'Last';
-  } else if (str.match(/^is-[^\s]+\\?$/)) {
-    result = true;
-    location = 'Question';
-  } else if (str.match(/^in-[^\s]+-from$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^out-[^\s]+-to$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
-    result = true;
-    location = 'Middle';
-  } else if (str.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
-    result = true;
-    location = 'Last';
-  }
-  return [result, location];
+const gatherCodeBlockVars = function (proc: Procedure, Node: SyntaxNode) {
+  let procedureVars: string[] = [];
+  proc.CodeBlocks.map((block) => {
+    if (block.PositionStart <= Node.from && block.PositionEnd >= Node.to) {
+      block.Variables.map((variable) => variable.Name).forEach((name) =>
+        procedureVars.push(name)
+      );
+    }
+  });
 };

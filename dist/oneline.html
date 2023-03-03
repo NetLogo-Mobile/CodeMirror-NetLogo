@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf8" />
+    <h1>New Code Editor for NetLogo Web & Derivatives</h1>
+  </head>
+  <body>
+    <div id="Container" style="height: 100%"></div>
+    <div id="Code"></div>
+    <script src="editor.bundle.js"></script>
+    <script>
+      var Editor;
+      window.addEventListener('load', function () {
+        Editor = new GalapagosEditor(document.getElementById('Container'), {
+          OnUpdate: (Changed, Update) => {
+            if (Changed) console.log(Update);
+          },
+          OneLine: true
+        });
+        EditorDictionary.Initialize({});
+        Editor.SetMode("oneline")
+        Editor.SetWidgetVariables(["one", "two", "three"])
+        Editor.SetCode("max (list one two three)")
+      });
+    </script>
+  </body>
+</html>
