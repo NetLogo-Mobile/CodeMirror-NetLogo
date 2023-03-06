@@ -5,8 +5,11 @@
     <h1>Testing Basic Features</h1>
   </head>
   <body>
+    <button name="ErrorCount" onclick="Editor.HasErrors();">ErrorCount</button>
+    <button name="NextTest" onclick="Editor.GetNextTest();">Next Test</button>
+    <button name="Test" onclick="Editor.RunTests();">Test</button>
     <button name="Pretty" onclick="Editor.Prettify();">Pretty</button>
-    <button name="Pretty" onclick="Editor.PrettifyAll();">PrettyAll</button>
+    <button name="PrettyAll" onclick="Editor.PrettifyAll();">PrettyAll</button>
     <button name="Undo" onclick="Editor.Undo();">Undo</button>
     <button name="Redo" onclick="Editor.Redo();">Redo</button>
     <button name="set read only" onclick="Editor.SetReadOnly(true);">
