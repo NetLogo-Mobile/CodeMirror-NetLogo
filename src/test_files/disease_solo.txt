@@ -1,0 +1,165 @@
+;;;;;;;;;;;;;;;;;;
+;; Declarations ;;
+;;;;;;;;;;;;;;;;;;
+
+globals
+[
+  ;; number of turtles that are sick
+  num-sick
+  ;; when multiple runs are recorded in the plot, this
+  ;; tracks what run number we're on
+  run-number
+  ;; counter used to keep the model running for a little
+  ;; while after the last turtle gets infected
+  delay
+  num-androids
+  infection-chance
+  step-size 
+  avoid? 
+  chase?
+]
+
+breed [ androids android ]
+breed [ users user ]
+
+;; androids and users are both breeds of turtle, so both androids
+;; and users have these variables
+turtles-own
+[
+  infected?    ;; whether turtle is sick (true/false)
+]
+
+;;;;;;;;;;;;;;;;;;;;;
+;; Setup Functions ;;
+;;;;;;;;;;;;;;;;;;;;;
+
+;; clears the plot too
+to setup-clear
+  clear-all
+  set run-number 1
+  setup-world
+end
+
+;; note that the plot is not cleared so that data
+;; can be collected across runs
+to setup-keep
+  clear-turtles
+  clear-patches
+  set run-number run-number + 1
+  setup-world
+end
+
+to setup-world
+  set-default-shape androids "android"
+  set-default-shape users "person"
+  set num-sick 0
+  set delay 0
+  create-some-androids
+  create-user
+  reset-ticks
+end
+
+to infect
+  ask one-of androids [ get-sick ]
+end
+
+to create-some-androids
+  create-androids num-androids
+  [
+    setxy random-pxcor random-pycor   ;; put androids on patch centers
+    set color gray
+    set heading 90 * random 4
+    set infected? false
+  ]
+end
+
+;;;;;;;;;;;;;;;;;;;;;;;
+;; Runtime Functions ;;
+;;;;;;;;;;;;;;;;;;;;;;;
+
+to go
+  ;; in order to extend the plot for a little while
+  ;; after all the turtles are infected...
+  if num-sick = count turtles
+    [ set delay delay + 1  ]
+  if delay > 50
+    [ stop ]
+  ;; now for the main stuff;
+  androids-wander
+  ask turtles with [ infected? ]
+    [ spread-disease ]
+  set num-sick count turtles with [ infected? ]
+  tick
+end
+
+;; controls the motion of the androids
+to androids-wander
+  ask androids
+  [
+    ifelse avoid? and not infected?
+      [ avoid ] [
+    ifelse chase? and infected?
+      [ chase ]
+      [ rt (random 4) * 90 ] ]
+  ]
+  ask androids [
+    fd 1
+  ]
+end
+
+to avoid ;; android procedure
+  let candidates patches in-radius 1 with [ not any? turtles-here with [ infected? ] ]
+  ifelse any? candidates
+    [ face one-of candidates ]
+    [ rt (random 4) * 90 ]
+end
+
+to chase ;; android procedure
+  let candidates turtles in-radius 1 with [ not infected? ]
+  ifelse any? candidates
+    [ face one-of candidates ]
+    [ rt (random 4) * 90 ]
+end
+
+to spread-disease ;; turtle procedure
+  ask other turtles-here [ maybe-get-sick ]
+end
+
+to maybe-get-sick ;; turtle procedure
+  ;; roll the dice and maybe get sick
+  if (not infected?) and (random 100 < infection-chance)
+    [ get-sick ]
+end
+
+;; set the appropriate variables to make this turtle sick
+to get-sick ;; turtle procedure
+  if not infected?
+  [ set infected? true
+  set shape word shape " sick" ]
+end
+
+;;;;;;;;;;;;;;;;;;;;;
+;; User Procedures ;;
+;;;;;;;;;;;;;;;;;;;;;
+
+to create-user
+  create-users 1
+  [
+    set color sky
+    set size 1.5     ;; easier to see than default of 1
+    set heading (random 4) * 90
+    set infected? false
+  ]
+end
+
+to move [ new-heading ]
+  ask users
+  [
+    set heading new-heading
+    fd step-size
+  ]
+end
+
+
+; Copyright 2005 Uri Wilensky.
+; See Info tab for full copyright and license.

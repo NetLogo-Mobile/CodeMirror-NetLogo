@@ -33,7 +33,7 @@ Unrecognized {
 }
 
 globalStatement {
-  Extensions { ExtensionStr OpenBracket Extension* CloseBracket } |
+  Extensions { ExtensionStr OpenBracket Identifier* CloseBracket } |
 
   Globals { GlobalStr OpenBracket Identifier* CloseBracket  } |
 
@@ -60,7 +60,7 @@ BreedVars {
   Identifier | BreedFirst | BreedMiddle | BreedLast
 }
 
-Procedure [context='OTPL'] {
+Procedure  {
   To ProcedureName Arguments? ProcedureContent* End
 }
 
@@ -110,7 +110,7 @@ AnonArguments {
   Arguments | Identifier* ~statement
 }
 
-AnonymousProcedure[context='OTPL'] {
+AnonymousProcedure {
   OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) CloseBracket
 }
 
@@ -160,12 +160,13 @@ List {
   OpenBracket Literal* CloseBracket ~statement
 }
 
-CodeBlock[context='OTPL'] {
+CodeBlock {
   OpenBracket ProcedureContent* CloseBracket ~statement
 }
 
 ReporterBlock {
-  OpenBracket ReporterContent !close CloseBracket
+  OpenBracket ReporterContent !close CloseBracket |
+  OpenBracket Value !close CloseBracket
 }
 
 Property {

@@ -45,6 +45,8 @@ const zh_cn: Record<string, Function> = {
   'Unmatched item _': (Name: string) => `This "${Name}" is unmatched.`,
   'Invalid context _.': (Name: string) =>
     `The context for this ${Name} is invalid.`,
+  'Incorrect extension _.': (Name: string) =>
+    `"${Name}" is not a valid extension.`,
 
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,

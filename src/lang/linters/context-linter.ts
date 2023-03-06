@@ -20,6 +20,7 @@ const checkProcedureContents = function (
 ) {
   let diagnostics: Diagnostic[] = [];
   if (!checkValidContext(p.Context)) {
+    console.log(p);
     diagnostics.push({
       from: p.PositionStart,
       to: p.PositionEnd,

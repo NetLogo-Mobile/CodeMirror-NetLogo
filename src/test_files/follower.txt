@@ -1,0 +1,66 @@
+turtles-own [
+  leader    ;; the turtle this turtle is following,
+            ;; or nobody if not following
+  follower  ;; the turtle that is following this turtle,
+            ;; or nobody if not being followed
+]
+
+globals [ population near-radius far-radius waver ]
+
+to setup
+  clear-all
+  create-turtles population
+  [ set color magenta
+    setxy random-xcor random-ycor
+    set leader nobody
+    set follower nobody ]
+  reset-ticks
+end
+
+to go
+  ask turtles
+  [ if leader = nobody
+    [ attach-turtle ] ]
+  ask turtles [ turn-turtle ]
+  ask turtles [ fd 1 ]
+  tick
+end
+
+to attach-turtle  ;; turtle procedure
+  ;; find a random patch to test inside the donut
+  let xd near-radius + random (far-radius - near-radius)
+  let yd near-radius + random (far-radius - near-radius)
+  if random 2 = 0 [ set xd (- xd) ]
+  if random 2 = 0 [ set yd (- yd) ]
+  ;; check for free turtles on that patch
+  let candidate one-of (turtles-at xd yd) with [follower = nobody]
+  ;; if we didn't find a suitable turtle, stop
+  if candidate = nobody [ stop ]
+  ;; we're all set, so latch on!
+  ask candidate [ set follower myself ]
+  set leader candidate
+  ;; change our color
+  ifelse follower = nobody
+  [ set color lime ]
+  [ set color sky
+    set shape "line" ]
+  ;; change our leader's color
+  ask candidate
+  [ ifelse leader = nobody
+    [ set color yellow ]
+    [ set color sky
+      set shape "line" ] ]
+end
+
+to turn-turtle  ;; turtle procedure
+  ;; if we are still unattached...
+  ifelse leader = nobody
+  ;; do a somewhat random glide
+  [ rt random-float waver - random-float waver ]
+  ;; otherwise follow the leader
+  [ face leader ]
+end
+
+
+; Copyright 1998 Uri Wilensky.
+; See Info tab for full copyright and license.

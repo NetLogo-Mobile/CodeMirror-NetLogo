@@ -35,6 +35,8 @@ const en_us: Record<string, Function> = {
     `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
   'Invalid extension _.': (Name: string) =>
     `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+  'Incorrect extension _.': (Name: string) =>
+    `"${Name}" is not a valid extension.`,
   'Breed name _ already used.': (Name: string) =>
     `"${Name}" is already used as a breed name. Try to take a different name.`,
   'Invalid breed procedure _': (Name: string) =>

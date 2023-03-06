@@ -128,7 +128,7 @@ export const keyword = new ExternalTokenizer((input) => {
   } else if (unsupported.indexOf(token) != -1) {
     input.acceptToken(Unsupported);
   } else if (PrimitiveManager.GetExtensions().indexOf(token) != -1) {
-    input.acceptToken(Extension);
+    input.acceptToken(Identifier);
   } else {
     // Check if token is a reporter/commander
     const primitive = PrimitiveManager.GetNamedPrimitive(token);
@@ -162,6 +162,7 @@ function isValidKeyword(ch: number) {
   return (
     ch >= 160 || // Unicode characters
     ch == 33 || // !
+    ch == 37 || // %
     ch == 39 || // '
     ch == 63 || // ?
     // 0-9

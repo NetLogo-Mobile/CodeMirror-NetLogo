@@ -6,6 +6,7 @@ import { preprocessStateExtension } from '../../codemirror/extension-state-prepr
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
 import { Localized } from '../../i18n/localized';
+import { nodeModuleNameResolver } from 'typescript';
 
 let primitives = PrimitiveManager;
 
@@ -137,15 +138,20 @@ export const getArgs = function (Node: SyntaxNode) {
     leftArgs: SyntaxNode | null;
     rightArgs: SyntaxNode[];
     func: SyntaxNode | null;
-  } = { leftArgs: null, rightArgs: [], func: null };
+    hasParentheses: boolean;
+  } = { leftArgs: null, rightArgs: [], func: null, hasParentheses: false };
   let seenFunc = false;
   let done = false;
   if (!cursor.firstChild()) {
     return args;
+  } else if (Node.resolve(Node.from, -1).name == 'OpenParen') {
+    args.hasParentheses = true;
   }
   while (done == false) {
-    //collect nodes containing left args
-    if (!seenFunc && cursor.node.name == 'Arg') {
+    if (cursor.node.name == 'OpenParen') {
+      args.hasParentheses = true;
+      //collect nodes containing left args
+    } else if (!seenFunc && cursor.node.name == 'Arg') {
       args.leftArgs = cursor.node;
     } else if (
       //collect nodes containing right args ('Commands'/'Reporters' are specifically for map, filter, etc.)
@@ -183,6 +189,7 @@ export const checkValid = function (
     leftArgs: SyntaxNode | null;
     rightArgs: SyntaxNode[];
     func: SyntaxNode | null;
+    hasParentheses: boolean;
   }
 ) {
   //get the text/name of the primitive
@@ -221,15 +228,19 @@ export const checkValid = function (
       return ['left', func, expected, actual];
     } else {
       //find the minimum and maximum acceptable numbers of right-side arguments
-      let rightArgMin =
-        primitive.MinimumOption ??
-        primitive.DefaultOption ??
-        primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
-          .length;
+      let rightArgMin = args.hasParentheses
+        ? primitive.MinimumOption ??
+          primitive.DefaultOption ??
+          primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
+            .length
+        : primitive.DefaultOption ??
+          primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
+            .length;
       let rightArgMax =
-        primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length > 0
+        primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length >
+          0 && args.hasParentheses
           ? 100
-          : primitive.RightArgumentTypes.length;
+          : primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
       //ensure at least minimum # right args present
       if (args.rightArgs.length < rightArgMin) {
         console.log(args.rightArgs);

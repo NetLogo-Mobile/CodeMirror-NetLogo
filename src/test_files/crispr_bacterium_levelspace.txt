@@ -1,0 +1,413 @@
+globals [
+  ; Housekeeping variables
+  cell-wall  ; Patch-set containing cell wall patches for boundary checking
+  CRISPR     ; Patch-set containing CRISPR DNA patches for boundary checking
+  the-virus  ; Stores the virus in the infection
+  virus-event
+
+  ; Bacterial attributes
+  array      ; List of viral spacers currently stored in the array
+
+  labels?
+  initial-array-size 
+  max-virus-types 
+  guide-unbind-chance 
+  processivity 
+  CRISPR-function 
+]
+
+breed [ RNAPs RNAP ]            ; Brown
+breed [ cas9s cas9 ]            ; Green
+breed [ guide-RNAs guide-RNA ]  ; Lime
+breed [ cas-dimers cas-dimer ]  ; Orange
+breed [ viruses virus ]         ; Red
+
+guide-RNAs-own [ sequence bound? ]
+viruses-own [ sequence bound? ]
+RNAPs-own [ on-dna? ]
+cas9s-own [ bound? ]
+cas-dimers-own [ bound? ]
+
+to setup [ CRISPR-array unbind-% rnap-processivity-% CRISPR-function-% ]
+  clear-all
+  ; Build cell wall
+  ask patches with [ abs pxcor = max-pxcor ] [ set pcolor gray ]
+  ask patches with [ abs pycor = max-pycor ] [ set pcolor gray ]
+  set cell-wall patches with [ pcolor = gray ]
+
+  ; Build DNA and CRISPR array
+  ask patches with [ (abs pycor = 2) and (abs pxcor <= 10) ] [ set pcolor blue ]
+  ask patches with [ (abs pxcor = 10) and (abs pycor <= 2) ] [ set pcolor blue ]
+  ; Build CRISPR array (on a plasmid)
+  ask patches with [ (pycor = 0) and (abs pxcor <= 2) ] [ set pcolor sky + 1 ]
+  set CRISPR patches with [ pcolor = sky + 1 ]
+  ask min-one-of CRISPR [ pxcor ] [ set pcolor cyan ]
+
+  set virus-event ""
+  set array CRISPR-array
+  set guide-unbind-chance unbind-%
+  set processivity rnap-processivity-%
+  set CRISPR-function CRISPR-function-%
+
+  set-default-shape guide-RNAs "stripe"
+  set-default-shape viruses "stripe"
+
+  ; Build polymerases
+  create-RNAPs 25 [
+    set shape "rnap"
+    set color brown
+    set on-dna? false
+  ]
+
+  ; Initialize the other agent types at steady state.
+  ; Instead of needing to run the model for 1000+ ticks, we can use a shortcut:
+  ; Produce tons of agents through the normal transcription process
+  ; and then degrade the appropriate amount.
+  ; Production and degradation of normal cell components only depend on time,
+  ; not interactions between agents, so this saves us the time that would be
+  ; spent processing particle motion, interactions, and visualization.
+  let ticks-per-transcription CRISPR-function / 8  ; Approximate, found by trial and error.
+  let transcripts-per-RNAP 5
+  let transcriptions transcripts-per-RNAP * count RNAPs
+  ask RNAPs [
+    repeat transcripts-per-RNAP [
+      if random-float 100 < CRISPR-function [ transcribe ]
+    ]
+  ]
+  repeat transcriptions * ticks-per-transcription [ degrade ]
+
+  ask turtles [
+    ; Loop-stop construct here imitates a do-while loop.
+    loop [
+      setxy random-xcor random-ycor
+      if not member? patch-here cell-wall [ stop ]
+    ]
+  ]
+
+  update-labels
+  reset-ticks
+end
+
+to go
+  update-labels
+  if done? [ stop ]
+  ask RNAPs [ go-RNAPs ]
+  ask cas9s [ go-cas9s ]
+  ask guide-RNAs [ go-guide-RNAs ]
+  ask cas-dimers [ go-cas-dimers ]
+  ask viruses [ go-viruses ]
+  degrade
+  tick
+end
+
+; Simulates a virus entering the cell through the cell membrane.
+to infect [ seq ] ; Observer procedure
+  ask one-of cell-wall [
+    sprout-viruses 1 [
+      set sequence seq
+      set color red
+      set bound? false
+      set virus-event (word "Virus " sequence " invaded the cell.")
+      watch-me
+      set the-virus self
+    ]
+  ]
+end
+
+to common-infection
+  let guides remove-duplicates map [ i ->
+    list (item i array) (count guide-RNAs with [sequence = (item i array)])
+  ] n-values length array [ i -> i ]
+  set guides sort-by [ [list1 list2] -> item 1 list1 > item 1 list2 ] guides
+  let front-range ceiling (processivity / 200 * length array)
+  infect item 0 one-of sublist guides 0 front-range
+end
+
+; RNAPs move randomly when not on DNA. Under certain circumstances, they
+; transcribe the CRISPR array to produce new cas9 proteins, cas1-cas2 dimers,
+; and one guide RNA for each spacer in the CRISPR array.
+to go-RNAPs ; RNAP procedure
+  ifelse on-dna? [
+    ; If we are currently transcribing the CRISPR array, keep doing that.
+    fd 1
+    ; Once we finish, change back to normal movement and produce CRISPR elements.
+    if not member? patch-here CRISPR [
+      set on-dna? false
+      transcribe
+    ]
+  ] [
+    ; If we are not transcribing, move around randomly.
+    diffuse-turtle 1
+    ; If we end up on the CRISPR promoter, start transcribing.
+    if pcolor = cyan and random-float 100 < CRISPR-function [
+      set on-dna? true
+      move-to patch-here
+      set heading 90
+    ]
+  ]
+end
+
+; Cas9 proteins randomly wander through the cell. If they find a guide RNA,
+; they can bind to it. If they are already bound to a guide RNA, there is a
+; small chance they will unbind it. If they have a guide and find a virus
+; with a matching sequence, they cleave the virus.
+to go-cas9s
+  ; If bound to a guide RNA, several things could happen.
+  if bound? [
+    ; If there is a virus here, check if it matches the bound guide RNA.
+    if any? viruses-here with [ not bound? ] [
+      let virus-partner one-of viruses-here
+      let partner-sequence [ sequence ] of one-of link-neighbors
+      let virus-sequence [ sequence ] of virus-partner
+      ; If it matches, destroy the virus.
+      if partner-sequence = virus-sequence [
+        ask virus-partner [
+          set virus-event (word "Virus " sequence " was cleaved by cas9.")
+          die
+        ]
+      ]
+    ]
+    ; Randomly unbind current guide at a low rate.
+    if random-float 100 < guide-unbind-chance [
+      ; There should only ever be one guide RNA linked to a cas9 at a time.
+      let partner one-of link-neighbors
+      ask my-links [ die ]
+      ; Update bound? status and appearance for the cas9 and guide RNA.
+      set bound? false
+      ask partner [
+        set bound? false
+        diffuse-turtle 1
+      ]
+    ]
+  ]
+  ; Random walk through the cell.
+  diffuse-turtle 1
+  ; If the cas9 is unbound and near an unbound guide RNA, bind it.
+  if not bound? and any? guide-RNAs-here with [ not bound? ] [
+    ; Grab an unbound guide RNA in the area and tie to it.
+    let partner one-of guide-RNAs-here with [ not bound? ]
+    move-to partner
+    create-link-with partner [ hide-link tie ]
+    ; Update bound? status and appearance for the cas9 and guide RNA.
+    set bound? true
+    ask partner [ set bound? true ]
+  ]
+end
+
+; Guide RNAs drift randomly through the cell. For more information, see go-cas9s.
+to go-guide-RNAs ; Guide-RNA procedure
+  if not bound? [ diffuse-turtle 1 ]
+end
+
+; Cas1-Cas2 dimers drift randomly through the cell most of the time. When they
+; encounter viral genetic material, they carry it to the CRISPR array and
+; incorporate a new spacer into the array to match it.
+to go-cas-dimers ; Cas-dimer procedure
+  ifelse bound? [
+    ; If the dimer is carrying viral material, head towards the CRISPR locus.
+    set heading towards one-of CRISPR
+    fd 1
+    ; Once the dimer gets to the locus, add an appropriate spacer and kill the virus.
+    if member? patch-here CRISPR [
+      let virus-partner one-of link-neighbors
+      set array fput ([ sequence ] of virus-partner) array
+      ask virus-partner [
+        set virus-event (word "Virus " sequence " was added to the array.")
+      ]
+    ]
+  ] [
+    ; If the dimer isn't carrying viral material, wander randomly.
+    diffuse-turtle 1
+    ; If the dimer finds a virus, bind to it.
+    if any? viruses-here with [ not bound? ] [
+      let virus-partner one-of viruses-here
+      move-to virus-partner
+      create-link-with virus-partner [ hide-link tie ]
+      set bound? true
+      ask virus-partner [
+        set bound? true
+        set virus-event (word "Virus " sequence " was bound by cas1/2.")
+      ]
+    ]
+  ]
+end
+
+; If the virus isn't bound to anything (meaning it isn't caught by the cell yet),
+; it wanders randomly until it finds the cell's DNA and inserts itself.
+to go-viruses ; Virus procedure
+  if not bound? [
+    ; Move slowly because of its enormous size, but generally towards the DNA.
+    set heading towards one-of dna-patches
+    fd 0.05
+    ; Incorporate into the genome.
+    if pcolor = blue [
+      move-to patch-here
+      set shape "square"
+      set bound? true
+      set virus-event (word "Virus " sequence " infected the genome.")
+      watch-me
+    ]
+  ]
+end
+
+; Controls the random movement of all turtles.
+; If you're headed towards the cell wall, just turn until you're not.
+to diffuse-turtle [ speed ]  ; Turtle procedure
+  rt random-float 360
+  while [ wall-ahead? ] [ rt random-float 360 ]
+  forward speed
+end
+
+; Implements the transcription / translation of the CRISPR array.
+; The entire array is transcribed together.
+to transcribe ; RNAP procedure
+  ; The cas9 gene comes at the start of the CRISPR array.
+  hatch-cas9s 1 [
+    set color green
+    set shape "cas9"
+    set bound? false
+    ; Distribute around the center of the cell
+    setxy 0 0
+    repeat 5 [ diffuse-turtle 1 ]
+  ]
+  ; The array also includes genes for the Cas1-Cas2 complexes.
+  ; Each complex needs 2 Cas2 proteins and 4 Cas1 proteins, so
+  ; on average one complex will be produced every 4 transcriptions.
+  if random-float 1 < 0.25 [
+    hatch-cas-dimers 1 [
+      set color orange
+      set shape "cas dimer"
+      set bound? false
+      ; Distribute around the center of the cell
+      setxy 0 0
+      repeat 5 [ diffuse-turtle 1 ]
+    ]
+  ]
+  ; After the cas genes there are copies of each spacer all in a row,
+  ; and we produce one guide RNA for each spacer in the array.
+  foreach array [ spacer ->
+    hatch-guide-RNAs 1 [
+      set color turquoise
+      set sequence spacer
+      set bound? false
+      ; Distribute around the center of the cell
+      setxy 0 0
+      repeat 5 [ diffuse-turtle 1 ]
+    ]
+    ; High processivity should mean a smaller chance to stop early.
+    ; This stop exits the foreach, but not the transcribe procedure.
+    if random-float 100 > processivity [ stop ]
+  ]
+end
+
+; Governs the degradation of proteins and genetic elements in the cell.
+to degrade ; Observer procedure
+  ; These ask blocks require all turtles in the set to have the variable bound?.
+
+  ; Degrade Cas9 proteins and guide RNAs at a low rate.
+  ask (turtle-set cas9s guide-RNAs) [
+    if random-float 100 < 0.05 [
+      if bound? [
+        ask link-neighbors [ set bound? false ]
+      ]
+      die
+    ]
+  ]
+  ; Viruses and Cas1-Cas2 complexes degrade at a higher rate than Cas9s and guides.
+  ; For viruses, innate immune systems like restriction enzymes increase degradation.
+  ask viruses [
+    if random-float 100 < 0.5 [
+      if bound? [
+        ask link-neighbors [ set bound? false ]
+      ]
+      set virus-event (word "Virus " sequence " was degraded by innate resistance.")
+      die
+    ]
+  ]
+  ; For Cas1-Cas2 complexes, the whole thing stops working if any of the 6 components
+  ; stop working. This is the simplest way to account for that without trying to
+  ; model each component as a separate agent.
+  ask cas-dimers [
+    if random-float 100 < 0.2 [
+      if bound? [
+        ask link-neighbors [ set bound? false ]
+      ]
+      die
+    ]
+  ]
+end
+
+to update-labels
+  ifelse labels? [
+    ask (turtle-set guide-RNAs viruses) [ set label sequence ]
+  ] [
+    ask turtles [ set label "" ]
+  ]
+end
+
+; Called in the 'Plot update commands' block of the histogram plots.
+; Adjusts the x and y ranges of the histogram dynamically based on the input data.
+to update-histogram-ranges [ input-list interval ]
+  ; If the input list is empty, let the plot use its default ranges.
+  ; Otherwise, adjust the plot axis ranges to fit the input data.
+  if not empty? input-list [
+    ; Adjust the x range to include the whole input data set.
+    ; The x range expands with the data, but never contracts.
+    let plot-upper-bound max list plot-x-max (interval + max input-list)
+    let plot-lower-bound min list plot-x-min min input-list
+    set-plot-x-range plot-lower-bound plot-upper-bound
+
+    ; Adjust the y range based on the input data, avoiding constant shifts.
+    ; Find the max bar height using the mode(s) of the input data.
+    let list-modes-unique modes input-list
+    let list-modes-enumerated filter [ i -> member? i list-modes-unique ] input-list
+    let max-bar-height (length list-modes-enumerated) / (length list-modes-unique)
+    ; The y range should be about 150% of the max bar height, within a tolerance.
+    let grow-threshold ceiling (1.05 * max-bar-height)  ; Bar > 95% of the y max
+    let shrink-threshold floor (2 * max-bar-height)     ; Bar < 50% of the y max
+    if (plot-y-max <= grow-threshold) or (plot-y-max >= shrink-threshold) [
+      set-plot-y-range 0 ceiling (1.5 * max-bar-height) ; Bar = 67% of the y max
+    ]
+  ]
+end
+
+;------------------------------------------------------------------------------;
+; Useful reporters
+
+to-report wall-ahead? ; Turtle procedure
+  report (member? patch-ahead 1 cell-wall) or (member? patch-ahead 2 cell-wall)
+end
+
+to-report dna-patches
+  report patches with [pcolor = blue]
+end
+
+to-report done?
+  report virus-dead? or virus-added? or dna-infected?
+end
+
+to-report virus-dead?
+  report not any? viruses
+end
+
+to-report virus-added?
+  ; If the virus is dead, this reporter will be false. The conditional report
+  ; is required to avoid a runtime error from using 'of' on a dead agent.
+  if virus-dead? [ report false ]
+  report [member? patch-here CRISPR and bound?] of the-virus
+end
+
+to-report dna-infected?
+  ; If the virus is dead, this reporter will be false. The conditional report
+  ; is required to avoid a runtime error from using 'of' on a dead agent.
+  if virus-dead? [ report false ]
+  ; When the virus has infected the cell, it sets bound? true and changes to
+  ; a square, but the square shape is the only unique identifier.
+  ; If you just check for being on the DNA while bound, any time a protein
+  ; binds it and moves over the DNA this reporter will be true.
+  report [shape = "square"] of the-virus
+end
+
+
+; Copyright 2019 Uri Wilensky.
+; See Info tab for full copyright and license.

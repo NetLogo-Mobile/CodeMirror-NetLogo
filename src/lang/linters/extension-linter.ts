@@ -2,14 +2,32 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
+import { PrimitiveManager } from '../primitives/primitives';
 
-//Checks if extension primitives are used without declaring the extension
+let primitives = PrimitiveManager;
+
+//Checks if extension primitives are used without declaring the extension, or invalid extensions are declared
 export const ExtensionLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
-      if (noderef.name.includes('Args') && !noderef.name.includes('Special')) {
+      if (noderef.name == 'Extensions') {
+        noderef.node.getChildren('Identifier').map((child) => {
+          let name = view.state.sliceDoc(child.from, child.to);
+          if (primitives.GetExtensions().indexOf(name) != -1) {
+            diagnostics.push({
+              from: child.from,
+              to: child.to,
+              severity: 'error',
+              message: Localized.Get('Incorrect extension _.', name),
+            });
+          }
+        });
+      } else if (
+        noderef.name.includes('Args') &&
+        !noderef.name.includes('Special')
+      ) {
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();

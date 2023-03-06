@@ -1,0 +1,85 @@
+globals [ curr-color-sep num-turtles color-sep color-shift? increase-color?]   ; spread of the colors in the kaleidoscope
+
+; INITIALIZATION PROCEDURES
+to setup
+  clear-all
+  set-default-shape turtles "circle"
+  ; the patterns assume evenly spaced turtles
+  create-ordered-turtles num-turtles [ pen-down ]
+  set curr-color-sep color-sep
+  reset-ticks
+end
+
+
+; RUN-TIME PROCEDURES
+; First Pattern
+; Turn a bit right, hatch a turtle which draws a circle then dies
+to pattern-1
+  ask turtles [
+    rt 1
+    hatch 1 [
+      set color 5.375 * ((count turtles - 1) / curr-color-sep) + 10
+      right-circle
+      die
+    ]
+  ]
+  every 1 [ if color-shift? [ color-shift ] ]
+  tick
+end
+
+; Second Pattern
+; Half our turtles do Pattern 1; the other half do the same,
+; except mirrored (they turn left circles)
+to pattern-2
+  ask turtles [
+    ifelse (who mod 2) = 0 [
+      rt 1
+      hatch 1 [
+        set color 5.375 * ((count turtles - 1) / curr-color-sep) + 10
+        right-circle
+        die
+      ]
+    ][
+      lt 1
+      hatch 1 [
+        set color 5.375 * ((count turtles - 1) / curr-color-sep) + 10
+        left-circle
+        die
+      ]
+    ]
+  ]
+  every 1 [ if color-shift? [ color-shift ] ]
+  tick
+end
+
+; Spin a circle, clockwise
+to right-circle
+  repeat 36 [
+    fd 4
+    rt 10
+  ]
+end
+
+; Spin a circle, counterclockwise
+to left-circle
+  repeat 36 [
+    fd 4
+    lt 10
+  ]
+end
+
+; Change curr-color-sep, to increase colors or decrease colors
+; and cap the value at the bottom at 1 and at the top at 60
+to color-shift
+  ifelse increase-color? [
+    set curr-color-sep curr-color-sep + random 3
+    if curr-color-sep > 60 [ set curr-color-sep 60 ]
+  ][
+    set curr-color-sep curr-color-sep - random 3
+    if curr-color-sep < 1 [ set curr-color-sep 1 ]
+  ]
+end
+
+
+; Copyright 1998 Uri Wilensky.
+; See Info tab for full copyright and license.

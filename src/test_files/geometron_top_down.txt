@@ -1,0 +1,330 @@
+globals [
+  current-color-sep        ; spread of the colors in the kaleidoscope
+  counter
+  num-turtles
+  color-sep
+  shift-direction
+  follow-turtle?
+  expander
+  direction
+  max-num
+]
+
+turtles-own [
+  new?                 ; was the turtle just created?
+  type-a?              ; used when turtles with different behaviors are hatched
+]
+
+to setup
+  clear-all
+  ; some of the patterns assume
+  ; evenly spaced turtles
+  create-ordered-turtles num-turtles
+  ask turtles [
+    pen-down
+    set new? false
+    set type-a? false
+  ]
+  set current-color-sep color-sep
+  set counter 0
+  reset-ticks
+end
+
+to lift-pen
+  ask turtles [
+    if who >= num-turtles [ die ]
+     pen-up
+    ]
+  clear-patches
+end
+
+
+to restore
+  ask turtles [
+    if who >= num-turtles [ die ]
+     pen-down
+    ]
+  clear-patches
+end
+
+to color-shift
+  ifelse shift-direction = "increment"
+    [ set current-color-sep (current-color-sep + (random-float 0.001)) ]
+    [ set current-color-sep (current-color-sep - (random-float 0.001)) ]
+end
+
+; turtles draw circles creating an overall circular design.
+to pattern-1    ; turtle procedure
+  if new? [
+    set color (who / current-color-sep)
+     if follow-turtle? [
+       if who = (50 + num-turtles) [ pen-down ]
+     ]
+     right-circle
+     left-circle
+     die
+  ]
+  if (who mod 10) = 0 [
+    rt direction
+    fd 0.5
+    if (count turtles + 1) <= max-num [
+      hatch 1 [set new? true]
+    ]
+  ]
+end
+
+
+; Turtles draw a combination of hexagons and octagons, Overall shape determined by num-turtles.
+to pattern-2    ; turtle procedure
+  if new? [
+    ifelse type-a? [
+      set color (who / current-color-sep)
+      if follow-turtle? [
+        if who = (60 + num-turtles) [ pen-down ]
+      ]
+      hexagon
+      die
+    ][
+      set color (who / current-color-sep)
+      if follow-turtle? [
+        if who = (50 + num-turtles) [ pen-down ]
+      ]
+      octagon
+      die
+    ]
+  ]
+  ifelse (who mod 2) = 0 [
+    rt 1
+    fd 1
+    if (count turtles + 1) <= max-num [
+      hatch 1 [
+        set new? true
+        set type-a? true
+      ]
+    ]
+  ][
+    lt 1
+    fd 1
+    if (count turtles + 1) <= max-num [
+      hatch 1 [
+        set new? true
+        set type-a? false
+      ]
+    ]
+  ]
+end
+
+; Turtles create only pentagons, slight variations in their origin create the overall effect.
+to pattern-3    ; turtle procedure
+  if new? [
+    set color (who / current-color-sep)
+    if follow-turtle? [
+      if who = (60 + num-turtles) [ pen-down ]
+    ]
+    pentagon
+    die
+  ]
+  if (who mod 5) = 0 [
+    rt direction
+    fd 0.5
+    if (count turtles + 1) <= max-num [
+      hatch 1 [ set new? true ]
+    ]
+  ]
+end
+
+; Turtles draw ninegons and left circles creating an overall circular pattern.
+to pattern-4    ; turtle procedure
+  if new? [
+    ifelse type-a? [
+      set color (who / current-color-sep)
+      if follow-turtle? [
+        if who = (1583 + num-turtles) [ pen-down ]
+        if who = (1087 + num-turtles) [ pen-down ]
+      ]
+      nine-gon
+      die
+    ][
+      set color (who / current-color-sep)
+      if follow-turtle? [
+        if who = (214 + num-turtles) [ pen-down ]
+      ]
+      left-circle
+      die
+    ]
+  ]
+  ifelse (who mod 3) = 0 [
+    rt 1
+    if (count turtles + 1) <= max-num [
+      hatch 1 [
+        set new? true
+        set type-a? true
+      ]
+    ]
+  ][
+    lt 1
+    if (count turtles + 1) <= max-num [
+    hatch 1 [
+      set new? true
+      set type-a? false
+    ]
+  ]
+]
+end
+
+; Turtles draw a left square and then die.
+to pattern-5    ; turtle procedure
+    if new? [
+      set color (who / current-color-sep)
+      if follow-turtle? [
+        if who = (80 + num-turtles) [ pen-down ]
+      ]
+      left-square
+      die
+    ]
+    if (count turtles + 1) <= max-num [
+      hatch 1 [ set new? true ]
+    ]
+end
+
+; Turtles draw several shapes, however overall design remains circular.
+to pattern-6    ; turtle procedure
+  if count turtles > max-num [
+    if who > max-num [ die ]
+     stop
+    ]
+
+  if new? [
+    ifelse type-a? [
+      set color (who / current-color-sep)
+      if follow-turtle? [
+        if who = (60 + num-turtles) [ pen-down ]
+      ]
+      pentagon
+      hexagon
+      left-circle
+      die
+    ][ set color (who / current-color-sep)
+      if follow-turtle? [
+        if who = (60 + num-turtles) [ pen-down ]
+      ]
+      nine-gon
+      octagon
+      right-circle
+      die
+    ]
+  ]
+
+  if (count turtles + 1) <= max-num [
+    hatch 1 [
+      set new? true
+      set type-a? true
+    ]
+  ]
+  if (count turtles + 1) <= max-num [
+    hatch 1 [
+      set new? true
+      set type-a? false
+    ]
+  ]
+end
+
+; Performs the following procedure 180 times:
+; Move forward 1.5 steps and turn right by 2 degrees.
+; To see the shape that this function creates,
+; try calling it in the command center with one turtle with the pen down.
+; A turtle will create a circle heading in the right direction.
+to right-circle    ; turtle procedure
+  repeat 180 [
+    fd 1.5
+    rt 2
+  ]
+end
+
+; Performs the following procedure 180 times:
+; Move forward 1.5 steps and turn left by 2 degrees.
+; To see the shape that this function creates,
+; try calling it in the command center with 0one turtle with the pen down.
+; A turtle will create a circle heading in the left direction.
+to left-circle    ; turtle procedure
+  repeat 180 [
+    fd 1.5
+    lt 2
+  ]
+end
+
+; Performs the following procedure 4 times:
+; Move forward EXPANDER steps and turn left by 90 degrees.
+; To see the shape that this function creates,
+; try calling it in the command center with one turtle with the pen down.
+; A turtle will create a square heading in the left direction.
+to left-square    ; turtle procedure
+  repeat 4 [
+    fd expander
+    lt 90
+  ]
+end
+
+; Performs the following procedure 3 times:
+; Move forward 35 steps and turn right by 120 degrees.
+; To see the shape that this function creates,
+; try calling it in the command center with one turtle with the pen down.
+; A turtle will create a triangle heading in the right direction.
+to right-triangle    ; turtle procedure
+  repeat 3 [
+    fd expander
+    rt 120
+  ]
+end
+
+; Performs the following procedure 8 times:
+; Move forward 30 steps and turn right by 45 degrees.
+; To see the shape that this function creates,
+; try calling it in the command center with one turtle with the pen down.
+; A turtle will create an octagon heading in the right direction.
+to octagon    ;;turtle procedure
+  repeat 8 [
+    fd 30
+    lt 45
+  ]
+end
+
+; Performs the following procedure 5 times:
+; Move forward 35 steps and turn right by 72 degrees.
+; To see the shape that this function creates,
+; try calling it in the command center with one turtle with the pen down.
+; A turtle will create a pentagon heading in the right direction.
+to pentagon    ; turtle procedure
+  repeat 5 [
+    fd 35
+    rt 72
+  ]
+end
+
+; Performs the following procedure 6 times:
+; Move forward 30 steps and turn right by 60 degrees.
+; To see the shape that this function creates,
+; try calling it in the command center with one turtle with the pen down.
+; A turtle will create a hexagon heading in the right direction.
+to hexagon    ; turtle procedure
+  repeat 6 [
+    fd 30
+    rt 60
+  ]
+end
+
+; Performs the following procedure 9 times:
+; Move forward 35 steps and turn right by 40 degrees.
+; To see the shape that this function creates,
+; try calling it in the command center with one turtle with the pen down.
+; A turtle will create a nine-gon heading in the right direction.
+to nine-gon    ; turtle procedure
+  repeat 9 [
+    fd 35
+    lt 40
+  ]
+end
+
+
+; Copyright 1998 Uri Wilensky.
+; See Info tab for full copyright and license.

@@ -37,7 +37,11 @@ import { netlogoLinters } from './lang/linters/linters';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
 import { prettify, prettifyAll } from './codemirror/prettify.js';
+// import { getErrors, getTestTexts } from './codemirror/testing.js';
 import { hoverExtension } from './codemirror/extension-hover-tooltip.js';
+import { diagnosticCount } from '@codemirror/lint';
+import { setUncaughtExceptionCaptureCallback } from 'process';
+import { test_files } from './codemirror/test_files.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -54,11 +58,14 @@ export class GalapagosEditor {
   public readonly Parent: HTMLElement;
   /** FindField: Records the find input of search panel. */
 
+  private TestIndex: number;
+
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
     this.Editable = new Compartment();
     this.Parent = Parent;
     this.Options = Options;
+    this.TestIndex = 0;
     // Extensions
     const Extensions = [
       // Editor
@@ -234,6 +241,32 @@ export class GalapagosEditor {
   PrettifyAll() {
     prettifyAll(this.CodeMirror);
   }
+
+  GetNextTest() {
+    let texts = test_files;
+    let next = this.TestIndex < texts.length ? texts[this.TestIndex] : 'done';
+    this.TestIndex = this.TestIndex + 1;
+    this.SetCode(next);
+  }
+
+  HasErrors() {
+    console.log(diagnosticCount(this.CodeMirror.state));
+  }
+
+  RunTests = async () => {
+    for (let t of test_files) {
+      this.SetCode(t);
+      let error = null;
+      await setTimeout(() => {
+        error = this.HasErrors();
+      }, 5000);
+      while (error == null) {}
+      if (error) {
+        break;
+      }
+    }
+    this.SetCode('done');
+  };
 
   /** CloseCompletion: Forcible close the auto completion. */
   CloseCompletion() {

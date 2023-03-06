@@ -266,7 +266,7 @@ export class StateNetLogo {
                   if (breed.isLinkBreed) {
                     c = new AgentContexts('---L');
                   } else if (breed.Singular == 'patch') {
-                    c = new AgentContexts('--P-');
+                    c = new AgentContexts('-TP-');
                   } else {
                     c = new AgentContexts('-T--');
                   }
@@ -319,37 +319,39 @@ export class StateNetLogo {
       }
       if (noderef.name == 'Arg') {
         noderef.node.getChildren('CodeBlock').map((child) => {
-          let block = new CodeBlock();
-          let prim = this.getPrimitive(noderef.node, state);
-          block.Primitive = prim.name;
-          block.PositionStart = child.from;
-          block.PositionEnd = child.to;
-          block.InheritParentContext = prim.inheritParentContext;
-          block.Context = this.combineContexts(
-            this.getContext(child, state),
-            this.noContext(prim.context) ? parentContext : prim.context
-          );
-          if (this.noContext(block.Context)) {
-            console.log(
-              parentContext,
-              prim.context,
-              this.noContext(prim.context) ? parentContext : prim.context,
-              this.getContext(child, state)
+          if (!this.checkRanges(blocks, child)) {
+            let block = new CodeBlock();
+            let prim = this.getPrimitive(noderef.node, state);
+            block.Primitive = prim.name;
+            block.PositionStart = child.from;
+            block.PositionEnd = child.to;
+            block.InheritParentContext = prim.inheritParentContext;
+            block.Context = this.combineContexts(
+              this.getContext(child, state),
+              this.noContext(prim.context) ? parentContext : prim.context
             );
+            if (this.noContext(block.Context)) {
+              console.log(
+                parentContext,
+                prim.context,
+                this.noContext(prim.context) ? parentContext : prim.context,
+                this.getContext(child, state)
+              );
+            }
+            block.Variables = vars.concat(
+              this.getLocalVars(child.node, state, true)
+            );
+            block.Arguments = args;
+            block.CodeBlocks = this.getCodeBlocks(
+              child.node,
+              state,
+              block.Context,
+              block.Variables,
+              block.Arguments
+            );
+            block.Breed = prim.breed;
+            blocks.push(block);
           }
-          block.Variables = vars.concat(
-            this.getLocalVars(child.node, state, true)
-          );
-          block.Arguments = args;
-          block.CodeBlocks = this.getCodeBlocks(
-            child.node,
-            state,
-            block.Context,
-            block.Variables,
-            block.Arguments
-          );
-          block.Breed = prim.breed;
-          blocks.push(block);
         });
       }
     });
@@ -429,7 +431,7 @@ export class StateNetLogo {
           if (breed.isLinkBreed) {
             prim.context = new AgentContexts('---L');
           } else if (breed.Singular == 'patch') {
-            prim.context = new AgentContexts('--P-');
+            prim.context = new AgentContexts('-TP-');
           } else {
             prim.context = new AgentContexts('-T--');
           }
@@ -518,7 +520,10 @@ export class StateNetLogo {
     return anonymousProcedures;
   }
 
-  private checkRanges(procedures: Procedure[], node: SyntaxNode): boolean {
+  private checkRanges(
+    procedures: Procedure[] | CodeBlock[],
+    node: SyntaxNode
+  ): boolean {
     let included = false;
     for (let p of procedures) {
       if (p.PositionStart <= node.from && p.PositionEnd >= node.to) {
