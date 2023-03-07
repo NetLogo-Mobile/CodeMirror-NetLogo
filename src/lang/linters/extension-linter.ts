@@ -15,7 +15,7 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
       if (noderef.name == 'Extensions') {
         noderef.node.getChildren('Identifier').map((child) => {
           let name = view.state.sliceDoc(child.from, child.to);
-          if (primitives.GetExtensions().indexOf(name) != -1) {
+          if (primitives.GetExtensions().indexOf(name) == -1) {
             diagnostics.push({
               from: child.from,
               to: child.to,

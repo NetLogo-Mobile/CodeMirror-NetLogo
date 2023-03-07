@@ -1,6 +1,7 @@
 @precedence {
   leftArgs @left,
   lastArgs @left,
+  rightArgs @right,
   exponent @right,
   times @left,
   plus @left,
@@ -124,11 +125,13 @@ VariableDeclaration {
 }
 
 NewVariableDeclaration {
-  Let Identifier Value
+  Let Identifier Value |
+  Let Identifier ReporterStatement
 }
 
 SetVariable {
-  Set VariableName Value
+  Set VariableName Value |
+  Set VariableName ReporterStatement
 }
 
 VariableName {
@@ -143,9 +146,8 @@ Value {
   OpenParen !open Value !close CloseParen |
   String ~statement |
   Constant ~statement |
-  ReporterStatement ~statement |
   VariableName |
-  List |
+  List ~statement |
   Numeric ~statement|
   AnonymousProcedure
 }
@@ -157,7 +159,7 @@ Literal {
 }
 
 List {
-  OpenBracket Literal* CloseBracket ~statement
+  OpenBracket (Literal | List)* ~statement CloseBracket ~statement
 }
 
 CodeBlock {
@@ -174,7 +176,7 @@ Property {
 }
 
 ReporterStatement { 
-  Arg !leftArgs ReporterLeft1Args !lastArgs Arg+ |
+  Arg !leftArgs (ReporterLeft1Args | ReporterLeft1ArgsOpt) !lastArgs Arg+ |
   Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg+ |
   (SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP) !lastArgs Arg* ~statement |
   (SpecialReporter1Args | SpecialReporter1ArgsTurtle | SpecialReporter1ArgsLink | SpecialReporter1ArgsBoth) !lastArgs Arg+ |
@@ -191,7 +193,7 @@ ReporterStatement {
   (Reporter5Args | Reporter5ArgsVar) Arg Arg Arg Arg !lastArgs Arg+ |
   (Reporter6Args | Reporter6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg+ |
   OpenParen Reporter0ArgsVar Arg* !close CloseParen |
-  OpenParen Reporter1ArgsVar Arg+ !close CloseParen |
+  OpenParen (Reporter1ArgsVar | ReporterLeft1ArgsOpt) Arg+ !close CloseParen |
   OpenParen Reporter2ArgsVar Arg Arg+ !close CloseParen |
   OpenParen Reporter3ArgsVar Arg Arg Arg+ !close CloseParen |
   OpenParen Reporter4ArgsVar Arg Arg Arg Arg+ !close CloseParen |
@@ -242,6 +244,7 @@ CommandStatement {
 Arg {  
   CodeBlock | 
   Value ~statement |
+  ReporterContent |
   ReporterBlock |
   Property
 }
@@ -294,6 +297,9 @@ Reporters{
   Reporter6ArgsVar |
   Reporter2ArgsVar0 |
   Reporter1ArgsVar0 |
+  ReporterLeft1ArgsOpt |
+  ReporterLeft1Args |
+  ReporterLeft2Args !leftArgs |
   SpecialReporter0Args |
   SpecialReporter1Args |
   SpecialReporter2Args |
@@ -358,7 +364,8 @@ expression {
 
 @external tokens keyword from "./tokenizer.js" { 
   ReporterLeft1Args,
-  ReporterLeft2Args,  
+  ReporterLeft2Args,
+  ReporterLeft1ArgsOpt,  
   GlobalStr, 
   ExtensionStr, 
   BreedStr, 

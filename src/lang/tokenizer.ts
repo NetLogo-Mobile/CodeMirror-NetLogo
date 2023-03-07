@@ -30,6 +30,7 @@ import {
   BreedStr,
   ReporterLeft1Args,
   ReporterLeft2Args,
+  ReporterLeft1ArgsOpt,
   PlusMinus,
   SpecialCommand,
   SpecialReporter,
@@ -84,7 +85,6 @@ export const keyword = new ExternalTokenizer((input) => {
   } else if (
     [
       '+',
-      '-',
       '*',
       '/',
       '^',
@@ -104,6 +104,8 @@ export const keyword = new ExternalTokenizer((input) => {
     ].indexOf(token) > -1
   ) {
     input.acceptToken(ReporterLeft1Args);
+  } else if (token == '-') {
+    input.acceptToken(ReporterLeft1ArgsOpt);
   } else if (token == 'in-cone') {
     input.acceptToken(ReporterLeft2Args);
   } else if (token == '-' || token == '+') {
@@ -127,8 +129,6 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(Constant);
   } else if (unsupported.indexOf(token) != -1) {
     input.acceptToken(Unsupported);
-  } else if (PrimitiveManager.GetExtensions().indexOf(token) != -1) {
-    input.acceptToken(Identifier);
   } else {
     // Check if token is a reporter/commander
     const primitive = PrimitiveManager.GetNamedPrimitive(token);
@@ -195,11 +195,15 @@ function matchBreed(token: string) {
   let foundMatch = false;
   let matchedBreed = '';
   for (let b of breedNames) {
-    if (token.includes(b) && b.length > matchedBreed.length) {
+    if (
+      token.toLowerCase().includes(b.toLowerCase()) &&
+      b.length > matchedBreed.length
+    ) {
       foundMatch = true;
       matchedBreed = b;
     }
   }
+  // console.log(token,matchedBreed,breedNames)
   if (!foundMatch) {
     return tag;
   }

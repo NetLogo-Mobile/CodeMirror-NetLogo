@@ -150,7 +150,7 @@ export class StateNetLogo {
     while (true) {
       // get extensions
       if (Cursor.node.name == 'Extensions') {
-        Cursor.node.getChildren('Extension').map((node) => {
+        Cursor.node.getChildren('Identifier').map((node) => {
           this.Extensions.push(this.getText(State, node));
         });
       }

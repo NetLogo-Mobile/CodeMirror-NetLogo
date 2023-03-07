@@ -78,6 +78,7 @@ const acceptableIdentifiers = [
   'BreedSingular',
   'BreedPlural',
   'BreedsOwn',
+  'Extensions',
 ];
 
 // Checks identifiers for valid variable/procedure/breed names

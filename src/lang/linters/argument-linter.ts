@@ -20,10 +20,14 @@ export const ArgumentLinter = linter((view) => {
         //checking let/set statements
         (noderef.name == 'SetVariable' &&
           (noderef.node.getChildren('VariableName').length != 1 ||
-            noderef.node.getChildren('Value').length != 1)) ||
+            noderef.node.getChildren('Value').length +
+              noderef.node.getChildren('ReporterStatement').length !=
+              1)) ||
         (noderef.name == 'NewVariableDeclaration' &&
           (noderef.node.getChildren('Identifier').length != 1 ||
-            noderef.node.getChildren('Value').length != 1))
+            noderef.node.getChildren('Value').length +
+              noderef.node.getChildren('ReporterStatement').length !=
+              1))
       ) {
         let func = noderef.name == 'SetVariable' ? 'Set' : 'Let';
         let expected = 2;
@@ -207,6 +211,18 @@ export const checkValid = function (
       numArgs,
       args.rightArgs.length,
     ];
+  } else if (func == '-') {
+    if (!args.hasParentheses && !args.leftArgs) {
+      console.log('left args');
+      let expected = 1;
+      let actual = args.leftArgs ? 1 : 0;
+      console.log('left', expected, actual);
+      return ['left', func, expected, actual];
+    } else if (args.rightArgs.length > 1) {
+      return ['rightmax', func, 1, args.rightArgs.length];
+    } else {
+      return [true, func, 0, 0];
+    }
   } else {
     let primitive = primitives.GetNamedPrimitive(func);
     //checks for terms used as primitives but don't exist in our dataset
