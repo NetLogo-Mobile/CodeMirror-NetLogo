@@ -1,7 +1,7 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { undo, redo, selectAll, indentWithTab } from '@codemirror/commands';
 import { closeCompletion } from '@codemirror/autocomplete';
-import { LanguageSupport } from '@codemirror/language';
+import { forceParsing, LanguageSupport } from '@codemirror/language';
 import {
   replaceAll,
   selectMatches,
@@ -37,11 +37,9 @@ import { netlogoLinters } from './lang/linters/linters';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
 import { prettify, prettifyAll } from './codemirror/prettify.js';
-// import { getErrors, getTestTexts } from './codemirror/testing.js';
 import { hoverExtension } from './codemirror/extension-hover-tooltip.js';
-import { diagnosticCount } from '@codemirror/lint';
-import { setUncaughtExceptionCaptureCallback } from 'process';
-import { test_files } from './codemirror/test_files.js';
+import { forEachDiagnostic, Diagnostic } from '@codemirror/lint';
+import { lintSources } from './lang/linters/linter-builder';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -56,16 +54,12 @@ export class GalapagosEditor {
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
   public readonly Parent: HTMLElement;
-  /** FindField: Records the find input of search panel. */
-
-  private TestIndex: number;
 
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
     this.Editable = new Compartment();
     this.Parent = Parent;
     this.Options = Options;
-    this.TestIndex = 0;
     // Extensions
     const Extensions = [
       // Editor
@@ -170,18 +164,6 @@ export class GalapagosEditor {
     pos != tree.length &&
       callback(Content.slice(pos, tree.length), '', pos, tree.length);
   }
-
-  /** ForceLint: Force the editor to do another round of linting. */
-  ForceLint() {
-    const plugins: any[] = (this.CodeMirror as any).plugins;
-    for (var I = 0; I < plugins.length; I++) {
-      if (plugins[I].value.hasOwnProperty('lintTime')) {
-        plugins[I].value.set = true;
-        plugins[I].value.force();
-        break;
-      }
-    }
-  }
   // #endregion
 
   // #region "Editor API"
@@ -239,34 +221,9 @@ export class GalapagosEditor {
 
   /** PrettifyAll: Prettify all the NetLogo code. */
   PrettifyAll() {
+    this.ForceParse();
     prettifyAll(this.CodeMirror);
   }
-
-  GetNextTest() {
-    let texts = test_files;
-    let next = this.TestIndex < texts.length ? texts[this.TestIndex] : 'done';
-    this.TestIndex = this.TestIndex + 1;
-    this.SetCode(next);
-  }
-
-  HasErrors() {
-    console.log(diagnosticCount(this.CodeMirror.state));
-  }
-
-  RunTests = async () => {
-    for (let t of test_files) {
-      this.SetCode(t);
-      let error = null;
-      await setTimeout(() => {
-        error = this.HasErrors();
-      }, 5000);
-      while (error == null) {}
-      if (error) {
-        break;
-      }
-    }
-    this.SetCode('done');
-  };
 
   /** CloseCompletion: Forcible close the auto completion. */
   CloseCompletion() {
@@ -316,6 +273,43 @@ export class GalapagosEditor {
   SetRuntimeErrors(Errors: RuntimeError[]) {
     this.GetState().RuntimeErrors = Errors;
     this.ForceLint();
+  }
+  // #endregion
+
+  // #region "Diagnostics"
+  /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
+  ForEachDiagnostic(
+    Callback: (d: Diagnostic, from: number, to: number) => void
+  ) {
+    forEachDiagnostic(this.CodeMirror.state, Callback);
+  }
+
+  /** ForceLintAsync: Force the editor to lint without rendering. */
+  async ForceLintAsync(): Promise<Diagnostic[]> {
+    var Diagnostics = [];
+    var Sources = lintSources;
+    for (var Source of Sources) {
+      var Results = await Promise.resolve(Source(this.CodeMirror));
+      Diagnostics.push(...Results);
+    }
+    return Diagnostics;
+  }
+
+  /** ForceParse: Force the editor to finish any parsing. */
+  ForceParse() {
+    forceParsing(this.CodeMirror);
+  }
+
+  /** ForceLint: Force the editor to do another round of linting. */
+  ForceLint() {
+    const plugins: any[] = (this.CodeMirror as any).plugins;
+    for (var I = 0; I < plugins.length; I++) {
+      if (plugins[I].value.hasOwnProperty('lintTime')) {
+        plugins[I].value.set = true;
+        plugins[I].value.force();
+        break;
+      }
+    }
   }
   // #endregion
 

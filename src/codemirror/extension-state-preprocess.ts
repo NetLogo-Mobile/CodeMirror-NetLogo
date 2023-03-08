@@ -2,11 +2,13 @@ import { StateField, Transaction, EditorState } from '@codemirror/state';
 
 /** StatePreprocess: Editor state for the NetLogo Language. */
 export class StatePreprocess {
-  /** Breeds: Breeds in the model. */
+  /** PluralBreeds: Breeds in the model. */
   public PluralBreeds: string[] = [];
+  /** SingularBreeds: Breeds in the model. */
   public SingularBreeds: string[] = [];
-  /** Procedures: Procedures in the model. */
+  /** Commands: Commands in the model. */
   public Commands: Record<string, number> = {};
+  /** Reporters: Reporters in the model. */
   public Reporters: Record<string, number> = {};
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StatePreprocess {

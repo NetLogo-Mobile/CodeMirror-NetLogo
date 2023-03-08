@@ -23,7 +23,7 @@ export const BracketLinter = buildLinter((view, parseState) => {
         diagnostics.push({
           from: node.from,
           to: node.to,
-          severity: 'warning',
+          severity: 'error',
           message: Localized.Get('Unmatched item _', value),
           /* actions: [
                   {

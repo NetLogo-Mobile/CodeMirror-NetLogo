@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf8" />
-    <h1>New Code Editor for NetLogo Web & Derivatives</h1>
+    <h1>New Code Editor for NetLogo Web: Embedded Mode</h1>
   </head>
   <body>
     <div id="Container" style="height: 100%"></div>
@@ -14,12 +14,14 @@
         Editor = new GalapagosEditor(document.getElementById('Container'), {
           OnUpdate: (Changed, Update) => {
             if (Changed) console.log(Update);
-          }
+          },
         });
         EditorDictionary.Initialize({});
-        Editor.SetMode("embedded")
-        Editor.SetWidgetVariables(["one", "two", "three"])
-        Editor.SetCode("show max (list one two three)\nrt random 50\nlt random 50\nfd 1")
+        Editor.SetMode('embedded');
+        Editor.SetWidgetVariables(['one', 'two', 'three']);
+        Editor.SetCode(
+          'show max (list one two three)\nrt random 50\nlt random 50\nfd 1'
+        );
       });
     </script>
   </body>

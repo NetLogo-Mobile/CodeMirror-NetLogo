@@ -23,7 +23,7 @@ export const UnrecognizedLinter = buildLinter((view, parseState) => {
           diagnostics.push({
             from: node.from,
             to: node.to,
-            severity: 'warning',
+            severity: 'error',
             message: Localized.Get('Unrecognized statement _', value),
             /* actions: [
               {

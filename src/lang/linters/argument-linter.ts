@@ -1,17 +1,17 @@
 import { syntaxTree } from '@codemirror/language';
-import { linter, Diagnostic } from '@codemirror/lint';
+import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
 import { Localized } from '../../i18n/localized';
-import { nodeModuleNameResolver } from 'typescript';
+import { buildLinter } from './linter-builder';
 
 let primitives = PrimitiveManager;
 
 // Checks number of arguments
-export const ArgumentLinter = linter((view) => {
+export const ArgumentLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -62,7 +62,7 @@ export const ArgumentLinter = linter((view) => {
           diagnostics.push({
             from: Node.from,
             to: Node.to,
-            severity: 'warning',
+            severity: 'error',
             message: Localized.Get('Missing command before _', value),
           });
         }
@@ -70,7 +70,7 @@ export const ArgumentLinter = linter((view) => {
         //ensures there is a primitive to check
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
           //identify the errors and terms to be conveyed in error message
-          const result = checkValid(Node, value, view.state, args);
+          const result = checkValid(view.state, args);
           let error_type = result[0];
           let func = result[1];
           let expected = result[2];
@@ -186,8 +186,6 @@ export const getArgs = function (Node: SyntaxNode) {
 
 //checks if correct number of arguments are present
 export const checkValid = function (
-  Node: SyntaxNode,
-  value: string,
   state: EditorState,
   args: {
     leftArgs: SyntaxNode | null;

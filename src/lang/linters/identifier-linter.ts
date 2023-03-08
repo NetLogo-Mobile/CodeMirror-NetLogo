@@ -37,7 +37,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
             diagnostics.push({
               from: noderef.from,
               to: noderef.to,
-              severity: 'warning',
+              severity: 'error',
               message: Localized.Get('Unrecognized identifier _', value),
             });
           } else {
@@ -57,7 +57,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
             diagnostics.push({
               from: noderef.from,
               to: noderef.to,
-              severity: 'warning',
+              severity: 'error',
               message: Localized.Get('Invalid breed procedure _', str),
             });
           }

@@ -1,17 +1,20 @@
-import { Diagnostic, linter } from '@codemirror/lint';
-import { EditorView, logException } from '@codemirror/view';
+import { Diagnostic, linter, LintSource } from '@codemirror/lint';
+import { EditorView } from '@codemirror/view';
 import { Extension } from '@codemirror/state';
 import {
   stateExtension,
   StateNetLogo,
 } from '../../codemirror/extension-state-netlogo';
 
+/** lintSources: All available lint sources. */
+export const lintSources: LintSource[] = [];
+
 const buildLinter = function (
   Source: (view: EditorView, parseState: StateNetLogo) => Diagnostic[]
 ): Extension {
   var LastVersion = 0;
   var Cached: Diagnostic[];
-  return linter((view: EditorView) => {
+  var BuiltSource: LintSource = (view) => {
     const State = view.state.field(stateExtension);
     if (State.GetDirty() || State.GetVersion() > LastVersion) {
       State.ParseState(view.state);
@@ -19,7 +22,9 @@ const buildLinter = function (
       LastVersion = State.GetVersion();
     }
     return Cached;
-  });
+  };
+  lintSources.push(BuiltSource);
+  return linter(BuiltSource);
 };
 
 export { buildLinter };

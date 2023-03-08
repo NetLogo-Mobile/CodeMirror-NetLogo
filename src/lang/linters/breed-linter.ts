@@ -37,7 +37,7 @@ export const BreedLinter = buildLinter((view, parseState) => {
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
-            severity: 'warning',
+            severity: 'error',
             message: Localized.Get('Unrecognized breed name _', value),
             /* actions: [
               {

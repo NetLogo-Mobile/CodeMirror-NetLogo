@@ -18,7 +18,7 @@ export const ModeLinter = buildLinter((view, parseState) => {
             diagnostics.push({
               from: node.from,
               to: node.to,
-              severity: 'warning',
+              severity: 'error',
               message: Localized.Get('Unrecognized global statement _', value),
             });
           }
@@ -29,7 +29,7 @@ export const ModeLinter = buildLinter((view, parseState) => {
             diagnostics.push({
               from: node.from,
               to: node.to,
-              severity: 'warning',
+              severity: 'error',
               message: Localized.Get('Unrecognized global statement _', value),
             });
           }
@@ -55,7 +55,7 @@ export const ModeLinter = buildLinter((view, parseState) => {
                 diagnostics.push({
                   from: node.from,
                   to: node.to,
-                  severity: 'warning',
+                  severity: 'error',
                   message: Localized.Get(
                     'Unrecognized global statement _',
                     value

@@ -27,7 +27,7 @@ export const UnrecognizedGlobalLinter = buildLinter((view, parseState) => {
             diagnostics.push({
               from: node.from,
               to: node.to,
-              severity: 'warning',
+              severity: 'error',
               message: Localized.Get('Improperly placed procedure _', value),
               /* actions: [
                 {
@@ -44,7 +44,7 @@ export const UnrecognizedGlobalLinter = buildLinter((view, parseState) => {
           diagnostics.push({
             from: node.from,
             to: node.to,
-            severity: 'warning',
+            severity: 'error',
             message: Localized.Get('Unrecognized global statement _', value),
             /* actions: [
               {
