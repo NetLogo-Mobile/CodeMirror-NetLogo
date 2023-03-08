@@ -2,23 +2,22 @@
 <html>
   <head>
     <meta charset="utf8" />
-    <h1>Testing Basic Features</h1>
+    <h1>New Code Editor for NetLogo Web: All Features</h1>
   </head>
   <body>
-    <button name="ErrorCount" onclick="Editor.HasErrors();">ErrorCount</button>
-    <button name="NextTest" onclick="Editor.GetNextTest();">Next Test</button>
-    <button name="Test" onclick="Editor.RunTests();">Test</button>
+    <button name="NextTest" onclick="RunNextTest();">Test</button>
+    <button name="Test" onclick="RunTests();">Test All</button>
     <button name="Pretty" onclick="Editor.Prettify();">Pretty</button>
-    <button name="PrettyAll" onclick="Editor.PrettifyAll();">PrettyAll</button>
+    <button name="PrettyAll" onclick="Editor.PrettifyAll();">Pretty All</button>
     <button name="Undo" onclick="Editor.Undo();">Undo</button>
     <button name="Redo" onclick="Editor.Redo();">Redo</button>
     <button name="set read only" onclick="Editor.SetReadOnly(true);">
-      set read only
+      Set ReadOnly
     </button>
     <button name="set edit" onclick="Editor.SetReadOnly(false);">
-      set edit
+      Set Editable
     </button>
-    <button name="find" onclick="Editor.Find('test')">Find "test"</button>
+    <!--<button name="find" onclick="Editor.Find('test')">Find "test"</button>
     <button name="find all" onclick="Editor.FindAll('test')">
       Find All "test"
     </button>
@@ -26,22 +25,20 @@
       Replace "test" with "test2"
     </button>
     <button name="replace all" onclick="Editor.ReplaceAll('test', 'test2');">
-      Replace All "test" with "test2"
+      Replace all "test" with "test2"
     </button>
     <button name="go to line" onclick="Editor.JumpTo(80);">
       Go to line 80
     </button>
-    <button name="select all" onclick="Editor.SelectAll();">Select All</button>
+    <button name="select all" onclick="Editor.SelectAll();">Select All</button>-->
     <button name="replace interface" onclick="Editor.ShowReplace();">
-      Replace interface
+      Replace
     </button>
     <button name="go to line interface" onclick="Editor.ShowJumpTo();">
-      Go to line interface
+      Go to line
     </button>
-    <button name="Find interface" onclick="Editor.ShowFind();">
-      Find interface
-    </button>
-    <button name="Select" onclick="Editor.Select(40,60);">
+    <button name="Find interface" onclick="Editor.ShowFind();"> Find </button>
+    <!--<button name="Select" onclick="Editor.Select(40,60);">
       Select character 40 to 60
     </button>
     <button name="Get Selection" onclick="console.log(Editor.GetSelection());">
@@ -49,24 +46,24 @@
     </button>
     <button
       name="Get Selection Code"
-      onclick="console.log(Editor.GetSelectionCode());"
-    >
+      onclick="console.log(Editor.GetSelectionCode());">
       Get Selection Code
-    </button>
+    </button>-->
     <button name="Hide All Interfaces" onclick="Editor.HideAllInterfaces();">
-      Hide All Interfaces
+      Hide Interfaces
     </button>
-    <button
+    <!--<button
       name="Highlight"
-      onclick="document.getElementById('Code').appendChild(Editor.Highlight('to setup'));"
-    >
+      onclick="document.getElementById('Code').appendChild(Editor.Highlight('to setup'));">
       High light
-    </button>
+    </button>-->
     <div id="Container" style="height: 80vh"></div>
     <div id="Code"></div>
     <script src="editor.bundle.js"></script>
+    <script src="editor.tests.js"></script>
     <script>
       var Editor;
+      // Load the page
       window.addEventListener('load', function () {
         Editor = new GalapagosEditor(document.getElementById('Container'), {
           OnUpdate: (Changed, Update) => {
@@ -74,9 +71,35 @@
           },
         });
         EditorDictionary.Initialize({});
-        Editor.SetWidgetVariables(["one", "two", "three"])
-        // Editor.SetMode("oneline")
+        Editor.SetWidgetVariables(['one', 'two', 'three']);
       });
+      // Load the tests
+      var TestIndex = 0;
+      RunNextTest = async () => {
+        if (TestIndex >= GalapagoTests.length) return null;
+        let Next = GalapagoTests[TestIndex];
+        // Set the code
+        Editor.SetWidgetVariables(Next[1]);
+        Editor.SetCode(Next[0]);
+        // Force parsing
+        Editor.ForceParse();
+        Editor.ForceLint();
+        // Number of errors - ignore warnings and infos
+        let Errors = await Editor.ForceLintAsync();
+        let ErrorCount = Errors.filter((D) => D.severity == 'error').length;
+        // Report the result
+        console.log(`Model ${TestIndex}: Linting errors ${ErrorCount}.`);
+        TestIndex++;
+        return ErrorCount;
+      };
+      // Run all tests
+      RunTests = async () => {
+        let Errors = 0;
+        while (Errors == 0) {
+          Errors = await RunNextTest();
+        }
+        console.log(`Automatic test done: ${TestIndex} models in total.`);
+      };
     </script>
   </body>
 </html>
