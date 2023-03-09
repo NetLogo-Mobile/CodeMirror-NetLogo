@@ -4,13 +4,26 @@ import Path from 'path';
 let modelPath = './src/tests/models';
 let parsedModels: [string, string[]][] = [];
 
+// Find all models
+let models: string[] = [];
+const getFilesRecursively = (directory: string) => {
+  const filesInDirectory = File.readdirSync(directory);
+  for (const file of filesInDirectory) {
+    const absolute = Path.join(directory, file);
+    if (File.statSync(absolute).isDirectory()) {
+      getFilesRecursively(absolute);
+    } else {
+      models.push(absolute);
+    }
+  }
+};
+
 // Import model files
 const importFiles = function () {
-  File.readdirSync(modelPath).forEach((current) => {
+  getFilesRecursively(modelPath);
+  models.forEach((current) => {
     if (!current.endsWith('.nlogo')) return;
-    var model = File.readFileSync(Path.join(modelPath, current), 'utf8')
-      .toString()
-      .split('\n');
+    var model = File.readFileSync(current, 'utf8').toString().split('\n');
     model = model.map((line) => line.trimEnd());
     var content = '';
     var i = 0;
