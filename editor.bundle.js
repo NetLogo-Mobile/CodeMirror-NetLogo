@@ -22389,6 +22389,13 @@ if(!String.prototype.matchAll) {
         provide: f => [showPanel.from(f, val => val.panel),
             EditorView.decorations.from(f, s => s.diagnostics)]
     });
+    /**
+    Returns the number of active lint diagnostics in the given state.
+    */
+    function diagnosticCount(state) {
+        let lint = state.field(lintState, false);
+        return lint ? lint.diagnostics.size : 0;
+    }
     const activeMark = /*@__PURE__*/Decoration.mark({ class: "cm-lintRange cm-lintRange-active" });
     function lintTooltip(view, pos, side) {
         let { diagnostics } = view.state.field(lintState);
@@ -24859,7 +24866,7 @@ if(!String.prototype.matchAll) {
         processProcedures(procedures) {
             let matches = {};
             for (var match of procedures) {
-                const name = match[2];
+                const name = match[2].toLowerCase();
                 const args = match[4];
                 matches[name] = args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length;
             }
@@ -25648,9 +25655,13 @@ if(!String.prototype.matchAll) {
                     result = true;
                     location = 'First';
                 }
-                else if (str.match(/^(my|my-in|my-out)-[^\s]+/)) {
+                else if (str.match(/^(my)-[^\s]+/)) {
                     result = true;
-                    location = 'Last';
+                    location = 'Second';
+                }
+                else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
+                    result = true;
+                    location = 'Third';
                 }
                 else if (str.match(/^is-[^\s]+\\?$/)) {
                     result = true;
@@ -25676,9 +25687,13 @@ if(!String.prototype.matchAll) {
                     result = true;
                     location = 'Middle';
                 }
-                else if (str.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+                else if (str.match(/^create-ordered-[^\s]+/)) {
                     result = true;
-                    location = 'Last';
+                    location = 'Third';
+                }
+                else if (str.match(/^(hatch|sprout|create)-[^\s]+/)) {
+                    result = true;
+                    location = 'Second';
                 }
                 return [result, location];
             };
@@ -25966,19 +25981,21 @@ if(!String.prototype.matchAll) {
             let str = null;
             if (result[0]) {
                 //pull out name of possible intended breed
-                let first = value.indexOf('-');
-                let last = value.lastIndexOf('-');
-                if (result[1] == 'Last') {
-                    str = value.substring(first + 1);
+                let split = value.split('-');
+                if (result[1] == 'Third') {
+                    str = split.slice(2).join('-');
+                }
+                else if (result[1] == 'Second') {
+                    str = split.slice(1).join('-');
                 }
                 else if (result[1] == 'First') {
-                    str = value.substring(0, last);
+                    str = split.slice(0, split.length - 1).join('-');
                 }
                 else if (result[1] == 'Middle') {
-                    str = value.substring(first + 1, last);
+                    str = split.slice(1, split.length - 1).join('-');
                 }
                 else {
-                    str = value.substring(first + 1, value.length - 1);
+                    str = null;
                 }
             }
             return str;
@@ -26432,6 +26449,7 @@ if(!String.prototype.matchAll) {
     // Checks identifiers for valid variable/procedure/breed names
     const checkValid$1 = function (Node, value, state, parseState, breedNames, breedVars) {
         var _a, _b;
+        let preprocess = state.field(preprocessStateExtension);
         value = value.toLowerCase();
         // checks if parent is in a category that is always valid (e.g. 'Globals')
         if (acceptableIdentifiers.includes((_b = (_a = Node.parent) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : ''))
@@ -26439,7 +26457,9 @@ if(!String.prototype.matchAll) {
         // checks if identifier is a global variable
         if (parseState.Globals.includes(value) ||
             parseState.WidgetGlobals.includes(value) ||
-            parseState.Procedures.has(value))
+            parseState.Procedures.has(value) ||
+            preprocess.Commands[value] ||
+            preprocess.Reporters[value])
             return true;
         // checks if identifier is a breed name or variable
         if (breedNames.includes(value) || breedVars.includes(value))
@@ -29347,6 +29367,7 @@ if(!String.prototype.matchAll) {
     });
     //collects everything used as an argument so it can be counted
     const getArgs = function (Node) {
+        var _a, _b;
         let cursor = Node.cursor();
         let args = { leftArgs: null, rightArgs: [], func: null, hasParentheses: false };
         let seenFunc = false;
@@ -29354,7 +29375,9 @@ if(!String.prototype.matchAll) {
         if (!cursor.firstChild()) {
             return args;
         }
-        else if (Node.resolve(Node.from, -1).name == 'OpenParen') {
+        else if (Node.resolve(Node.from, -1).name == 'OpenParen' ||
+            Node.resolve(Node.from, -1).resolve(Node.from, -1).name == 'OpenParen' ||
+            ((_b = (_a = Node.parent) === null || _a === void 0 ? void 0 : _a.getChildren('OpenParen').length) !== null && _b !== void 0 ? _b : -1) > 0) {
             args.hasParentheses = true;
         }
         while (done == false) {
@@ -29612,41 +29635,6 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     });
 
-    // BracketLinter: Checks if all brackets have matches
-    const BracketLinter = buildLinter((view, parseState) => {
-        const diagnostics = [];
-        syntaxTree(view.state)
-            .cursor()
-            .iterate((node) => {
-            var _a, _b, _c, _d;
-            if ((node.name == 'OpenBracket' &&
-                ((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.getChildren('CloseBracket').length) != 1) ||
-                (node.name == 'CloseBracket' &&
-                    ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.getChildren('OpenBracket').length) != 1) ||
-                (node.name == 'OpenParen' &&
-                    ((_c = node.node.parent) === null || _c === void 0 ? void 0 : _c.getChildren('CloseParen').length) != 1) ||
-                (node.name == 'CloseParen' &&
-                    ((_d = node.node.parent) === null || _d === void 0 ? void 0 : _d.getChildren('OpenParen').length) != 1)) {
-                const value = view.state.sliceDoc(node.from, node.to);
-                diagnostics.push({
-                    from: node.from,
-                    to: node.to,
-                    severity: 'error',
-                    message: Localized.Get('Unmatched item _', value),
-                    /* actions: [
-                            {
-                              name: 'Remove',
-                              apply(view, from, to) {
-                                view.dispatch({ changes: { from, to } });
-                              },
-                            },
-                          ], */
-                });
-            }
-        });
-        return diagnostics;
-    });
-
     // ModeLinter: Checks if mode matches grammar
     const ModeLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
@@ -29763,7 +29751,7 @@ if(!String.prototype.matchAll) {
         UnsupportedLinter,
         ExtensionLinter,
         BreedNameLinter,
-        BracketLinter,
+        // BracketLinter,
         ModeLinter,
         ContextLinter,
     ];
@@ -29810,20 +29798,25 @@ if(!String.prototype.matchAll) {
         });
     };
     const initialSpaceRemoval = function (doc) {
-        let new_doc = doc.replace(/\n\s+/g, '\n');
+        let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
+        new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
+        new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
+        new_doc = new_doc.replace(/\n[ ]+/g, '\n');
         new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 [');
         new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
         new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
-        new_doc = new_doc.replace(/(\[|\]|\(|\))/g, ' $1 ');
         new_doc = new_doc.replace(/(\n)( +)(to[ -])/g, '$1$3');
         new_doc = new_doc.replace(/ +/g, ' ');
+        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
+        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
         return new_doc;
     };
     const finalSpacing = function (doc) {
-        let new_doc = doc.replace(/\n\s+/g, '\n');
-        new_doc = new_doc.replace(/\s+\n/g, '\n');
-        new_doc = new_doc.replace(/(\nto[ -])/g, '\n$1');
-        new_doc = new_doc.replace(/(\n[\w-]+-own)/g, '\n$1');
+        let new_doc = doc.replace(/\n[ ]+/g, '\n');
+        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
+        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
+        new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
+        new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
         return new_doc;
     };
     const addSpacing = function (view, from, to) {
@@ -29841,25 +29834,34 @@ if(!String.prototype.matchAll) {
                     node.name == 'End' ||
                     (node.name == 'ProcedureContent' &&
                         ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) != 'CodeBlock')) &&
-                    node.from > 0) {
+                    node.from > 0 &&
+                    doc[node.from - 1] != '\n') {
                     changes.push({ from: node.from, to: node.from, insert: '\n' });
                 }
                 else if (node.name == 'CodeBlock' &&
                     checkBlock(node.node, 'ProcedureContent', doc)) {
                     node.node.getChildren('ProcedureContent').map((child) => {
-                        changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        if (doc[child.from - 1] != '\n') {
+                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        }
                     });
                     node.node.getChildren('CloseBracket').map((child) => {
-                        changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        if (doc[child.from - 1] != '\n') {
+                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        }
                     });
                 }
                 else if (node.name == 'ReporterBlock' &&
                     checkBlock(node.node, 'ReporterContent', doc)) {
                     node.node.getChildren('ReporterContent').map((child) => {
-                        changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        if (doc[child.from - 1] != '\n') {
+                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        }
                     });
                     node.node.getChildren('CloseBracket').map((child) => {
-                        changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        if (doc[child.from - 1] != '\n') {
+                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        }
                     });
                 }
                 else if (node.name == 'AnonymousProcedure' &&
@@ -29867,35 +29869,66 @@ if(!String.prototype.matchAll) {
                         checkBlock(node.node, 'ProcedureContent', doc))) {
                     // console.log(changes.length);
                     node.node.getChildren('ProcedureContent').map((child) => {
-                        changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        if (doc[child.from - 1] != '\n') {
+                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        }
                     });
                     node.node.getChildren('ReporterContent').map((child) => {
-                        changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        if (doc[child.from - 1] != '\n') {
+                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        }
                     });
                     node.node.getChildren('CloseBracket').map((child) => {
-                        changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        if (doc[child.from - 1] != '\n') {
+                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                        }
                     });
                     // console.log(changes.length);
                 }
                 // else if(node.name=='CommandStatement' && view.state.sliceDoc(node.from,node.to).startsWith('ifelse')){
                 //   node.node.getChildren('Arg').map((subnode)=>{
                 //     subnode.node.getChildren('CodeBlock').map(child=>{
-                //       changes.push({ from: child.from, to: child.from, insert: '\n' });
+                //       if(doc[child.from-1]!='\n'){
+                //   changes.push({ from: child.from, to: child.from, insert: '\n' });
+                // }
                 //     })
                 //   })
                 // }
                 if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
                     if (doc.substring(node.from, node.to).includes('\n')) {
                         node.node.getChildren('CloseBracket').map((child) => {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                            console.log(doc.substring(node.from, node.to));
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
                         });
                         node.node.getChildren('Extension').map((child) => {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
                         });
                         node.node.getChildren('Identifier').map((child) => {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
                         });
                     }
+                }
+                if (node.name.includes('Args') && !node.name.includes('Special')) {
+                    let prim = doc.substring(node.from, node.to).toLowerCase();
+                    changes.push({ from: node.from, to: node.to, insert: prim });
                 }
             }
         });
@@ -30085,7 +30118,7 @@ if(!String.prototype.matchAll) {
                 }
             }
             if (Changed) {
-                State.WidgetGlobals = Variables;
+                State.WidgetGlobals = Variables.map((str) => str.toLowerCase());
                 State.IncVersion();
                 if (ForceLint)
                     this.ForceLint();
@@ -30119,6 +30152,9 @@ if(!String.prototype.matchAll) {
         /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
         ForEachDiagnostic(Callback) {
             forEachDiagnostic(this.CodeMirror.state, Callback);
+        }
+        CountErrors() {
+            console.log(diagnosticCount(this.CodeMirror.state));
         }
         /** ForceLintAsync: Force the editor to lint without rendering. */
         ForceLintAsync() {
