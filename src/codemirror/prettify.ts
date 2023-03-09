@@ -63,21 +63,26 @@ export const prettifyAll = function (view: EditorView) {
 };
 
 const initialSpaceRemoval = function (doc: string) {
-  let new_doc = doc.replace(/\n\s+/g, '\n');
+  let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
+  new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
+  new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
+  new_doc = new_doc.replace(/\n[ ]+/g, '\n');
   new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 [');
   new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
   new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
-  new_doc = new_doc.replace(/(\[|\]|\(|\))/g, ' $1 ');
   new_doc = new_doc.replace(/(\n)( +)(to[ -])/g, '$1$3');
   new_doc = new_doc.replace(/ +/g, ' ');
+  new_doc = new_doc.replace(/[ ]+\n/g, '\n');
+  new_doc = new_doc.replace(/\n\n+/g, '\n\n');
   return new_doc;
 };
 
 const finalSpacing = function (doc: string) {
-  let new_doc = doc.replace(/\n\s+/g, '\n');
-  new_doc = new_doc.replace(/\s+\n/g, '\n');
-  new_doc = new_doc.replace(/(\nto[ -])/g, '\n$1');
-  new_doc = new_doc.replace(/(\n[\w-]+-own)/g, '\n$1');
+  let new_doc = doc.replace(/\n[ ]+/g, '\n');
+  new_doc = new_doc.replace(/[ ]+\n/g, '\n');
+  new_doc = new_doc.replace(/\n\n+/g, '\n\n');
+  new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
+  new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
   return new_doc;
 };
 
@@ -96,7 +101,8 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
             node.name == 'End' ||
             (node.name == 'ProcedureContent' &&
               node.node.parent?.name != 'CodeBlock')) &&
-          node.from > 0
+          node.from > 0 &&
+          doc[node.from - 1] != '\n'
         ) {
           changes.push({ from: node.from, to: node.from, insert: '\n' });
         } else if (
@@ -104,20 +110,28 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
           checkBlock(node.node, 'ProcedureContent', doc)
         ) {
           node.node.getChildren('ProcedureContent').map((child) => {
-            changes.push({ from: child.from, to: child.from, insert: '\n' });
+            if (doc[child.from - 1] != '\n') {
+              changes.push({ from: child.from, to: child.from, insert: '\n' });
+            }
           });
           node.node.getChildren('CloseBracket').map((child) => {
-            changes.push({ from: child.from, to: child.from, insert: '\n' });
+            if (doc[child.from - 1] != '\n') {
+              changes.push({ from: child.from, to: child.from, insert: '\n' });
+            }
           });
         } else if (
           node.name == 'ReporterBlock' &&
           checkBlock(node.node, 'ReporterContent', doc)
         ) {
           node.node.getChildren('ReporterContent').map((child) => {
-            changes.push({ from: child.from, to: child.from, insert: '\n' });
+            if (doc[child.from - 1] != '\n') {
+              changes.push({ from: child.from, to: child.from, insert: '\n' });
+            }
           });
           node.node.getChildren('CloseBracket').map((child) => {
-            changes.push({ from: child.from, to: child.from, insert: '\n' });
+            if (doc[child.from - 1] != '\n') {
+              changes.push({ from: child.from, to: child.from, insert: '\n' });
+            }
           });
         } else if (
           node.name == 'AnonymousProcedure' &&
@@ -126,35 +140,66 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
         ) {
           // console.log(changes.length);
           node.node.getChildren('ProcedureContent').map((child) => {
-            changes.push({ from: child.from, to: child.from, insert: '\n' });
+            if (doc[child.from - 1] != '\n') {
+              changes.push({ from: child.from, to: child.from, insert: '\n' });
+            }
           });
           node.node.getChildren('ReporterContent').map((child) => {
-            changes.push({ from: child.from, to: child.from, insert: '\n' });
+            if (doc[child.from - 1] != '\n') {
+              changes.push({ from: child.from, to: child.from, insert: '\n' });
+            }
           });
           node.node.getChildren('CloseBracket').map((child) => {
-            changes.push({ from: child.from, to: child.from, insert: '\n' });
+            if (doc[child.from - 1] != '\n') {
+              changes.push({ from: child.from, to: child.from, insert: '\n' });
+            }
           });
           // console.log(changes.length);
         }
         // else if(node.name=='CommandStatement' && view.state.sliceDoc(node.from,node.to).startsWith('ifelse')){
         //   node.node.getChildren('Arg').map((subnode)=>{
         //     subnode.node.getChildren('CodeBlock').map(child=>{
-        //       changes.push({ from: child.from, to: child.from, insert: '\n' });
+        //       if(doc[child.from-1]!='\n'){
+        //   changes.push({ from: child.from, to: child.from, insert: '\n' });
+        // }
         //     })
         //   })
         // }
         if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
           if (doc.substring(node.from, node.to).includes('\n')) {
             node.node.getChildren('CloseBracket').map((child) => {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
+              console.log(doc.substring(node.from, node.to));
+              if (doc[child.from - 1] != '\n') {
+                changes.push({
+                  from: child.from,
+                  to: child.from,
+                  insert: '\n',
+                });
+              }
             });
             node.node.getChildren('Extension').map((child) => {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
+              if (doc[child.from - 1] != '\n') {
+                changes.push({
+                  from: child.from,
+                  to: child.from,
+                  insert: '\n',
+                });
+              }
             });
             node.node.getChildren('Identifier').map((child) => {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
+              if (doc[child.from - 1] != '\n') {
+                changes.push({
+                  from: child.from,
+                  to: child.from,
+                  insert: '\n',
+                });
+              }
             });
           }
+        }
+        if (node.name.includes('Args') && !node.name.includes('Special')) {
+          let prim = doc.substring(node.from, node.to).toLowerCase();
+          changes.push({ from: node.from, to: node.to, insert: prim });
         }
       }
     });

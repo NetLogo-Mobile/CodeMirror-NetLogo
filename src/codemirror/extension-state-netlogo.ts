@@ -363,16 +363,17 @@ export class StateNetLogo {
     let str = null;
     if (result[0]) {
       //pull out name of possible intended breed
-      let first = value.indexOf('-');
-      let last = value.lastIndexOf('-');
-      if (result[1] == 'Last') {
-        str = value.substring(first + 1);
+      let split = value.split('-');
+      if (result[1] == 'Third') {
+        str = split.slice(2).join('-');
+      } else if (result[1] == 'Second') {
+        str = split.slice(1).join('-');
       } else if (result[1] == 'First') {
-        str = value.substring(0, last);
+        str = split.slice(0, split.length - 1).join('-');
       } else if (result[1] == 'Middle') {
-        str = value.substring(first + 1, last);
+        str = split.slice(1, split.length - 1).join('-');
       } else {
-        str = value.substring(first + 1, value.length - 1);
+        str = null;
       }
     }
     return str;
@@ -468,9 +469,12 @@ export class StateNetLogo {
     } else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
       result = true;
       location = 'First';
-    } else if (str.match(/^(my|my-in|my-out)-[^\s]+/)) {
+    } else if (str.match(/^(my)-[^\s]+/)) {
       result = true;
-      location = 'Last';
+      location = 'Second';
+    } else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
+      result = true;
+      location = 'Third';
     } else if (str.match(/^is-[^\s]+\\?$/)) {
       result = true;
       location = 'Question';
@@ -489,9 +493,12 @@ export class StateNetLogo {
     } else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
       result = true;
       location = 'Middle';
-    } else if (str.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+    } else if (str.match(/^create-ordered-[^\s]+/)) {
       result = true;
-      location = 'Last';
+      location = 'Third';
+    } else if (str.match(/^(hatch|sprout|create)-[^\s]+/)) {
+      result = true;
+      location = 'Second';
     }
     return [result, location];
   };

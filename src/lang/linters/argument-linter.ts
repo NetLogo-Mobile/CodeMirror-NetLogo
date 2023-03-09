@@ -148,7 +148,11 @@ export const getArgs = function (Node: SyntaxNode) {
   let done = false;
   if (!cursor.firstChild()) {
     return args;
-  } else if (Node.resolve(Node.from, -1).name == 'OpenParen') {
+  } else if (
+    Node.resolve(Node.from, -1).name == 'OpenParen' ||
+    Node.resolve(Node.from, -1).resolve(Node.from, -1).name == 'OpenParen' ||
+    (Node.parent?.getChildren('OpenParen').length ?? -1) > 0
+  ) {
     args.hasParentheses = true;
   }
   while (done == false) {
