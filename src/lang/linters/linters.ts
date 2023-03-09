@@ -22,7 +22,7 @@ export const netlogoLinters = [
   UnsupportedLinter,
   ExtensionLinter,
   BreedNameLinter,
-  BracketLinter,
+  // BracketLinter,
   ModeLinter,
   ContextLinter,
 ];

@@ -6,6 +6,7 @@ import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 import { AnonymousProcedure, Procedure, CodeBlock } from '../classes';
+import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter = buildLinter((view, parseState) => {
@@ -90,6 +91,7 @@ export const checkValid = function (
   breedNames: string[],
   breedVars: string[]
 ): boolean {
+  let preprocess = state.field(preprocessStateExtension);
   value = value.toLowerCase();
   // checks if parent is in a category that is always valid (e.g. 'Globals')
   if (acceptableIdentifiers.includes(Node.parent?.name ?? '')) return true;
@@ -97,7 +99,9 @@ export const checkValid = function (
   if (
     parseState.Globals.includes(value) ||
     parseState.WidgetGlobals.includes(value) ||
-    parseState.Procedures.has(value)
+    parseState.Procedures.has(value) ||
+    preprocess.Commands[value] ||
+    preprocess.Reporters[value]
   )
     return true;
   // checks if identifier is a breed name or variable

@@ -38,7 +38,7 @@ export class StatePreprocess {
   ): Record<string, number> {
     let matches: Record<string, number> = {};
     for (var match of procedures) {
-      const name = match[2];
+      const name = match[2].toLowerCase();
       const args = match[4];
       matches[name] = args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length;
     }

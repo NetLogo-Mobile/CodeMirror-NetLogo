@@ -2,6 +2,7 @@ import { EditorView, basicSetup } from 'codemirror';
 import { undo, redo, selectAll, indentWithTab } from '@codemirror/commands';
 import { closeCompletion } from '@codemirror/autocomplete';
 import { forceParsing, LanguageSupport } from '@codemirror/language';
+import { diagnosticCount } from '@codemirror/lint';
 import {
   replaceAll,
   selectMatches,
@@ -244,7 +245,7 @@ export class GalapagosEditor {
       }
     }
     if (Changed) {
-      State.WidgetGlobals = Variables;
+      State.WidgetGlobals = Variables.map((str) => str.toLowerCase());
       State.IncVersion();
       if (ForceLint) this.ForceLint();
     }
@@ -282,6 +283,10 @@ export class GalapagosEditor {
     Callback: (d: Diagnostic, from: number, to: number) => void
   ) {
     forEachDiagnostic(this.CodeMirror.state, Callback);
+  }
+
+  CountErrors() {
+    console.log(diagnosticCount(this.CodeMirror.state));
   }
 
   /** ForceLintAsync: Force the editor to lint without rendering. */
