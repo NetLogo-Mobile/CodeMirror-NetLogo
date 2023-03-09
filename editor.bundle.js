@@ -29635,6 +29635,52 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     });
 
+    // BracketLinter: Checks if all brackets have matches
+    const BracketLinter = buildLinter((view, parseState) => {
+        const diagnostics = [];
+        syntaxTree(view.state)
+            .cursor()
+            .iterate((node) => {
+            var _a, _b, _c, _d;
+            let matched = false;
+            let match = null;
+            if (['OpenBracket', 'OpenParen'].includes(node.name)) {
+                match = matchBrackets(view.state, node.from, 1);
+                if (match && match.matched) {
+                    matched = true;
+                }
+            }
+            // else if (['CloseBracket','CloseParen'].includes(node.name)){
+            //   match =matchBrackets(view.state,node.from,-1)
+            //   if (match && match.matched){
+            //     matched = true
+            //   }
+            // }
+            if (matched) {
+                console.log('match');
+            }
+            if (!matched &&
+                ((node.name == 'OpenBracket' &&
+                    ((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.getChildren('CloseBracket').length) != 1) ||
+                    (node.name == 'CloseBracket' &&
+                        ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.getChildren('OpenBracket').length) != 1) ||
+                    (node.name == 'OpenParen' &&
+                        ((_c = node.node.parent) === null || _c === void 0 ? void 0 : _c.getChildren('CloseParen').length) != 1) ||
+                    (node.name == 'CloseParen' &&
+                        ((_d = node.node.parent) === null || _d === void 0 ? void 0 : _d.getChildren('OpenParen').length) != 1))) {
+                console.log(matched, node.name, node.from, node.to, match);
+                const value = view.state.sliceDoc(node.from, node.to);
+                diagnostics.push({
+                    from: node.from,
+                    to: node.to,
+                    severity: 'error',
+                    message: Localized.Get('Unmatched item _', value),
+                });
+            }
+        });
+        return diagnostics;
+    });
+
     // ModeLinter: Checks if mode matches grammar
     const ModeLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
@@ -29751,7 +29797,7 @@ if(!String.prototype.matchAll) {
         UnsupportedLinter,
         ExtensionLinter,
         BreedNameLinter,
-        // BracketLinter,
+        BracketLinter,
         ModeLinter,
         ContextLinter,
     ];
