@@ -8,7 +8,7 @@
   comparative @left,
   
   open @left,
-  close @left
+  close @right
 }
 
 @top Program { 
@@ -131,7 +131,8 @@ NewVariableDeclaration {
 
 SetVariable {
   Set VariableName Value |
-  Set VariableName ReporterStatement
+  Set VariableName ReporterStatement |
+  Set VariableName OpenParen ReporterStatement !close CloseParen
 }
 
 VariableName {

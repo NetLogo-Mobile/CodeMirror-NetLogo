@@ -186,21 +186,31 @@ function isValidKeyword(ch: number) {
 function matchBreed(token: string) {
   let tag = 0;
   let parseContext = ParseContext.get();
-  let breedNames =
-    parseContext?.state
-      .field(preprocessStateExtension)
-      .PluralBreeds.concat(
-        parseContext?.state.field(preprocessStateExtension).SingularBreeds
-      ) ?? [];
+  let pluralBreedNames =
+    parseContext?.state.field(preprocessStateExtension).PluralBreeds ?? [];
+  let singularBreedNames =
+    parseContext?.state.field(preprocessStateExtension).SingularBreeds ?? [];
   let foundMatch = false;
   let matchedBreed = '';
-  for (let b of breedNames) {
+  let isSingular = false;
+  for (let b of pluralBreedNames) {
     if (
       token.toLowerCase().includes(b.toLowerCase()) &&
       b.length > matchedBreed.length
     ) {
       foundMatch = true;
       matchedBreed = b;
+      isSingular = false;
+    }
+  }
+  for (let b of singularBreedNames) {
+    if (
+      token.toLowerCase().includes(b.toLowerCase()) &&
+      b.length > matchedBreed.length
+    ) {
+      foundMatch = true;
+      matchedBreed = b;
+      isSingular = true;
     }
   }
   // console.log(token,matchedBreed,breedNames)
@@ -213,36 +223,56 @@ function matchBreed(token: string) {
       .SingularBreeds.includes(token)
   ) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^${matchedBreed}-own$`, 'i'))) {
+  } else if (
+    token.match(new RegExp(`^${matchedBreed}-own$`, 'i')) &&
+    !isSingular
+  ) {
     tag = Own;
   } else if (
-    token.match(
-      new RegExp(
-        `^${matchedBreed}-(at|here|on|with|neighbor\\?|neighbors)$`,
-        'i'
-      )
-    )
+    token.match(new RegExp(`^${matchedBreed}-(at|here|on)$`, 'i')) &&
+    !isSingular
   ) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^(my-in|my-out)-${matchedBreed}$`, 'i'))) {
+  } else if (
+    token.match(
+      new RegExp(`^${matchedBreed}-(with|neighbor\\?|neighbors)$`, 'i')
+    ) &&
+    isSingular
+  ) {
+    tag = SpecialReporter;
+  } else if (
+    token.match(new RegExp(`^(my-in|my-out)-${matchedBreed}$`, 'i')) &&
+    !isSingular
+  ) {
     tag = SpecialReporter;
   } else if (
     token.match(
       new RegExp(`^(hatch|sprout|create|create-ordered)-${matchedBreed}$`, 'i')
-    )
+    ) &&
+    !isSingular
   ) {
     tag = SpecialCommand;
-  } else if (token.match(new RegExp(`^is-${matchedBreed}\\?$`, 'i'))) {
+  } else if (
+    token.match(new RegExp(`^is-${matchedBreed}\\?$`, 'i')) &&
+    isSingular
+  ) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^in-${matchedBreed}-from$`, 'i'))) {
+  } else if (
+    token.match(new RegExp(`^in-${matchedBreed}-from$`, 'i')) &&
+    isSingular
+  ) {
     tag = SpecialReporter;
   } else if (
     token.match(
       new RegExp(`^(in|out)-${matchedBreed}-(neighbor\\?|neighbors)$`, 'i')
-    )
+    ) &&
+    isSingular
   ) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^out-${matchedBreed}-to$`, 'i'))) {
+  } else if (
+    token.match(new RegExp(`^out-${matchedBreed}-to$`, 'i')) &&
+    isSingular
+  ) {
     tag = SpecialReporter;
   } else if (
     token.match(new RegExp(`^create-${matchedBreed}-(to|from|with)$`, 'i'))
