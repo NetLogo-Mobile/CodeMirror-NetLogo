@@ -302,7 +302,7 @@ export class GalapagosEditor {
 
   /** ForceParse: Force the editor to finish any parsing. */
   ForceParse() {
-    forceParsing(this.CodeMirror);
+    forceParsing(this.CodeMirror, this.CodeMirror.state.doc.length, 100000);
   }
 
   /** ForceLint: Force the editor to do another round of linting. */
