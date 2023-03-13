@@ -6,6 +6,8 @@ export class StatePreprocess {
   public PluralBreeds: string[] = [];
   /** SingularBreeds: Breeds in the model. */
   public SingularBreeds: string[] = [];
+  /** BreedVars: Breed variables in the model. */
+  public BreedVars: string[] = [];
   /** Commands: Commands in the model. */
   public Commands: Record<string, number> = {};
   /** Reporters: Reporters in the model. */
@@ -22,6 +24,9 @@ export class StatePreprocess {
     let processedBreeds = this.processBreeds(breeds);
     this.SingularBreeds = processedBreeds[0];
     this.PluralBreeds = processedBreeds[1];
+    let breedVars = doc.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
+    this.BreedVars = this.processBreedVars(breedVars);
+
     // Commands
     let commands = doc.matchAll(/(^|\n)\s*to\s+([^\s\[]+)(\s*\[([^\]]*)\])?/g);
     this.Commands = this.processProcedures(commands);
@@ -31,6 +36,20 @@ export class StatePreprocess {
     );
     this.Reporters = this.processProcedures(reporters);
     return this;
+  }
+
+  private processBreedVars(
+    matches: IterableIterator<RegExpMatchArray>
+  ): string[] {
+    let vars: string[] = [];
+    for (var m of matches) {
+      let match = m[1];
+      match = match.replace(/;[^\n]*\n/g, '');
+      match = match.replace(/\n/g, ' ');
+      match = match.toLowerCase();
+      vars = vars.concat(match.split(' ').filter((v) => v != '' && v != '\n'));
+    }
+    return vars;
   }
 
   private processProcedures(

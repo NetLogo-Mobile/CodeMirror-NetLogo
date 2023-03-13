@@ -25,9 +25,6 @@ export const BracketLinter = buildLinter((view, parseState) => {
       //     matched = true
       //   }
       // }
-      if (matched) {
-        console.log('match');
-      }
       if (
         !matched &&
         ((node.name == 'OpenBracket' &&
@@ -39,7 +36,7 @@ export const BracketLinter = buildLinter((view, parseState) => {
           (node.name == 'CloseParen' &&
             node.node.parent?.getChildren('OpenParen').length != 1))
       ) {
-        console.log(matched, node.name, node.from, node.to, match);
+        //console.log(matched, node.name, node.from, node.to, match);
         const value = view.state.sliceDoc(node.from, node.to);
         diagnostics.push({
           from: node.from,

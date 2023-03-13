@@ -245,20 +245,34 @@ export const checkValid = function (
       console.log('left', expected, actual);
       return ['left', func, expected, actual];
     } else {
-      //find the minimum and maximum acceptable numbers of right-side arguments
-      let rightArgMin = args.hasParentheses
-        ? primitive.MinimumOption ??
-          primitive.DefaultOption ??
-          primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
-            .length
-        : primitive.DefaultOption ??
-          primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
-            .length;
-      let rightArgMax =
-        primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length >
-          0 && args.hasParentheses
-          ? 100
-          : primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
+      let rightArgMin = 0;
+      let rightArgMax = 0;
+      if (
+        (args.func?.name.includes('APCommand') ||
+          args.func?.name.includes('Var')) &&
+        !args.hasParentheses
+      ) {
+        let name = args.func?.name;
+        name = name.replace('Command', '');
+        name = name.replace('ArgsVar', '');
+        rightArgMin = Number(name[0]);
+        rightArgMax = Number(name[0]);
+      } else {
+        //find the minimum and maximum acceptable numbers of right-side arguments
+        rightArgMin = args.hasParentheses
+          ? primitive.MinimumOption ??
+            primitive.DefaultOption ??
+            primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
+              .length
+          : primitive.DefaultOption ??
+            primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
+              .length;
+        rightArgMax =
+          primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length >
+            0 && args.hasParentheses
+            ? 100
+            : primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
+      }
       //ensure at least minimum # right args present
       if (args.rightArgs.length < rightArgMin) {
         console.log(args.rightArgs);

@@ -101,6 +101,8 @@ export const keyword = new ExternalTokenizer((input) => {
       'at-points',
       'of',
       'with',
+      'with-max',
+      'with-min',
     ].indexOf(token) > -1
   ) {
     input.acceptToken(ReporterLeft1Args);
@@ -161,6 +163,7 @@ export const keyword = new ExternalTokenizer((input) => {
 function isValidKeyword(ch: number) {
   return (
     ch >= 160 || // Unicode characters
+    ch == 35 || //#
     ch == 33 || // !
     ch == 37 || // %
     ch == 39 || // '
@@ -190,6 +193,12 @@ function matchBreed(token: string) {
     parseContext?.state.field(preprocessStateExtension).PluralBreeds ?? [];
   let singularBreedNames =
     parseContext?.state.field(preprocessStateExtension).SingularBreeds ?? [];
+  let breedVars =
+    parseContext?.state.field(preprocessStateExtension).BreedVars ?? [];
+  if (breedVars.includes(token.toLowerCase())) {
+    tag = Identifier;
+    return tag;
+  }
   let foundMatch = false;
   let matchedBreed = '';
   let isSingular = false;

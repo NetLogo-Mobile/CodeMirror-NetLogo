@@ -253,14 +253,25 @@ export class StateNetLogo {
               .getChild('SetVariable')
               ?.getChild('VariableName');
             let c = new AgentContexts();
-            if (n?.getChild('PatchVar')) {
+            let name = state.sliceDoc(n?.from, n?.to);
+            if (
+              [
+                'shape',
+                'breed',
+                'hidden?',
+                'label',
+                'label-color',
+                'color',
+              ].includes(name)
+            ) {
+              c = new AgentContexts('-T-L');
+            } else if (n?.getChild('PatchVar')) {
               c = new AgentContexts('-TP-');
             } else if (n?.getChild('TurtleVar')) {
               c = new AgentContexts('-T--');
             } else if (n?.getChild('LinkVar')) {
               c = new AgentContexts('---L');
             } else if (n) {
-              let name = state.sliceDoc(n.from, n.to);
               for (let breed of this.Breeds.values()) {
                 if (breed.Variables.includes(name)) {
                   if (breed.isLinkBreed) {
@@ -273,6 +284,7 @@ export class StateNetLogo {
                 }
               }
             }
+
             context = this.combineContexts(c, context);
           }
           child = cursor.nextSibling();
@@ -682,14 +694,20 @@ export class StateNetLogo {
         return false;
       }
       if (
-        ['Identifier', 'BreedFirst', 'BreedMiddle', 'BreedLast'].includes(
-          noderef.name
-        )
+        ![
+          'OpenParen',
+          'CloseParen',
+          'OpenBracket',
+          'CloseBracket',
+          'LineComment',
+          'Own',
+        ].includes(noderef.name) &&
+        !this.getText(State, noderef.node).includes('\n')
       ) {
         vars.push(this.getText(State, noderef.node));
       }
     });
-    return vars;
+    return [...new Set(vars)];
   }
 
   // get arguments for the procedure

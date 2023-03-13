@@ -1,14 +1,16 @@
 @precedence {
+  paren @left,
+  open @left,
+  close @right,
   leftArgs @left,
   lastArgs @left,
   rightArgs @right,
   exponent @right,
   times @left,
   plus @left,
-  comparative @left,
+  comparative @left
   
-  open @left,
-  close @right
+  
 }
 
 @top Program { 
@@ -43,6 +45,32 @@ globalStatement {
   BreedsOwn {
     Own OpenBracket Identifier* CloseBracket
   }
+}
+
+specialReportersCommands {
+  SpecialReporter0Args |
+  SpecialReporter1Args |
+  SpecialReporter2Args |
+  SpecialReporter3Args |
+  SpecialReporter4Args |
+  SpecialReporter5Args |
+  SpecialReporter6Args |
+  SpecialReporter1ArgsBoth |
+  SpecialReporter0ArgsLink |
+  SpecialReporter1ArgsLink |
+  SpecialReporter2ArgsTurtle |
+  SpecialReporter0ArgsTurtle |
+  SpecialReporter1ArgsTurtle |
+  SpecialReporter0ArgsLinkP |
+  SpecialCommand0Args |
+  SpecialCommand1Args |
+  SpecialCommand2Args |
+  SpecialCommand3Args |
+  SpecialCommand4Args |
+  SpecialCommand5Args |
+  SpecialCommand6Args |
+  SpecialCommandCreateTurtle |
+  SpecialCommandCreateLink
 }
 
 BreedDeclarative {
@@ -116,7 +144,7 @@ AnonymousProcedure {
 }
 
 ShortAnonymousProcedure {
-  OpenBracket (ProcedureContent*|ReporterContent*|Value) CloseBracket
+  OpenBracket (ProcedureContent*|ReporterContent*|Value) CloseBracket ~statement
 }
 
 VariableDeclaration {
@@ -136,7 +164,7 @@ SetVariable {
 }
 
 VariableName {
-  Identifier | 
+  Identifier ~statement | 
   PatchVar | 
   TurtleVar | 
   LinkVar |
@@ -150,7 +178,7 @@ Value {
   VariableName |
   List ~statement |
   Numeric ~statement|
-  AnonymousProcedure
+  AnonymousProcedure ~statement
 }
 
 Literal {
@@ -177,6 +205,7 @@ Property {
 }
 
 ReporterStatement { 
+  OpenParen ReporterLeft1ArgsOpt !lastArgs Arg CloseParen|
   Arg !leftArgs (ReporterLeft1Args | ReporterLeft1ArgsOpt) !lastArgs Arg+ |
   Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg+ |
   (SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP) !lastArgs Arg* ~statement |
@@ -193,20 +222,10 @@ ReporterStatement {
   (Reporter4Args | Reporter4ArgsVar) Arg Arg Arg !lastArgs Arg+ |
   (Reporter5Args | Reporter5ArgsVar) Arg Arg Arg Arg !lastArgs Arg+ |
   (Reporter6Args | Reporter6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg+ |
-  OpenParen Reporter0ArgsVar Arg* !close CloseParen |
-  OpenParen (Reporter1ArgsVar | ReporterLeft1ArgsOpt) Arg+ !close CloseParen |
-  OpenParen Reporter2ArgsVar Arg Arg+ !close CloseParen |
-  OpenParen Reporter3ArgsVar Arg Arg Arg+ !close CloseParen |
-  OpenParen Reporter4ArgsVar Arg Arg Arg Arg+ !close CloseParen |
-  OpenParen Reporter5ArgsVar Arg Arg Arg Arg Arg+ !close CloseParen |
-  OpenParen Reporter6ArgsVar Arg Arg Arg Arg Arg Arg+ !close CloseParen |
-  OpenParen Reporter2ArgsVar0 Arg* !close CloseParen |
-  OpenParen Reporter1ArgsVar0 Arg* !close CloseParen |
   Arg !comparative AndOr Arg |
   APReporter Reporters !lastArgs Arg |
   APReporterFlip Arg !lastArgs Reporters |
-  APReporterVar Reporters !lastArgs Arg |
-  OpenParen APReporterVar Reporters Arg+ !close CloseParen
+  APReporterVar Reporters !lastArgs Arg+
 }
 
 CommandStatement {
@@ -228,24 +247,15 @@ CommandStatement {
   (Command4Args | Command4ArgsVar) Arg Arg Arg !lastArgs Arg+ |
   (Command5Args | Command5ArgsVar) Arg Arg Arg Arg !lastArgs Arg+ |
   (Command6Args | Command6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg+ |
-  OpenParen Command0ArgsVar Arg* !close CloseParen|
-  OpenParen Command1ArgsVar Arg+ !close CloseParen |
-  OpenParen Command2ArgsVar Arg Arg+ !close CloseParen |
-  OpenParen Command3ArgsVar2 Arg Arg+ !close CloseParen |
-  OpenParen Command3ArgsVar Arg Arg Arg+ !close CloseParen |
-  OpenParen Command4ArgsVar Arg Arg Arg Arg+ !close CloseParen |
-  OpenParen Command5ArgsVar Arg Arg Arg Arg Arg+ !close CloseParen |
-  OpenParen Command6ArgsVar Arg Arg Arg Arg Arg Arg+ !close CloseParen |
   VariableDeclaration |
   Unsupported |
-  APCommand !leftArgs Arg !lastArgs Commands |
-  OpenParen APCommand Arg+ Commands !close CloseParen
+  APCommand !leftArgs Arg+ !lastArgs Commands
 }
 
 Arg {  
   CodeBlock | 
   Value ~statement |
-  ReporterContent |
+  ReporterContent ~statement |
   ReporterBlock |
   Property
 }
@@ -276,9 +286,9 @@ Commands {
   SpecialCommand6Args |
   SpecialCommandCreateTurtle |
   SpecialCommandCreateLink |
-  AnonymousProcedure |
+  AnonymousProcedure ~statement |
   ShortAnonymousProcedure |
-  Identifier
+  Identifier ~statement
 }
 
 Reporters{
