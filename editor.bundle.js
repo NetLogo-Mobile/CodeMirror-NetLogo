@@ -25144,7 +25144,7 @@ if(!String.prototype.matchAll) {
         else if (token == 'end') {
             input.acceptToken(End);
         }
-        else if (token == 'and' || token == 'or') {
+        else if (token == 'and' || token == 'or' || token == 'xor') {
             input.acceptToken(AndOr);
         }
         else if (token == 'globals') {
@@ -25681,39 +25681,7 @@ if(!String.prototype.matchAll) {
             this.checkBreedLike = function (str) {
                 let result = false;
                 let location = '';
-                if (str.match(/[^\s]+-(at)/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/[^\s]+-here/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/[^\s]+-neighbors/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/[^\s]+-on/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/^(my)-[^\s]+/)) {
-                    result = true;
-                    location = 'Second';
-                }
-                else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
-                    result = true;
-                    location = 'Third';
-                }
-                else if (str.match(/^is-[^\s]+\\?$/)) {
-                    result = true;
-                    location = 'Question';
-                }
-                else if (str.match(/^in-[^\s]+-from$/)) {
+                if (str.match(/^in-[^\s]+-from$/)) {
                     result = true;
                     location = 'Middle';
                 }
@@ -25740,6 +25708,38 @@ if(!String.prototype.matchAll) {
                 else if (str.match(/^(hatch|sprout|create)-[^\s]+/)) {
                     result = true;
                     location = 'Second';
+                }
+                else if (str.match(/[^\s]+-(at)/)) {
+                    result = true;
+                    location = 'First';
+                }
+                else if (str.match(/[^\s]+-here/)) {
+                    result = true;
+                    location = 'First';
+                }
+                else if (str.match(/[^\s]+-neighbors/)) {
+                    result = true;
+                    location = 'First';
+                }
+                else if (str.match(/[^\s]+-on/)) {
+                    result = true;
+                    location = 'First';
+                }
+                else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
+                    result = true;
+                    location = 'First';
+                }
+                else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
+                    result = true;
+                    location = 'Third';
+                }
+                else if (str.match(/^(my)-[^\s]+/)) {
+                    result = true;
+                    location = 'Second';
+                }
+                else if (str.match(/^is-[^\s]+\\?$/)) {
+                    result = true;
+                    location = 'Question';
                 }
                 return [result, location];
             };
@@ -26456,7 +26456,6 @@ if(!String.prototype.matchAll) {
                 const value = view.state.sliceDoc(noderef.from, noderef.to);
                 //check if it meets some initial criteria for validity
                 if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
-                    console.log(value);
                     //check if the identifier looks like a breed procedure (e.g. "create-___")
                     let result = parseState.checkBreedLike(value);
                     if (!result[0]) {
@@ -26470,27 +26469,32 @@ if(!String.prototype.matchAll) {
                     }
                     else {
                         //pull out name of possible intended breed
-                        let first = value.indexOf('-');
-                        let last = value.lastIndexOf('-');
+                        let split = value.split('-');
                         let str = '';
-                        if (result[1] == 'Last') {
-                            str = value.substring(first + 1);
+                        if (result[1] == 'Third') {
+                            str = split.slice(2).join('-');
+                        }
+                        else if (result[1] == 'Second') {
+                            str = split.slice(1).join('-');
                         }
                         else if (result[1] == 'First') {
-                            str = value.substring(0, last);
+                            str = split.slice(0, split.length - 1).join('-');
                         }
                         else if (result[1] == 'Middle') {
-                            str = value.substring(first + 1, last);
+                            str = split.slice(1, split.length - 1).join('-');
                         }
-                        else {
-                            str = value.substring(first + 1, value.length - 1);
+                        else if (result[1] == 'Question') {
+                            str = split.slice(1).join('-');
+                            str = str.substring(0, str.length - 1);
                         }
-                        diagnostics.push({
-                            from: noderef.from,
-                            to: noderef.to,
-                            severity: 'error',
-                            message: Localized.Get('Invalid breed procedure _', str),
-                        });
+                        if (!breedNames.includes(str)) {
+                            diagnostics.push({
+                                from: noderef.from,
+                                to: noderef.to,
+                                severity: 'error',
+                                message: Localized.Get('Invalid breed procedure _', str),
+                            });
+                        }
                     }
                 }
             }
@@ -27234,7 +27238,6 @@ if(!String.prototype.matchAll) {
         }
         else if (closestTerm == '~CustomReporter' ||
             closestTerm == '~CustomCommand') {
-            console.log('here');
             syntaxTree(state)
                 .cursor()
                 .iterate((node) => {
@@ -29830,7 +29833,7 @@ if(!String.prototype.matchAll) {
     const checkProcedureContents = function (p, parseState) {
         let diagnostics = [];
         if (!checkValidContext(p.Context)) {
-            console.log(p);
+            //console.log(p);
             diagnostics.push({
                 from: p.PositionStart,
                 to: p.PositionEnd,
@@ -30018,7 +30021,7 @@ if(!String.prototype.matchAll) {
                 if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
                     if (doc.substring(node.from, node.to).includes('\n')) {
                         node.node.getChildren('CloseBracket').map((child) => {
-                            console.log(doc.substring(node.from, node.to));
+                            // console.log(doc.substring(node.from, node.to));
                             if (doc[child.from - 1] != '\n') {
                                 changes.push({
                                     from: child.from,
