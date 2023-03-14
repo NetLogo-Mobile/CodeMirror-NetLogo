@@ -168,7 +168,7 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
         if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
           if (doc.substring(node.from, node.to).includes('\n')) {
             node.node.getChildren('CloseBracket').map((child) => {
-              console.log(doc.substring(node.from, node.to));
+              // console.log(doc.substring(node.from, node.to));
               if (doc[child.from - 1] != '\n') {
                 changes.push({
                   from: child.from,

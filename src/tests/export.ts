@@ -1,7 +1,7 @@
 import * as File from 'fs';
 import Path from 'path';
 
-let modelPath = './src/tests/models';
+let modelPath = './src/tests/models/builtin';
 let parsedModels: [string, string[]][] = [];
 
 // Find all models
@@ -42,7 +42,7 @@ const importFiles = function () {
         if (type == 'SLIDER') variables.push(model[i + 7]);
         if (type == 'SWITCH') variables.push(model[i + 7]);
         if (type == 'CHOOSER') variables.push(model[i + 7]);
-        if (type == 'INPUTBOX') variables.push(model[i + 7]);
+        if (type == 'INPUTBOX') variables.push(model[i + 6]);
       }
     }
     console.log(variables);

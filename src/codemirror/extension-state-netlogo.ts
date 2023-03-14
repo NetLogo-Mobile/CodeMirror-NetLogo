@@ -466,31 +466,7 @@ export class StateNetLogo {
   public checkBreedLike = function (str: string) {
     let result = false;
     let location = '';
-    if (str.match(/[^\s]+-(at)/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/[^\s]+-here/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/[^\s]+-neighbors/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/[^\s]+-on/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/^(my)-[^\s]+/)) {
-      result = true;
-      location = 'Second';
-    } else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
-      result = true;
-      location = 'Third';
-    } else if (str.match(/^is-[^\s]+\\?$/)) {
-      result = true;
-      location = 'Question';
-    } else if (str.match(/^in-[^\s]+-from$/)) {
+    if (str.match(/^in-[^\s]+-from$/)) {
       result = true;
       location = 'Middle';
     } else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
@@ -511,6 +487,30 @@ export class StateNetLogo {
     } else if (str.match(/^(hatch|sprout|create)-[^\s]+/)) {
       result = true;
       location = 'Second';
+    } else if (str.match(/[^\s]+-(at)/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/[^\s]+-here/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/[^\s]+-neighbors/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/[^\s]+-on/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
+      result = true;
+      location = 'First';
+    } else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
+      result = true;
+      location = 'Third';
+    } else if (str.match(/^(my)-[^\s]+/)) {
+      result = true;
+      location = 'Second';
+    } else if (str.match(/^is-[^\s]+\\?$/)) {
+      result = true;
+      location = 'Question';
     }
     return [result, location];
   };

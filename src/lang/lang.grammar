@@ -15,8 +15,7 @@
 
 @top Program { 
   normalMode{
-    (Unrecognized* globalStatement)*
-    Procedure* ~statement
+    (Unrecognized* globalStatement)* Procedure* ~statement
   } |
   OneLineMode{
     ReporterStatement

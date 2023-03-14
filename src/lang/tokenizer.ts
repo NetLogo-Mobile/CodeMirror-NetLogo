@@ -68,7 +68,7 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(To);
   } else if (token == 'end') {
     input.acceptToken(End);
-  } else if (token == 'and' || token == 'or') {
+  } else if (token == 'and' || token == 'or' || token == 'xor') {
     input.acceptToken(AndOr);
   } else if (token == 'globals') {
     input.acceptToken(GlobalStr);

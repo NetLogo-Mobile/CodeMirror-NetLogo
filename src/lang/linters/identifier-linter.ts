@@ -30,7 +30,6 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
             breedVars
           )
         ) {
-          console.log(value);
           //check if the identifier looks like a breed procedure (e.g. "create-___")
           let result = parseState.checkBreedLike(value);
           if (!result[0]) {
@@ -43,24 +42,28 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
             });
           } else {
             //pull out name of possible intended breed
-            let first = value.indexOf('-');
-            let last = value.lastIndexOf('-');
+            let split = value.split('-');
             let str = '';
-            if (result[1] == 'Last') {
-              str = value.substring(first + 1);
+            if (result[1] == 'Third') {
+              str = split.slice(2).join('-');
+            } else if (result[1] == 'Second') {
+              str = split.slice(1).join('-');
             } else if (result[1] == 'First') {
-              str = value.substring(0, last);
+              str = split.slice(0, split.length - 1).join('-');
             } else if (result[1] == 'Middle') {
-              str = value.substring(first + 1, last);
-            } else {
-              str = value.substring(first + 1, value.length - 1);
+              str = split.slice(1, split.length - 1).join('-');
+            } else if (result[1] == 'Question') {
+              str = split.slice(1).join('-');
+              str = str.substring(0, str.length - 1);
             }
-            diagnostics.push({
-              from: noderef.from,
-              to: noderef.to,
-              severity: 'error',
-              message: Localized.Get('Invalid breed procedure _', str),
-            });
+            if (!breedNames.includes(str)) {
+              diagnostics.push({
+                from: noderef.from,
+                to: noderef.to,
+                severity: 'error',
+                message: Localized.Get('Invalid breed procedure _', str),
+              });
+            }
           }
         }
       }

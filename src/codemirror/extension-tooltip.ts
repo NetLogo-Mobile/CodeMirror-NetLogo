@@ -275,7 +275,6 @@ function getInternalLink(
     closestTerm == '~CustomReporter' ||
     closestTerm == '~CustomCommand'
   ) {
-    console.log('here');
     syntaxTree(state)
       .cursor()
       .iterate((node) => {
