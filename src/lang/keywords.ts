@@ -115,4 +115,6 @@ export const unsupported = [
   'user-file',
   'user-new-file',
   'user-one-of',
+  '__hubnet-clear-plot',
+  '__hubnet-make-plot-narrowcast',
 ];

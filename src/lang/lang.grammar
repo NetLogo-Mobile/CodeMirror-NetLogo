@@ -207,7 +207,7 @@ ReporterStatement {
   OpenParen ReporterLeft1ArgsOpt !lastArgs Arg CloseParen|
   Arg !leftArgs (ReporterLeft1Args | ReporterLeft1ArgsOpt) !lastArgs Arg+ |
   Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg+ |
-  (SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP) !lastArgs Arg* ~statement |
+  (SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP | UnsupportedPrim) !lastArgs Arg* ~statement |
   (SpecialReporter1Args | SpecialReporter1ArgsTurtle | SpecialReporter1ArgsLink | SpecialReporter1ArgsBoth) !lastArgs Arg+ |
   (SpecialReporter2Args | SpecialReporter2ArgsTurtle) Arg !lastArgs Arg+ |
   SpecialReporter3Args Arg Arg !lastArgs Arg+ |
@@ -228,7 +228,7 @@ ReporterStatement {
 }
 
 CommandStatement {
-  SpecialCommand0Args !lastArgs Arg* ~statement |
+  (SpecialCommand0Args | UnsupportedPrim) !lastArgs Arg* ~statement |
   SpecialCommand1Args !lastArgs Arg+ |
   SpecialCommand2Args Arg !lastArgs Arg+ |
   SpecialCommand3Args Arg Arg !lastArgs Arg+ |
@@ -404,7 +404,8 @@ expression {
   APCommand,
   APReporterFlip,
   APReporterVar,
-  APReporter
+  APReporter,
+  UnsupportedPrim
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {

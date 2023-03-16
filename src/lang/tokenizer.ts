@@ -40,6 +40,7 @@ import {
   APReporterFlip,
   APReporterVar,
   APReporter,
+  UnsupportedPrim,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -47,6 +48,8 @@ import {
 import { ParseContext } from '@codemirror/language';
 import { preprocessStateExtension } from '../codemirror/extension-state-preprocess';
 import { PrimitiveManager } from './primitives/primitives';
+
+let primitives = PrimitiveManager;
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer((input) => {
@@ -129,8 +132,11 @@ export const keyword = new ExternalTokenizer((input) => {
     input.acceptToken(LinkVar);
   } else if (constants.indexOf(token) != -1) {
     input.acceptToken(Constant);
-  } else if (unsupported.indexOf(token) != -1) {
-    input.acceptToken(Unsupported);
+  } else if (
+    token.indexOf(':') != -1 &&
+    primitives.GetExtensions().indexOf(token.split(':')[0]) == -1
+  ) {
+    input.acceptToken(UnsupportedPrim);
   } else {
     // Check if token is a reporter/commander
     const primitive = PrimitiveManager.GetNamedPrimitive(token);

@@ -9,6 +9,7 @@ let primitives = PrimitiveManager;
 //Checks if extension primitives are used without declaring the extension, or invalid extensions are declared
 export const ExtensionLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
+  let extension_index = 0;
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
@@ -23,6 +24,9 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
               message: Localized.Get('Incorrect extension _.', name),
             });
           }
+        });
+        noderef.node.getChildren('CloseBracket').map((child) => {
+          extension_index = child.from;
         });
       } else if (
         noderef.name.includes('Args') &&
@@ -46,6 +50,20 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
               to: noderef.to,
               severity: 'error',
               message: Localized.Get('Invalid extension _.', vals[0]),
+              actions: [
+                {
+                  name: 'Add',
+                  apply(view, from, to) {
+                    view.dispatch({
+                      changes: {
+                        from: extension_index,
+                        to: extension_index,
+                        insert: vals[0] + ' ',
+                      },
+                    });
+                  },
+                },
+              ],
             });
           }
         }

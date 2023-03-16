@@ -2,15 +2,21 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
+import { unsupported } from '../keywords';
 
 // UnsupportedLinter: Checks for unsupported primitives
 export const UnsupportedLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
+  let indices: number[] = [];
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
-      if (node.name == 'Unsupported') {
-        const value = view.state.sliceDoc(node.from, node.to);
+      const value = view.state.sliceDoc(node.from, node.to);
+      if (
+        (node.name.includes('Unsupported') || unsupported.includes(value)) &&
+        !indices.includes(node.from)
+      ) {
+        indices.push(node.from);
         diagnostics.push({
           from: node.from,
           to: node.to,
