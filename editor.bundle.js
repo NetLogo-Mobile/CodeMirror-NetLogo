@@ -26966,8 +26966,13 @@ if(!String.prototype.matchAll) {
             this.RegisterBuiltin('~BreedVars/Identifier');
             this.RegisterBuiltin('~BreedPlural');
             this.RegisterBuiltin('~BreedSingular');
-            this.RegisterBuiltin('~WidgetGlobal');
             this.RegisterBuiltin('~BreedVariable');
+            this.RegisterBuiltin('~BreedReporter');
+            this.RegisterBuiltin('~BreedCommand');
+            this.RegisterBuiltin('~WidgetGlobal');
+            this.RegisterBuiltin('~CustomCommand');
+            this.RegisterBuiltin('~CustomReporter');
+            this.RegisterBuiltin('~LocalVariable');
         }
         // RegisterInternal: Register some built-in explanations.
         RegisterBuiltin(...Args) {
