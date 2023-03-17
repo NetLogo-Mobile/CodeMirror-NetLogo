@@ -1,7 +1,7 @@
 import * as File from 'fs';
 import Path from 'path';
 
-let modelPath = './src/tests/models/unsupported';
+let modelPath = './src/tests/models/builtin';
 let parsedModels: [string, string[]][] = [];
 
 // Find all models
