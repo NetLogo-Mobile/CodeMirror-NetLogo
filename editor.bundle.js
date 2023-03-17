@@ -27151,6 +27151,7 @@ if(!String.prototype.matchAll) {
                                 EditorView.scrollIntoView(result.from, { y: 'center' }),
                             ],
                         }));
+                        dom.classList.add('cm-tooltip-extendable');
                     }
                     dom.classList.add('cm-tooltip-explain');
                     dom.innerText = message;
@@ -27172,6 +27173,7 @@ if(!String.prototype.matchAll) {
             },
         };
     }
+    /** getInternalLink: Get an internal link for the tooltip. */
     function getInternalLink(term, closestTerm, secondTerm, state) {
         let to = 0;
         let from = 0;
