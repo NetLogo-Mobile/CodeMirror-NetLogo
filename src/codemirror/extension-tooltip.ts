@@ -171,6 +171,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
                 ],
               })
             );
+            dom.classList.add('cm-tooltip-extendable');
           }
           dom.classList.add('cm-tooltip-explain');
           dom.innerText = message;
@@ -194,6 +195,7 @@ function getEmptyTooltip() {
   };
 }
 
+/** getInternalLink: Get an internal link for the tooltip. */
 function getInternalLink(
   term: string,
   closestTerm: string,
