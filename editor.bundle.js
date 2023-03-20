@@ -19751,9 +19751,6 @@ if(!String.prototype.matchAll) {
     `-`, document percentages suffixed with `%`, and an optional
     column position by adding `:` and a second number after the line
     number.
-
-    The dialog can be styled with the `panel.gotoLine` theme
-    selector.
     */
     const gotoLine = view => {
         let panel = getPanel(view, createLineDialog);
@@ -19940,7 +19937,8 @@ if(!String.prototype.matchAll) {
                 caseSensitive: false,
                 literal: false,
                 wholeWord: false,
-                createPanel: view => new SearchPanel(view)
+                createPanel: view => new SearchPanel(view),
+                scrollToMatch: range => EditorView.scrollIntoView(range)
             });
         }
     });
@@ -20198,10 +20196,11 @@ if(!String.prototype.matchAll) {
         let next = query.nextMatch(view.state, to, to);
         if (!next)
             return false;
+        let selection = EditorSelection.single(next.from, next.to);
+        let config = view.state.facet(searchConfigFacet);
         view.dispatch({
-            selection: { anchor: next.from, head: next.to },
-            scrollIntoView: true,
-            effects: announceMatch(view, next),
+            selection,
+            effects: [announceMatch(view, next), config.scrollToMatch(selection.main)],
             userEvent: "select.search"
         });
         return true;
@@ -20213,13 +20212,14 @@ if(!String.prototype.matchAll) {
     */
     const findPrevious = /*@__PURE__*/searchCommand((view, { query }) => {
         let { state } = view, { from } = state.selection.main;
-        let range = query.prevMatch(state, from, from);
-        if (!range)
+        let prev = query.prevMatch(state, from, from);
+        if (!prev)
             return false;
+        let selection = EditorSelection.single(prev.from, prev.to);
+        let config = view.state.facet(searchConfigFacet);
         view.dispatch({
-            selection: { anchor: range.from, head: range.to },
-            scrollIntoView: true,
-            effects: announceMatch(view, range),
+            selection,
+            effects: [announceMatch(view, prev), config.scrollToMatch(selection.main)],
             userEvent: "select.search"
         });
         return true;
@@ -20270,22 +20270,21 @@ if(!String.prototype.matchAll) {
         if (!next)
             return false;
         let changes = [], selection, replacement;
-        let announce = [];
+        let effects = [];
         if (next.from == from && next.to == to) {
             replacement = state.toText(query.getReplacement(next));
             changes.push({ from: next.from, to: next.to, insert: replacement });
             next = query.nextMatch(state, next.from, next.to);
-            announce.push(EditorView.announce.of(state.phrase("replaced match on line $", state.doc.lineAt(from).number) + "."));
+            effects.push(EditorView.announce.of(state.phrase("replaced match on line $", state.doc.lineAt(from).number) + "."));
         }
         if (next) {
             let off = changes.length == 0 || changes[0].from >= next.to ? 0 : next.to - next.from - replacement.length;
-            selection = { anchor: next.from - off, head: next.to - off };
-            announce.push(announceMatch(view, next));
+            selection = EditorSelection.single(next.from - off, next.to - off);
+            effects.push(announceMatch(view, next));
+            effects.push(state.facet(searchConfigFacet).scrollToMatch(selection.main));
         }
         view.dispatch({
-            changes, selection,
-            scrollIntoView: !!selection,
-            effects: announce,
+            changes, selection, effects,
             userEvent: "input.replace"
         });
         return true;
@@ -25841,6 +25840,7 @@ if(!String.prototype.matchAll) {
         // #region "Parsing"
         /** ParseState: Parse the state from an editor state. */
         ParseState(State) {
+            var _a;
             if (!this.IsDirty)
                 return this;
             const Cursor = syntaxTree(State).cursor();
@@ -25854,6 +25854,7 @@ if(!String.prototype.matchAll) {
             this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], false));
             this.Breeds.set('patch', new Breed('patch', 'patches', [], false));
             this.Breeds.set('link', new Breed('link', 'links', [], true));
+            let tempBreedVars = new Map();
             // Start parsing
             while (true) {
                 // get extensions
@@ -25876,7 +25877,9 @@ if(!String.prototype.matchAll) {
                     });
                     if (Plural.length == 1 && Singular.length == 1) {
                         let singular = this.getText(State, Singular[0]);
-                        let breed = new Breed(singular, this.getText(State, Plural[0]), [], isLinkBreed);
+                        let plural = this.getText(State, Plural[0]);
+                        let vars = (_a = tempBreedVars.get(plural)) !== null && _a !== void 0 ? _a : [];
+                        let breed = new Breed(singular, plural, vars, isLinkBreed);
                         this.Breeds.set(singular, breed);
                     }
                 }
@@ -25888,10 +25891,15 @@ if(!String.prototype.matchAll) {
                         breedName = breedName.substring(0, breedName.length - 4);
                     });
                     let breedVars = this.getVariables(Cursor.node, State);
+                    let found = false;
                     for (let breed of this.Breeds.values()) {
                         if (breed.Plural == breedName) {
                             breed.Variables = breedVars;
+                            found = true;
                         }
+                    }
+                    if (!found) {
+                        tempBreedVars.set(breedName, breedVars);
                     }
                 }
                 // get procedures
@@ -26268,6 +26276,7 @@ if(!String.prototype.matchAll) {
                     'OpenBracket',
                     'CloseBracket',
                     'LineComment',
+                    'BreedsOwn',
                     'Own',
                 ].includes(noderef.name) &&
                     !this.getText(State, noderef.node).includes('\n')) {
@@ -26305,12 +26314,13 @@ if(!String.prototype.matchAll) {
         'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
         'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
         'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
-        'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo.`,
+        'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
         'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
         'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
         'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
         'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
-        'Invalid extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+        'Missing extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+        'Unsupported missing extension _.': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
         'Incorrect extension _.': (Name) => `"${Name}" is not a valid extension.`,
         'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
         'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
@@ -26362,6 +26372,8 @@ if(!String.prototype.matchAll) {
         'Unmatched item _': (Name) => `This "${Name}" is unmatched.`,
         'Invalid context _.': (Name) => `The context for this ${Name} is invalid.`,
         'Incorrect extension _.': (Name) => `"${Name}" is not a valid extension.`,
+        'Missing extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+        'Unsupported missing extension _.': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,
         '~Arguments/Identifier': (Name) => `过程或函数定义的参数名称。`,
@@ -27014,6 +27026,7 @@ if(!String.prototype.matchAll) {
             state.doc.lineAt(range.from).number == state.doc.lineAt(range.to).number)
             .map((range) => {
             // Check what to display & if the selected range covers more than one token
+            console.log(range.from, range.to);
             var multipleTokens = false;
             var lastFrom = 0, lastTo = 0;
             var closestTerm = '';
@@ -27022,14 +27035,16 @@ if(!String.prototype.matchAll) {
             // Iterate inside the tree
             syntaxTree(state).iterate({
                 enter: (ref) => {
-                    if (ref.from == ref.to || ref.to == range.from)
+                    // console.log(ref.from,ref.to,range.from,range.to)
+                    if (ref.from == ref.to)
                         return true;
+                    if (ref.to > range.to || ref.from > range.from) {
+                        // multipleTokens = true;
+                        return true;
+                    }
                     lastFrom = ref.from;
                     lastTo = ref.to;
-                    if (ref.to < range.to) {
-                        multipleTokens = true;
-                        return false;
-                    }
+                    // console.log(ref.from,ref.to, state.sliceDoc(ref.from,ref.to),ref.name)
                     // Reporters & Commands are very special
                     var name = ref.name;
                     if (name.indexOf('Reporter') != -1 && name.indexOf('Args') != -1) {
@@ -27127,6 +27142,7 @@ if(!String.prototype.matchAll) {
                 return getEmptyTooltip();
             let result = getInternalLink(term, closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '', state);
             console.log(result);
+            console.log(Dictionary.Get(closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : ''));
             // Return the tooltip
             return {
                 pos: range.from,
@@ -29681,7 +29697,8 @@ if(!String.prototype.matchAll) {
                     extension_index = child.from;
                 });
             }
-            else if (noderef.name.includes('Args') &&
+            else if ((noderef.name.includes('Args') ||
+                noderef.name.includes('Unsupported')) &&
                 !noderef.name.includes('Special')) {
                 const value = view.state
                     .sliceDoc(noderef.from, noderef.to)
@@ -29700,7 +29717,9 @@ if(!String.prototype.matchAll) {
                             from: noderef.from,
                             to: noderef.to,
                             severity: 'error',
-                            message: Localized.Get('Invalid extension _.', vals[0]),
+                            message: !noderef.name.includes('Unsupported')
+                                ? Localized.Get('Missing extension _.', vals[0])
+                                : Localized.Get('Unsupported missing extension _.', vals[0]),
                             actions: [
                                 {
                                     name: 'Add',
