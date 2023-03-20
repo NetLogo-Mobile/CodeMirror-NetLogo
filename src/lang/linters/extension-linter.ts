@@ -3,6 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
+import { checkValid } from './identifier-linter';
 
 let primitives = PrimitiveManager;
 
@@ -34,7 +35,16 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
             noderef.node.parent?.name != 'VariableName' &&
             noderef.node.parent?.name != 'NewVariableDeclaration' &&
             noderef.node.parent?.name != 'Arguments' &&
-            noderef.node.parent?.name != 'AnonArguments')) &&
+            noderef.node.parent?.name != 'AnonArguments' &&
+            noderef.node.parent?.name != 'ProcedureName' &&
+            !checkValid(
+              noderef.node,
+              view.state.sliceDoc(noderef.from, noderef.to),
+              view.state,
+              parseState,
+              parseState.GetBreedNames(),
+              parseState.GetBreedVariables()
+            ))) &&
         !noderef.name.includes('Special')
       ) {
         const value = view.state

@@ -3,6 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 import { unsupported } from '../keywords';
+import { checkValid } from './identifier-linter';
 
 // UnsupportedLinter: Checks for unsupported primitives
 export const UnsupportedLinter = buildLinter((view, parseState) => {
@@ -17,9 +18,18 @@ export const UnsupportedLinter = buildLinter((view, parseState) => {
           node.node.parent?.name != 'VariableName' &&
           node.node.parent?.name != 'NewVariableDeclaration' &&
           node.node.parent?.name != 'Arguments' &&
-          node.node.parent?.name != 'AnonArguments') ||
+          node.node.parent?.name != 'AnonArguments' &&
+          node.node.parent?.name != 'ProcedureName') ||
           unsupported.includes(value)) &&
-        !indices.includes(node.from)
+        !indices.includes(node.from) &&
+        !checkValid(
+          node.node,
+          value,
+          view.state,
+          parseState,
+          parseState.GetBreedNames(),
+          parseState.GetBreedVariables()
+        )
       ) {
         indices.push(node.from);
         diagnostics.push({

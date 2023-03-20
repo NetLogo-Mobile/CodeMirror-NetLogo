@@ -93,6 +93,7 @@ Procedure  {
 }
 
 ProcedureName {
+  UnsupportedPrim |
   Identifier | 
   SpecialCommand | 
   SpecialReporter0Args |
