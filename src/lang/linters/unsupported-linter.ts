@@ -13,7 +13,12 @@ export const UnsupportedLinter = buildLinter((view, parseState) => {
     .iterate((node) => {
       const value = view.state.sliceDoc(node.from, node.to);
       if (
-        (node.name.includes('Unsupported') || unsupported.includes(value)) &&
+        ((node.name.includes('Unsupported') &&
+          node.node.parent?.name != 'VariableName' &&
+          node.node.parent?.name != 'NewVariableDeclaration' &&
+          node.node.parent?.name != 'Arguments' &&
+          node.node.parent?.name != 'AnonArguments') ||
+          unsupported.includes(value)) &&
         !indices.includes(node.from)
       ) {
         indices.push(node.from);

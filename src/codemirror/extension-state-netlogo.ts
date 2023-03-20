@@ -617,6 +617,14 @@ export class StateNetLogo {
               );
               localVars.push(variable);
             });
+            node4.getChildren('UnsupportedPrim').map((node5) => {
+              let variable = new LocalVariable(
+                this.getText(State, node5),
+                1,
+                node5.from
+              );
+              localVars.push(variable);
+            });
           });
         });
       });

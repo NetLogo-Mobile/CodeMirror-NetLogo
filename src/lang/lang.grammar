@@ -121,7 +121,7 @@ ProcedureName {
 }
 
 Arguments {
-  OpenBracket Identifier* ~statement CloseBracket 
+  OpenBracket (Identifier|UnsupportedPrim)* ~statement CloseBracket 
 }
 
 ProcedureContent {
@@ -135,7 +135,7 @@ ReporterContent {
 }
 
 AnonArguments {
-  Arguments | Identifier* ~statement
+  Arguments | (Identifier|UnsupportedPrim)* ~statement
 }
 
 AnonymousProcedure {
@@ -152,8 +152,8 @@ VariableDeclaration {
 }
 
 NewVariableDeclaration {
-  Let Identifier Value |
-  Let Identifier ReporterStatement
+  Let (Identifier | UnsupportedPrim) Value |
+  Let (Identifier | UnsupportedPrim) ReporterStatement
 }
 
 SetVariable {
@@ -167,7 +167,8 @@ VariableName {
   PatchVar | 
   TurtleVar | 
   LinkVar |
-  BreedToken
+  BreedToken |
+  UnsupportedPrim
 }
 
 Value {

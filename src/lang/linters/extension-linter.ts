@@ -30,7 +30,11 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
         });
       } else if (
         (noderef.name.includes('Args') ||
-          noderef.name.includes('Unsupported')) &&
+          (noderef.name.includes('Unsupported') &&
+            noderef.node.parent?.name != 'VariableName' &&
+            noderef.node.parent?.name != 'NewVariableDeclaration' &&
+            noderef.node.parent?.name != 'Arguments' &&
+            noderef.node.parent?.name != 'AnonArguments')) &&
         !noderef.name.includes('Special')
       ) {
         const value = view.state

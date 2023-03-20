@@ -24,7 +24,9 @@ export const ArgumentLinter = buildLinter((view, parseState) => {
               noderef.node.getChildren('ReporterStatement').length !=
               1)) ||
         (noderef.name == 'NewVariableDeclaration' &&
-          (noderef.node.getChildren('Identifier').length != 1 ||
+          (noderef.node.getChildren('Identifier').length +
+            noderef.node.getChildren('UnsupportedPrim').length !=
+            1 ||
             noderef.node.getChildren('Value').length +
               noderef.node.getChildren('ReporterStatement').length !=
               1))
@@ -36,6 +38,7 @@ export const ArgumentLinter = buildLinter((view, parseState) => {
             ? noderef.node.getChildren('VariableName').length +
               noderef.node.getChildren('Value').length
             : noderef.node.getChildren('Identifier').length +
+              noderef.node.getChildren('UnsupportedPrim').length +
               noderef.node.getChildren('Value').length;
         diagnostics.push({
           from: noderef.from,
