@@ -47,6 +47,10 @@ const zh_cn: Record<string, Function> = {
     `The context for this ${Name} is invalid.`,
   'Incorrect extension _.': (Name: string) =>
     `"${Name}" is not a valid extension.`,
+  'Missing extension _.': (Name: string) =>
+    `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+  'Unsupported missing extension _.': (Name: string) =>
+    `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
 
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,

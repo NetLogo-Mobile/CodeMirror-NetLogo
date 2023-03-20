@@ -29,6 +29,7 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
     )
     .map((range) => {
       // Check what to display & if the selected range covers more than one token
+      console.log(range.from, range.to);
       var multipleTokens = false;
       var lastFrom = 0,
         lastTo = 0;
@@ -38,13 +39,16 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
       // Iterate inside the tree
       syntaxTree(state).iterate({
         enter: (ref) => {
-          if (ref.from == ref.to || ref.to == range.from) return true;
+          // console.log(ref.from,ref.to,range.from,range.to)
+          if (ref.from == ref.to) return true;
+
+          if (ref.to > range.to || ref.from > range.from) {
+            // multipleTokens = true;
+            return true;
+          }
           lastFrom = ref.from;
           lastTo = ref.to;
-          if (ref.to < range.to) {
-            multipleTokens = true;
-            return false;
-          }
+          // console.log(ref.from,ref.to, state.sliceDoc(ref.from,ref.to),ref.name)
           // Reporters & Commands are very special
           var name = ref.name;
           if (name.indexOf('Reporter') != -1 && name.indexOf('Args') != -1) {
@@ -145,6 +149,8 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
 
       let result = getInternalLink(term, closestTerm, secondTerm ?? '', state);
       console.log(result);
+
+      console.log(Dictionary.Get(closestTerm, secondTerm ?? ''));
 
       // Return the tooltip
       return {

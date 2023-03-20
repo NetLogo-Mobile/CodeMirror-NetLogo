@@ -29,7 +29,8 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
           extension_index = child.from;
         });
       } else if (
-        noderef.name.includes('Args') &&
+        (noderef.name.includes('Args') ||
+          noderef.name.includes('Unsupported')) &&
         !noderef.name.includes('Special')
       ) {
         const value = view.state
@@ -49,7 +50,9 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
               from: noderef.from,
               to: noderef.to,
               severity: 'error',
-              message: Localized.Get('Invalid extension _.', vals[0]),
+              message: !noderef.name.includes('Unsupported')
+                ? Localized.Get('Missing extension _.', vals[0])
+                : Localized.Get('Unsupported missing extension _.', vals[0]),
               actions: [
                 {
                   name: 'Add',

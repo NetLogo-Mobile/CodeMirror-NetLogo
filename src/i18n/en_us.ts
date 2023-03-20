@@ -8,7 +8,7 @@ const en_us: Record<string, Function> = {
   'Unrecognized statement _': (Name: string) =>
     `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
   'Unsupported statement _': (Name: string) =>
-    `"${Name}" is not supported in this version of NetLogo.`,
+    `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
   'Problem identifying primitive _. Expected _, found _.': (
     Name: string,
     Expected: string,
@@ -33,8 +33,10 @@ const en_us: Record<string, Function> = {
     Actual: string
   ) =>
     `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
-  'Invalid extension _.': (Name: string) =>
+  'Missing extension _.': (Name: string) =>
     `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+  'Unsupported missing extension _.': (Name: string) =>
+    `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
   'Incorrect extension _.': (Name: string) =>
     `"${Name}" is not a valid extension.`,
   'Breed name _ already used.': (Name: string) =>

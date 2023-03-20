@@ -146,6 +146,7 @@ export class StateNetLogo {
     this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], false));
     this.Breeds.set('patch', new Breed('patch', 'patches', [], false));
     this.Breeds.set('link', new Breed('link', 'links', [], true));
+    let tempBreedVars: Map<string, string[]> = new Map<string, string[]>();
     // Start parsing
     while (true) {
       // get extensions
@@ -168,12 +169,9 @@ export class StateNetLogo {
         });
         if (Plural.length == 1 && Singular.length == 1) {
           let singular = this.getText(State, Singular[0]);
-          let breed = new Breed(
-            singular,
-            this.getText(State, Plural[0]),
-            [],
-            isLinkBreed
-          );
+          let plural = this.getText(State, Plural[0]);
+          let vars = tempBreedVars.get(plural) ?? [];
+          let breed = new Breed(singular, plural, vars, isLinkBreed);
           this.Breeds.set(singular, breed);
         }
       }
@@ -185,10 +183,15 @@ export class StateNetLogo {
           breedName = breedName.substring(0, breedName.length - 4);
         });
         let breedVars = this.getVariables(Cursor.node, State);
+        let found = false;
         for (let breed of this.Breeds.values()) {
           if (breed.Plural == breedName) {
             breed.Variables = breedVars;
+            found = true;
           }
+        }
+        if (!found) {
+          tempBreedVars.set(breedName, breedVars);
         }
       }
       // get procedures
@@ -700,6 +703,7 @@ export class StateNetLogo {
           'OpenBracket',
           'CloseBracket',
           'LineComment',
+          'BreedsOwn',
           'Own',
         ].includes(noderef.name) &&
         !this.getText(State, noderef.node).includes('\n')
