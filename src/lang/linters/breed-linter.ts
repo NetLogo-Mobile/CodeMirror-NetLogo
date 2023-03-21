@@ -110,11 +110,9 @@ const checkValidBreed = function (
     }
   }
   if (!isValid && node.name != 'Own') {
-    const breedNames = parseState.GetBreedNames();
-    const breedVars = parseState.GetBreedVariables();
     // Why do we need this one?
     //We need it to check if it is actually a valid identifier, e.g. a variable name
-    isValid = checkValid(node, value, state, parseState, breedNames, breedVars);
+    isValid = checkValid(node, value, state, parseState);
   }
   return isValid;
 };

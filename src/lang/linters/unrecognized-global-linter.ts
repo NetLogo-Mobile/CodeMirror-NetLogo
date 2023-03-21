@@ -29,14 +29,6 @@ export const UnrecognizedGlobalLinter = buildLinter((view, parseState) => {
               to: node.to,
               severity: 'error',
               message: Localized.Get('Improperly placed procedure _', value),
-              /* actions: [
-                {
-                  name: 'Remove',
-                  apply(view, from, to) {
-                    view.dispatch({ changes: { from, to } });
-                  },
-                },
-              ], */
             });
           }
         } else {
@@ -46,14 +38,6 @@ export const UnrecognizedGlobalLinter = buildLinter((view, parseState) => {
             to: node.to,
             severity: 'error',
             message: Localized.Get('Unrecognized global statement _', value),
-            /* actions: [
-              {
-                name: 'Remove',
-                apply(view, from, to) {
-                  view.dispatch({ changes: { from, to } });
-                },
-              },
-            ], */
           });
         }
       }

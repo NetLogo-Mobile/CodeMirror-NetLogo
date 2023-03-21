@@ -5,8 +5,17 @@ import { EditorState } from '@codemirror/state';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
-import { AnonymousProcedure, Procedure, CodeBlock } from '../classes';
+import {
+  AnonymousProcedure,
+  Procedure,
+  CodeBlock,
+  BreedLocation,
+} from '../classes';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
+import {
+  checkBreedLike,
+  getBreedName,
+} from '../../codemirror/utils/breed_utils';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter = buildLinter((view, parseState) => {
@@ -20,18 +29,9 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
         const Node = noderef.node;
         const value = view.state.sliceDoc(noderef.from, noderef.to);
         //check if it meets some initial criteria for validity
-        if (
-          !checkValid(
-            Node,
-            value,
-            view.state,
-            parseState,
-            breedNames,
-            breedVars
-          )
-        ) {
+        if (!checkValid(Node, value, view.state, parseState)) {
           //check if the identifier looks like a breed procedure (e.g. "create-___")
-          let result = parseState.checkBreedLike(value);
+          let result = checkBreedLike(value);
           if (!result[0]) {
             console.log(noderef.name, noderef.node.parent?.name);
             diagnostics.push({
@@ -42,20 +42,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
             });
           } else {
             //pull out name of possible intended breed
-            let split = value.split('-');
-            let str = '';
-            if (result[1] == 'Third') {
-              str = split.slice(2).join('-');
-            } else if (result[1] == 'Second') {
-              str = split.slice(1).join('-');
-            } else if (result[1] == 'First') {
-              str = split.slice(0, split.length - 1).join('-');
-            } else if (result[1] == 'Middle') {
-              str = split.slice(1, split.length - 1).join('-');
-            } else if (result[1] == 'Question') {
-              str = split.slice(1).join('-');
-              str = str.substring(0, str.length - 1);
-            }
+            let str = getBreedName(value);
             if (!breedNames.includes(str)) {
               diagnostics.push({
                 from: noderef.from,
@@ -90,10 +77,10 @@ export const checkValid = function (
   Node: SyntaxNode,
   value: string,
   state: EditorState,
-  parseState: StateNetLogo,
-  breedNames: string[],
-  breedVars: string[]
+  parseState: StateNetLogo
 ): boolean {
+  let breedNames = parseState.GetBreedNames();
+  let breedVars = parseState.GetBreedVariables();
   let preprocess = state.field(preprocessStateExtension);
   value = value.toLowerCase();
   // checks if parent is in a category that is always valid (e.g. 'Globals')
@@ -168,9 +155,6 @@ const gatherAnonVars = function (
       Node.from >= anonProc.PositionStart &&
       Node.to <= anonProc.PositionEnd
     ) {
-      // anonProc.Variables.map(variable => variable.Name).forEach(name =>
-      //   procedureVars.push(name)
-      // );
       anonProc.Variables.map((variable) => {
         if (variable.CreationPos <= Node.from) {
           procedureVars.push(variable.Name);
@@ -182,15 +166,4 @@ const gatherAnonVars = function (
     }
   });
   return procedureVars;
-};
-
-const gatherCodeBlockVars = function (proc: Procedure, Node: SyntaxNode) {
-  let procedureVars: string[] = [];
-  proc.CodeBlocks.map((block) => {
-    if (block.PositionStart <= Node.from && block.PositionEnd >= Node.to) {
-      block.Variables.map((variable) => variable.Name).forEach((name) =>
-        procedureVars.push(name)
-      );
-    }
-  });
 };

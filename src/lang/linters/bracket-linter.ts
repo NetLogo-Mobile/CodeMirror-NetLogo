@@ -2,8 +2,6 @@ import { matchBrackets, syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
-import { SyntaxNode } from '@lezer/common';
-import { EditorView } from '@codemirror/view';
 
 // BracketLinter: Checks if all brackets have matches
 export const BracketLinter = buildLinter((view, parseState) => {
@@ -19,12 +17,6 @@ export const BracketLinter = buildLinter((view, parseState) => {
           matched = true;
         }
       }
-      // else if (['CloseBracket','CloseParen'].includes(node.name)){
-      //   match =matchBrackets(view.state,node.from,-1)
-      //   if (match && match.matched){
-      //     matched = true
-      //   }
-      // }
       if (
         !matched &&
         ((node.name == 'OpenBracket' &&

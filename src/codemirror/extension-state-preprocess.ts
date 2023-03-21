@@ -38,6 +38,7 @@ export class StatePreprocess {
     return this;
   }
 
+  /** processBreedVars: Parse the code for breed variables. */
   private processBreedVars(
     matches: IterableIterator<RegExpMatchArray>
   ): string[] {
@@ -52,6 +53,7 @@ export class StatePreprocess {
     return vars;
   }
 
+  /** processProcedures: Parse the code for procedure names. */
   private processProcedures(
     procedures: IterableIterator<RegExpMatchArray>
   ): Record<string, number> {
@@ -64,6 +66,7 @@ export class StatePreprocess {
     return matches;
   }
 
+  /** processBreeds: Parse the code for breed names. */
   private processBreeds(
     breeds: IterableIterator<RegExpMatchArray>
   ): string[][] {

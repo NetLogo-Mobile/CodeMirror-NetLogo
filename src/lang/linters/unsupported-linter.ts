@@ -6,6 +6,10 @@ import { unsupported } from '../keywords';
 import { checkValid } from './identifier-linter';
 
 // UnsupportedLinter: Checks for unsupported primitives
+
+//Important note: anything with a colon and no supported extension is tokenized as
+//'UnsupportedPrim', so acceptable uses of variable names that include colons need
+//to be filtered out here
 export const UnsupportedLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   let indices: number[] = [];
@@ -22,14 +26,7 @@ export const UnsupportedLinter = buildLinter((view, parseState) => {
           node.node.parent?.name != 'ProcedureName') ||
           unsupported.includes(value)) &&
         !indices.includes(node.from) &&
-        !checkValid(
-          node.node,
-          value,
-          view.state,
-          parseState,
-          parseState.GetBreedNames(),
-          parseState.GetBreedVariables()
-        )
+        !checkValid(node.node, value, view.state, parseState)
       ) {
         indices.push(node.from);
         diagnostics.push({
@@ -37,14 +34,6 @@ export const UnsupportedLinter = buildLinter((view, parseState) => {
           to: node.to,
           severity: 'warning',
           message: Localized.Get('Unsupported statement _', value),
-          /* actions: [
-            {
-              name: 'Remove',
-              apply(view, from, to) {
-                view.dispatch({ changes: { from, to } });
-              },
-            },
-          ], */
         });
       }
     });

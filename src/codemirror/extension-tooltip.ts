@@ -6,6 +6,11 @@ import { Dictionary } from '../i18n/dictionary';
 import { SyntaxNode } from '@lezer/common';
 import { stateExtension } from './extension-state-netlogo';
 import { Localized } from '../i18n/localized';
+import {
+  classifyPrimitive,
+  classifyBreedName,
+  getLink,
+} from './utils/tooltip_utils';
 
 /** TooltipExtension: Extension for displaying language-specific tooltips. */
 export const tooltipExtension = StateField.define<readonly Tooltip[]>({
@@ -29,57 +34,26 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
     )
     .map((range) => {
       // Check what to display & if the selected range covers more than one token
-      console.log(range.from, range.to);
+      // console.log(range.from, range.to);
       var multipleTokens = false;
-      var lastFrom = 0,
-        lastTo = 0;
+      var lastFrom = 0;
+      var lastTo = 0;
       var closestTerm = '';
       var parentName = '';
       var secondTerm: string | null = null;
-      // Iterate inside the tree
+      /* Iterate inside the tree to find node with best tooltip */
       syntaxTree(state).iterate({
         enter: (ref) => {
-          // console.log(ref.from,ref.to,range.from,range.to)
-          if (ref.from == ref.to) return true;
+          if (ref.from == ref.to || range.to == ref.from) return true;
 
-          if (ref.to > range.to || ref.from > range.from) {
-            // multipleTokens = true;
-            return true;
-          }
           lastFrom = ref.from;
           lastTo = ref.to;
-          // console.log(ref.from,ref.to, state.sliceDoc(ref.from,ref.to),ref.name)
+
           // Reporters & Commands are very special
-          var name = ref.name;
-          if (name.indexOf('Reporter') != -1 && name.indexOf('Args') != -1) {
-            if (name.indexOf('Special') != -1) {
-              if (
-                name.indexOf('Turtle') != -1 ||
-                name.indexOf('Link') != -1 ||
-                name.indexOf('Both') != -1
-              ) {
-                name = 'BreedReporter';
-              } else {
-                name = 'CustomReporter';
-              }
-            } else {
-              name = 'Reporter';
-            }
-          }
+          //classify all types of reporters/commands as 'breed','custom', or builtin
+          var name = classifyPrimitive(ref.name);
 
-          if (name.indexOf('Command') != -1) {
-            if (name.indexOf('Special') != -1) {
-              if (name.indexOf('Create') != -1) {
-                name = 'BreedCommand';
-              } else {
-                name = 'CustomCommand';
-              }
-            } else {
-              name = 'Command';
-            }
-          }
-
-          // Check the category name
+          // Check the category name to see if a valid closest term has been found
           if (
             closestTerm == '~BreedSingular' ||
             closestTerm == '~Arguments' ||
@@ -105,41 +79,47 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
       // If so, we won't display tips - that's unnecessary.
       if (lastFrom == lastTo || multipleTokens) return getEmptyTooltip();
 
+      /* Search for better tooltip depending on selected text */
+
       // Check if we can directly recognize the youngest children's full-word
       const term = state.sliceDoc(lastFrom, lastTo);
+      // check primitive dictionary
       if (Dictionary.Check(term)) {
         closestTerm = term;
-      } else if (state.field(stateExtension).Globals.includes(term)) {
+      }
+      // check if term is a global variable
+      else if (state.field(stateExtension).Globals.includes(term)) {
         closestTerm = '~Globals/Identifier';
-      } else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
+      }
+      //check if term is a widget global variable
+      else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
         closestTerm = '~WidgetGlobal';
-      } else if (state.field(stateExtension).GetBreedNames().includes(term)) {
-        let breeds = state.field(stateExtension).GetBreeds();
-        let plurals: string[] = [];
-        let singular: string[] = [];
-        for (let b of breeds) {
-          plurals.push(b.Plural);
-          singular.push(b.Singular);
-        }
-        if (plurals.includes(term)) {
-          closestTerm = '~BreedPlural';
-        } else {
-          closestTerm = '~BreedSingular';
-        }
-      } else {
+      }
+      //check if term is the name of a breed
+      else if (state.field(stateExtension).GetBreedNames().includes(term)) {
+        closestTerm = classifyBreedName(
+          term,
+          state.field(stateExtension).GetBreeds()
+        );
+      }
+      //otherwise check if term is a breed variable
+      else {
         secondTerm = State.GetBreedFromVariable(term);
         if (secondTerm != null) {
           closestTerm = '~BreedVariable';
         } else {
+          //if term is not a breed variable, check if it is a local variable for a procedure
           if (
             closestTerm == '~VariableName' ||
             (parentName == 'Identifier' && closestTerm == '')
           ) {
             secondTerm = State.GetProcedureFromVariable(term, lastFrom, lastTo);
+            //if procedure cannot be identified, term is an unidentified local variable
             if (secondTerm != null) closestTerm = '~LocalVariable';
           }
         }
       }
+      //get breed name from breed commands and reporters (e.g. 'create-____')
       if (closestTerm == '~BreedReporter' || closestTerm == '~BreedCommand') {
         secondTerm = State.GetBreedFromProcedure(term);
       }
@@ -147,10 +127,9 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
       console.log('Term: ' + term, closestTerm, parentName);
       if (closestTerm == '') return getEmptyTooltip();
 
+      //check if there is an internal link for the tooltip
+      //(e.g. first mention of a variable, or a procedure name)
       let result = getInternalLink(term, closestTerm, secondTerm ?? '', state);
-      console.log(result);
-
-      console.log(Dictionary.Get(closestTerm, secondTerm ?? ''));
 
       // Return the tooltip
       return {
@@ -160,12 +139,15 @@ function getCursorTooltips(state: EditorState): readonly Tooltip[] {
         arrow: true,
         create: (view: EditorView) => {
           const dom = document.createElement('div');
+          //get message from dictionary/localized
           var message = Dictionary.Get(closestTerm, secondTerm ?? '');
           if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
             message += '➤';
             dom.addEventListener('click', () => Dictionary.ClickHandler!(term));
             dom.classList.add('cm-tooltip-extendable');
-          } else if (result.hasLink) {
+          }
+          //if tooltip has internal link, it is added here
+          else if (result.hasLink) {
             message += '➤';
             dom.addEventListener('click', () =>
               view.dispatch({
@@ -202,31 +184,28 @@ function getEmptyTooltip() {
 }
 
 /** getInternalLink: Get an internal link for the tooltip. */
+// e.g. variables would link to first declaration
 function getInternalLink(
   term: string,
   closestTerm: string,
   secondTerm: string,
   state: EditorState
 ): { hasLink: boolean; to: number; from: number } {
-  let to = 0;
-  let from = 0;
-  let hasLink = false;
-
+  let linkData = {
+    to: 0,
+    from: 0,
+    hasLink: false,
+  };
+  //link to declaration of global variable or breed
   if (closestTerm == '~Globals/Identifier') {
-    syntaxTree(state)
-      .cursor()
-      .iterate((node) => {
-        if (node.name == 'Globals') {
-          node.node.getChildren('Identifier').map((subnode) => {
-            if (state.sliceDoc(subnode.from, subnode.to) == term) {
-              to = subnode.to;
-              from = subnode.from;
-              hasLink = true;
-            }
-          });
-        }
-      });
-  } else if (closestTerm == '~BreedVariable') {
+    linkData = getLink('Globals', 'Identifier', term, state);
+  } else if (closestTerm == '~BreedSingular') {
+    linkData = getLink('Breed', 'BreedSingular', term, state);
+  } else if (closestTerm == '~BreedPlural') {
+    linkData = getLink('Breed', 'BreedPlural', term, state);
+  }
+  //link to node where the breed variable is created
+  else if (closestTerm == '~BreedVariable') {
     syntaxTree(state)
       .cursor()
       .iterate((node) => {
@@ -243,43 +222,17 @@ function getInternalLink(
           if (correctNode) {
             node.node.getChildren('Identifier').map((subnode) => {
               if (state.sliceDoc(subnode.from, subnode.to) == term) {
-                to = subnode.to;
-                from = subnode.from;
-                hasLink = true;
+                linkData.to = subnode.to;
+                linkData.from = subnode.from;
+                linkData.hasLink = true;
               }
             });
           }
         }
       });
-  } else if (closestTerm == '~BreedSingular') {
-    syntaxTree(state)
-      .cursor()
-      .iterate((node) => {
-        if (node.name == 'Breed') {
-          node.node.getChildren('BreedSingular').map((subnode) => {
-            if (state.sliceDoc(subnode.from, subnode.to) == term) {
-              to = subnode.to;
-              from = subnode.from;
-              hasLink = true;
-            }
-          });
-        }
-      });
-  } else if (closestTerm == '~BreedPlural') {
-    syntaxTree(state)
-      .cursor()
-      .iterate((node) => {
-        if (node.name == 'Breed') {
-          node.node.getChildren('BreedPlural').map((subnode) => {
-            if (state.sliceDoc(subnode.from, subnode.to) == term) {
-              to = subnode.to;
-              from = subnode.from;
-              hasLink = true;
-            }
-          });
-        }
-      });
-  } else if (
+  }
+  //link to start of the procedure being called
+  else if (
     closestTerm == '~CustomReporter' ||
     closestTerm == '~CustomCommand'
   ) {
@@ -292,14 +245,19 @@ function getInternalLink(
           node.name == 'ProcedureName' &&
           state.sliceDoc(node.from, node.to) == term
         ) {
-          to = node.to;
-          from = node.from;
-          hasLink = true;
+          linkData.to = node.to;
+          linkData.from = node.from;
+          linkData.hasLink = true;
         }
       });
-  } else if (closestTerm == '~LocalVariable') {
+  }
+  //link to node where local variable is defined
+  //this is more complex because local variables can be nested inside blocks or
+  //multiple procedures can have local variables with the same name
+  else if (closestTerm == '~LocalVariable') {
     let procName = secondTerm.replace('{anonymous},', '');
     let proc = state.field(stateExtension).Procedures.get(procName);
+    //if term is an argument, link to argument's location
     if (proc?.Arguments.includes(term)) {
       syntaxTree(state)
         .cursor()
@@ -315,25 +273,28 @@ function getInternalLink(
                 ?.getChildren('Identifier')
                 .map((subnode) => {
                   if (state.sliceDoc(subnode.from, subnode.to) == term) {
-                    to = subnode.to;
-                    from = subnode.from;
-                    hasLink = true;
+                    linkData.to = subnode.to;
+                    linkData.from = subnode.from;
+                    linkData.hasLink = true;
                   }
                 });
             }
           }
         });
-    } else if (proc && !secondTerm.includes('{anonymous}')) {
+    }
+    //link to creation pos for non-anonymous procedures
+    else if (proc && !secondTerm.includes('{anonymous}')) {
       for (let vars of proc?.Variables) {
         if (vars.Name == term) {
           let subnode = syntaxTree(state).cursorAt(vars.CreationPos).node;
-          to = subnode.to;
-          from = subnode.from;
-          hasLink = true;
+          linkData.to = subnode.to;
+          linkData.from = subnode.from;
+          linkData.hasLink = true;
         }
       }
     } else if (proc) {
       for (var anonProc of proc.AnonymousProcedures) {
+        //link to argument of anonymous procedure
         if (anonProc.Arguments.includes(term)) {
           syntaxTree(state).iterate({
             enter: (noderef) => {
@@ -343,22 +304,24 @@ function getInternalLink(
                   noderef.node.parent?.name == 'Arguments')
               ) {
                 if (state.sliceDoc(noderef.from, noderef.to) == term) {
-                  to = noderef.to;
-                  from = noderef.from;
-                  hasLink = true;
+                  linkData.to = noderef.to;
+                  linkData.from = noderef.from;
+                  linkData.hasLink = true;
                 }
               }
             },
             to: anonProc.PositionStart,
             from: anonProc.PositionEnd,
           });
-        } else {
+        }
+        //link to local variable of anonymous procedure
+        else {
           for (var vars of anonProc.Variables) {
             if (vars.Name == term) {
               let subnode = syntaxTree(state).cursorAt(vars.CreationPos).node;
-              to = subnode.to;
-              from = subnode.from;
-              hasLink = true;
+              linkData.to = subnode.to;
+              linkData.from = subnode.from;
+              linkData.hasLink = true;
             }
           }
         }
@@ -366,5 +329,5 @@ function getInternalLink(
     }
   }
 
-  return { hasLink, to, from };
+  return linkData;
 }

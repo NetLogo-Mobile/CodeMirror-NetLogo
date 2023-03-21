@@ -41,9 +41,7 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
               noderef.node,
               view.state.sliceDoc(noderef.from, noderef.to),
               view.state,
-              parseState,
-              parseState.GetBreedNames(),
-              parseState.GetBreedVariables()
+              parseState
             ))) &&
         !noderef.name.includes('Special')
       ) {

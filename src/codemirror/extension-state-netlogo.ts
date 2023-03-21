@@ -9,6 +9,8 @@ import {
   CodeBlock,
   AgentContexts,
 } from '../lang/classes';
+import { combineContexts, noContext } from './utils/context_utils';
+import { checkBreedLike, getBreedName } from './utils/breed_utils';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
@@ -249,7 +251,7 @@ export class StateNetLogo {
           ) {
             let c = this.getPrimitiveContext(cursor.node, state);
             if (c) {
-              context = this.combineContexts(c, context);
+              context = combineContexts(c, context);
             }
           } else if (cursor.node.name == 'VariableDeclaration') {
             let n = cursor.node
@@ -288,7 +290,7 @@ export class StateNetLogo {
               }
             }
 
-            context = this.combineContexts(c, context);
+            context = combineContexts(c, context);
           }
           child = cursor.nextSibling();
         }
@@ -301,23 +303,6 @@ export class StateNetLogo {
     let prim = state.sliceDoc(node.from, node.to);
     let prim_data = primitives.GetNamedPrimitive(prim);
     return prim_data?.AgentContext;
-  }
-
-  public combineContexts(c1: AgentContexts, c2: AgentContexts) {
-    let final = new AgentContexts();
-    if (!c1.Observer || !c2.Observer) {
-      final.Observer = false;
-    }
-    if (!c1.Turtle || !c2.Turtle) {
-      final.Turtle = false;
-    }
-    if (!c1.Patch || !c2.Patch) {
-      final.Patch = false;
-    }
-    if (!c1.Link || !c2.Link) {
-      final.Link = false;
-    }
-    return final;
   }
 
   private getCodeBlocks(
@@ -341,15 +326,15 @@ export class StateNetLogo {
             block.PositionStart = child.from;
             block.PositionEnd = child.to;
             block.InheritParentContext = prim.inheritParentContext;
-            block.Context = this.combineContexts(
+            block.Context = combineContexts(
               this.getContext(child, state),
-              this.noContext(prim.context) ? parentContext : prim.context
+              noContext(prim.context) ? parentContext : prim.context
             );
-            if (this.noContext(block.Context)) {
+            if (noContext(block.Context)) {
               console.log(
                 parentContext,
                 prim.context,
-                this.noContext(prim.context) ? parentContext : prim.context,
+                noContext(prim.context) ? parentContext : prim.context,
                 this.getContext(child, state)
               );
             }
@@ -371,31 +356,6 @@ export class StateNetLogo {
       }
     });
     return blocks;
-  }
-
-  private getBreedName(value: string) {
-    let result = this.checkBreedLike(value);
-    let str = null;
-    if (result[0]) {
-      //pull out name of possible intended breed
-      let split = value.split('-');
-      if (result[1] == 'Third') {
-        str = split.slice(2).join('-');
-      } else if (result[1] == 'Second') {
-        str = split.slice(1).join('-');
-      } else if (result[1] == 'First') {
-        str = split.slice(0, split.length - 1).join('-');
-      } else if (result[1] == 'Middle') {
-        str = split.slice(1, split.length - 1).join('-');
-      } else {
-        str = null;
-      }
-    }
-    return str;
-  }
-
-  public noContext(c: AgentContexts) {
-    return !c.Observer && !c.Turtle && !c.Patch && !c.Link;
   }
 
   private getPrimitive(node: SyntaxNode, state: EditorState) {
@@ -431,7 +391,7 @@ export class StateNetLogo {
     }
     if (prim.type.includes('Special')) {
       prim.isSpecial = true;
-      prim.breed = this.getBreedName(prim.name) ?? '';
+      prim.breed = getBreedName(prim.name) ?? '';
       prim.context = new AgentContexts('null');
       if (prim.breed != '') {
         let breed = null;
@@ -458,65 +418,11 @@ export class StateNetLogo {
       prim.context = primitive?.BlockContext ?? new AgentContexts('null');
       prim.inheritParentContext = primitive?.InheritParentContext ?? false;
     }
-    if (this.noContext(prim.context)) {
+    if (noContext(prim.context)) {
       console.log(prim);
     }
     return prim;
   }
-
-  //identify if the term looks like a breed procedure (e.g. "create-___")
-  //If so, also identify where to look within the term to find the intended breed name
-  public checkBreedLike = function (str: string) {
-    let result = false;
-    let location = '';
-    if (str.match(/^in-[^\s]+-from$/)) {
-      result = true;
-      location = 'Middle';
-    } else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-      result = true;
-      location = 'Middle';
-    } else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-      result = true;
-      location = 'Middle';
-    } else if (str.match(/^out-[^\s]+-to$/)) {
-      result = true;
-      location = 'Middle';
-    } else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
-      result = true;
-      location = 'Middle';
-    } else if (str.match(/^create-ordered-[^\s]+/)) {
-      result = true;
-      location = 'Third';
-    } else if (str.match(/^(hatch|sprout|create)-[^\s]+/)) {
-      result = true;
-      location = 'Second';
-    } else if (str.match(/[^\s]+-(at)/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/[^\s]+-here/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/[^\s]+-neighbors/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/[^\s]+-on/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
-      result = true;
-      location = 'First';
-    } else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
-      result = true;
-      location = 'Third';
-    } else if (str.match(/^(my)-[^\s]+/)) {
-      result = true;
-      location = 'Second';
-    } else if (str.match(/^is-[^\s]+\\?$/)) {
-      result = true;
-      location = 'Question';
-    }
-    return [result, location];
-  };
 
   private searchAnonProcedure(
     node: SyntaxNode,
@@ -629,73 +535,7 @@ export class StateNetLogo {
         });
       });
     });
-    // let parentVars = this.getParentVars(Node,State)
-    // localVars=localVars.concat(parentVars.vars)
-
-    // Node.cursor().iterate((noderef) => {
-    //   if (noderef.node.to > Node.to) {
-    //     return false;
-    //   }
-    //   if (noderef.name == 'CommandStatement') {
-    //     noderef.node.getChildren('VariableDeclaration').map((node) => {
-    //       node.getChildren('NewVariableDeclaration').map((subnode) => {
-    //         subnode.getChildren('Identifier').map((subsubnode) => {
-    //           if (
-    //             !this.getParents(subsubnode).includes('AnonymousProcedure') ||
-    //             !this.getParents(subsubnode).includes('ShortAnonymousProcedure') ||
-    //             !this.getParents(subsubnode).includes('CodeBlock') ||
-    //             isAnon
-    //           ) {
-    //             const variable = new LocalVariable(
-    //               this.getText(State, subsubnode),
-    //               1,
-    //               subsubnode.from
-    //             );
-    //             localVars.push(variable);
-    //           }
-    //         });
-    //       });
-    //     });
-    //   }
-    // });
     return localVars;
-  }
-
-  private getParentVars(Node: SyntaxNode, state: EditorState) {
-    let from = Node.from;
-    let to = Node.to;
-    let vars: LocalVariable[] = [];
-    let args: string[] = [];
-    for (let p of this.Procedures.values()) {
-      if (p.PositionStart <= from && p.PositionEnd >= to) {
-        vars = vars.concat(p.Variables);
-        args = args.concat(p.Arguments);
-      }
-      for (let a of p.AnonymousProcedures) {
-        if (a.PositionStart <= from && a.PositionEnd >= to) {
-          vars = vars.concat(a.Variables);
-          args = args.concat(a.Arguments);
-        }
-      }
-      for (let b of p.CodeBlocks) {
-        if (b.PositionStart <= from && b.PositionEnd >= to) {
-          vars = vars.concat(b.Variables);
-        }
-      }
-    }
-    vars = [...new Set(vars)];
-    args = [...new Set(args)];
-    return { vars: vars, args: args };
-  }
-
-  private getParents(Node: SyntaxNode): string[] {
-    let parents: string[] = [];
-    let curr = Node;
-    while (curr.parent) {
-      parents.push(curr.parent.name);
-      curr = curr.parent;
-    }
-    return parents;
   }
 
   private getVariables(Node: SyntaxNode, State: EditorState): string[] {

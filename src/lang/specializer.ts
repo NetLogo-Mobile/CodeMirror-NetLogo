@@ -160,7 +160,9 @@ const specializeSpecialReporter = function (token: string) {
 
   let singularBreedNames =
     parseContext?.state.field(preprocessStateExtension).SingularBreeds ?? [];
-  if (singularBreedNames.includes(token)) {
+  if (token == 'patch' || token == 'link') {
+    return SpecialReporter2Args;
+  } else if (singularBreedNames.includes(token)) {
     return SpecialReporter1Args;
   }
 
@@ -250,7 +252,6 @@ const specializeCommand = function (token: string) {
 
 const specializeSpecialCommand = function (token: string) {
   token = token.toLowerCase();
-
   let parseContext = ParseContext.get();
   let commands =
     parseContext?.state.field(preprocessStateExtension).Commands ?? {};

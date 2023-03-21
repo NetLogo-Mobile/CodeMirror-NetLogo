@@ -109,92 +109,67 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
           node.name == 'CodeBlock' &&
           checkBlock(node.node, 'ProcedureContent', doc)
         ) {
-          node.node.getChildren('ProcedureContent').map((child) => {
-            if (doc[child.from - 1] != '\n') {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
-            }
-          });
-          node.node.getChildren('CloseBracket').map((child) => {
-            if (doc[child.from - 1] != '\n') {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
-            }
-          });
+          for (var name of ['ProcedureContent', 'CloseBracket']) {
+            node.node.getChildren(name).map((child) => {
+              if (doc[child.from - 1] != '\n') {
+                changes.push({
+                  from: child.from,
+                  to: child.from,
+                  insert: '\n',
+                });
+              }
+            });
+          }
         } else if (
           node.name == 'ReporterBlock' &&
           checkBlock(node.node, 'ReporterContent', doc)
         ) {
-          node.node.getChildren('ReporterContent').map((child) => {
-            if (doc[child.from - 1] != '\n') {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
-            }
-          });
-          node.node.getChildren('CloseBracket').map((child) => {
-            if (doc[child.from - 1] != '\n') {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
-            }
-          });
+          for (var name of ['ReporterContent', 'CloseBracket']) {
+            node.node.getChildren(name).map((child) => {
+              if (doc[child.from - 1] != '\n') {
+                changes.push({
+                  from: child.from,
+                  to: child.from,
+                  insert: '\n',
+                });
+              }
+            });
+          }
         } else if (
           node.name == 'AnonymousProcedure' &&
           (checkBlock(node.node, 'ReporterContent', doc) ||
             checkBlock(node.node, 'ProcedureContent', doc))
         ) {
           // console.log(changes.length);
-          node.node.getChildren('ProcedureContent').map((child) => {
-            if (doc[child.from - 1] != '\n') {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
-            }
-          });
-          node.node.getChildren('ReporterContent').map((child) => {
-            if (doc[child.from - 1] != '\n') {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
-            }
-          });
-          node.node.getChildren('CloseBracket').map((child) => {
-            if (doc[child.from - 1] != '\n') {
-              changes.push({ from: child.from, to: child.from, insert: '\n' });
-            }
-          });
-          // console.log(changes.length);
+          for (var name of [
+            'ProcedureContent',
+            'ReporterContent',
+            'CloseBracket',
+          ]) {
+            node.node.getChildren(name).map((child) => {
+              if (doc[child.from - 1] != '\n') {
+                changes.push({
+                  from: child.from,
+                  to: child.from,
+                  insert: '\n',
+                });
+              }
+            });
+          }
         }
-        // else if(node.name=='CommandStatement' && view.state.sliceDoc(node.from,node.to).startsWith('ifelse')){
-        //   node.node.getChildren('Arg').map((subnode)=>{
-        //     subnode.node.getChildren('CodeBlock').map(child=>{
-        //       if(doc[child.from-1]!='\n'){
-        //   changes.push({ from: child.from, to: child.from, insert: '\n' });
-        // }
-        //     })
-        //   })
-        // }
         if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
           if (doc.substring(node.from, node.to).includes('\n')) {
-            node.node.getChildren('CloseBracket').map((child) => {
-              // console.log(doc.substring(node.from, node.to));
-              if (doc[child.from - 1] != '\n') {
-                changes.push({
-                  from: child.from,
-                  to: child.from,
-                  insert: '\n',
-                });
-              }
-            });
-            node.node.getChildren('Extension').map((child) => {
-              if (doc[child.from - 1] != '\n') {
-                changes.push({
-                  from: child.from,
-                  to: child.from,
-                  insert: '\n',
-                });
-              }
-            });
-            node.node.getChildren('Identifier').map((child) => {
-              if (doc[child.from - 1] != '\n') {
-                changes.push({
-                  from: child.from,
-                  to: child.from,
-                  insert: '\n',
-                });
-              }
-            });
+            for (var name of ['CloseBracket', 'Extension', 'Identifier']) {
+              node.node.getChildren(name).map((child) => {
+                if (doc[child.from - 1] != '\n') {
+                  changes.push({
+                    from: child.from,
+                    to: child.from,
+                    insert: '\n',
+                  });
+                }
+              });
+            }
           }
         }
         if (node.name.includes('Args') && !node.name.includes('Special')) {
