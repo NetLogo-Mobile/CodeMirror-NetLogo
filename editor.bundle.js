@@ -24902,6 +24902,7 @@ if(!String.prototype.matchAll) {
             this.Reporters = this.processProcedures(reporters);
             return this;
         }
+        /** processBreedVars: Parse the code for breed variables. */
         processBreedVars(matches) {
             let vars = [];
             for (var m of matches) {
@@ -24913,6 +24914,7 @@ if(!String.prototype.matchAll) {
             }
             return vars;
         }
+        /** processProcedures: Parse the code for procedure names. */
         processProcedures(procedures) {
             let matches = {};
             for (var match of procedures) {
@@ -24922,6 +24924,7 @@ if(!String.prototype.matchAll) {
             }
             return matches;
         }
+        /** processBreeds: Parse the code for breed names. */
         processBreeds(breeds) {
             let singularmatches = ['patch', 'turtle', 'link'];
             let pluralmatches = ['patches', 'turtles', 'links'];
@@ -24973,6 +24976,16 @@ if(!String.prototype.matchAll) {
         NetLogoType[NetLogoType["Command"] = 20] = "Command";
         NetLogoType[NetLogoType["Other"] = 21] = "Other";
     })(NetLogoType || (NetLogoType = {}));
+    /** BreedLocation: Possible locations of breed name in primitives. */
+    var BreedLocation;
+    (function (BreedLocation) {
+        BreedLocation[BreedLocation["First"] = 0] = "First";
+        BreedLocation[BreedLocation["Second"] = 1] = "Second";
+        BreedLocation[BreedLocation["Third"] = 2] = "Third";
+        BreedLocation[BreedLocation["Middle"] = 3] = "Middle";
+        BreedLocation[BreedLocation["Question"] = 4] = "Question";
+        BreedLocation[BreedLocation["Null"] = 5] = "Null";
+    })(BreedLocation || (BreedLocation = {}));
     /** AgentContexts: Agent contexts of a primitive. */
     class AgentContexts {
         /** Parse an agent-context string. */
@@ -25260,17 +25273,6 @@ if(!String.prototype.matchAll) {
             input.acceptToken(UnsupportedPrim);
         }
         else {
-            // Check if token is a reporter/commander
-            const primitive = PrimitiveManager.GetNamedPrimitive(token);
-            if (primitive != null) {
-                if (PrimitiveManager.IsReporter(primitive)) {
-                    input.acceptToken(Reporter);
-                }
-                else {
-                    input.acceptToken(Command);
-                }
-                return;
-            }
             // Check if token is a breed reporter/command
             const match = matchBreed(token);
             if (match != 0) {
@@ -25281,6 +25283,18 @@ if(!String.prototype.matchAll) {
             const customMatch = matchCustomProcedure(token);
             if (customMatch != 0) {
                 input.acceptToken(customMatch);
+                return;
+            }
+            // Check if token is a reporter/commander
+            const primitive = PrimitiveManager.GetNamedPrimitive(token);
+            if (primitive != null) {
+                if (PrimitiveManager.IsReporter(primitive)) {
+                    input.acceptToken(Reporter);
+                }
+                else {
+                    input.acceptToken(Command);
+                }
+                return;
             }
             else {
                 input.acceptToken(Identifier$1);
@@ -25516,7 +25530,10 @@ if(!String.prototype.matchAll) {
             }
         }
         let singularBreedNames = (_b = parseContext === null || parseContext === void 0 ? void 0 : parseContext.state.field(preprocessStateExtension).SingularBreeds) !== null && _b !== void 0 ? _b : [];
-        if (singularBreedNames.includes(token)) {
+        if (token == 'patch' || token == 'link') {
+            return SpecialReporter2Args;
+        }
+        else if (singularBreedNames.includes(token)) {
             return SpecialReporter1Args;
         }
         if (token.match(/[^\s]+-(at)/)) {
@@ -25688,6 +25705,119 @@ if(!String.prototype.matchAll) {
       tokenPrec: 0
     });
 
+    const combineContexts = function (c1, c2) {
+        let final = new AgentContexts();
+        if (!c1.Observer || !c2.Observer) {
+            final.Observer = false;
+        }
+        if (!c1.Turtle || !c2.Turtle) {
+            final.Turtle = false;
+        }
+        if (!c1.Patch || !c2.Patch) {
+            final.Patch = false;
+        }
+        if (!c1.Link || !c2.Link) {
+            final.Link = false;
+        }
+        return final;
+    };
+    const noContext = function (context) {
+        return (!context.Observer && !context.Turtle && !context.Patch && !context.Link);
+    };
+
+    const getBreedName = function (value) {
+        let result = checkBreedLike(value);
+        let str = '';
+        if (result[0]) {
+            //pull out name of possible intended breed
+            let split = value.split('-');
+            if (result[1] == BreedLocation.Third) {
+                str = split.slice(2).join('-');
+            }
+            else if (result[1] == BreedLocation.Second) {
+                str = split.slice(1).join('-');
+            }
+            else if (result[1] == BreedLocation.First) {
+                str = split.slice(0, split.length - 1).join('-');
+            }
+            else if (result[1] == BreedLocation.Middle) {
+                str = split.slice(1, split.length - 1).join('-');
+            }
+            else if (result[1] == BreedLocation.Question) {
+                str = split.slice(1).join('-');
+                str = str.substring(0, str.length - 1);
+            }
+        }
+        return str;
+    };
+    //identify if the term looks like a breed procedure (e.g. "create-___")
+    //If so, also identify where to look within the term to find the intended breed name
+    const checkBreedLike = function (str) {
+        let result = false;
+        let location = BreedLocation.Null;
+        if (str.match(/^in-[^\s]+-from$/)) {
+            result = true;
+            location = BreedLocation.Middle;
+        }
+        else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
+            result = true;
+            location = BreedLocation.Middle;
+        }
+        else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
+            result = true;
+            location = BreedLocation.Middle;
+        }
+        else if (str.match(/^out-[^\s]+-to$/)) {
+            result = true;
+            location = BreedLocation.Middle;
+        }
+        else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
+            result = true;
+            location = BreedLocation.Middle;
+        }
+        else if (str.match(/^create-ordered-[^\s]+/)) {
+            result = true;
+            location = BreedLocation.Third;
+        }
+        else if (str.match(/^(hatch|sprout|create)-[^\s]+/)) {
+            result = true;
+            location = BreedLocation.Second;
+        }
+        else if (str.match(/[^\s]+-(at)/)) {
+            result = true;
+            location = BreedLocation.First;
+        }
+        else if (str.match(/[^\s]+-here/)) {
+            result = true;
+            location = BreedLocation.First;
+        }
+        else if (str.match(/[^\s]+-neighbors/)) {
+            result = true;
+            location = BreedLocation.First;
+        }
+        else if (str.match(/[^\s]+-on/)) {
+            result = true;
+            location = BreedLocation.First;
+        }
+        else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
+            result = true;
+            location = BreedLocation.First;
+        }
+        else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
+            result = true;
+            location = BreedLocation.Third;
+        }
+        else if (str.match(/^(my)-[^\s]+/)) {
+            result = true;
+            location = BreedLocation.Second;
+        }
+        else if (str.match(/^is-[^\s]+\\?$/)) {
+            result = true;
+            location = BreedLocation.Question;
+        }
+        return [result, location];
+    };
+
     let primitives$2 = PrimitiveManager;
     /** StateNetLogo: Editor state for the NetLogo Language. */
     class StateNetLogo {
@@ -25713,73 +25843,6 @@ if(!String.prototype.matchAll) {
             this.Version = 0;
             /** Mode: The editor's mode: normal, oneline, or embedded. */
             this.Mode = 'normal';
-            //identify if the term looks like a breed procedure (e.g. "create-___")
-            //If so, also identify where to look within the term to find the intended breed name
-            this.checkBreedLike = function (str) {
-                let result = false;
-                let location = '';
-                if (str.match(/^in-[^\s]+-from$/)) {
-                    result = true;
-                    location = 'Middle';
-                }
-                else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-                    result = true;
-                    location = 'Middle';
-                }
-                else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-                    result = true;
-                    location = 'Middle';
-                }
-                else if (str.match(/^out-[^\s]+-to$/)) {
-                    result = true;
-                    location = 'Middle';
-                }
-                else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
-                    result = true;
-                    location = 'Middle';
-                }
-                else if (str.match(/^create-ordered-[^\s]+/)) {
-                    result = true;
-                    location = 'Third';
-                }
-                else if (str.match(/^(hatch|sprout|create)-[^\s]+/)) {
-                    result = true;
-                    location = 'Second';
-                }
-                else if (str.match(/[^\s]+-(at)/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/[^\s]+-here/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/[^\s]+-neighbors/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/[^\s]+-on/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
-                    result = true;
-                    location = 'First';
-                }
-                else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
-                    result = true;
-                    location = 'Third';
-                }
-                else if (str.match(/^(my)-[^\s]+/)) {
-                    result = true;
-                    location = 'Second';
-                }
-                else if (str.match(/^is-[^\s]+\\?$/)) {
-                    result = true;
-                    location = 'Question';
-                }
-                return [result, location];
-            };
             // #endregion
         }
         // #endregion
@@ -25977,7 +26040,7 @@ if(!String.prototype.matchAll) {
                             !cursor.node.name.includes('Special')) {
                             let c = this.getPrimitiveContext(cursor.node, state);
                             if (c) {
-                                context = this.combineContexts(c, context);
+                                context = combineContexts(c, context);
                             }
                         }
                         else if (cursor.node.name == 'VariableDeclaration') {
@@ -26019,7 +26082,7 @@ if(!String.prototype.matchAll) {
                                     }
                                 }
                             }
-                            context = this.combineContexts(c, context);
+                            context = combineContexts(c, context);
                         }
                         child = cursor.nextSibling();
                     }
@@ -26031,22 +26094,6 @@ if(!String.prototype.matchAll) {
             let prim = state.sliceDoc(node.from, node.to);
             let prim_data = primitives$2.GetNamedPrimitive(prim);
             return prim_data === null || prim_data === void 0 ? void 0 : prim_data.AgentContext;
-        }
-        combineContexts(c1, c2) {
-            let final = new AgentContexts();
-            if (!c1.Observer || !c2.Observer) {
-                final.Observer = false;
-            }
-            if (!c1.Turtle || !c2.Turtle) {
-                final.Turtle = false;
-            }
-            if (!c1.Patch || !c2.Patch) {
-                final.Patch = false;
-            }
-            if (!c1.Link || !c2.Link) {
-                final.Link = false;
-            }
-            return final;
         }
         getCodeBlocks(node, state, parentContext, vars, args) {
             let blocks = [];
@@ -26063,9 +26110,9 @@ if(!String.prototype.matchAll) {
                             block.PositionStart = child.from;
                             block.PositionEnd = child.to;
                             block.InheritParentContext = prim.inheritParentContext;
-                            block.Context = this.combineContexts(this.getContext(child, state), this.noContext(prim.context) ? parentContext : prim.context);
-                            if (this.noContext(block.Context)) {
-                                console.log(parentContext, prim.context, this.noContext(prim.context) ? parentContext : prim.context, this.getContext(child, state));
+                            block.Context = combineContexts(this.getContext(child, state), noContext(prim.context) ? parentContext : prim.context);
+                            if (noContext(block.Context)) {
+                                console.log(parentContext, prim.context, noContext(prim.context) ? parentContext : prim.context, this.getContext(child, state));
                             }
                             block.Variables = vars.concat(this.getLocalVars(child.node, state, true));
                             block.Arguments = args;
@@ -26077,33 +26124,6 @@ if(!String.prototype.matchAll) {
                 }
             });
             return blocks;
-        }
-        getBreedName(value) {
-            let result = this.checkBreedLike(value);
-            let str = null;
-            if (result[0]) {
-                //pull out name of possible intended breed
-                let split = value.split('-');
-                if (result[1] == 'Third') {
-                    str = split.slice(2).join('-');
-                }
-                else if (result[1] == 'Second') {
-                    str = split.slice(1).join('-');
-                }
-                else if (result[1] == 'First') {
-                    str = split.slice(0, split.length - 1).join('-');
-                }
-                else if (result[1] == 'Middle') {
-                    str = split.slice(1, split.length - 1).join('-');
-                }
-                else {
-                    str = null;
-                }
-            }
-            return str;
-        }
-        noContext(c) {
-            return !c.Observer && !c.Turtle && !c.Patch && !c.Link;
         }
         getPrimitive(node, state) {
             var _a, _b, _c, _d, _e;
@@ -26131,7 +26151,7 @@ if(!String.prototype.matchAll) {
             }
             if (prim.type.includes('Special')) {
                 prim.isSpecial = true;
-                prim.breed = (_c = this.getBreedName(prim.name)) !== null && _c !== void 0 ? _c : '';
+                prim.breed = (_c = getBreedName(prim.name)) !== null && _c !== void 0 ? _c : '';
                 prim.context = new AgentContexts('null');
                 if (prim.breed != '') {
                     let breed = null;
@@ -26159,7 +26179,7 @@ if(!String.prototype.matchAll) {
                 prim.context = (_d = primitive === null || primitive === void 0 ? void 0 : primitive.BlockContext) !== null && _d !== void 0 ? _d : new AgentContexts('null');
                 prim.inheritParentContext = (_e = primitive === null || primitive === void 0 ? void 0 : primitive.InheritParentContext) !== null && _e !== void 0 ? _e : false;
             }
-            if (this.noContext(prim.context)) {
+            if (noContext(prim.context)) {
                 console.log(prim);
             }
             return prim;
@@ -26237,70 +26257,7 @@ if(!String.prototype.matchAll) {
                     });
                 });
             });
-            // let parentVars = this.getParentVars(Node,State)
-            // localVars=localVars.concat(parentVars.vars)
-            // Node.cursor().iterate((noderef) => {
-            //   if (noderef.node.to > Node.to) {
-            //     return false;
-            //   }
-            //   if (noderef.name == 'CommandStatement') {
-            //     noderef.node.getChildren('VariableDeclaration').map((node) => {
-            //       node.getChildren('NewVariableDeclaration').map((subnode) => {
-            //         subnode.getChildren('Identifier').map((subsubnode) => {
-            //           if (
-            //             !this.getParents(subsubnode).includes('AnonymousProcedure') ||
-            //             !this.getParents(subsubnode).includes('ShortAnonymousProcedure') ||
-            //             !this.getParents(subsubnode).includes('CodeBlock') ||
-            //             isAnon
-            //           ) {
-            //             const variable = new LocalVariable(
-            //               this.getText(State, subsubnode),
-            //               1,
-            //               subsubnode.from
-            //             );
-            //             localVars.push(variable);
-            //           }
-            //         });
-            //       });
-            //     });
-            //   }
-            // });
             return localVars;
-        }
-        getParentVars(Node, state) {
-            let from = Node.from;
-            let to = Node.to;
-            let vars = [];
-            let args = [];
-            for (let p of this.Procedures.values()) {
-                if (p.PositionStart <= from && p.PositionEnd >= to) {
-                    vars = vars.concat(p.Variables);
-                    args = args.concat(p.Arguments);
-                }
-                for (let a of p.AnonymousProcedures) {
-                    if (a.PositionStart <= from && a.PositionEnd >= to) {
-                        vars = vars.concat(a.Variables);
-                        args = args.concat(a.Arguments);
-                    }
-                }
-                for (let b of p.CodeBlocks) {
-                    if (b.PositionStart <= from && b.PositionEnd >= to) {
-                        vars = vars.concat(b.Variables);
-                    }
-                }
-            }
-            vars = [...new Set(vars)];
-            args = [...new Set(args)];
-            return { vars: vars, args: args };
-        }
-        getParents(Node) {
-            let parents = [];
-            let curr = Node;
-            while (curr.parent) {
-                parents.push(curr.parent.name);
-                curr = curr.parent;
-            }
-            return parents;
         }
         getVariables(Node, State) {
             let vars = [];
@@ -26500,7 +26457,7 @@ if(!String.prototype.matchAll) {
     const IdentifierLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         const breedNames = parseState.GetBreedNames();
-        const breedVars = parseState.GetBreedVariables();
+        parseState.GetBreedVariables();
         syntaxTree(view.state)
             .cursor()
             .iterate((noderef) => {
@@ -26509,9 +26466,9 @@ if(!String.prototype.matchAll) {
                 const Node = noderef.node;
                 const value = view.state.sliceDoc(noderef.from, noderef.to);
                 //check if it meets some initial criteria for validity
-                if (!checkValid$1(Node, value, view.state, parseState, breedNames, breedVars)) {
+                if (!checkValid$1(Node, value, view.state, parseState)) {
                     //check if the identifier looks like a breed procedure (e.g. "create-___")
-                    let result = parseState.checkBreedLike(value);
+                    let result = checkBreedLike(value);
                     if (!result[0]) {
                         console.log(noderef.name, (_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name);
                         diagnostics.push({
@@ -26523,24 +26480,7 @@ if(!String.prototype.matchAll) {
                     }
                     else {
                         //pull out name of possible intended breed
-                        let split = value.split('-');
-                        let str = '';
-                        if (result[1] == 'Third') {
-                            str = split.slice(2).join('-');
-                        }
-                        else if (result[1] == 'Second') {
-                            str = split.slice(1).join('-');
-                        }
-                        else if (result[1] == 'First') {
-                            str = split.slice(0, split.length - 1).join('-');
-                        }
-                        else if (result[1] == 'Middle') {
-                            str = split.slice(1, split.length - 1).join('-');
-                        }
-                        else if (result[1] == 'Question') {
-                            str = split.slice(1).join('-');
-                            str = str.substring(0, str.length - 1);
-                        }
+                        let str = getBreedName(value);
                         if (!breedNames.includes(str)) {
                             diagnostics.push({
                                 from: noderef.from,
@@ -26569,8 +26509,10 @@ if(!String.prototype.matchAll) {
         'Extensions',
     ];
     // Checks identifiers for valid variable/procedure/breed names
-    const checkValid$1 = function (Node, value, state, parseState, breedNames, breedVars) {
+    const checkValid$1 = function (Node, value, state, parseState) {
         var _a, _b;
+        let breedNames = parseState.GetBreedNames();
+        let breedVars = parseState.GetBreedVariables();
         let preprocess = state.field(preprocessStateExtension);
         value = value.toLowerCase();
         // checks if parent is in a category that is always valid (e.g. 'Globals')
@@ -26632,9 +26574,6 @@ if(!String.prototype.matchAll) {
         group.map((anonProc) => {
             if (Node.from >= anonProc.PositionStart &&
                 Node.to <= anonProc.PositionEnd) {
-                // anonProc.Variables.map(variable => variable.Name).forEach(name =>
-                //   procedureVars.push(name)
-                // );
                 anonProc.Variables.map((variable) => {
                     if (variable.CreationPos <= Node.from) {
                         procedureVars.push(variable.Name);
@@ -27047,6 +26986,79 @@ if(!String.prototype.matchAll) {
     }
     catch (error) { }
 
+    const classifyPrimitive = function (name) {
+        //classify all types of reporter as 'breed','custom', or builtin
+        if (name.indexOf('Reporter') != -1) {
+            if (name.indexOf('Special') != -1) {
+                if (name.indexOf('Turtle') != -1 ||
+                    name.indexOf('Link') != -1 ||
+                    name.indexOf('Both') != -1) {
+                    name = 'BreedReporter';
+                }
+                else {
+                    name = 'CustomReporter';
+                }
+            }
+            else {
+                name = 'Reporter';
+            }
+        }
+        //classify all types of commands as 'breed','custom', or builtin
+        if (name.indexOf('Command') != -1) {
+            if (name.indexOf('Special') != -1) {
+                if (name.indexOf('Create') != -1) {
+                    name = 'BreedCommand';
+                }
+                else {
+                    name = 'CustomCommand';
+                }
+            }
+            else {
+                name = 'Command';
+            }
+        }
+        return name;
+    };
+    const classifyBreedName = function (term, breeds) {
+        let plurals = [];
+        let singular = [];
+        let closestTerm = '';
+        for (let b of breeds) {
+            plurals.push(b.Plural);
+            singular.push(b.Singular);
+        }
+        if (plurals.includes(term)) {
+            closestTerm = '~BreedPlural';
+        }
+        else {
+            closestTerm = '~BreedSingular';
+        }
+        return closestTerm;
+    };
+    const getLink = function (nodeName, childName, term, state) {
+        let linkData = {
+            to: 0,
+            from: 0,
+            hasLink: false,
+        };
+        syntaxTree(state)
+            .cursor()
+            .iterate((node) => {
+            if (node.name == nodeName) {
+                node.node.getChildren(childName).map((subnode) => {
+                    if (state.sliceDoc(subnode.from, subnode.to) == term) {
+                        linkData = {
+                            to: subnode.to,
+                            from: subnode.from,
+                            hasLink: true,
+                        };
+                    }
+                });
+            }
+        });
+        return linkData;
+    };
+
     /** TooltipExtension: Extension for displaying language-specific tooltips. */
     const tooltipExtension = StateField.define({
         create: getCursorTooltips,
@@ -27064,56 +27076,24 @@ if(!String.prototype.matchAll) {
             state.doc.lineAt(range.from).number == state.doc.lineAt(range.to).number)
             .map((range) => {
             // Check what to display & if the selected range covers more than one token
-            console.log(range.from, range.to);
+            // console.log(range.from, range.to);
             var multipleTokens = false;
-            var lastFrom = 0, lastTo = 0;
+            var lastFrom = 0;
+            var lastTo = 0;
             var closestTerm = '';
             var parentName = '';
             var secondTerm = null;
-            // Iterate inside the tree
+            /* Iterate inside the tree to find node with best tooltip */
             syntaxTree(state).iterate({
                 enter: (ref) => {
-                    // console.log(ref.from,ref.to,range.from,range.to)
-                    if (ref.from == ref.to)
+                    if (ref.from == ref.to || range.to == ref.from)
                         return true;
-                    if (ref.to > range.to || ref.from > range.from) {
-                        // multipleTokens = true;
-                        return true;
-                    }
                     lastFrom = ref.from;
                     lastTo = ref.to;
-                    // console.log(ref.from,ref.to, state.sliceDoc(ref.from,ref.to),ref.name)
                     // Reporters & Commands are very special
-                    var name = ref.name;
-                    if (name.indexOf('Reporter') != -1 && name.indexOf('Args') != -1) {
-                        if (name.indexOf('Special') != -1) {
-                            if (name.indexOf('Turtle') != -1 ||
-                                name.indexOf('Link') != -1 ||
-                                name.indexOf('Both') != -1) {
-                                name = 'BreedReporter';
-                            }
-                            else {
-                                name = 'CustomReporter';
-                            }
-                        }
-                        else {
-                            name = 'Reporter';
-                        }
-                    }
-                    if (name.indexOf('Command') != -1) {
-                        if (name.indexOf('Special') != -1) {
-                            if (name.indexOf('Create') != -1) {
-                                name = 'BreedCommand';
-                            }
-                            else {
-                                name = 'CustomCommand';
-                            }
-                        }
-                        else {
-                            name = 'Command';
-                        }
-                    }
-                    // Check the category name
+                    //classify all types of reporters/commands as 'breed','custom', or builtin
+                    var name = classifyPrimitive(ref.name);
+                    // Check the category name to see if a valid closest term has been found
                     if (closestTerm == '~BreedSingular' ||
                         closestTerm == '~Arguments' ||
                         closestTerm == '~ProcedureName') ;
@@ -27132,55 +27112,52 @@ if(!String.prototype.matchAll) {
             // If so, we won't display tips - that's unnecessary.
             if (lastFrom == lastTo || multipleTokens)
                 return getEmptyTooltip();
+            /* Search for better tooltip depending on selected text */
             // Check if we can directly recognize the youngest children's full-word
             const term = state.sliceDoc(lastFrom, lastTo);
+            // check primitive dictionary
             if (Dictionary.Check(term)) {
                 closestTerm = term;
             }
+            // check if term is a global variable
             else if (state.field(stateExtension).Globals.includes(term)) {
                 closestTerm = '~Globals/Identifier';
             }
+            //check if term is a widget global variable
             else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
                 closestTerm = '~WidgetGlobal';
             }
+            //check if term is the name of a breed
             else if (state.field(stateExtension).GetBreedNames().includes(term)) {
-                let breeds = state.field(stateExtension).GetBreeds();
-                let plurals = [];
-                let singular = [];
-                for (let b of breeds) {
-                    plurals.push(b.Plural);
-                    singular.push(b.Singular);
-                }
-                if (plurals.includes(term)) {
-                    closestTerm = '~BreedPlural';
-                }
-                else {
-                    closestTerm = '~BreedSingular';
-                }
+                closestTerm = classifyBreedName(term, state.field(stateExtension).GetBreeds());
             }
+            //otherwise check if term is a breed variable
             else {
                 secondTerm = State.GetBreedFromVariable(term);
                 if (secondTerm != null) {
                     closestTerm = '~BreedVariable';
                 }
                 else {
+                    //if term is not a breed variable, check if it is a local variable for a procedure
                     if (closestTerm == '~VariableName' ||
                         (parentName == 'Identifier' && closestTerm == '')) {
                         secondTerm = State.GetProcedureFromVariable(term, lastFrom, lastTo);
+                        //if procedure cannot be identified, term is an unidentified local variable
                         if (secondTerm != null)
                             closestTerm = '~LocalVariable';
                     }
                 }
             }
+            //get breed name from breed commands and reporters (e.g. 'create-____')
             if (closestTerm == '~BreedReporter' || closestTerm == '~BreedCommand') {
                 secondTerm = State.GetBreedFromProcedure(term);
             }
             console.log('Term: ' + term, closestTerm, parentName);
             if (closestTerm == '')
                 return getEmptyTooltip();
+            //check if there is an internal link for the tooltip
+            //(e.g. first mention of a variable, or a procedure name)
             let result = getInternalLink(term, closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '', state);
-            console.log(result);
-            console.log(Dictionary.Get(closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : ''));
             // Return the tooltip
             return {
                 pos: range.from,
@@ -27189,12 +27166,14 @@ if(!String.prototype.matchAll) {
                 arrow: true,
                 create: (view) => {
                     const dom = document.createElement('div');
+                    //get message from dictionary/localized
                     var message = Dictionary.Get(closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '');
                     if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
                         message += '➤';
                         dom.addEventListener('click', () => Dictionary.ClickHandler(term));
                         dom.classList.add('cm-tooltip-extendable');
                     }
+                    //if tooltip has internal link, it is added here
                     else if (result.hasLink) {
                         message += '➤';
                         dom.addEventListener('click', () => view.dispatch({
@@ -27228,25 +27207,24 @@ if(!String.prototype.matchAll) {
         };
     }
     /** getInternalLink: Get an internal link for the tooltip. */
+    // e.g. variables would link to first declaration
     function getInternalLink(term, closestTerm, secondTerm, state) {
-        let to = 0;
-        let from = 0;
-        let hasLink = false;
+        let linkData = {
+            to: 0,
+            from: 0,
+            hasLink: false,
+        };
+        //link to declaration of global variable or breed
         if (closestTerm == '~Globals/Identifier') {
-            syntaxTree(state)
-                .cursor()
-                .iterate((node) => {
-                if (node.name == 'Globals') {
-                    node.node.getChildren('Identifier').map((subnode) => {
-                        if (state.sliceDoc(subnode.from, subnode.to) == term) {
-                            to = subnode.to;
-                            from = subnode.from;
-                            hasLink = true;
-                        }
-                    });
-                }
-            });
+            linkData = getLink('Globals', 'Identifier', term, state);
         }
+        else if (closestTerm == '~BreedSingular') {
+            linkData = getLink('Breed', 'BreedSingular', term, state);
+        }
+        else if (closestTerm == '~BreedPlural') {
+            linkData = getLink('Breed', 'BreedPlural', term, state);
+        }
+        //link to node where the breed variable is created
         else if (closestTerm == '~BreedVariable') {
             syntaxTree(state)
                 .cursor()
@@ -27262,45 +27240,16 @@ if(!String.prototype.matchAll) {
                     if (correctNode) {
                         node.node.getChildren('Identifier').map((subnode) => {
                             if (state.sliceDoc(subnode.from, subnode.to) == term) {
-                                to = subnode.to;
-                                from = subnode.from;
-                                hasLink = true;
+                                linkData.to = subnode.to;
+                                linkData.from = subnode.from;
+                                linkData.hasLink = true;
                             }
                         });
                     }
                 }
             });
         }
-        else if (closestTerm == '~BreedSingular') {
-            syntaxTree(state)
-                .cursor()
-                .iterate((node) => {
-                if (node.name == 'Breed') {
-                    node.node.getChildren('BreedSingular').map((subnode) => {
-                        if (state.sliceDoc(subnode.from, subnode.to) == term) {
-                            to = subnode.to;
-                            from = subnode.from;
-                            hasLink = true;
-                        }
-                    });
-                }
-            });
-        }
-        else if (closestTerm == '~BreedPlural') {
-            syntaxTree(state)
-                .cursor()
-                .iterate((node) => {
-                if (node.name == 'Breed') {
-                    node.node.getChildren('BreedPlural').map((subnode) => {
-                        if (state.sliceDoc(subnode.from, subnode.to) == term) {
-                            to = subnode.to;
-                            from = subnode.from;
-                            hasLink = true;
-                        }
-                    });
-                }
-            });
-        }
+        //link to start of the procedure being called
         else if (closestTerm == '~CustomReporter' ||
             closestTerm == '~CustomCommand') {
             syntaxTree(state)
@@ -27310,15 +27259,19 @@ if(!String.prototype.matchAll) {
                     console.log(state.sliceDoc(node.from, node.to));
                 if (node.name == 'ProcedureName' &&
                     state.sliceDoc(node.from, node.to) == term) {
-                    to = node.to;
-                    from = node.from;
-                    hasLink = true;
+                    linkData.to = node.to;
+                    linkData.from = node.from;
+                    linkData.hasLink = true;
                 }
             });
         }
+        //link to node where local variable is defined
+        //this is more complex because local variables can be nested inside blocks or
+        //multiple procedures can have local variables with the same name
         else if (closestTerm == '~LocalVariable') {
             let procName = secondTerm.replace('{anonymous},', '');
             let proc = state.field(stateExtension).Procedures.get(procName);
+            //if term is an argument, link to argument's location
             if (proc === null || proc === void 0 ? void 0 : proc.Arguments.includes(term)) {
                 syntaxTree(state)
                     .cursor()
@@ -27331,27 +27284,29 @@ if(!String.prototype.matchAll) {
                             (_a = node.node
                                 .getChild('Arguments')) === null || _a === void 0 ? void 0 : _a.getChildren('Identifier').map((subnode) => {
                                 if (state.sliceDoc(subnode.from, subnode.to) == term) {
-                                    to = subnode.to;
-                                    from = subnode.from;
-                                    hasLink = true;
+                                    linkData.to = subnode.to;
+                                    linkData.from = subnode.from;
+                                    linkData.hasLink = true;
                                 }
                             });
                         }
                     }
                 });
             }
+            //link to creation pos for non-anonymous procedures
             else if (proc && !secondTerm.includes('{anonymous}')) {
                 for (let vars of proc === null || proc === void 0 ? void 0 : proc.Variables) {
                     if (vars.Name == term) {
                         let subnode = syntaxTree(state).cursorAt(vars.CreationPos).node;
-                        to = subnode.to;
-                        from = subnode.from;
-                        hasLink = true;
+                        linkData.to = subnode.to;
+                        linkData.from = subnode.from;
+                        linkData.hasLink = true;
                     }
                 }
             }
             else if (proc) {
                 for (var anonProc of proc.AnonymousProcedures) {
+                    //link to argument of anonymous procedure
                     if (anonProc.Arguments.includes(term)) {
                         syntaxTree(state).iterate({
                             enter: (noderef) => {
@@ -27360,9 +27315,9 @@ if(!String.prototype.matchAll) {
                                     (((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'AnonArguments' ||
                                         ((_b = noderef.node.parent) === null || _b === void 0 ? void 0 : _b.name) == 'Arguments')) {
                                     if (state.sliceDoc(noderef.from, noderef.to) == term) {
-                                        to = noderef.to;
-                                        from = noderef.from;
-                                        hasLink = true;
+                                        linkData.to = noderef.to;
+                                        linkData.from = noderef.from;
+                                        linkData.hasLink = true;
                                     }
                                 }
                             },
@@ -27370,20 +27325,21 @@ if(!String.prototype.matchAll) {
                             from: anonProc.PositionEnd,
                         });
                     }
+                    //link to local variable of anonymous procedure
                     else {
                         for (var vars of anonProc.Variables) {
                             if (vars.Name == term) {
                                 let subnode = syntaxTree(state).cursorAt(vars.CreationPos).node;
-                                to = subnode.to;
-                                from = subnode.from;
-                                hasLink = true;
+                                linkData.to = subnode.to;
+                                linkData.from = subnode.from;
+                                linkData.hasLink = true;
                             }
                         }
                     }
                 }
             }
         }
-        return { hasLink, to, from };
+        return linkData;
     }
 
     const lightTheme = EditorView.theme({
@@ -29218,14 +29174,6 @@ if(!String.prototype.matchAll) {
                             to: node.to,
                             severity: 'error',
                             message: Localized.Get('Improperly placed procedure _', value),
-                            /* actions: [
-                              {
-                                name: 'Remove',
-                                apply(view, from, to) {
-                                  view.dispatch({ changes: { from, to } });
-                                },
-                              },
-                            ], */
                         });
                     }
                 }
@@ -29236,14 +29184,6 @@ if(!String.prototype.matchAll) {
                         to: node.to,
                         severity: 'error',
                         message: Localized.Get('Unrecognized global statement _', value),
-                        /* actions: [
-                          {
-                            name: 'Remove',
-                            apply(view, from, to) {
-                              view.dispatch({ changes: { from, to } });
-                            },
-                          },
-                        ], */
                     });
                 }
             }
@@ -29343,11 +29283,9 @@ if(!String.prototype.matchAll) {
             }
         }
         if (!isValid && node.name != 'Own') {
-            const breedNames = parseState.GetBreedNames();
-            const breedVars = parseState.GetBreedVariables();
             // Why do we need this one?
             //We need it to check if it is actually a valid identifier, e.g. a variable name
-            isValid = checkValid$1(node, value, state, parseState, breedNames, breedVars);
+            isValid = checkValid$1(node, value, state, parseState);
         }
         return isValid;
     };
@@ -29685,6 +29623,9 @@ if(!String.prototype.matchAll) {
     });
 
     // UnsupportedLinter: Checks for unsupported primitives
+    //Important note: anything with a colon and no supported extension is tokenized as
+    //'UnsupportedPrim', so acceptable uses of variable names that include colons need
+    //to be filtered out here
     const UnsupportedLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         let indices = [];
@@ -29701,21 +29642,13 @@ if(!String.prototype.matchAll) {
                 ((_e = node.node.parent) === null || _e === void 0 ? void 0 : _e.name) != 'ProcedureName') ||
                 unsupported.includes(value)) &&
                 !indices.includes(node.from) &&
-                !checkValid$1(node.node, value, view.state, parseState, parseState.GetBreedNames(), parseState.GetBreedVariables())) {
+                !checkValid$1(node.node, value, view.state, parseState)) {
                 indices.push(node.from);
                 diagnostics.push({
                     from: node.from,
                     to: node.to,
                     severity: 'warning',
                     message: Localized.Get('Unsupported statement _', value),
-                    /* actions: [
-                      {
-                        name: 'Remove',
-                        apply(view, from, to) {
-                          view.dispatch({ changes: { from, to } });
-                        },
-                      },
-                    ], */
                 });
             }
         });
@@ -29754,7 +29687,7 @@ if(!String.prototype.matchAll) {
                     ((_c = noderef.node.parent) === null || _c === void 0 ? void 0 : _c.name) != 'Arguments' &&
                     ((_d = noderef.node.parent) === null || _d === void 0 ? void 0 : _d.name) != 'AnonArguments' &&
                     ((_e = noderef.node.parent) === null || _e === void 0 ? void 0 : _e.name) != 'ProcedureName' &&
-                    !checkValid$1(noderef.node, view.state.sliceDoc(noderef.from, noderef.to), view.state, parseState, parseState.GetBreedNames(), parseState.GetBreedVariables()))) &&
+                    !checkValid$1(noderef.node, view.state.sliceDoc(noderef.from, noderef.to), view.state, parseState))) &&
                 !noderef.name.includes('Special')) {
                 const value = view.state
                     .sliceDoc(noderef.from, noderef.to)
@@ -29838,12 +29771,6 @@ if(!String.prototype.matchAll) {
                     matched = true;
                 }
             }
-            // else if (['CloseBracket','CloseParen'].includes(node.name)){
-            //   match =matchBrackets(view.state,node.from,-1)
-            //   if (match && match.matched){
-            //     matched = true
-            //   }
-            // }
             if (!matched &&
                 ((node.name == 'OpenBracket' &&
                     ((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.getChildren('CloseBracket').length) != 1) ||
@@ -29933,14 +29860,14 @@ if(!String.prototype.matchAll) {
     const ContextLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         for (let p of parseState.Procedures.values()) {
-            diagnostics.push(...checkProcedureContents(p, parseState));
+            diagnostics.push(...checkProcedureContents(p));
         }
         return diagnostics;
     });
     const checkProcedureContents = function (p, parseState) {
         let diagnostics = [];
-        if (!checkValidContext(p.Context)) {
-            //console.log(p);
+        //checks if current procedure/code block has at least one valid context
+        if (noContext(p.Context)) {
             diagnostics.push({
                 from: p.PositionStart,
                 to: p.PositionEnd,
@@ -29949,13 +29876,14 @@ if(!String.prototype.matchAll) {
             });
         }
         else {
+            //checks nested anonymous procedures and codeblocks for valid context
             for (let a of p.AnonymousProcedures) {
-                diagnostics.push(...checkProcedureContents(a, parseState));
+                diagnostics.push(...checkProcedureContents(a));
             }
             for (let c of p.CodeBlocks) {
-                diagnostics.push(...checkProcedureContents(c, parseState));
+                diagnostics.push(...checkProcedureContents(c));
                 if (c.InheritParentContext &&
-                    parseState.noContext(parseState.combineContexts(c.Context, p.Context))) {
+                    noContext(combineContexts(c.Context, p.Context))) {
                     diagnostics.push({
                         from: c.PositionStart,
                         to: c.PositionEnd,
@@ -29967,9 +29895,9 @@ if(!String.prototype.matchAll) {
         }
         return diagnostics;
     };
-    const checkValidContext = function (c) {
-        return c.Observer || c.Turtle || c.Patch || c.Link;
-    };
+    // const checkValidContext = function (c: AgentContexts) {
+    //   return c.Observer || c.Turtle || c.Patch || c.Link;
+    // };
 
     const netlogoLinters = [
         CompilerLinter,
@@ -30071,90 +29999,65 @@ if(!String.prototype.matchAll) {
                 }
                 else if (node.name == 'CodeBlock' &&
                     checkBlock(node.node, 'ProcedureContent', doc)) {
-                    node.node.getChildren('ProcedureContent').map((child) => {
-                        if (doc[child.from - 1] != '\n') {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
-                        }
-                    });
-                    node.node.getChildren('CloseBracket').map((child) => {
-                        if (doc[child.from - 1] != '\n') {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
-                        }
-                    });
+                    for (var name of ['ProcedureContent', 'CloseBracket']) {
+                        node.node.getChildren(name).map((child) => {
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
+                        });
+                    }
                 }
                 else if (node.name == 'ReporterBlock' &&
                     checkBlock(node.node, 'ReporterContent', doc)) {
-                    node.node.getChildren('ReporterContent').map((child) => {
-                        if (doc[child.from - 1] != '\n') {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
-                        }
-                    });
-                    node.node.getChildren('CloseBracket').map((child) => {
-                        if (doc[child.from - 1] != '\n') {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
-                        }
-                    });
+                    for (var name of ['ReporterContent', 'CloseBracket']) {
+                        node.node.getChildren(name).map((child) => {
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
+                        });
+                    }
                 }
                 else if (node.name == 'AnonymousProcedure' &&
                     (checkBlock(node.node, 'ReporterContent', doc) ||
                         checkBlock(node.node, 'ProcedureContent', doc))) {
                     // console.log(changes.length);
-                    node.node.getChildren('ProcedureContent').map((child) => {
-                        if (doc[child.from - 1] != '\n') {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
-                        }
-                    });
-                    node.node.getChildren('ReporterContent').map((child) => {
-                        if (doc[child.from - 1] != '\n') {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
-                        }
-                    });
-                    node.node.getChildren('CloseBracket').map((child) => {
-                        if (doc[child.from - 1] != '\n') {
-                            changes.push({ from: child.from, to: child.from, insert: '\n' });
-                        }
-                    });
-                    // console.log(changes.length);
+                    for (var name of [
+                        'ProcedureContent',
+                        'ReporterContent',
+                        'CloseBracket',
+                    ]) {
+                        node.node.getChildren(name).map((child) => {
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
+                        });
+                    }
                 }
-                // else if(node.name=='CommandStatement' && view.state.sliceDoc(node.from,node.to).startsWith('ifelse')){
-                //   node.node.getChildren('Arg').map((subnode)=>{
-                //     subnode.node.getChildren('CodeBlock').map(child=>{
-                //       if(doc[child.from-1]!='\n'){
-                //   changes.push({ from: child.from, to: child.from, insert: '\n' });
-                // }
-                //     })
-                //   })
-                // }
                 if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
                     if (doc.substring(node.from, node.to).includes('\n')) {
-                        node.node.getChildren('CloseBracket').map((child) => {
-                            // console.log(doc.substring(node.from, node.to));
-                            if (doc[child.from - 1] != '\n') {
-                                changes.push({
-                                    from: child.from,
-                                    to: child.from,
-                                    insert: '\n',
-                                });
-                            }
-                        });
-                        node.node.getChildren('Extension').map((child) => {
-                            if (doc[child.from - 1] != '\n') {
-                                changes.push({
-                                    from: child.from,
-                                    to: child.from,
-                                    insert: '\n',
-                                });
-                            }
-                        });
-                        node.node.getChildren('Identifier').map((child) => {
-                            if (doc[child.from - 1] != '\n') {
-                                changes.push({
-                                    from: child.from,
-                                    to: child.from,
-                                    insert: '\n',
-                                });
-                            }
-                        });
+                        for (var name of ['CloseBracket', 'Extension', 'Identifier']) {
+                            node.node.getChildren(name).map((child) => {
+                                if (doc[child.from - 1] != '\n') {
+                                    changes.push({
+                                        from: child.from,
+                                        to: child.from,
+                                        insert: '\n',
+                                    });
+                                }
+                            });
+                        }
                     }
                 }
                 if (node.name.includes('Args') && !node.name.includes('Special')) {
