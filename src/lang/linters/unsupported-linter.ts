@@ -3,7 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 import { unsupported } from '../keywords';
-import { checkValid } from './identifier-linter';
+import { checkValidIdentifier } from './identifier-linter';
 
 // UnsupportedLinter: Checks for unsupported primitives
 
@@ -26,7 +26,7 @@ export const UnsupportedLinter = buildLinter((view, parseState) => {
           node.node.parent?.name != 'ProcedureName') ||
           unsupported.includes(value)) &&
         !indices.includes(node.from) &&
-        !checkValid(node.node, value, view.state, parseState)
+        !checkValidIdentifier(node.node, value, view.state, parseState)
       ) {
         indices.push(node.from);
         diagnostics.push({

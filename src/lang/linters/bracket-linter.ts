@@ -3,7 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 
-// BracketLinter: Checks if all brackets have matches
+// BracketLinter: Checks if all brackets/parentheses have matches
 export const BracketLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)

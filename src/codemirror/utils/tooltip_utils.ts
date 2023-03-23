@@ -3,6 +3,7 @@ import { StateField, EditorState, EditorSelection } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 
+/** classifyPrimitive: Identify type of reporter/command for appropriate tooltip. */
 export const classifyPrimitive = function (name: string) {
   //classify all types of reporter as 'breed','custom', or builtin
   if (name.indexOf('Reporter') != -1) {
@@ -36,6 +37,7 @@ export const classifyPrimitive = function (name: string) {
   return name;
 };
 
+/** classifyBreedName: Identify if breed name is plural or singular. */
 export const classifyBreedName = function (term: string, breeds: Breed[]) {
   let plurals: string[] = [];
   let singular: string[] = [];
@@ -52,6 +54,7 @@ export const classifyBreedName = function (term: string, breeds: Breed[]) {
   return closestTerm;
 };
 
+/** getLink: Identify internal link for tooltips (e.g. creation of variable). */
 export const getLink = function (
   nodeName: string,
   childName: string,

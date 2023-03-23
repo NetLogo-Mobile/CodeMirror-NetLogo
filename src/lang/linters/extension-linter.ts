@@ -3,11 +3,12 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
-import { checkValid } from './identifier-linter';
+import { checkValidIdentifier } from './identifier-linter';
 
 let primitives = PrimitiveManager;
 
-//Checks if extension primitives are used without declaring the extension, or invalid extensions are declared
+//ExtensionLinter: Checks if extension primitives are used without declaring
+//the extension, or invalid extensions are declared
 export const ExtensionLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   let extension_index = 0;
@@ -37,7 +38,7 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
             noderef.node.parent?.name != 'Arguments' &&
             noderef.node.parent?.name != 'AnonArguments' &&
             noderef.node.parent?.name != 'ProcedureName' &&
-            !checkValid(
+            !checkValidIdentifier(
               noderef.node,
               view.state.sliceDoc(noderef.from, noderef.to),
               view.state,

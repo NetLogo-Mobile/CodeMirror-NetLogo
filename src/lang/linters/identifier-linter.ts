@@ -5,12 +5,7 @@ import { EditorState } from '@codemirror/state';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
-import {
-  AnonymousProcedure,
-  Procedure,
-  CodeBlock,
-  BreedLocation,
-} from '../classes';
+import { Procedure, CodeBlock } from '../classes';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 import {
   checkBreedLike,
@@ -29,7 +24,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
         const Node = noderef.node;
         const value = view.state.sliceDoc(noderef.from, noderef.to);
         //check if it meets some initial criteria for validity
-        if (!checkValid(Node, value, view.state, parseState)) {
+        if (!checkValidIdentifier(Node, value, view.state, parseState)) {
           //check if the identifier looks like a breed procedure (e.g. "create-___")
           let result = checkBreedLike(value);
           if (!result[0]) {
@@ -72,8 +67,8 @@ const acceptableIdentifiers = [
   'Extensions',
 ];
 
-// Checks identifiers for valid variable/procedure/breed names
-export const checkValid = function (
+// checkValidIdentifier: Checks identifiers for valid variable/procedure/breed names
+export const checkValidIdentifier = function (
   Node: SyntaxNode,
   value: string,
   state: EditorState,
@@ -103,7 +98,7 @@ export const checkValid = function (
   return procedureVars.includes(value);
 };
 
-// collects list of valid local variables for given position
+// getLocalVars: collects list of valid local variables for given position
 export const getLocalVars = function (
   Node: SyntaxNode,
   state: EditorState,
@@ -145,6 +140,7 @@ export const getLocalVars = function (
   return procedureVars;
 };
 
+//gatherAnonVars: collects out valid local variables from anonymous procedures and code blocks
 const gatherAnonVars = function (
   group: CodeBlock[] | Procedure[],
   Node: SyntaxNode

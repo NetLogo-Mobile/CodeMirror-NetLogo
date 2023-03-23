@@ -1,5 +1,6 @@
 import { BreedLocation } from '../../lang/classes';
 
+/** getBreedName: Parse the breed primitive for breed name. */
 export const getBreedName = function (value: string) {
   let result = checkBreedLike(value);
   let str = '';
@@ -22,8 +23,8 @@ export const getBreedName = function (value: string) {
   return str;
 };
 
-//identify if the term looks like a breed procedure (e.g. "create-___")
-//If so, also identify where to look within the term to find the intended breed name
+/** checkBreedLike: Identify if an identifier looks like a breed procedure,
+ and where the breed name is inside that identifier **/
 export const checkBreedLike = function (str: string) {
   let result = false;
   let location = BreedLocation.Null;

@@ -2,7 +2,6 @@ import { StateField, Transaction, EditorState } from '@codemirror/state';
 
 import { syntaxTree } from '@codemirror/language';
 import {
-  AnonymousProcedure,
   Breed,
   LocalVariable,
   Procedure,
@@ -10,7 +9,7 @@ import {
   AgentContexts,
 } from '../lang/classes';
 import { combineContexts, noContext } from './utils/context_utils';
-import { checkBreedLike, getBreedName } from './utils/breed_utils';
+import { getBreedName } from './utils/breed_utils';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
@@ -52,6 +51,7 @@ export class StateNetLogo {
     }
     return breedNames;
   }
+  /** GetBreeds: Get list of breeds. */
   public GetBreeds(): Breed[] {
     var breedList: Breed[] = [];
     for (let breed of this.Breeds.values()) {
@@ -74,7 +74,7 @@ export class StateNetLogo {
     }
     return null;
   }
-
+  /** GetBreedFromProcedure: Get breed name from breed procedure. */
   public GetBreedFromProcedure(term: string): string | null {
     let breed = '';
     for (let b of this.GetBreedNames()) {
@@ -210,6 +210,7 @@ export class StateNetLogo {
     }
   }
 
+  /** getProcedure: Gather all information about a procedure. */
   private getProcedure(node: SyntaxNode, State: EditorState): Procedure {
     let procedure = new Procedure();
     procedure.PositionStart = node.from;
@@ -237,6 +238,7 @@ export class StateNetLogo {
     return procedure;
   }
 
+  /** getContext: Identify context of a block by looking at primitives and variable names. */
   private getContext(node: SyntaxNode, state: EditorState) {
     let context = new AgentContexts();
     node.getChildren('ProcedureContent').map((node2) => {
@@ -299,12 +301,14 @@ export class StateNetLogo {
     return context;
   }
 
+  /** getPrimitiveContext: Identify context for a builtin primitive. */
   private getPrimitiveContext(node: SyntaxNode, state: EditorState) {
     let prim = state.sliceDoc(node.from, node.to);
     let prim_data = primitives.GetNamedPrimitive(prim);
     return prim_data?.AgentContext;
   }
 
+  /** getCodeBlocks: Gather all information about a given code block. */
   private getCodeBlocks(
     node: SyntaxNode,
     state: EditorState,
@@ -358,6 +362,7 @@ export class StateNetLogo {
     return blocks;
   }
 
+  /** getPrimitive: Gather information about the primitive whose argument is a code block. */
   private getPrimitive(node: SyntaxNode, state: EditorState) {
     let prim = {
       name: '',
@@ -424,6 +429,7 @@ export class StateNetLogo {
     return prim;
   }
 
+  /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */
   private searchAnonProcedure(
     node: SyntaxNode,
     State: EditorState,
@@ -448,6 +454,7 @@ export class StateNetLogo {
     return anonymousProcedures;
   }
 
+  /** checkRanges: Identify whether a node is inside the set of procedures or code blocks. */
   private checkRanges(
     procedures: Procedure[] | CodeBlock[],
     node: SyntaxNode
@@ -461,6 +468,7 @@ export class StateNetLogo {
     return included;
   }
 
+  /** getAnonProcedure: Gather information about the anonymous procedure. */
   private getAnonProcedure(
     noderef: SyntaxNodeRef,
     State: EditorState,
@@ -499,12 +507,12 @@ export class StateNetLogo {
     return anonProc;
   }
 
-  // getText: Get the text of a node.
+  /** getText: Get text for a given node. */
   private getText(State: EditorState, Node: SyntaxNode): string {
     return State.sliceDoc(Node.from, Node.to).toLowerCase();
   }
 
-  // get local variables for the procedure
+  /** getLocalVars: Collect local variables within a node. */
   private getLocalVars(
     Node: SyntaxNode,
     State: EditorState,
@@ -538,6 +546,7 @@ export class StateNetLogo {
     return localVars;
   }
 
+  /** getVariables: Get global or breed variables. */
   private getVariables(Node: SyntaxNode, State: EditorState): string[] {
     let vars: string[] = [];
     Node.cursor().iterate((noderef) => {
@@ -562,7 +571,7 @@ export class StateNetLogo {
     return [...new Set(vars)];
   }
 
-  // get arguments for the procedure
+  /** getArgs: Identify arguments for a given procedure. */
   private getArgs(Node: SyntaxNode, State: EditorState): string[] {
     const args: string[] = [];
     Node.getChildren('Arguments').map((node) => {

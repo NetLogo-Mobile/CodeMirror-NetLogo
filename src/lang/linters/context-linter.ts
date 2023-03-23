@@ -1,15 +1,14 @@
-import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
-import { AgentContexts, Procedure, CodeBlock } from '../classes';
+import { Procedure, CodeBlock } from '../classes';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import {
   combineContexts,
   noContext,
 } from '../../codemirror/utils/context_utils';
 
-//Checks if procedures and code blocks have a valid context
+//ContextLinter: Checks if procedures and code blocks have a valid context
 export const ContextLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   for (let p of parseState.Procedures.values()) {
@@ -18,6 +17,7 @@ export const ContextLinter = buildLinter((view, parseState) => {
   return diagnostics;
 });
 
+//checkProcedureContents: Checks contents of procedures and codeblocks for valid context
 const checkProcedureContents = function (
   p: Procedure | CodeBlock,
   parseState: StateNetLogo
@@ -56,7 +56,3 @@ const checkProcedureContents = function (
   }
   return diagnostics;
 };
-
-// const checkValidContext = function (c: AgentContexts) {
-//   return c.Observer || c.Turtle || c.Patch || c.Link;
-// };

@@ -3,7 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
-import { checkValid } from './identifier-linter';
+import { checkValidIdentifier } from './identifier-linter';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -39,14 +39,6 @@ export const BreedLinter = buildLinter((view, parseState) => {
             to: noderef.to,
             severity: 'error',
             message: Localized.Get('Unrecognized breed name _', value),
-            /* actions: [
-              {
-                name: 'Remove',
-                apply(view, from, to) {
-                  view.dispatch({ changes: { from, to } });
-                },
-              },
-            ], */
           });
         }
       }
@@ -54,8 +46,8 @@ export const BreedLinter = buildLinter((view, parseState) => {
   return diagnostics;
 });
 
-// Checks if the term in the structure of a breed command/reporter is the name
-// of an actual breed, and in the correct singular/plural form
+// checkValidBreed: Checks if the term in the structure of a breed command/reporter
+// is the name of an actual breed, and in the correct singular/plural form
 const checkValidBreed = function (
   node: SyntaxNode,
   value: string,
@@ -112,12 +104,12 @@ const checkValidBreed = function (
   if (!isValid && node.name != 'Own') {
     // Why do we need this one?
     //We need it to check if it is actually a valid identifier, e.g. a variable name
-    isValid = checkValid(node, value, state, parseState);
+    isValid = checkValidIdentifier(node, value, state, parseState);
   }
   return isValid;
 };
 
-//checks if any member of a list is in a string
+//listItemInString: checks if any member of a list is in a string
 const listItemInString = function (str: string, lst: string[]) {
   let found = false;
   for (let l of lst) {

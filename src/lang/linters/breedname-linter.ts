@@ -3,7 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 
-// Ensures no duplicate breed names
+// BreedNameLinter: Ensures no duplicate breed names
 export const BreedNameLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   let seen: string[] = [];

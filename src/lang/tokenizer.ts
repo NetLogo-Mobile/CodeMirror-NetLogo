@@ -6,7 +6,6 @@ import {
   patchVars,
   linkVars,
   constants,
-  unsupported,
 } from './keywords';
 
 import {
@@ -16,13 +15,11 @@ import {
   End,
   Directive,
   Command,
-  Extension,
   Reporter,
   TurtleVar,
   PatchVar,
   LinkVar,
   Constant,
-  Unsupported,
   Identifier,
   Own,
   GlobalStr,

@@ -1,5 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
-import { Tooltip, hoverTooltip, EditorView } from '@codemirror/view';
+import { hoverTooltip, EditorView } from '@codemirror/view';
 import { Localized } from '../i18n/localized';
 import { Dictionary } from '../i18n/dictionary';
 import { stateExtension } from './extension-state-netlogo';

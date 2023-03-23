@@ -3,7 +3,6 @@ import { StateField, EditorState, EditorSelection } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { Dictionary } from '../i18n/dictionary';
-import { SyntaxNode } from '@lezer/common';
 import { stateExtension } from './extension-state-netlogo';
 import { Localized } from '../i18n/localized';
 import {

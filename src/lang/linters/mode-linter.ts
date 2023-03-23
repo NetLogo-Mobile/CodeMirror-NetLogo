@@ -1,6 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { GalapagosEditor } from '../../editor';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 

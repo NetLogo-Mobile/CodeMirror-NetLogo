@@ -1,8 +1,6 @@
 import { ParseContext } from '@codemirror/language';
 import { preprocessStateExtension } from '../codemirror/extension-state-preprocess.js';
 import {
-  ReportersAll,
-  ReporterVarArgs,
   Reporter0Args,
   Reporter1Args,
   Reporter2Args,

@@ -10,7 +10,7 @@ import { buildLinter } from './linter-builder';
 
 let primitives = PrimitiveManager;
 
-// Checks number of arguments
+// ArgumentLinter: ensure all primitives have an acceptable number of arguments
 export const ArgumentLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
@@ -73,7 +73,7 @@ export const ArgumentLinter = buildLinter((view, parseState) => {
         //ensures there is a primitive to check
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
           //identify the errors and terms to be conveyed in error message
-          const result = checkValid(view.state, args);
+          const result = checkValidNumArgs(view.state, args);
           let error_type = result[0];
           let func = result[1];
           let expected = result[2];
@@ -138,7 +138,7 @@ export const ArgumentLinter = buildLinter((view, parseState) => {
   );
 });
 
-//collects everything used as an argument so it can be counted
+//getArgs: collects everything used as an argument so it can be counted
 export const getArgs = function (Node: SyntaxNode) {
   let cursor = Node.cursor();
   let args: {
@@ -191,8 +191,8 @@ export const getArgs = function (Node: SyntaxNode) {
   return args;
 };
 
-//checks if correct number of arguments are present
-export const checkValid = function (
+//checkValidNumArgs: checks if correct number of arguments are present
+export const checkValidNumArgs = function (
   state: EditorState,
   args: {
     leftArgs: SyntaxNode | null;
@@ -297,7 +297,7 @@ export const checkValid = function (
   }
 };
 
-//get number of args for breed procedures that are commands
+//getBreedCommandArgs: get number of args for breed procedures that are commands
 const getBreedCommandArgs = function (func: string) {
   if (func.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
     return 2;
@@ -308,7 +308,7 @@ const getBreedCommandArgs = function (func: string) {
   }
 };
 
-//parse # args from node name
+//getBreedProcedureArgs: parse number of arguments for breed procedures
 const getBreedProcedureArgs = function (func_type: string) {
   let match = func_type.match(/[A-Za-z]*(\d)[A-Za-z]*/);
   if (match) {

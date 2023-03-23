@@ -25,14 +25,6 @@ export const UnrecognizedLinter = buildLinter((view, parseState) => {
             to: node.to,
             severity: 'error',
             message: Localized.Get('Unrecognized statement _', value),
-            /* actions: [
-              {
-                name: 'Remove',
-                apply(view, from, to) {
-                  view.dispatch({ changes: { from, to } });
-                },
-              },
-            ], */
           });
         }
       }

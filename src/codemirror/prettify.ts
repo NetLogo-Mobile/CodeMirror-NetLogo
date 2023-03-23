@@ -1,8 +1,8 @@
-import { getIndentation, indentRange, syntaxTree } from '@codemirror/language';
+import { indentRange, syntaxTree } from '@codemirror/language';
 import { EditorView } from 'codemirror';
-import { EditorSelection } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
 
+/** prettify: Change selection to fit formatting standards. */
 export const prettify = function (view: EditorView) {
   let from = view.state.selection.main.from;
   let to = view.state.selection.main.to;
@@ -39,6 +39,7 @@ export const prettify = function (view: EditorView) {
   });
 };
 
+/** prettifyAll: Make whole code file follow formatting standards. */
 export const prettifyAll = function (view: EditorView) {
   let doc = view.state.doc.toString();
 
@@ -62,6 +63,7 @@ export const prettifyAll = function (view: EditorView) {
   });
 };
 
+/** initialSpaceRemoval: Make initial spacing adjustments. */
 const initialSpaceRemoval = function (doc: string) {
   let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
   new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
@@ -77,6 +79,7 @@ const initialSpaceRemoval = function (doc: string) {
   return new_doc;
 };
 
+/** finalSpacing: Make final spacing adjustments. */
 const finalSpacing = function (doc: string) {
   let new_doc = doc.replace(/\n[ ]+/g, '\n');
   new_doc = new_doc.replace(/[ ]+\n/g, '\n');
@@ -86,10 +89,10 @@ const finalSpacing = function (doc: string) {
   return new_doc;
 };
 
+/** addSpacing: Give certain types of nodes their own lines. */
 const addSpacing = function (view: EditorView, from: number, to: number) {
   let changes: { from: number; insert: string; to?: number }[] = [];
   let doc = view.state.doc.toString();
-  //give certain nodes their own lines
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
@@ -181,7 +184,7 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
   return changes;
 };
 
-//checks if code block needs to be multiline
+/** checkBlock: checks if code block needs to be multiline. */
 const checkBlock = function (node: SyntaxNode, childName: string, doc: string) {
   let count = 0;
   let multiline = false;
