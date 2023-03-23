@@ -21416,7 +21416,7 @@ if(!String.prototype.matchAll) {
                 type == "delete" && cur(tr.startState) == this.from)
                 return new ActiveSource(this.source, type == "input" && conf.activateOnTyping ? 1 /* State.Pending */ : 0 /* State.Inactive */);
             let explicitPos = this.explicitPos < 0 ? -1 : tr.changes.mapPos(this.explicitPos), updated;
-            if (checkValid$2(this.result.validFor, tr.state, from, to))
+            if (checkValid(this.result.validFor, tr.state, from, to))
                 return new ActiveResult(this.source, explicitPos, this.result, from, to);
             if (this.result.update &&
                 (updated = this.result.update(this.result, from, to, new CompletionContext(tr.state, pos, explicitPos >= 0))))
@@ -21431,7 +21431,7 @@ if(!String.prototype.matchAll) {
                 new ActiveResult(this.source, this.explicitPos < 0 ? -1 : mapping.mapPos(this.explicitPos), this.result, mapping.mapPos(this.from), mapping.mapPos(this.to, 1));
         }
     }
-    function checkValid$2(validFor, state, from, to) {
+    function checkValid(validFor, state, from, to) {
         if (!validFor)
             return false;
         let text = state.sliceDoc(from, to);
@@ -25705,6 +25705,7 @@ if(!String.prototype.matchAll) {
       tokenPrec: 0
     });
 
+    /** combineContexts: Identify contexts acceptable to both of two different contexts. */
     const combineContexts = function (c1, c2) {
         let final = new AgentContexts();
         if (!c1.Observer || !c2.Observer) {
@@ -25721,10 +25722,12 @@ if(!String.prototype.matchAll) {
         }
         return final;
     };
+    /** noContext: Identify if there is no valid context. */
     const noContext = function (context) {
         return (!context.Observer && !context.Turtle && !context.Patch && !context.Link);
     };
 
+    /** getBreedName: Parse the breed primitive for breed name. */
     const getBreedName = function (value) {
         let result = checkBreedLike(value);
         let str = '';
@@ -25750,8 +25753,8 @@ if(!String.prototype.matchAll) {
         }
         return str;
     };
-    //identify if the term looks like a breed procedure (e.g. "create-___")
-    //If so, also identify where to look within the term to find the intended breed name
+    /** checkBreedLike: Identify if an identifier looks like a breed procedure,
+     and where the breed name is inside that identifier **/
     const checkBreedLike = function (str) {
         let result = false;
         let location = BreedLocation.Null;
@@ -25856,6 +25859,7 @@ if(!String.prototype.matchAll) {
             }
             return breedNames;
         }
+        /** GetBreeds: Get list of breeds. */
         GetBreeds() {
             var breedList = [];
             for (let breed of this.Breeds.values()) {
@@ -25879,6 +25883,7 @@ if(!String.prototype.matchAll) {
             }
             return null;
         }
+        /** GetBreedFromProcedure: Get breed name from breed procedure. */
         GetBreedFromProcedure(term) {
             let breed = '';
             for (let b of this.GetBreedNames()) {
@@ -26011,6 +26016,7 @@ if(!String.prototype.matchAll) {
                 }
             }
         }
+        /** getProcedure: Gather all information about a procedure. */
         getProcedure(node, State) {
             let procedure = new Procedure();
             procedure.PositionStart = node.from;
@@ -26027,6 +26033,7 @@ if(!String.prototype.matchAll) {
             procedure.CodeBlocks = this.getCodeBlocks(node, State, procedure.Context, procedure.Variables, procedure.Arguments);
             return procedure;
         }
+        /** getContext: Identify context of a block by looking at primitives and variable names. */
         getContext(node, state) {
             let context = new AgentContexts();
             node.getChildren('ProcedureContent').map((node2) => {
@@ -26090,11 +26097,13 @@ if(!String.prototype.matchAll) {
             });
             return context;
         }
+        /** getPrimitiveContext: Identify context for a builtin primitive. */
         getPrimitiveContext(node, state) {
             let prim = state.sliceDoc(node.from, node.to);
             let prim_data = primitives$2.GetNamedPrimitive(prim);
             return prim_data === null || prim_data === void 0 ? void 0 : prim_data.AgentContext;
         }
+        /** getCodeBlocks: Gather all information about a given code block. */
         getCodeBlocks(node, state, parentContext, vars, args) {
             let blocks = [];
             node.cursor().iterate((noderef) => {
@@ -26125,6 +26134,7 @@ if(!String.prototype.matchAll) {
             });
             return blocks;
         }
+        /** getPrimitive: Gather information about the primitive whose argument is a code block. */
         getPrimitive(node, state) {
             var _a, _b, _c, _d, _e;
             let prim = {
@@ -26184,6 +26194,7 @@ if(!String.prototype.matchAll) {
             }
             return prim;
         }
+        /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */
         searchAnonProcedure(node, State, procedure) {
             let anonymousProcedures = [];
             node.cursor().iterate((noderef) => {
@@ -26199,6 +26210,7 @@ if(!String.prototype.matchAll) {
             });
             return anonymousProcedures;
         }
+        /** checkRanges: Identify whether a node is inside the set of procedures or code blocks. */
         checkRanges(procedures, node) {
             let included = false;
             for (let p of procedures) {
@@ -26208,6 +26220,7 @@ if(!String.prototype.matchAll) {
             }
             return included;
         }
+        /** getAnonProcedure: Gather information about the anonymous procedure. */
         getAnonProcedure(noderef, State, procedure) {
             let anonProc = new Procedure();
             anonProc.PositionStart = noderef.from;
@@ -26234,11 +26247,11 @@ if(!String.prototype.matchAll) {
             anonProc.AnonymousProcedures = this.searchAnonProcedure(Node, State, anonProc);
             return anonProc;
         }
-        // getText: Get the text of a node.
+        /** getText: Get text for a given node. */
         getText(State, Node) {
             return State.sliceDoc(Node.from, Node.to).toLowerCase();
         }
-        // get local variables for the procedure
+        /** getLocalVars: Collect local variables within a node. */
         getLocalVars(Node, State, isAnon) {
             let localVars = [];
             Node.getChildren('ProcedureContent').map((node1) => {
@@ -26259,6 +26272,7 @@ if(!String.prototype.matchAll) {
             });
             return localVars;
         }
+        /** getVariables: Get global or breed variables. */
         getVariables(Node, State) {
             let vars = [];
             Node.cursor().iterate((noderef) => {
@@ -26280,7 +26294,7 @@ if(!String.prototype.matchAll) {
             });
             return [...new Set(vars)];
         }
-        // get arguments for the procedure
+        /** getArgs: Identify arguments for a given procedure. */
         getArgs(Node, State) {
             const args = [];
             Node.getChildren('Arguments').map((node) => {
@@ -26466,7 +26480,7 @@ if(!String.prototype.matchAll) {
                 const Node = noderef.node;
                 const value = view.state.sliceDoc(noderef.from, noderef.to);
                 //check if it meets some initial criteria for validity
-                if (!checkValid$1(Node, value, view.state, parseState)) {
+                if (!checkValidIdentifier(Node, value, view.state, parseState)) {
                     //check if the identifier looks like a breed procedure (e.g. "create-___")
                     let result = checkBreedLike(value);
                     if (!result[0]) {
@@ -26508,8 +26522,8 @@ if(!String.prototype.matchAll) {
         'BreedsOwn',
         'Extensions',
     ];
-    // Checks identifiers for valid variable/procedure/breed names
-    const checkValid$1 = function (Node, value, state, parseState) {
+    // checkValidIdentifier: Checks identifiers for valid variable/procedure/breed names
+    const checkValidIdentifier = function (Node, value, state, parseState) {
         var _a, _b;
         let breedNames = parseState.GetBreedNames();
         let breedVars = parseState.GetBreedVariables();
@@ -26534,7 +26548,7 @@ if(!String.prototype.matchAll) {
         //checks if the identifier is in the list of possible variables
         return procedureVars.includes(value);
     };
-    // collects list of valid local variables for given position
+    // getLocalVars: collects list of valid local variables for given position
     const getLocalVars = function (Node, state, parseState) {
         // get the procedure name
         let curr_node = Node;
@@ -26569,6 +26583,7 @@ if(!String.prototype.matchAll) {
         }
         return procedureVars;
     };
+    //gatherAnonVars: collects out valid local variables from anonymous procedures and code blocks
     const gatherAnonVars = function (group, Node) {
         let procedureVars = [];
         group.map((anonProc) => {
@@ -26986,6 +27001,7 @@ if(!String.prototype.matchAll) {
     }
     catch (error) { }
 
+    /** classifyPrimitive: Identify type of reporter/command for appropriate tooltip. */
     const classifyPrimitive = function (name) {
         //classify all types of reporter as 'breed','custom', or builtin
         if (name.indexOf('Reporter') != -1) {
@@ -27019,6 +27035,7 @@ if(!String.prototype.matchAll) {
         }
         return name;
     };
+    /** classifyBreedName: Identify if breed name is plural or singular. */
     const classifyBreedName = function (term, breeds) {
         let plurals = [];
         let singular = [];
@@ -27035,6 +27052,7 @@ if(!String.prototype.matchAll) {
         }
         return closestTerm;
     };
+    /** getLink: Identify internal link for tooltips (e.g. creation of variable). */
     const getLink = function (nodeName, childName, term, state) {
         let linkData = {
             to: 0,
@@ -29218,22 +29236,14 @@ if(!String.prototype.matchAll) {
                         to: noderef.to,
                         severity: 'error',
                         message: Localized.Get('Unrecognized breed name _', value),
-                        /* actions: [
-                          {
-                            name: 'Remove',
-                            apply(view, from, to) {
-                              view.dispatch({ changes: { from, to } });
-                            },
-                          },
-                        ], */
                     });
                 }
             }
         });
         return diagnostics;
     });
-    // Checks if the term in the structure of a breed command/reporter is the name
-    // of an actual breed, and in the correct singular/plural form
+    // checkValidBreed: Checks if the term in the structure of a breed command/reporter
+    // is the name of an actual breed, and in the correct singular/plural form
     const checkValidBreed = function (node, value, state, parseState, breeds) {
         let isValid = true;
         //collect possible breed names in the correct categories
@@ -29285,11 +29295,11 @@ if(!String.prototype.matchAll) {
         if (!isValid && node.name != 'Own') {
             // Why do we need this one?
             //We need it to check if it is actually a valid identifier, e.g. a variable name
-            isValid = checkValid$1(node, value, state, parseState);
+            isValid = checkValidIdentifier(node, value, state, parseState);
         }
         return isValid;
     };
-    //checks if any member of a list is in a string
+    //listItemInString: checks if any member of a list is in a string
     const listItemInString = function (str, lst) {
         let found = false;
         for (let l of lst) {
@@ -29322,14 +29332,6 @@ if(!String.prototype.matchAll) {
                         to: node.to,
                         severity: 'error',
                         message: Localized.Get('Unrecognized statement _', value),
-                        /* actions: [
-                          {
-                            name: 'Remove',
-                            apply(view, from, to) {
-                              view.dispatch({ changes: { from, to } });
-                            },
-                          },
-                        ], */
                     });
                 }
             }
@@ -29338,7 +29340,7 @@ if(!String.prototype.matchAll) {
     });
 
     let primitives$1 = PrimitiveManager;
-    // Checks number of arguments
+    // ArgumentLinter: ensure all primitives have an acceptable number of arguments
     const ArgumentLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         syntaxTree(view.state)
@@ -29394,7 +29396,7 @@ if(!String.prototype.matchAll) {
                 //ensures there is a primitive to check
                 if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
                     //identify the errors and terms to be conveyed in error message
-                    const result = checkValid(view.state, args);
+                    const result = checkValidNumArgs(view.state, args);
                     let error_type = result[0];
                     let func = result[1];
                     let expected = result[2];
@@ -29438,7 +29440,7 @@ if(!String.prototype.matchAll) {
         return diagnostics.filter((d) => d.from >= view.state.selection.ranges[0].to ||
             d.to <= view.state.selection.ranges[0].from);
     });
-    //collects everything used as an argument so it can be counted
+    //getArgs: collects everything used as an argument so it can be counted
     const getArgs = function (Node) {
         var _a, _b;
         let cursor = Node.cursor();
@@ -29486,8 +29488,8 @@ if(!String.prototype.matchAll) {
         }
         return args;
     };
-    //checks if correct number of arguments are present
-    const checkValid = function (state, args) {
+    //checkValidNumArgs: checks if correct number of arguments are present
+    const checkValidNumArgs = function (state, args) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
         //get the text/name of the primitive
         let func = state.sliceDoc((_a = args.func) === null || _a === void 0 ? void 0 : _a.from, (_b = args.func) === null || _b === void 0 ? void 0 : _b.to).toLowerCase();
@@ -29576,7 +29578,7 @@ if(!String.prototype.matchAll) {
             }
         }
     };
-    //get number of args for breed procedures that are commands
+    //getBreedCommandArgs: get number of args for breed procedures that are commands
     const getBreedCommandArgs = function (func) {
         if (func.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
             return 2;
@@ -29588,7 +29590,7 @@ if(!String.prototype.matchAll) {
             return null;
         }
     };
-    //parse # args from node name
+    //getBreedProcedureArgs: parse number of arguments for breed procedures
     const getBreedProcedureArgs = function (func_type) {
         let match = func_type.match(/[A-Za-z]*(\d)[A-Za-z]*/);
         if (match) {
@@ -29642,7 +29644,7 @@ if(!String.prototype.matchAll) {
                 ((_e = node.node.parent) === null || _e === void 0 ? void 0 : _e.name) != 'ProcedureName') ||
                 unsupported.includes(value)) &&
                 !indices.includes(node.from) &&
-                !checkValid$1(node.node, value, view.state, parseState)) {
+                !checkValidIdentifier(node.node, value, view.state, parseState)) {
                 indices.push(node.from);
                 diagnostics.push({
                     from: node.from,
@@ -29656,7 +29658,8 @@ if(!String.prototype.matchAll) {
     });
 
     let primitives = PrimitiveManager;
-    //Checks if extension primitives are used without declaring the extension, or invalid extensions are declared
+    //ExtensionLinter: Checks if extension primitives are used without declaring
+    //the extension, or invalid extensions are declared
     const ExtensionLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         let extension_index = 0;
@@ -29687,7 +29690,7 @@ if(!String.prototype.matchAll) {
                     ((_c = noderef.node.parent) === null || _c === void 0 ? void 0 : _c.name) != 'Arguments' &&
                     ((_d = noderef.node.parent) === null || _d === void 0 ? void 0 : _d.name) != 'AnonArguments' &&
                     ((_e = noderef.node.parent) === null || _e === void 0 ? void 0 : _e.name) != 'ProcedureName' &&
-                    !checkValid$1(noderef.node, view.state.sliceDoc(noderef.from, noderef.to), view.state, parseState))) &&
+                    !checkValidIdentifier(noderef.node, view.state.sliceDoc(noderef.from, noderef.to), view.state, parseState))) &&
                 !noderef.name.includes('Special')) {
                 const value = view.state
                     .sliceDoc(noderef.from, noderef.to)
@@ -29731,7 +29734,7 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     });
 
-    // Ensures no duplicate breed names
+    // BreedNameLinter: Ensures no duplicate breed names
     const BreedNameLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         let seen = [];
@@ -29756,7 +29759,7 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     });
 
-    // BracketLinter: Checks if all brackets have matches
+    // BracketLinter: Checks if all brackets/parentheses have matches
     const BracketLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         syntaxTree(view.state)
@@ -29856,7 +29859,7 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     });
 
-    //Checks if procedures and code blocks have a valid context
+    //ContextLinter: Checks if procedures and code blocks have a valid context
     const ContextLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         for (let p of parseState.Procedures.values()) {
@@ -29864,6 +29867,7 @@ if(!String.prototype.matchAll) {
         }
         return diagnostics;
     });
+    //checkProcedureContents: Checks contents of procedures and codeblocks for valid context
     const checkProcedureContents = function (p, parseState) {
         let diagnostics = [];
         //checks if current procedure/code block has at least one valid context
@@ -29895,9 +29899,6 @@ if(!String.prototype.matchAll) {
         }
         return diagnostics;
     };
-    // const checkValidContext = function (c: AgentContexts) {
-    //   return c.Observer || c.Turtle || c.Patch || c.Link;
-    // };
 
     const netlogoLinters = [
         CompilerLinter,
@@ -29915,6 +29916,7 @@ if(!String.prototype.matchAll) {
         ContextLinter,
     ];
 
+    /** prettify: Change selection to fit formatting standards. */
     const prettify = function (view) {
         let from = view.state.selection.main.from;
         let to = view.state.selection.main.to;
@@ -29938,6 +29940,7 @@ if(!String.prototype.matchAll) {
             changes: indentRange(view.state, view.state.selection.main.from, view.state.selection.main.to),
         });
     };
+    /** prettifyAll: Make whole code file follow formatting standards. */
     const prettifyAll = function (view) {
         let doc = view.state.doc.toString();
         //eliminate extra spacing
@@ -29956,6 +29959,7 @@ if(!String.prototype.matchAll) {
             changes: indentRange(view.state, 0, view.state.doc.toString().length),
         });
     };
+    /** initialSpaceRemoval: Make initial spacing adjustments. */
     const initialSpaceRemoval = function (doc) {
         let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
         new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
@@ -29970,6 +29974,7 @@ if(!String.prototype.matchAll) {
         new_doc = new_doc.replace(/\n\n+/g, '\n\n');
         return new_doc;
     };
+    /** finalSpacing: Make final spacing adjustments. */
     const finalSpacing = function (doc) {
         let new_doc = doc.replace(/\n[ ]+/g, '\n');
         new_doc = new_doc.replace(/[ ]+\n/g, '\n');
@@ -29978,10 +29983,10 @@ if(!String.prototype.matchAll) {
         new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
         return new_doc;
     };
+    /** addSpacing: Give certain types of nodes their own lines. */
     const addSpacing = function (view, from, to) {
         let changes = [];
         let doc = view.state.doc.toString();
-        //give certain nodes their own lines
         syntaxTree(view.state)
             .cursor()
             .iterate((node) => {
@@ -30068,7 +30073,7 @@ if(!String.prototype.matchAll) {
         });
         return changes;
     };
-    //checks if code block needs to be multiline
+    /** checkBlock: checks if code block needs to be multiline. */
     const checkBlock = function (node, childName, doc) {
         let count = 0;
         let multiline = false;
