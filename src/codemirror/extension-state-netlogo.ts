@@ -16,7 +16,7 @@ import { PrimitiveManager } from '../lang/primitives/primitives';
 
 let primitives = PrimitiveManager;
 
-/** StateNetLogo: Editor state for the NetLogo Language. */
+/** StateNetLogo: The second-pass editor state for the NetLogo Language. */
 export class StateNetLogo {
   // #region "Information"
   /** Extensions: Extensions in the code. */

@@ -1,6 +1,6 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
 
-/** StatePreprocess: Editor state for the NetLogo Language. */
+/** StatePreprocess: The first-pass state for the NetLogo Language. */
 export class StatePreprocess {
   /** PluralBreeds: Breeds in the model. */
   public PluralBreeds: string[] = [];

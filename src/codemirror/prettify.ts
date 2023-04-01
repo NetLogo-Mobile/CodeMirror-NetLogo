@@ -8,12 +8,12 @@ export const prettify = function (view: EditorView) {
   let to = view.state.selection.main.to;
   let doc = view.state.doc.toString().substring(from, to);
 
-  //eliminate extra spacing
+  // eliminate extra spacing
   let new_doc = initialSpaceRemoval(doc);
   view.dispatch(view.state.replaceSelection(new_doc));
   view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
 
-  //add in new lines based on grammar
+  // add in new lines based on grammar
   view.dispatch({
     changes: addSpacing(
       view,
@@ -22,14 +22,14 @@ export const prettify = function (view: EditorView) {
     ),
   });
 
-  //ensure spacing is correct
+  // ensure spacing is correct
   from = view.state.selection.main.from;
   to = view.state.selection.main.to;
   new_doc = finalSpacing(view.state.doc.toString().substring(from, to));
   view.dispatch(view.state.replaceSelection(new_doc));
   view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
 
-  //add indentation
+  // add indentation
   view.dispatch({
     changes: indentRange(
       view.state,
@@ -43,21 +43,21 @@ export const prettify = function (view: EditorView) {
 export const prettifyAll = function (view: EditorView) {
   let doc = view.state.doc.toString();
 
-  //eliminate extra spacing
+  // eliminate extra spacing
   let new_doc = initialSpaceRemoval(doc);
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
 
-  //give certain nodes their own lines
+  // give certain nodes their own lines
   view.dispatch({
     changes: addSpacing(view, 0, view.state.doc.toString().length),
   });
 
-  //ensure spacing is correct
+  // ensure spacing is correct
   doc = view.state.doc.toString();
   new_doc = finalSpacing(doc);
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
 
-  //add indentation
+  // add indentation
   view.dispatch({
     changes: indentRange(view.state, 0, view.state.doc.toString().length),
   });
