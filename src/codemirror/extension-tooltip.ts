@@ -4,12 +4,12 @@ import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { Dictionary } from '../i18n/dictionary';
 import { StateNetLogo, stateExtension } from './extension-state-netlogo';
-import { Localized } from '../i18n/localized';
 import {
   classifyPrimitive,
   classifyBreedName,
   getLink,
 } from './utils/tooltip_utils';
+import { Localized } from '../editor';
 
 /** TooltipExtension: Extension for displaying language-specific tooltips. */
 export const tooltipExtension = StateField.define<readonly Tooltip[]>({

@@ -21,6 +21,11 @@ if(!String.prototype.matchAll) {
 }
       `,
     },
-    plugins: [typescript(), nodeResolve()],
+    plugins: [
+      typescript({
+        tsconfig: './tsconfig.json',
+      }),
+      nodeResolve(),
+    ],
   },
 ];

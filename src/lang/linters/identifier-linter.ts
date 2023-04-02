@@ -3,7 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
-import { Localized } from '../../i18n/localized';
+import { Localized } from '../../editor';
 import { buildLinter } from './linter-builder';
 import { Procedure, CodeBlock } from '../classes';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';

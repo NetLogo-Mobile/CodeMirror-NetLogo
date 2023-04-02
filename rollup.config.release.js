@@ -22,6 +22,12 @@ if(!String.prototype.matchAll) {
 }
       `,
     },
-    plugins: [typescript(), nodeResolve(), uglify()],
+    plugins: [
+      typescript({
+        tsconfig: './tsconfig.json',
+      }),
+      nodeResolve(),
+      uglify(),
+    ],
   },
 ];

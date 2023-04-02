@@ -38,9 +38,9 @@ import { netlogoLinters } from './lang/linters/linters';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
 import { prettify, prettifyAll } from './codemirror/prettify.js';
-import { hoverExtension } from './codemirror/extension-hover-tooltip.js';
 import { forEachDiagnostic, Diagnostic } from '@codemirror/lint';
 import { lintSources } from './lang/linters/linter-builder';
+import { LocalizationManager } from './i18n/localized.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -93,7 +93,6 @@ export class GalapagosEditor {
         Dictionary.ClickHandler = Options.OnDictionaryClick;
         if (!this.Options.OneLine) {
           Extensions.push(tooltipExtension);
-          // Extensions.push(hoverExtension);
           Extensions.push(...netlogoLinters);
         }
     }
@@ -569,6 +568,9 @@ export class GalapagosEditor {
 }
 
 /** Export classes globally. */
+const Localized = new LocalizationManager();
 try {
   (window as any).GalapagosEditor = GalapagosEditor;
+  (window as any).EditorLocalized = Localized;
 } catch (error) {}
+export { Localized };

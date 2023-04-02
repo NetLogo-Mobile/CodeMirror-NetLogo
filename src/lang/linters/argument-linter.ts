@@ -5,8 +5,8 @@ import { EditorState } from '@codemirror/state';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
-import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
+import { Localized } from '../../editor';
 
 let primitives = PrimitiveManager;
 
@@ -138,7 +138,7 @@ export const ArgumentLinter = buildLinter((view, parseState) => {
   );
 });
 
-//getArgs: collects everything used as an argument so it can be counted
+// getArgs: collects everything used as an argument so it can be counted
 export const getArgs = function (Node: SyntaxNode) {
   let cursor = Node.cursor();
   let args: {
@@ -191,7 +191,7 @@ export const getArgs = function (Node: SyntaxNode) {
   return args;
 };
 
-//checkValidNumArgs: checks if correct number of arguments are present
+// checkValidNumArgs: checks if correct number of arguments are present
 export const checkValidNumArgs = function (
   state: EditorState,
   args: {
@@ -297,7 +297,7 @@ export const checkValidNumArgs = function (
   }
 };
 
-//getBreedCommandArgs: get number of args for breed procedures that are commands
+// getBreedCommandArgs: get number of args for breed procedures that are commands
 const getBreedCommandArgs = function (func: string) {
   if (func.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
     return 2;
@@ -308,7 +308,7 @@ const getBreedCommandArgs = function (func: string) {
   }
 };
 
-//getBreedProcedureArgs: parse number of arguments for breed procedures
+// getBreedProcedureArgs: parse number of arguments for breed procedures
 const getBreedProcedureArgs = function (func_type: string) {
   let match = func_type.match(/[A-Za-z]*(\d)[A-Za-z]*/);
   if (match) {

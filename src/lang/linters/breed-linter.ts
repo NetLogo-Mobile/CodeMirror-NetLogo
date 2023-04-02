@@ -4,7 +4,7 @@ import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { checkValidIdentifier } from './identifier-linter';
-import { Localized } from '../../i18n/localized';
+import { Localized } from '../../editor';
 import { buildLinter } from './linter-builder';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore

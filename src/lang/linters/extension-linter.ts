@@ -1,6 +1,6 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { Localized } from '../../i18n/localized';
+import { Localized } from '../../editor';
 import { buildLinter } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
 import { checkValidIdentifier } from './identifier-linter';

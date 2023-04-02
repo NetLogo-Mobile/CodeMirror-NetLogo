@@ -1,6 +1,3 @@
-import { linter } from '@codemirror/lint';
-import { EditorView } from '@codemirror/view';
-import { stateExtension } from '../../codemirror/extension-state-netlogo';
 import { buildLinter } from './linter-builder';
 
 // CompilerLinter: Present all linting results from the compiler.

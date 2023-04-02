@@ -1,5 +1,5 @@
 import { Diagnostic } from '@codemirror/lint';
-import { Localized } from '../../i18n/localized';
+import { Localized } from '../../editor';
 import { buildLinter } from './linter-builder';
 import { Procedure, CodeBlock } from '../classes';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
