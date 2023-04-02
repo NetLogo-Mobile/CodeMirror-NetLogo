@@ -26520,145 +26520,6 @@ if(!String.prototype.matchAll) {
         },
     });
 
-    const en_us = {
-        // Buttons
-        Add: () => 'Add',
-        // Linting messages
-        'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
-        'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
-        'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
-        'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
-        'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
-        'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
-        'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
-        'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
-        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
-        'Missing extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
-        'Unsupported missing extension _.': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
-        'Unsupported extension _.': (Name) => `The extension "${Name}" is not supported in this editor.`,
-        'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
-        'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
-        'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
-        'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
-        'Unmatched item _': (Current, Expected) => `This "${Current}" needs a matching ${Expected}.`,
-        'Invalid context _.': (Current, Expected) => `The context for this code block is invalid.`,
-        // Help messages
-        '~VariableName': (Name) => `A (unknown) variable. `,
-        '~ProcedureName': (Name) => `The name of a procedure. `,
-        '~Arguments': (Name) => `The name of an argument. `,
-        '~PatchVar': (Name) => `A built-in variable for every patch. `,
-        '~TurtleVar': (Name) => `A built-in variable for every turtle. `,
-        '~LinkVar': (Name) => `A built-in variable for every link. `,
-        '~Reporter': (Name) => `A NetLogo reporter. `,
-        '~Command': (Name) => `A NetLogo command. `,
-        '~Constant': (Name) => `A NetLogo constant. `,
-        '~Extension': (Name) => `A NetLogo extension. `,
-        '~Numeric': (Name) => `A number. `,
-        '~String': (Name) => `A string, which is a sequence of characters.`,
-        '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code. `,
-        '~Globals/Identifier': (Name) => `A code-defined global variable. `,
-        '~WidgetGlobal': (Name) => `A widget-defined global variable. `,
-        '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed. `,
-        '~BreedPlural': (Name) => `The plural name of a model-defined breed. `,
-        '~BreedSingular': (Name) => `The singular name of a model-defined breed. `,
-        '~BreedVariable': (Name) => `A custom variable for the "${Name}" breed. `,
-        '~LocalVariable': (Name) => `A local variable within the "${Name.includes('{anonymous}') ? '{anonymous}' : Name}" procedure or reporter. `,
-        '~BreedReporter': (Name) => `A reporter for the "${Name}" breed. `,
-        '~CustomReporter': (Name) => `A user-defined reporter. `,
-        '~BreedCommand': (Name) => `A command for the "${Name}" breed. `,
-        '~CustomCommand': (Name) => `A user-defined command. `,
-    };
-
-    const zh_cn = {
-        // Buttons
-        Add: () => '添加',
-        // Linting messages
-        'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
-        'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
-        'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
-        'Unrecognized statement _': (Name) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
-        'Unsupported statement _': (Name) => `此版本 NetLogo 不支持 "${Name}"。`,
-        'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" 不是有效的原语。预计 "${Expected}" 却得到 "${Actual}"。`,
-        'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要 ${Expected} 个左侧参数，但代码中只有 ${Actual} 个。`,
-        'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
-        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
-        'Invalid extension _.': (Name) => `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
-        'Breed name _ already used.': (Name) => `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
-        'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
-        'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
-        'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
-        'Unmatched item _': (Current, Expected) => `"${Current}" 需要对应的 ${Expected}。`,
-        'Invalid context _.': (Current, Expected) => `这个代码块的上下文不正确。`,
-        'Unsupported extension _.': (Name) => `这个编辑器不支持扩展 "${Name}"。`,
-        'Missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
-        'Unsupported missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
-        // Help messages
-        '~VariableName': (Name) => `一个（未知的）变量。`,
-        '~ProcedureName': (Name) => `过程或函数的名称。`,
-        '~Arguments/Identifier': (Name) => `过程或函数定义的参数名称。`,
-        '~PatchVar': (Name) => `格子的内置变量。`,
-        '~TurtleVar': (Name) => `海龟的内置变量。`,
-        '~LinkVar': (Name) => `链接的内置变量。`,
-        '~Reporter': (Name) => `NetLogo 语言的内置函数。`,
-        '~Command': (Name) => `NetLogo 语言的内置命令。`,
-        '~Constant': (Name) => `NetLogo 语言规定的常量。`,
-        '~Extension': (Name) => `NetLogo 语言的扩展。`,
-        '~Numeric': (Name) => `一个数字。`,
-        '~String': (Name) => `字符串，或者说一串文字。`,
-        '~LineComment': (Name) => `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,
-        '~Globals/Identifier': (Name) => `模型代码中定义的全局变量。`,
-        '~BreedVars/Identifier': (Name) => `某类模型中定义的海龟或链接具有的变量。`,
-        '~BreedPlural': (Name) => `某类模型中定义的海龟的复数名称。`,
-        '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
-        '~WidgetGlobal': (Name) => `通过界面组件定义的全局变量。 `,
-        '~BreedVariable': (Name) => `种类 "${Name}" 定义的变量。`,
-        '~LocalVariable': (Name) => `"${Name.includes('{anonymous}') ? '{匿名}' : Name}" 过程或函数定义的本地变量。 `,
-        '~BreedReporter': (Name) => `关于 "${Name}" 种类的函数。`,
-        '~CustomReporter': (Name) => `代码中定义的一个函数。`,
-        '~BreedCommand': (Name) => `关于 "${Name}" 种类的过程。 `,
-        '~CustomCommand': (Name) => `代码中定义的一个过程。`,
-    };
-
-    /** LocalizationManager: Manage all localized texts. */
-    class LocalizationManager {
-        constructor() {
-            this.Current = en_us;
-        }
-        /** Get: Get a localized key. */
-        Get(Key, ...Args) {
-            var Bundle = this.Current;
-            if (!Bundle.hasOwnProperty(Key))
-                Bundle = en_us;
-            if (!Bundle.hasOwnProperty(Key))
-                return null;
-            try {
-                return Bundle[Key].apply(this, Args);
-            }
-            catch (_a) {
-                return `Error in producing message: ${Key}`;
-            }
-        }
-        /** Switch: Switch to another language. */
-        Switch(Locale) {
-            switch (Locale.toLowerCase()) {
-                case 'zh_cn':
-                case 'chinese':
-                    this.Current = zh_cn;
-                    break;
-                default:
-                    this.Current = en_us;
-                    break;
-            }
-        }
-    }
-    /** Singleton */
-    const Localized = new LocalizationManager();
-    /** Global singleton */
-    try {
-        window.EditorLocalized = Localized;
-    }
-    catch (error) { }
-
     /** lintSources: All available lint sources. */
     const lintSources = [];
     const buildLinter = function (Source) {
@@ -29660,7 +29521,7 @@ if(!String.prototype.matchAll) {
         return diagnostics.filter((d) => d.from >= view.state.selection.ranges[0].to ||
             d.to <= view.state.selection.ranges[0].from);
     });
-    //getArgs: collects everything used as an argument so it can be counted
+    // getArgs: collects everything used as an argument so it can be counted
     const getArgs = function (Node) {
         var _a, _b;
         let cursor = Node.cursor();
@@ -29708,7 +29569,7 @@ if(!String.prototype.matchAll) {
         }
         return args;
     };
-    //checkValidNumArgs: checks if correct number of arguments are present
+    // checkValidNumArgs: checks if correct number of arguments are present
     const checkValidNumArgs = function (state, args) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
         //get the text/name of the primitive
@@ -29798,7 +29659,7 @@ if(!String.prototype.matchAll) {
             }
         }
     };
-    //getBreedCommandArgs: get number of args for breed procedures that are commands
+    // getBreedCommandArgs: get number of args for breed procedures that are commands
     const getBreedCommandArgs = function (func) {
         if (func.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
             return 2;
@@ -29810,7 +29671,7 @@ if(!String.prototype.matchAll) {
             return null;
         }
     };
-    //getBreedProcedureArgs: parse number of arguments for breed procedures
+    // getBreedProcedureArgs: parse number of arguments for breed procedures
     const getBreedProcedureArgs = function (func_type) {
         let match = func_type.match(/[A-Za-z]*(\d)[A-Za-z]*/);
         if (match) {
@@ -30319,6 +30180,138 @@ if(!String.prototype.matchAll) {
         return ((multiline || multilineChildren) && count == 1) || count > 1;
     };
 
+    const en_us = {
+        // Buttons
+        Add: () => 'Add',
+        // Linting messages
+        'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
+        'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
+        'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
+        'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
+        'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
+        'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
+        'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
+        'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
+        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
+        'Missing extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+        'Unsupported missing extension _.': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
+        'Unsupported extension _.': (Name) => `The extension "${Name}" is not supported in this editor.`,
+        'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
+        'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
+        'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
+        'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
+        'Unmatched item _': (Current, Expected) => `This "${Current}" needs a matching ${Expected}.`,
+        'Invalid context _.': (Current, Expected) => `The context for this code block is invalid.`,
+        // Help messages
+        '~VariableName': (Name) => `A (unknown) variable. `,
+        '~ProcedureName': (Name) => `The name of a procedure. `,
+        '~Arguments': (Name) => `The name of an argument. `,
+        '~PatchVar': (Name) => `A built-in variable for every patch. `,
+        '~TurtleVar': (Name) => `A built-in variable for every turtle. `,
+        '~LinkVar': (Name) => `A built-in variable for every link. `,
+        '~Reporter': (Name) => `A NetLogo reporter. `,
+        '~Command': (Name) => `A NetLogo command. `,
+        '~Constant': (Name) => `A NetLogo constant. `,
+        '~Extension': (Name) => `A NetLogo extension. `,
+        '~Numeric': (Name) => `A number. `,
+        '~String': (Name) => `A string, which is a sequence of characters.`,
+        '~LineComment': (Name) => `Comments do nothing in the program, but could help others read the code. `,
+        '~Globals/Identifier': (Name) => `A code-defined global variable. `,
+        '~WidgetGlobal': (Name) => `A widget-defined global variable. `,
+        '~BreedVars/Identifier': (Name) => `A model-defined variable for a breed. `,
+        '~BreedPlural': (Name) => `The plural name of a model-defined breed. `,
+        '~BreedSingular': (Name) => `The singular name of a model-defined breed. `,
+        '~BreedVariable': (Name) => `A custom variable for the "${Name}" breed. `,
+        '~LocalVariable': (Name) => `A local variable within the "${Name.includes('{anonymous}') ? '{anonymous}' : Name}" procedure or reporter. `,
+        '~BreedReporter': (Name) => `A reporter for the "${Name}" breed. `,
+        '~CustomReporter': (Name) => `A user-defined reporter. `,
+        '~BreedCommand': (Name) => `A command for the "${Name}" breed. `,
+        '~CustomCommand': (Name) => `A user-defined command. `,
+    };
+
+    const zh_cn = {
+        // Buttons
+        Add: () => '添加',
+        // Linting messages
+        'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
+        'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
+        'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
+        'Unrecognized statement _': (Name) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
+        'Unsupported statement _': (Name) => `此版本 NetLogo 不支持 "${Name}"。`,
+        'Problem identifying primitive _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" 不是有效的原语。预计 "${Expected}" 却得到 "${Actual}"。`,
+        'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要 ${Expected} 个左侧参数，但代码中只有 ${Actual} 个。`,
+        'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
+        'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
+        'Invalid extension _.': (Name) => `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
+        'Breed name _ already used.': (Name) => `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
+        'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
+        'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
+        'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
+        'Unmatched item _': (Current, Expected) => `"${Current}" 需要对应的 ${Expected}。`,
+        'Invalid context _.': (Current, Expected) => `这个代码块的上下文不正确。`,
+        'Unsupported extension _.': (Name) => `这个编辑器不支持扩展 "${Name}"。`,
+        'Missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
+        'Unsupported missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
+        // Help messages
+        '~VariableName': (Name) => `一个（未知的）变量。`,
+        '~ProcedureName': (Name) => `过程或函数的名称。`,
+        '~Arguments/Identifier': (Name) => `过程或函数定义的参数名称。`,
+        '~PatchVar': (Name) => `格子的内置变量。`,
+        '~TurtleVar': (Name) => `海龟的内置变量。`,
+        '~LinkVar': (Name) => `链接的内置变量。`,
+        '~Reporter': (Name) => `NetLogo 语言的内置函数。`,
+        '~Command': (Name) => `NetLogo 语言的内置命令。`,
+        '~Constant': (Name) => `NetLogo 语言规定的常量。`,
+        '~Extension': (Name) => `NetLogo 语言的扩展。`,
+        '~Numeric': (Name) => `一个数字。`,
+        '~String': (Name) => `字符串，或者说一串文字。`,
+        '~LineComment': (Name) => `注释在代码中没有直接作用，但可以帮助其他人理解代码。`,
+        '~Globals/Identifier': (Name) => `模型代码中定义的全局变量。`,
+        '~BreedVars/Identifier': (Name) => `某类模型中定义的海龟或链接具有的变量。`,
+        '~BreedPlural': (Name) => `某类模型中定义的海龟的复数名称。`,
+        '~BreedSingular': (Name) => `某类模型中定义的海龟的单数名称。`,
+        '~WidgetGlobal': (Name) => `通过界面组件定义的全局变量。 `,
+        '~BreedVariable': (Name) => `种类 "${Name}" 定义的变量。`,
+        '~LocalVariable': (Name) => `"${Name.includes('{anonymous}') ? '{匿名}' : Name}" 过程或函数定义的本地变量。 `,
+        '~BreedReporter': (Name) => `关于 "${Name}" 种类的函数。`,
+        '~CustomReporter': (Name) => `代码中定义的一个函数。`,
+        '~BreedCommand': (Name) => `关于 "${Name}" 种类的过程。 `,
+        '~CustomCommand': (Name) => `代码中定义的一个过程。`,
+    };
+
+    /** LocalizationManager: Manage all localized texts. */
+    class LocalizationManager {
+        constructor() {
+            this.Current = en_us;
+        }
+        /** Get: Get a localized key. */
+        Get(Key, ...Args) {
+            var Bundle = this.Current;
+            if (!Bundle.hasOwnProperty(Key))
+                Bundle = en_us;
+            if (!Bundle.hasOwnProperty(Key))
+                return null;
+            try {
+                return Bundle[Key].apply(this, Args);
+            }
+            catch (_a) {
+                return `Error in producing message: ${Key}`;
+            }
+        }
+        /** Switch: Switch to another language. */
+        Switch(Locale) {
+            switch (Locale.toLowerCase()) {
+                case 'zh_cn':
+                case 'chinese':
+                    this.Current = zh_cn;
+                    break;
+                default:
+                    this.Current = en_us;
+                    break;
+            }
+        }
+    }
+
     /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
     class GalapagosEditor {
         /** Constructor: Create an editor instance. */
@@ -30357,7 +30350,6 @@ if(!String.prototype.matchAll) {
                     Dictionary.ClickHandler = Options.OnDictionaryClick;
                     if (!this.Options.OneLine) {
                         Extensions.push(tooltipExtension);
-                        // Extensions.push(hoverExtension);
                         Extensions.push(...netlogoLinters);
                     }
             }
@@ -30750,12 +30742,15 @@ if(!String.prototype.matchAll) {
         }
     }
     /** Export classes globally. */
+    const Localized = new LocalizationManager();
     try {
         window.GalapagosEditor = GalapagosEditor;
+        window.EditorLocalized = Localized;
     }
     catch (error) { }
 
     exports.GalapagosEditor = GalapagosEditor;
+    exports.Localized = Localized;
 
     Object.defineProperty(exports, '__esModule', { value: true });
 
