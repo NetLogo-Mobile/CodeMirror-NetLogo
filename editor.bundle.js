@@ -29884,6 +29884,8 @@ if(!String.prototype.matchAll) {
     /** ModeLinter: Checks if mode matches grammar. */
     const ModeLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
+        if (view.state.doc.length == 0)
+            return diagnostics;
         var node = syntaxTree(view.state).cursor().node;
         if (node.name != 'Program')
             return diagnostics;
