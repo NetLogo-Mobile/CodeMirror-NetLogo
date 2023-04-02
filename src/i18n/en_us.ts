@@ -13,6 +13,14 @@ const en_us: Record<string, Function> = {
     `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
   'Unsupported statement _': (Name: string) =>
     `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
+  'Invalid for Normal mode _': (Value: string) =>
+    `This editor mode expects a full NetLogo model.`,
+  'Invalid for Embedded mode _': (Value: string) =>
+    `This editor mode expects a few command statements.`,
+  'Invalid for Oneline mode _': (Value: string) =>
+    `This editor mode expects command statements or a single reporter statement.`,
+  'Invalid for OnelineReporter mode _': (Value: string) =>
+    `This editor mode expects a single reporter statement.`,
   'Problem identifying primitive _. Expected _, found _.': (
     Name: string,
     Expected: string,

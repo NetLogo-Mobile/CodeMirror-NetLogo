@@ -6,9 +6,6 @@ import {
   StateNetLogo,
 } from '../../codemirror/extension-state-netlogo';
 
-/** lintSources: All available lint sources. */
-export const lintSources: LintSource[] = [];
-
 const buildLinter = function (
   Source: (view: EditorView, parseState: StateNetLogo) => Diagnostic[]
 ): Extension {
@@ -23,8 +20,9 @@ const buildLinter = function (
     }
     return Cached;
   };
-  lintSources.push(BuiltSource);
-  return linter(BuiltSource);
+  var Extension = linter(BuiltSource);
+  (Extension as any).Source = BuiltSource;
+  return Extension;
 };
 
 export { buildLinter };

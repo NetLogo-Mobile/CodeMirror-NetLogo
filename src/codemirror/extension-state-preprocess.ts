@@ -26,7 +26,6 @@ export class StatePreprocess {
     this.PluralBreeds = processedBreeds[1];
     let breedVars = doc.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
     this.BreedVars = this.processBreedVars(breedVars);
-
     // Commands
     let commands = doc.matchAll(/(^|\n)\s*to\s+([^\s\[]+)(\s*\[([^\]]*)\])?/g);
     this.Commands = this.processProcedures(commands);

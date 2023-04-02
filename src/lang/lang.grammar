@@ -9,21 +9,18 @@
   times @left,
   plus @left,
   comparative @left
-  
-  
 }
 
 @top Program { 
-  normalMode{
+  Normal {
     (Unrecognized* globalStatement)* Procedure* ~statement
   } |
-  OneLineMode{
+  OnelineReporter {
     ReporterStatement
   } |
-  EmbeddedMode{
+  Embedded {
     ProcedureContent+
   }
-  
 }
 
 @detectDelim

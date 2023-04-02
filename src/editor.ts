@@ -1,8 +1,12 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { undo, redo, selectAll, indentWithTab } from '@codemirror/commands';
 import { closeCompletion } from '@codemirror/autocomplete';
-import { forceParsing, LanguageSupport } from '@codemirror/language';
-import { diagnosticCount } from '@codemirror/lint';
+import {
+  forceParsing,
+  LanguageSupport,
+  syntaxTree,
+} from '@codemirror/language';
+import { diagnosticCount, LintSource } from '@codemirror/lint';
 import {
   replaceAll,
   selectMatches,
@@ -14,10 +18,10 @@ import {
   openSearchPanel,
   closeSearchPanel,
 } from '@codemirror/search';
-import { Compartment, EditorState } from '@codemirror/state';
+import { Compartment, EditorState, Extension } from '@codemirror/state';
 import { ViewUpdate, keymap, ViewPlugin } from '@codemirror/view';
 import { NetLogo } from './lang/netlogo.js';
-import { EditorConfig, EditorLanguage } from './editor-config';
+import { EditorConfig, EditorLanguage, ParseMode } from './editor-config';
 import { highlight, highlightStyle } from './codemirror/style-highlight';
 import { updateExtension } from './codemirror/extension-update';
 import {
@@ -34,13 +38,13 @@ import { highlightTree } from '@lezer/highlight';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
-import { netlogoLinters } from './lang/linters/linters';
+import { netlogoLinters, onelineLinters } from './lang/linters/linters';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
 import { prettify, prettifyAll } from './codemirror/prettify.js';
 import { forEachDiagnostic, Diagnostic } from '@codemirror/lint';
-import { lintSources } from './lang/linters/linter-builder';
 import { LocalizationManager } from './i18n/localized.js';
+import { Tree, SyntaxNodeRef } from '@lezer/common';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -55,6 +59,8 @@ export class GalapagosEditor {
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
   public readonly Parent: HTMLElement;
+  /** Linters: The linters used in this instance. */
+  public readonly Linters: Extension[] = [];
 
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
@@ -91,10 +97,14 @@ export class GalapagosEditor {
         Extensions.push(preprocessStateExtension);
         Extensions.push(stateExtension);
         Dictionary.ClickHandler = Options.OnDictionaryClick;
+        // Special case: One-line mode
         if (!this.Options.OneLine) {
+          this.Linters = netlogoLinters;
           Extensions.push(tooltipExtension);
-          Extensions.push(...netlogoLinters);
+        } else {
+          this.Linters = onelineLinters;
         }
+        Extensions.push(...this.Linters);
     }
     Extensions.push(this.Language);
 
@@ -125,6 +135,7 @@ export class GalapagosEditor {
       extensions: Extensions,
       parent: Parent,
     });
+    this.GetState().Mode = this.Options.ParseMode ?? ParseMode.Normal;
 
     // Disable Grammarly
     const el = this.Parent.getElementsByClassName('cm-content')[0];
@@ -166,6 +177,43 @@ export class GalapagosEditor {
   }
   // #endregion
 
+  // #region "Editor Statuses"
+  /** GetState: Get the current parser state of the NetLogo code. */
+  GetState(): StateNetLogo {
+    return this.CodeMirror.state.field(stateExtension);
+  }
+
+  /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
+  GetPreprocessState(): StatePreprocess {
+    return this.CodeMirror.state.field(preprocessStateExtension);
+  }
+
+  /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
+  GetSyntaxTree(): Tree {
+    return syntaxTree(this.CodeMirror.state);
+  }
+
+  /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
+  SyntaxNodesAt(Position: number, Callback: (Node: SyntaxNodeRef) => void) {
+    this.GetSyntaxTree().cursorAt(Position).iterate(Callback);
+  }
+
+  /** GetRecognizedMode: Get the recognized program mode. */
+  GetRecognizedMode(): string {
+    var Name = this.GetSyntaxTree().topNode?.firstChild?.name;
+    switch (Name) {
+      case 'Embedded':
+        return 'Command';
+      case 'OnelineReporter':
+        return 'Reporter';
+      case 'Normal':
+        return 'Model';
+      default:
+        return 'Unknown';
+    }
+  }
+  // #endregion
+
   // #region "Editor API"
   /** SetCode: Set the code of the editor. */
   SetCode(code: string) {
@@ -184,16 +232,6 @@ export class GalapagosEditor {
     this.CodeMirror.dispatch({
       effects: this.Editable.reconfigure(EditorView.editable.of(!status)),
     });
-  }
-
-  /** GetState: Get the current parser state of the NetLogo code. */
-  GetState(): StateNetLogo {
-    return this.CodeMirror.state.field(stateExtension);
-  }
-
-  /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
-  GetPreprocessState(): StatePreprocess {
-    return this.CodeMirror.state.field(preprocessStateExtension);
   }
 
   /** SetCursorPosition: Set the cursor position of the editor. */
@@ -250,8 +288,8 @@ export class GalapagosEditor {
     }
   }
 
-  /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
-  SetMode(Mode: string, ForceLint?: boolean) {
+  /** SetMode: Set the parsing mode of the editor. */
+  SetMode(Mode: ParseMode, ForceLint?: boolean) {
     var State = this.GetState();
     var Current = State.Mode;
     if (Current != Mode) {
@@ -284,16 +322,13 @@ export class GalapagosEditor {
     forEachDiagnostic(this.CodeMirror.state, Callback);
   }
 
-  CountErrors() {
-    console.log(diagnosticCount(this.CodeMirror.state));
-  }
-
   /** ForceLintAsync: Force the editor to lint without rendering. */
   async ForceLintAsync(): Promise<Diagnostic[]> {
     var Diagnostics = [];
-    var Sources = lintSources;
-    for (var Source of Sources) {
-      var Results = await Promise.resolve(Source(this.CodeMirror));
+    for (var Extension of this.Linters) {
+      var Results = await Promise.resolve(
+        (Extension as any).Source(this.CodeMirror)
+      );
       Diagnostics.push(...Results);
     }
     return Diagnostics;

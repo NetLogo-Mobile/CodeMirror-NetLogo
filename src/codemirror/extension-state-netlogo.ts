@@ -13,6 +13,7 @@ import { getBreedName } from './utils/breed_utils';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
+import { ParseMode } from '../editor-config';
 
 let primitives = PrimitiveManager;
 
@@ -37,8 +38,8 @@ export class StateNetLogo {
   private IsDirty: boolean = true;
   /** Version: Version of the state (for linter cache). */
   private Version: number = 0;
-  /** Mode: The editor's mode: normal, oneline, or embedded. */
-  public Mode: string = 'normal';
+  /** Mode: The editor's parsing mode. */
+  public Mode: ParseMode = ParseMode.Normal;
   // #endregion
 
   // #region "Utilities"
