@@ -16,9 +16,9 @@
             if (Changed) console.log(Update);
           },
           OneLine: true,
+          ParseMode: 'Oneline',
         });
         EditorDictionary.Initialize({});
-        Editor.SetMode('oneline');
         Editor.SetWidgetVariables(['one', 'two', 'three']);
         Editor.SetCode('max (list one two three)');
       });

@@ -1,12 +1,13 @@
 import { EditorView } from 'codemirror';
 import { LanguageSupport } from '@codemirror/language';
-import { EditorState } from '@codemirror/state';
-import { EditorConfig } from './editor-config';
+import { EditorState, Extension } from '@codemirror/state';
+import { EditorConfig, ParseMode } from './editor-config';
 import { StateNetLogo } from './codemirror/extension-state-netlogo';
 import { StatePreprocess } from './codemirror/extension-state-preprocess.js';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Diagnostic } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
+import { Tree, SyntaxNodeRef } from '@lezer/common';
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export declare class GalapagosEditor {
     readonly EditorState: EditorState;
@@ -20,21 +21,29 @@ export declare class GalapagosEditor {
     readonly Language: LanguageSupport;
     /** Parent: Parent HTMLElement of the EditorView. */
     readonly Parent: HTMLElement;
+    /** Linters: The linters used in this instance. */
+    readonly Linters: Extension[];
     /** Constructor: Create an editor instance. */
     constructor(Parent: HTMLElement, Options: EditorConfig);
     /** Highlight: Highlight a given snippet of code. */
     Highlight(Content: string): HTMLElement;
     private highlightInternal;
+    /** GetState: Get the current parser state of the NetLogo code. */
+    GetState(): StateNetLogo;
+    /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
+    GetPreprocessState(): StatePreprocess;
+    /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
+    GetSyntaxTree(): Tree;
+    /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
+    SyntaxNodesAt(Position: number, Callback: (Node: SyntaxNodeRef) => void): void;
+    /** GetRecognizedMode: Get the recognized program mode. */
+    GetRecognizedMode(): string;
     /** SetCode: Set the code of the editor. */
     SetCode(code: string): void;
     /** GetCode: Get the code from the editor. */
     GetCode(): string;
     /** SetReadOnly: Set the readonly status for the editor. */
     SetReadOnly(status: boolean): void;
-    /** GetState: Get the current parser state of the NetLogo code. */
-    GetState(): StateNetLogo;
-    /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
-    GetPreprocessState(): StatePreprocess;
     /** SetCursorPosition: Set the cursor position of the editor. */
     SetCursorPosition(position: number): void;
     /** Blur: Make the editor lose the focus (if any). */
@@ -49,15 +58,14 @@ export declare class GalapagosEditor {
     CloseCompletion(): void;
     /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
     SetWidgetVariables(Variables: string[], ForceLint?: boolean): void;
-    /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
-    SetMode(Mode: string, ForceLint?: boolean): void;
+    /** SetMode: Set the parsing mode of the editor. */
+    SetMode(Mode: ParseMode, ForceLint?: boolean): void;
     /** SetCompilerErrors: Sync the compiler errors and present it on the editor. */
     SetCompilerErrors(Errors: RuntimeError[]): void;
     /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
     SetRuntimeErrors(Errors: RuntimeError[]): void;
     /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
     ForEachDiagnostic(Callback: (d: Diagnostic, from: number, to: number) => void): void;
-    CountErrors(): void;
     /** ForceLintAsync: Force the editor to lint without rendering. */
     ForceLintAsync(): Promise<Diagnostic[]>;
     /** ForceParse: Force the editor to finish any parsing. */

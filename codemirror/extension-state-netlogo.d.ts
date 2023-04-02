@@ -1,6 +1,7 @@
 import { StateField, EditorState } from '@codemirror/state';
 import { Breed, Procedure } from '../lang/classes';
 import { RuntimeError } from '../lang/linters/runtime-linter';
+import { ParseMode } from '../editor-config';
 /** StateNetLogo: The second-pass editor state for the NetLogo Language. */
 export declare class StateNetLogo {
     /** Extensions: Extensions in the code. */
@@ -21,8 +22,8 @@ export declare class StateNetLogo {
     private IsDirty;
     /** Version: Version of the state (for linter cache). */
     private Version;
-    /** Mode: The editor's mode: normal, oneline, or embedded. */
-    Mode: string;
+    /** Mode: The editor's parsing mode. */
+    Mode: ParseMode;
     /** GetBreedNames: Get names related to breeds. */
     GetBreedNames(): string[];
     /** GetBreeds: Get list of breeds. */

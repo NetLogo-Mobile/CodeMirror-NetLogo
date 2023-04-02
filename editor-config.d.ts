@@ -7,6 +7,8 @@ export interface EditorConfig {
     ReadOnly?: boolean;
     /** OneLine: Is the editor in forced one-line mode? */
     OneLine?: boolean;
+    /** ParseMode: The parsing mode of the editor. */
+    ParseMode?: ParseMode;
     /** Wrapping: Should we auto-wrap lines? */
     Wrapping?: boolean;
     /** OnUpdate: Handle the Update event. */
@@ -18,10 +20,17 @@ export interface EditorConfig {
     /** OnDictionaryClick: Triggers when a dictionary tooltip is clicked. */
     OnDictionaryClick?: (Key: string) => void;
 }
-/** Language: Language. */
+/** EditorLanguage: Language. */
 export declare enum EditorLanguage {
     NetLogo = 0,
     Javascript = 1,
     HTML = 2,
     CSS = 3
+}
+/** ParseMode: The parsing mode. */
+export declare enum ParseMode {
+    Normal = "Normal",
+    Oneline = "Oneline",
+    OnelineReporter = "OnelineReporter",
+    Embedded = "Embedded"
 }
