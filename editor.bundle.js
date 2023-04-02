@@ -26521,6 +26521,9 @@ if(!String.prototype.matchAll) {
     });
 
     const en_us = {
+        // Buttons
+        Add: () => 'Add',
+        // Linting messages
         'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
         'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
         'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
@@ -26532,13 +26535,14 @@ if(!String.prototype.matchAll) {
         'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
         'Missing extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
         'Unsupported missing extension _.': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
-        'Incorrect extension _.': (Name) => `"${Name}" is not a valid extension.`,
+        'Unsupported extension _.': (Name) => `The extension "${Name}" is not supported in this editor.`,
         'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
         'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
         'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
         'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
-        'Unmatched item _': (Name) => `This "${Name}" is unmatched.`,
-        'Invalid context _.': (Name) => `The context for this ${Name} is invalid.`,
+        'Unmatched item _': (Current, Expected) => `This "${Current}" needs a matching ${Expected}.`,
+        'Invalid context _.': (Current, Expected) => `The context for this code block is invalid.`,
+        // Help messages
         '~VariableName': (Name) => `A (unknown) variable. `,
         '~ProcedureName': (Name) => `The name of a procedure. `,
         '~Arguments': (Name) => `The name of an argument. `,
@@ -26566,6 +26570,9 @@ if(!String.prototype.matchAll) {
     };
 
     const zh_cn = {
+        // Buttons
+        Add: () => '添加',
+        // Linting messages
         'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
         'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
         'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
@@ -26580,11 +26587,12 @@ if(!String.prototype.matchAll) {
         'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
         'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
         'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
-        'Unmatched item _': (Name) => `This "${Name}" is unmatched.`,
-        'Invalid context _.': (Name) => `The context for this ${Name} is invalid.`,
-        'Incorrect extension _.': (Name) => `"${Name}" is not a valid extension.`,
-        'Missing extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
-        'Unsupported missing extension _.': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
+        'Unmatched item _': (Current, Expected) => `"${Current}" 需要对应的 ${Expected}。`,
+        'Invalid context _.': (Current, Expected) => `这个代码块的上下文不正确。`,
+        'Unsupported extension _.': (Name) => `这个编辑器不支持扩展 "${Name}"。`,
+        'Missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
+        'Unsupported missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
+        // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,
         '~Arguments/Identifier': (Name) => `过程或函数定义的参数名称。`,
@@ -29868,8 +29876,8 @@ if(!String.prototype.matchAll) {
     });
 
     let primitives = PrimitiveManager;
-    //ExtensionLinter: Checks if extension primitives are used without declaring
-    //the extension, or invalid extensions are declared
+    // ExtensionLinter: Checks if extension primitives are used without declaring
+    // the extension, or invalid extensions are declared
     const ExtensionLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         let extension_index = 0;
@@ -29884,8 +29892,8 @@ if(!String.prototype.matchAll) {
                         diagnostics.push({
                             from: child.from,
                             to: child.to,
-                            severity: 'error',
-                            message: Localized.Get('Incorrect extension _.', name),
+                            severity: 'warning',
+                            message: Localized.Get('Unsupported extension _.', name),
                         });
                     }
                 });
@@ -29906,39 +29914,30 @@ if(!String.prototype.matchAll) {
                     .sliceDoc(noderef.from, noderef.to)
                     .toLowerCase();
                 let vals = value.split(':');
-                if (vals.length > 1) {
-                    let found = false;
-                    for (let e of parseState.Extensions) {
-                        if (vals[0] == e) {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if (!found) {
-                        diagnostics.push({
-                            from: noderef.from,
-                            to: noderef.to,
-                            severity: 'error',
-                            message: !noderef.name.includes('Unsupported')
-                                ? Localized.Get('Missing extension _.', vals[0])
-                                : Localized.Get('Unsupported missing extension _.', vals[0]),
-                            actions: [
-                                {
-                                    name: 'Add',
-                                    apply(view, from, to) {
-                                        view.dispatch({
-                                            changes: {
-                                                from: extension_index,
-                                                to: extension_index,
-                                                insert: vals[0] + ' ',
-                                            },
-                                        });
+                if (vals.length <= 1 || parseState.Extensions.indexOf(vals[0]) != -1)
+                    return;
+                diagnostics.push({
+                    from: noderef.from,
+                    to: noderef.to,
+                    severity: 'error',
+                    message: !noderef.name.includes('Unsupported')
+                        ? Localized.Get('Missing extension _.', vals[0])
+                        : Localized.Get('Unsupported missing extension _.', vals[0]),
+                    actions: [
+                        {
+                            name: Localized.Get('Add'),
+                            apply(view, from, to) {
+                                view.dispatch({
+                                    changes: {
+                                        from: extension_index,
+                                        to: extension_index,
+                                        insert: vals[0] + ' ',
                                     },
-                                },
-                            ],
-                        });
-                    }
-                }
+                                });
+                            },
+                        },
+                    ],
+                });
             }
         });
         return diagnostics;
@@ -29976,32 +29975,45 @@ if(!String.prototype.matchAll) {
             .cursor()
             .iterate((node) => {
             var _a, _b, _c, _d;
-            let matched = false;
-            let match = null;
+            // Match the bracket/paren
             if (['OpenBracket', 'OpenParen'].includes(node.name)) {
-                match = matchBrackets(view.state, node.from, 1);
-                if (match && match.matched) {
-                    matched = true;
-                }
+                let match = matchBrackets(view.state, node.from, 1);
+                if (match && match.matched)
+                    return;
             }
-            if (!matched &&
-                ((node.name == 'OpenBracket' &&
-                    ((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.getChildren('CloseBracket').length) != 1) ||
-                    (node.name == 'CloseBracket' &&
-                        ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.getChildren('OpenBracket').length) != 1) ||
-                    (node.name == 'OpenParen' &&
-                        ((_c = node.node.parent) === null || _c === void 0 ? void 0 : _c.getChildren('CloseParen').length) != 1) ||
-                    (node.name == 'CloseParen' &&
-                        ((_d = node.node.parent) === null || _d === void 0 ? void 0 : _d.getChildren('OpenParen').length) != 1))) {
-                //console.log(matched, node.name, node.from, node.to, match);
-                const value = view.state.sliceDoc(node.from, node.to);
+            let current = '', expected = '';
+            // [ need ]
+            if (node.name == 'OpenBracket' &&
+                ((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.getChildren('CloseBracket').length) != 1) {
+                current = '[';
+                expected = ']';
+            }
+            // ] need [
+            if (node.name == 'CloseBracket' &&
+                ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.getChildren('OpenBracket').length) != 1) {
+                current = ']';
+                expected = '[';
+            }
+            // ( need )
+            if (node.name == 'OpenParen' &&
+                ((_c = node.node.parent) === null || _c === void 0 ? void 0 : _c.getChildren('CloseParen').length) != 1) {
+                current = '(';
+                expected = ')';
+            }
+            // ) need (
+            if (node.name == 'OpenParen' &&
+                ((_d = node.node.parent) === null || _d === void 0 ? void 0 : _d.getChildren('CloseParen').length) != 1) {
+                current = ')';
+                expected = '(';
+            }
+            // Push the diagnostic
+            if (current != '')
                 diagnostics.push({
                     from: node.from,
                     to: node.to,
                     severity: 'error',
-                    message: Localized.Get('Unmatched item _', value),
+                    message: Localized.Get('Unmatched item _', current, expected),
                 });
-            }
         });
         return diagnostics;
     });
@@ -30069,7 +30081,7 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     });
 
-    //ContextLinter: Checks if procedures and code blocks have a valid context
+    // ContextLinter: Checks if procedures and code blocks have a valid context
     const ContextLinter = buildLinter((view, parseState) => {
         const diagnostics = [];
         for (let p of parseState.Procedures.values()) {
@@ -30077,10 +30089,10 @@ if(!String.prototype.matchAll) {
         }
         return diagnostics;
     });
-    //checkProcedureContents: Checks contents of procedures and codeblocks for valid context
+    // checkProcedureContents: Checks contents of procedures and codeblocks for valid context
     const checkProcedureContents = function (p, parseState) {
         let diagnostics = [];
-        //checks if current procedure/code block has at least one valid context
+        // checks if current procedure/code block has at least one valid context
         if (noContext(p.Context)) {
             diagnostics.push({
                 from: p.PositionStart,
@@ -30090,7 +30102,7 @@ if(!String.prototype.matchAll) {
             });
         }
         else {
-            //checks nested anonymous procedures and codeblocks for valid context
+            // checks nested anonymous procedures and codeblocks for valid context
             for (let a of p.AnonymousProcedures) {
                 diagnostics.push(...checkProcedureContents(a));
             }
@@ -30102,7 +30114,7 @@ if(!String.prototype.matchAll) {
                         from: c.PositionStart,
                         to: c.PositionEnd,
                         severity: 'error',
-                        message: Localized.Get('Invalid context _.', 'code block'),
+                        message: Localized.Get('Invalid context _.'),
                     });
                 }
             }
