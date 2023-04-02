@@ -1,4 +1,8 @@
 const en_us: Record<string, Function> = {
+  // Buttons
+  Add: () => 'Add',
+
+  // Linting messages
   'Unrecognized breed name _': (Name: string) =>
     `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
   'Unrecognized identifier _': (Name: string) =>
@@ -37,8 +41,8 @@ const en_us: Record<string, Function> = {
     `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
   'Unsupported missing extension _.': (Name: string) =>
     `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
-  'Incorrect extension _.': (Name: string) =>
-    `"${Name}" is not a valid extension.`,
+  'Unsupported extension _.': (Name: string) =>
+    `The extension "${Name}" is not supported in this editor.`,
   'Breed name _ already used.': (Name: string) =>
     `"${Name}" is already used as a breed name. Try to take a different name.`,
   'Invalid breed procedure _': (Name: string) =>
@@ -47,10 +51,12 @@ const en_us: Record<string, Function> = {
     `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
   'Improperly placed procedure _': (Name: string) =>
     `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
-  'Unmatched item _': (Name: string) => `This "${Name}" is unmatched.`,
-  'Invalid context _.': (Name: string) =>
-    `The context for this ${Name} is invalid.`,
+  'Unmatched item _': (Current: string, Expected: string) =>
+    `This "${Current}" needs a matching ${Expected}.`,
+  'Invalid context _.': (Current: string, Expected: string) =>
+    `The context for this code block is invalid.`,
 
+  // Help messages
   '~VariableName': (Name: string) => `A (unknown) variable. `,
   '~ProcedureName': (Name: string) => `The name of a procedure. `,
   '~Arguments': (Name: string) => `The name of an argument. `,

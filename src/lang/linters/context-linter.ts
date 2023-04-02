@@ -8,7 +8,7 @@ import {
   noContext,
 } from '../../codemirror/utils/context_utils';
 
-//ContextLinter: Checks if procedures and code blocks have a valid context
+// ContextLinter: Checks if procedures and code blocks have a valid context
 export const ContextLinter = buildLinter((view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   for (let p of parseState.Procedures.values()) {
@@ -17,13 +17,13 @@ export const ContextLinter = buildLinter((view, parseState) => {
   return diagnostics;
 });
 
-//checkProcedureContents: Checks contents of procedures and codeblocks for valid context
+// checkProcedureContents: Checks contents of procedures and codeblocks for valid context
 const checkProcedureContents = function (
   p: Procedure | CodeBlock,
   parseState: StateNetLogo
 ) {
   let diagnostics: Diagnostic[] = [];
-  //checks if current procedure/code block has at least one valid context
+  // checks if current procedure/code block has at least one valid context
   if (noContext(p.Context)) {
     diagnostics.push({
       from: p.PositionStart,
@@ -35,7 +35,7 @@ const checkProcedureContents = function (
       ),
     });
   } else {
-    //checks nested anonymous procedures and codeblocks for valid context
+    // checks nested anonymous procedures and codeblocks for valid context
     for (let a of p.AnonymousProcedures) {
       diagnostics.push(...checkProcedureContents(a, parseState));
     }
@@ -49,7 +49,7 @@ const checkProcedureContents = function (
           from: c.PositionStart,
           to: c.PositionEnd,
           severity: 'error',
-          message: Localized.Get('Invalid context _.', 'code block'),
+          message: Localized.Get('Invalid context _.'),
         });
       }
     }

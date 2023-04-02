@@ -1,4 +1,8 @@
 const zh_cn: Record<string, Function> = {
+  // Buttons
+  Add: () => '添加',
+
+  // Linting messages
   'Unrecognized breed name _': (Name: string) =>
     `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
   'Unrecognized identifier _': (Name: string) =>
@@ -42,16 +46,18 @@ const zh_cn: Record<string, Function> = {
     `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
   'Improperly placed procedure _': (Name: string) =>
     `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
-  'Unmatched item _': (Name: string) => `This "${Name}" is unmatched.`,
-  'Invalid context _.': (Name: string) =>
-    `The context for this ${Name} is invalid.`,
-  'Incorrect extension _.': (Name: string) =>
-    `"${Name}" is not a valid extension.`,
+  'Unmatched item _': (Current: string, Expected: string) =>
+    `"${Current}" 需要对应的 ${Expected}。`,
+  'Invalid context _.': (Current: string, Expected: string) =>
+    `这个代码块的上下文不正确。`,
+  'Unsupported extension _.': (Name: string) =>
+    `这个编辑器不支持扩展 "${Name}"。`,
   'Missing extension _.': (Name: string) =>
-    `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+    `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
   'Unsupported missing extension _.': (Name: string) =>
-    `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
+    `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
 
+  // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,
   '~Arguments/Identifier': (Name: string) => `过程或函数定义的参数名称。`,
