@@ -26165,6 +26165,8 @@ if(!String.prototype.matchAll) {
             const Cursor = syntaxTree(State).cursor();
             if (!Cursor.firstChild())
                 return this;
+            if (!Cursor.firstChild())
+                return this;
             // Clear some global states to avoid contamination
             this.Breeds = new Map();
             this.Procedures = new Map();
