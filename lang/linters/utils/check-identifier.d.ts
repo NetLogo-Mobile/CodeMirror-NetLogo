@@ -1,6 +1,6 @@
-import { EditorView } from "@codemirror/view";
-import { StateNetLogo } from "../../../codemirror/extension-state-netlogo";
-import { StatePreprocess } from "../../../codemirror/extension-state-preprocess";
+import { EditorView } from '@codemirror/view';
+import { StateNetLogo } from '../../../codemirror/extension-state-netlogo';
+import { StatePreprocess } from '../../../codemirror/extension-state-preprocess';
 import { EditorState } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
 /** CheckContext: The context of the current check. */
