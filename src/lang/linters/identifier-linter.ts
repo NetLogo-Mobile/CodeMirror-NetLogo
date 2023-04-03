@@ -1,22 +1,17 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { SyntaxNode } from '@lezer/common';
-import { EditorState } from '@codemirror/state';
-import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { Localized } from '../../editor';
-import { buildLinter } from './linter-builder';
-import { Procedure, CodeBlock } from '../classes';
-import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
+import { Linter } from './linter-builder';
 import {
   checkBreedLike,
   getBreedName,
 } from '../../codemirror/utils/breed_utils';
+import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
-export const IdentifierLinter = buildLinter((view, parseState) => {
+export const IdentifierLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
-  const breedNames = parseState.GetBreedNames();
-  const breedVars = parseState.GetBreedVariables();
+  const context = getCheckContext(view);
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
@@ -24,7 +19,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
         const Node = noderef.node;
         const value = view.state.sliceDoc(noderef.from, noderef.to);
         //check if it meets some initial criteria for validity
-        if (!checkValidIdentifier(Node, value, view.state, parseState)) {
+        if (!checkValidIdentifier(Node, value, context)) {
           //check if the identifier looks like a breed procedure (e.g. "create-___")
           let result = checkBreedLike(value);
           if (!result[0]) {
@@ -38,7 +33,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
           } else {
             //pull out name of possible intended breed
             let str = getBreedName(value);
-            if (!breedNames.includes(str)) {
+            if (!context.breedNames.includes(str)) {
               diagnostics.push({
                 from: noderef.from,
                 to: noderef.to,
@@ -51,115 +46,4 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
-
-// always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
-const acceptableIdentifiers = [
-  'Unrecognized',
-  'NewVariableDeclaration',
-  'ProcedureName',
-  'Arguments',
-  'AnonArguments',
-  'Globals',
-  'BreedSingular',
-  'BreedPlural',
-  'BreedsOwn',
-  'Extensions',
-];
-
-// checkValidIdentifier: Checks identifiers for valid variable/procedure/breed names
-export const checkValidIdentifier = function (
-  Node: SyntaxNode,
-  value: string,
-  state: EditorState,
-  parseState: StateNetLogo
-): boolean {
-  let breedNames = parseState.GetBreedNames();
-  let breedVars = parseState.GetBreedVariables();
-  let preprocess = state.field(preprocessStateExtension);
-  value = value.toLowerCase();
-  // checks if parent is in a category that is always valid (e.g. 'Globals')
-  if (acceptableIdentifiers.includes(Node.parent?.name ?? '')) return true;
-  // checks if identifier is a global variable
-  if (
-    parseState.Globals.includes(value) ||
-    parseState.WidgetGlobals.includes(value) ||
-    parseState.Procedures.has(value) ||
-    preprocess.Commands[value] ||
-    preprocess.Reporters[value]
-  )
-    return true;
-  // checks if identifier is a breed name or variable
-  if (breedNames.includes(value) || breedVars.includes(value)) return true;
-  // checks if identifier is a variable already declared in the procedure
-  // collects list of valid local variables for given position
-  let procedureVars = getLocalVars(Node, state, parseState);
-  //checks if the identifier is in the list of possible variables
-  return procedureVars.includes(value);
-};
-
-// getLocalVars: collects list of valid local variables for given position
-export const getLocalVars = function (
-  Node: SyntaxNode,
-  state: EditorState,
-  parseState: StateNetLogo
-) {
-  // get the procedure name
-  let curr_node = Node;
-  let procedureName = '';
-  while (curr_node.parent) {
-    curr_node = curr_node.parent;
-    if (curr_node.name == 'Procedure') {
-      curr_node.getChildren('ProcedureName').map((child) => {
-        procedureName = state.sliceDoc(child.from, child.to);
-      });
-      break;
-    }
-  }
-  // gets list of procedure variables from own procedure, as well as list of all procedure names
-  let procedureVars: string[] = [];
-  if (procedureName != '') {
-    let procedure = parseState.Procedures.get(procedureName.toLowerCase());
-    procedure?.Variables.map((variable) => {
-      // makes sure the variable has already been created
-      if (variable.CreationPos < Node.from) {
-        procedureVars.push(variable.Name);
-      }
-    });
-    //pulls out all local variables within the anonymous procedures up until current position
-    if (procedure) {
-      procedureVars.push(
-        ...gatherAnonVars(procedure.AnonymousProcedures, Node)
-      );
-      procedureVars.push(...gatherAnonVars(procedure.CodeBlocks, Node));
-    }
-    if (procedure?.Arguments) {
-      procedureVars.push(...procedure.Arguments);
-    }
-  }
-  return procedureVars;
-};
-
-//gatherAnonVars: collects out valid local variables from anonymous procedures and code blocks
-const gatherAnonVars = function (
-  group: CodeBlock[] | Procedure[],
-  Node: SyntaxNode
-) {
-  let procedureVars: string[] = [];
-  group.map((anonProc) => {
-    if (
-      Node.from >= anonProc.PositionStart &&
-      Node.to <= anonProc.PositionEnd
-    ) {
-      anonProc.Variables.map((variable) => {
-        if (variable.CreationPos <= Node.from) {
-          procedureVars.push(variable.Name);
-        }
-      });
-      procedureVars.push(...anonProc.Arguments);
-      procedureVars.push(...gatherAnonVars(anonProc.CodeBlocks, Node));
-      procedureVars.push(...gatherAnonVars(anonProc.AnonymousProcedures, Node));
-    }
-  });
-  return procedureVars;
 };

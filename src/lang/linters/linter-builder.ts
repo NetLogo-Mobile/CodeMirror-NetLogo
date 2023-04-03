@@ -6,9 +6,11 @@ import {
   StateNetLogo,
 } from '../../codemirror/extension-state-netlogo';
 
-const buildLinter = function (
-  Source: (view: EditorView, parseState: StateNetLogo) => Diagnostic[]
-): Extension {
+/** Linter: A function that takes a view and parse state and returns a list of diagnostics. */
+type Linter = (view: EditorView, parseState: StateNetLogo) => Diagnostic[]; 
+
+/** buildLinter: Builds a linter extension from a linter function. */
+const buildLinter = function (Source: Linter): Extension {
   var LastVersion = 0;
   var Cached: Diagnostic[];
   var BuiltSource: LintSource = (view) => {
@@ -25,4 +27,4 @@ const buildLinter = function (
   return Extension;
 };
 
-export { buildLinter };
+export { buildLinter, Linter };

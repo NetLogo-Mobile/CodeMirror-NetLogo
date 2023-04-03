@@ -6,7 +6,6 @@ import {
   LanguageSupport,
   syntaxTree,
 } from '@codemirror/language';
-import { diagnosticCount, LintSource } from '@codemirror/lint';
 import {
   replaceAll,
   selectMatches,
@@ -38,13 +37,14 @@ import { highlightTree } from '@lezer/highlight';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
-import { netlogoLinters, onelineLinters } from './lang/linters/linters';
+import { netlogoLinters } from './lang/linters/linters';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
 import { prettify, prettifyAll } from './codemirror/prettify.js';
 import { forEachDiagnostic, Diagnostic } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
 import { Tree, SyntaxNodeRef } from '@lezer/common';
+import { buildLinter } from './lang/linters/linter-builder.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -97,12 +97,10 @@ export class GalapagosEditor {
         Extensions.push(preprocessStateExtension);
         Extensions.push(stateExtension);
         Dictionary.ClickHandler = Options.OnDictionaryClick;
+        this.Linters = netlogoLinters.map((linter) => buildLinter(linter));
         // Special case: One-line mode
         if (!this.Options.OneLine) {
-          this.Linters = netlogoLinters;
           Extensions.push(tooltipExtension);
-        } else {
-          this.Linters = onelineLinters;
         }
         Extensions.push(...this.Linters);
     }
@@ -148,10 +146,14 @@ export class GalapagosEditor {
     const Container = document.createElement('span');
     this.highlightInternal(Content, (Text, Style, From, To) => {
       if (Style == '') {
-        Container.appendChild(document.createTextNode(Text));
+        const Node = document.createElement('span');
+        Node.innerText = Text;
+        Node.innerHTML = Node.innerHTML.replace(" ", "&nbsp;");
+        Container.appendChild(Node);
       } else {
         const Node = document.createElement('span');
         Node.innerText = Text;
+        Node.innerHTML = Node.innerHTML.replace(" ", "&nbsp;");
         Node.className = Style;
         Container.appendChild(Node);
       }

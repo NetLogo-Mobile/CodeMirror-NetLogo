@@ -17,7 +17,7 @@ import {
 } from '@codemirror/autocomplete';
 import { syntaxTree } from '@codemirror/language';
 import { PrimitiveManager } from './primitives/primitives';
-import { getLocalVars } from './linters/identifier-linter';
+import { getLocalVars } from './linters/utils/check-identifier';
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 /* Possible Types of Autocompletion Tokens:

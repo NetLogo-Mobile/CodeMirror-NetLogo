@@ -1,17 +1,17 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 import { unsupported } from '../keywords';
-import { checkValidIdentifier } from './identifier-linter';
+import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
 
 // UnsupportedLinter: Checks for unsupported primitives
-
-//Important note: anything with a colon and no supported extension is tokenized as
-//'UnsupportedPrim', so acceptable uses of variable names that include colons need
-//to be filtered out here
-export const UnsupportedLinter = buildLinter((view, parseState) => {
+// Important note: anything with a colon and no supported extension is tokenized as
+// 'UnsupportedPrim', so acceptable uses of variable names that include colons need
+// to be filtered out here
+export const UnsupportedLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
+  const context = getCheckContext(view);
   let indices: number[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -26,7 +26,7 @@ export const UnsupportedLinter = buildLinter((view, parseState) => {
           node.node.parent?.name != 'ProcedureName') ||
           unsupported.includes(value)) &&
         !indices.includes(node.from) &&
-        !checkValidIdentifier(node.node, value, view.state, parseState)
+        !checkValidIdentifier(node.node, value, context)
       ) {
         indices.push(node.from);
         diagnostics.push({
@@ -38,4 +38,4 @@ export const UnsupportedLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};

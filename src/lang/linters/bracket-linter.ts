@@ -1,10 +1,10 @@
 import { matchBrackets, syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 
 // BracketLinter: Checks if all brackets/parentheses have matches
-export const BracketLinter = buildLinter((view, parseState) => {
+export const BracketLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -58,4 +58,4 @@ export const BracketLinter = buildLinter((view, parseState) => {
         });
     });
   return diagnostics;
-});
+};
