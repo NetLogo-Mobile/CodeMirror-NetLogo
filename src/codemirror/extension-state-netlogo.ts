@@ -141,6 +141,7 @@ export class StateNetLogo {
     if (!this.IsDirty) return this;
     const Cursor = syntaxTree(State).cursor();
     if (!Cursor.firstChild()) return this;
+    if (!Cursor.firstChild()) return this;
     // Clear some global states to avoid contamination
     this.Breeds = new Map<string, Breed>();
     this.Procedures = new Map<string, Procedure>();
