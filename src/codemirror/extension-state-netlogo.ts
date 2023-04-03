@@ -14,6 +14,7 @@ import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
 import { ParseMode } from '../editor-config';
+import { cursorTo } from 'readline';
 
 let primitives = PrimitiveManager;
 
@@ -141,6 +142,9 @@ export class StateNetLogo {
     if (!this.IsDirty) return this;
     const Cursor = syntaxTree(State).cursor();
     if (!Cursor.firstChild()) return this;
+    while (Cursor.node.name == 'LineComment') {
+      Cursor.nextSibling();
+    }
     if (!Cursor.firstChild()) return this;
     // Clear some global states to avoid contamination
     this.Breeds = new Map<string, Breed>();
@@ -564,6 +568,9 @@ export class StateNetLogo {
           'LineComment',
           'BreedsOwn',
           'Own',
+          'GlobalStr',
+          'ExtensionStr',
+          'BreedDeclarative',
         ].includes(noderef.name) &&
         !this.getText(State, noderef.node).includes('\n')
       ) {

@@ -6,7 +6,10 @@ import {
   checkBreedLike,
   getBreedName,
 } from '../../codemirror/utils/breed_utils';
-import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
+import {
+  checkValidIdentifier,
+  getCheckContext,
+} from './utils/check-identifier';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter: Linter = (view, parseState) => {

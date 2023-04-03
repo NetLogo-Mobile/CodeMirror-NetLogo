@@ -6,7 +6,11 @@ import { Linter } from './linter-builder';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { Breed } from '../lang/classes.ts';
-import { CheckContext, checkValidIdentifier, getCheckContext } from './utils/check-identifier';
+import {
+  CheckContext,
+  checkValidIdentifier,
+  getCheckContext,
+} from './utils/check-identifier';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter: Linter = (view, parseState) => {

@@ -148,12 +148,12 @@ export class GalapagosEditor {
       if (Style == '') {
         const Node = document.createElement('span');
         Node.innerText = Text;
-        Node.innerHTML = Node.innerHTML.replace(" ", "&nbsp;");
+        Node.innerHTML = Node.innerHTML.replace(' ', '&nbsp;');
         Container.appendChild(Node);
       } else {
         const Node = document.createElement('span');
         Node.innerText = Text;
-        Node.innerHTML = Node.innerHTML.replace(" ", "&nbsp;");
+        Node.innerHTML = Node.innerHTML.replace(' ', '&nbsp;');
         Node.className = Style;
         Container.appendChild(Node);
       }

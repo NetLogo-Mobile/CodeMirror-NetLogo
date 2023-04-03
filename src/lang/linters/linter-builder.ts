@@ -7,7 +7,7 @@ import {
 } from '../../codemirror/extension-state-netlogo';
 
 /** Linter: A function that takes a view and parse state and returns a list of diagnostics. */
-type Linter = (view: EditorView, parseState: StateNetLogo) => Diagnostic[]; 
+type Linter = (view: EditorView, parseState: StateNetLogo) => Diagnostic[];
 
 /** buildLinter: Builds a linter extension from a linter function. */
 const buildLinter = function (Source: Linter): Extension {

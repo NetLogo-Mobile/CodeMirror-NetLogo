@@ -3,7 +3,10 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
-import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
+import {
+  checkValidIdentifier,
+  getCheckContext,
+} from './utils/check-identifier';
 
 let primitives = PrimitiveManager;
 
