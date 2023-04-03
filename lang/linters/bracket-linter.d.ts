@@ -1,1 +1,2 @@
-export declare const BracketLinter: import("@codemirror/state").Extension;
+import { Linter } from './linter-builder';
+export declare const BracketLinter: Linter;

@@ -1,1 +1,2 @@
-export declare const BreedNameLinter: import("@codemirror/state").Extension;
+import { Linter } from './linter-builder';
+export declare const BreedNameLinter: Linter;

@@ -1,1 +1,2 @@
-export declare const UnrecognizedLinter: import("@codemirror/state").Extension;
+import { Linter } from './linter-builder';
+export declare const UnrecognizedLinter: Linter;

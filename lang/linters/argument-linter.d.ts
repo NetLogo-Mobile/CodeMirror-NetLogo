@@ -1,6 +1,7 @@
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
-export declare const ArgumentLinter: import("@codemirror/state").Extension;
+import { Linter } from './linter-builder';
+export declare const ArgumentLinter: Linter;
 export declare const getArgs: (Node: SyntaxNode) => {
     leftArgs: SyntaxNode | null;
     rightArgs: SyntaxNode[];

@@ -26537,65 +26537,18 @@ if(!String.prototype.matchAll) {
         },
     });
 
-    const buildLinter = function (Source) {
-        var LastVersion = 0;
-        var Cached;
-        var BuiltSource = (view) => {
-            const State = view.state.field(stateExtension);
-            if (State.GetDirty() || State.GetVersion() > LastVersion) {
-                State.ParseState(view.state);
-                Cached = Source(view, State);
-                LastVersion = State.GetVersion();
-            }
-            return Cached;
+    /* getCheckContext: gets the context of the current check. */
+    const getCheckContext = function (view) {
+        var state = view.state;
+        var parseState = state.field(stateExtension);
+        return {
+            state: state,
+            preprocessState: state.field(preprocessStateExtension),
+            parseState: parseState,
+            breedNames: parseState.GetBreedNames(),
+            breedVars: parseState.GetBreedVariables()
         };
-        var Extension = linter(BuiltSource);
-        Extension.Source = BuiltSource;
-        return Extension;
     };
-
-    // IdentifierLinter: Checks anything labelled 'Identifier'
-    const IdentifierLinter = buildLinter((view, parseState) => {
-        const diagnostics = [];
-        const breedNames = parseState.GetBreedNames();
-        parseState.GetBreedVariables();
-        syntaxTree(view.state)
-            .cursor()
-            .iterate((noderef) => {
-            var _a;
-            if (noderef.name == 'Identifier') {
-                const Node = noderef.node;
-                const value = view.state.sliceDoc(noderef.from, noderef.to);
-                //check if it meets some initial criteria for validity
-                if (!checkValidIdentifier(Node, value, view.state, parseState)) {
-                    //check if the identifier looks like a breed procedure (e.g. "create-___")
-                    let result = checkBreedLike(value);
-                    if (!result[0]) {
-                        console.log(noderef.name, (_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name);
-                        diagnostics.push({
-                            from: noderef.from,
-                            to: noderef.to,
-                            severity: 'error',
-                            message: Localized.Get('Unrecognized identifier _', value),
-                        });
-                    }
-                    else {
-                        //pull out name of possible intended breed
-                        let str = getBreedName(value);
-                        if (!breedNames.includes(str)) {
-                            diagnostics.push({
-                                from: noderef.from,
-                                to: noderef.to,
-                                severity: 'error',
-                                message: Localized.Get('Invalid breed procedure _', str),
-                            });
-                        }
-                    }
-                }
-            }
-        });
-        return diagnostics;
-    });
     // always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
     const acceptableIdentifiers = [
         'Unrecognized',
@@ -26610,28 +26563,25 @@ if(!String.prototype.matchAll) {
         'Extensions',
     ];
     // checkValidIdentifier: Checks identifiers for valid variable/procedure/breed names
-    const checkValidIdentifier = function (Node, value, state, parseState) {
+    const checkValidIdentifier = function (Node, value, context) {
         var _a, _b;
-        let breedNames = parseState.GetBreedNames();
-        let breedVars = parseState.GetBreedVariables();
-        let preprocess = state.field(preprocessStateExtension);
         value = value.toLowerCase();
         // checks if parent is in a category that is always valid (e.g. 'Globals')
         if (acceptableIdentifiers.includes((_b = (_a = Node.parent) === null || _a === void 0 ? void 0 : _a.name) !== null && _b !== void 0 ? _b : ''))
             return true;
         // checks if identifier is a global variable
-        if (parseState.Globals.includes(value) ||
-            parseState.WidgetGlobals.includes(value) ||
-            parseState.Procedures.has(value) ||
-            preprocess.Commands[value] ||
-            preprocess.Reporters[value])
+        if (context.parseState.Globals.includes(value) ||
+            context.parseState.WidgetGlobals.includes(value) ||
+            context.parseState.Procedures.has(value) ||
+            context.preprocessState.Commands[value] ||
+            context.preprocessState.Reporters[value])
             return true;
         // checks if identifier is a breed name or variable
-        if (breedNames.includes(value) || breedVars.includes(value))
+        if (context.breedNames.includes(value) || context.breedVars.includes(value))
             return true;
         // checks if identifier is a variable already declared in the procedure
         // collects list of valid local variables for given position
-        let procedureVars = getLocalVars(Node, state, parseState);
+        let procedureVars = getLocalVars(Node, context.state, context.parseState);
         //checks if the identifier is in the list of possible variables
         return procedureVars.includes(value);
     };
@@ -26670,7 +26620,7 @@ if(!String.prototype.matchAll) {
         }
         return procedureVars;
     };
-    //gatherAnonVars: collects out valid local variables from anonymous procedures and code blocks
+    // gatherAnonVars: collects out valid local variables from anonymous procedures and code blocks
     const gatherAnonVars = function (group, Node) {
         let procedureVars = [];
         group.map((anonProc) => {
@@ -29251,8 +29201,50 @@ if(!String.prototype.matchAll) {
         return true;
     });
 
+    // IdentifierLinter: Checks anything labelled 'Identifier'
+    const IdentifierLinter = (view, parseState) => {
+        const diagnostics = [];
+        const context = getCheckContext(view);
+        syntaxTree(view.state)
+            .cursor()
+            .iterate((noderef) => {
+            var _a;
+            if (noderef.name == 'Identifier') {
+                const Node = noderef.node;
+                const value = view.state.sliceDoc(noderef.from, noderef.to);
+                //check if it meets some initial criteria for validity
+                if (!checkValidIdentifier(Node, value, context)) {
+                    //check if the identifier looks like a breed procedure (e.g. "create-___")
+                    let result = checkBreedLike(value);
+                    if (!result[0]) {
+                        console.log(noderef.name, (_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name);
+                        diagnostics.push({
+                            from: noderef.from,
+                            to: noderef.to,
+                            severity: 'error',
+                            message: Localized.Get('Unrecognized identifier _', value),
+                        });
+                    }
+                    else {
+                        //pull out name of possible intended breed
+                        let str = getBreedName(value);
+                        if (!context.breedNames.includes(str)) {
+                            diagnostics.push({
+                                from: noderef.from,
+                                to: noderef.to,
+                                severity: 'error',
+                                message: Localized.Get('Invalid breed procedure _', str),
+                            });
+                        }
+                    }
+                }
+            }
+        });
+        return diagnostics;
+    };
+
     // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
-    const UnrecognizedGlobalLinter = buildLinter((view, parseState) => {
+    const UnrecognizedGlobalLinter = (view, parseState) => {
         const diagnostics = [];
         syntaxTree(view.state)
             .cursor()
@@ -29290,12 +29282,13 @@ if(!String.prototype.matchAll) {
             }
         });
         return diagnostics;
-    });
+    };
 
     // BreedLinter: To check breed commands/reporters for valid breed names
-    const BreedLinter = buildLinter((view, parseState) => {
+    const BreedLinter = (view, parseState) => {
         const diagnostics = [];
         const breeds = parseState.GetBreeds();
+        const context = getCheckContext(view);
         syntaxTree(view.state)
             .cursor()
             .iterate((noderef) => {
@@ -29313,7 +29306,7 @@ if(!String.prototype.matchAll) {
                 const value = view.state
                     .sliceDoc(noderef.from, noderef.to)
                     .toLowerCase();
-                if (!checkValidBreed(Node, value, view.state, parseState, breeds)) {
+                if (!checkValidBreed(Node, value, context, breeds)) {
                     diagnostics.push({
                         from: noderef.from,
                         to: noderef.to,
@@ -29324,10 +29317,10 @@ if(!String.prototype.matchAll) {
             }
         });
         return diagnostics;
-    });
+    };
     // checkValidBreed: Checks if the term in the structure of a breed command/reporter
     // is the name of an actual breed, and in the correct singular/plural form
-    const checkValidBreed = function (node, value, state, parseState, breeds) {
+    const checkValidBreed = function (node, value, context, breeds) {
         let isValid = true;
         //collect possible breed names in the correct categories
         let pluralTurtle = [];
@@ -29370,15 +29363,13 @@ if(!String.prototype.matchAll) {
         // some procedure names I've come across accidentally use the structure of a
         // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
         // before declaring it invalid
-        if (!isValid) {
-            if (parseState.Procedures.get(value)) {
-                isValid = true;
-            }
+        if (!isValid && context.parseState.Procedures.get(value)) {
+            isValid = true;
         }
         if (!isValid && node.name != 'Own') {
             // Why do we need this one?
             //We need it to check if it is actually a valid identifier, e.g. a variable name
-            isValid = checkValidIdentifier(node, value, state, parseState);
+            isValid = checkValidIdentifier(node, value, context);
         }
         return isValid;
     };
@@ -29395,7 +29386,7 @@ if(!String.prototype.matchAll) {
     };
 
     // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
-    const UnrecognizedLinter = buildLinter((view, parseState) => {
+    const UnrecognizedLinter = (view, parseState) => {
         const diagnostics = [];
         syntaxTree(view.state)
             .cursor()
@@ -29420,11 +29411,11 @@ if(!String.prototype.matchAll) {
             }
         });
         return diagnostics;
-    });
+    };
 
     let primitives$1 = PrimitiveManager;
     // ArgumentLinter: ensure all primitives have an acceptable number of arguments
-    const ArgumentLinter = buildLinter((view, parseState) => {
+    const ArgumentLinter = (view, parseState) => {
         const diagnostics = [];
         syntaxTree(view.state)
             .cursor()
@@ -29522,7 +29513,7 @@ if(!String.prototype.matchAll) {
         });
         return diagnostics.filter((d) => d.from >= view.state.selection.ranges[0].to ||
             d.to <= view.state.selection.ranges[0].from);
-    });
+    };
     // getArgs: collects everything used as an argument so it can be counted
     const getArgs = function (Node) {
         var _a, _b;
@@ -29685,7 +29676,7 @@ if(!String.prototype.matchAll) {
     };
 
     // CompilerLinter: Present all linting results from the compiler.
-    const CompilerLinter = buildLinter((view, parseState) => {
+    const CompilerLinter = (view, parseState) => {
         return parseState.CompilerErrors.map(function (Error) {
             return {
                 from: Error.start,
@@ -29694,9 +29685,9 @@ if(!String.prototype.matchAll) {
                 message: Error.message,
             };
         });
-    });
+    };
     // RuntimeLinter: Present all runtime errors.
-    const RuntimeLinter = buildLinter((view, parseState) => {
+    const RuntimeLinter = (view, parseState) => {
         return parseState.RuntimeErrors.map(function (Error) {
             return {
                 from: Error.start,
@@ -29705,14 +29696,15 @@ if(!String.prototype.matchAll) {
                 message: Error.message,
             };
         });
-    });
+    };
 
     // UnsupportedLinter: Checks for unsupported primitives
-    //Important note: anything with a colon and no supported extension is tokenized as
-    //'UnsupportedPrim', so acceptable uses of variable names that include colons need
-    //to be filtered out here
-    const UnsupportedLinter = buildLinter((view, parseState) => {
+    // Important note: anything with a colon and no supported extension is tokenized as
+    // 'UnsupportedPrim', so acceptable uses of variable names that include colons need
+    // to be filtered out here
+    const UnsupportedLinter = (view, parseState) => {
         const diagnostics = [];
+        const context = getCheckContext(view);
         let indices = [];
         syntaxTree(view.state)
             .cursor()
@@ -29727,7 +29719,7 @@ if(!String.prototype.matchAll) {
                 ((_e = node.node.parent) === null || _e === void 0 ? void 0 : _e.name) != 'ProcedureName') ||
                 unsupported.includes(value)) &&
                 !indices.includes(node.from) &&
-                !checkValidIdentifier(node.node, value, view.state, parseState)) {
+                !checkValidIdentifier(node.node, value, context)) {
                 indices.push(node.from);
                 diagnostics.push({
                     from: node.from,
@@ -29738,14 +29730,15 @@ if(!String.prototype.matchAll) {
             }
         });
         return diagnostics;
-    });
+    };
 
     let primitives = PrimitiveManager;
     // ExtensionLinter: Checks if extension primitives are used without declaring
     // the extension, or invalid extensions are declared
-    const ExtensionLinter = buildLinter((view, parseState) => {
+    const ExtensionLinter = (view, parseState) => {
         const diagnostics = [];
         let extension_index = 0;
+        const context = getCheckContext(view);
         syntaxTree(view.state)
             .cursor()
             .iterate((noderef) => {
@@ -29773,7 +29766,7 @@ if(!String.prototype.matchAll) {
                     ((_c = noderef.node.parent) === null || _c === void 0 ? void 0 : _c.name) != 'Arguments' &&
                     ((_d = noderef.node.parent) === null || _d === void 0 ? void 0 : _d.name) != 'AnonArguments' &&
                     ((_e = noderef.node.parent) === null || _e === void 0 ? void 0 : _e.name) != 'ProcedureName' &&
-                    !checkValidIdentifier(noderef.node, view.state.sliceDoc(noderef.from, noderef.to), view.state, parseState))) &&
+                    !checkValidIdentifier(noderef.node, view.state.sliceDoc(noderef.from, noderef.to), context))) &&
                 !noderef.name.includes('Special')) {
                 const value = view.state
                     .sliceDoc(noderef.from, noderef.to)
@@ -29806,10 +29799,10 @@ if(!String.prototype.matchAll) {
             }
         });
         return diagnostics;
-    });
+    };
 
     // BreedNameLinter: Ensures no duplicate breed names
-    const BreedNameLinter = buildLinter((view, parseState) => {
+    const BreedNameLinter = (view, parseState) => {
         const diagnostics = [];
         let seen = [];
         syntaxTree(view.state)
@@ -29831,10 +29824,10 @@ if(!String.prototype.matchAll) {
             }
         });
         return diagnostics;
-    });
+    };
 
     // BracketLinter: Checks if all brackets/parentheses have matches
-    const BracketLinter = buildLinter((view, parseState) => {
+    const BracketLinter = (view, parseState) => {
         const diagnostics = [];
         syntaxTree(view.state)
             .cursor()
@@ -29881,10 +29874,10 @@ if(!String.prototype.matchAll) {
                 });
         });
         return diagnostics;
-    });
+    };
 
     /** ModeLinter: Checks if mode matches grammar. */
-    const ModeLinter = buildLinter((view, parseState) => {
+    const ModeLinter = (view, parseState) => {
         const diagnostics = [];
         if (view.state.doc.length == 0)
             return diagnostics;
@@ -29934,7 +29927,7 @@ if(!String.prototype.matchAll) {
             }
         }
         return diagnostics;
-    });
+    };
     // GetMode: Get the mode node.
     const GetMode = function (Node, Mode) {
         return Node.getChild(Mode);
@@ -29953,13 +29946,13 @@ if(!String.prototype.matchAll) {
     };
 
     // ContextLinter: Checks if procedures and code blocks have a valid context
-    const ContextLinter = buildLinter((view, parseState) => {
+    const ContextLinter = (view, parseState) => {
         const diagnostics = [];
         for (let p of parseState.Procedures.values()) {
             diagnostics.push(...checkProcedureContents(p));
         }
         return diagnostics;
-    });
+    };
     // checkProcedureContents: Checks contents of procedures and codeblocks for valid context
     const checkProcedureContents = function (p, parseState) {
         let diagnostics = [];
@@ -29996,19 +29989,6 @@ if(!String.prototype.matchAll) {
     const netlogoLinters = [
         CompilerLinter,
         RuntimeLinter,
-        UnrecognizedLinter,
-        UnrecognizedGlobalLinter,
-        IdentifierLinter,
-        BreedLinter,
-        ArgumentLinter,
-        UnsupportedLinter,
-        ExtensionLinter,
-        BreedNameLinter,
-        BracketLinter,
-        ModeLinter,
-        ContextLinter,
-    ];
-    const onelineLinters = [
         UnrecognizedLinter,
         UnrecognizedGlobalLinter,
         IdentifierLinter,
@@ -30341,6 +30321,24 @@ if(!String.prototype.matchAll) {
         }
     }
 
+    /** buildLinter: Builds a linter extension from a linter function. */
+    const buildLinter = function (Source) {
+        var LastVersion = 0;
+        var Cached;
+        var BuiltSource = (view) => {
+            const State = view.state.field(stateExtension);
+            if (State.GetDirty() || State.GetVersion() > LastVersion) {
+                State.ParseState(view.state);
+                Cached = Source(view, State);
+                LastVersion = State.GetVersion();
+            }
+            return Cached;
+        };
+        var Extension = linter(BuiltSource);
+        Extension.Source = BuiltSource;
+        return Extension;
+    };
+
     /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
     class GalapagosEditor {
         /** Constructor: Create an editor instance. */
@@ -30380,13 +30378,10 @@ if(!String.prototype.matchAll) {
                     Extensions.push(preprocessStateExtension);
                     Extensions.push(stateExtension);
                     Dictionary.ClickHandler = Options.OnDictionaryClick;
+                    this.Linters = netlogoLinters.map((linter) => buildLinter(linter));
                     // Special case: One-line mode
                     if (!this.Options.OneLine) {
-                        this.Linters = netlogoLinters;
                         Extensions.push(tooltipExtension);
-                    }
-                    else {
-                        this.Linters = onelineLinters;
                     }
                     Extensions.push(...this.Linters);
             }
@@ -30420,11 +30415,15 @@ if(!String.prototype.matchAll) {
             const Container = document.createElement('span');
             this.highlightInternal(Content, (Text, Style, From, To) => {
                 if (Style == '') {
-                    Container.appendChild(document.createTextNode(Text));
+                    const Node = document.createElement('span');
+                    Node.innerText = Text;
+                    Node.innerHTML = Node.innerHTML.replace(" ", "&nbsp;");
+                    Container.appendChild(Node);
                 }
                 else {
                     const Node = document.createElement('span');
                     Node.innerText = Text;
+                    Node.innerHTML = Node.innerHTML.replace(" ", "&nbsp;");
                     Node.className = Style;
                     Container.appendChild(Node);
                 }

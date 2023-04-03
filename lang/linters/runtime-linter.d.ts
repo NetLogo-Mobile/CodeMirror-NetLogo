@@ -1,5 +1,6 @@
-export declare const CompilerLinter: import("@codemirror/state").Extension;
-export declare const RuntimeLinter: import("@codemirror/state").Extension;
+import { Linter } from './linter-builder';
+export declare const CompilerLinter: Linter;
+export declare const RuntimeLinter: Linter;
 export interface RuntimeError {
     message: string;
     start: number;
