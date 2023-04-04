@@ -30394,6 +30394,8 @@ if(!String.prototype.matchAll) {
                     // Special case: One-line mode
                     if (!this.Options.OneLine) {
                         Extensions.push(tooltipExtension);
+                    }
+                    else {
                         Extensions.unshift(Prec.highest(keymap.of([{ key: 'Enter', run: () => true }])));
                         Extensions.unshift(Prec.highest(keymap.of([{ key: 'Tab', run: acceptCompletion }])));
                     }
