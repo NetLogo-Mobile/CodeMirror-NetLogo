@@ -26,17 +26,3 @@ export const netlogoLinters = [
   ModeLinter,
   ContextLinter,
 ];
-
-export const onelineLinters = [
-  UnrecognizedLinter,
-  UnrecognizedGlobalLinter,
-  IdentifierLinter,
-  BreedLinter,
-  ArgumentLinter,
-  UnsupportedLinter,
-  ExtensionLinter,
-  BreedNameLinter,
-  BracketLinter,
-  ModeLinter,
-  ContextLinter,
-];

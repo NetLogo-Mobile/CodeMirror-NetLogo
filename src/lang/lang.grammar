@@ -13,10 +13,10 @@
 
 @top Program { 
   Normal {
-    (Unrecognized* globalStatement)* Procedure* ~statement
+    setup* Procedure* ~statement
   } |
   OnelineReporter {
-    ReporterStatement
+    ReporterStatement | Value
   } |
   Embedded {
     ProcedureContent+
@@ -26,6 +26,10 @@
 @detectDelim
 
 @skip { space | LineComment }
+
+setup {
+  Unrecognized* globalStatement
+}
 
 Unrecognized {
   Procedure ~statement
@@ -156,9 +160,9 @@ NewVariableDeclaration {
 
 SetVariable {
   Set VariableName Value |
-  Set VariableName ReporterStatement |
-  Set VariableName OpenParen ReporterStatement !close CloseParen
+  Set VariableName ReporterStatement
 }
+
 
 VariableName {
   Identifier ~statement | 
@@ -203,7 +207,8 @@ Property {
 }
 
 ReporterStatement { 
-  OpenParen ReporterLeft1ArgsOpt !lastArgs Arg CloseParen|
+  OpenParen ReporterStatement !close CloseParen |
+  OpenParen ReporterLeft1ArgsOpt !lastArgs Arg CloseParen |
   Arg !leftArgs (ReporterLeft1Args | ReporterLeft1ArgsOpt) !lastArgs Arg+ |
   Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg+ |
   (SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP | UnsupportedPrim) !lastArgs Arg* ~statement |

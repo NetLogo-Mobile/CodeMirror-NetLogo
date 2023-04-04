@@ -1,17 +1,21 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
-import { checkValidIdentifier } from './identifier-linter';
+import {
+  checkValidIdentifier,
+  getCheckContext,
+} from './utils/check-identifier';
 
 let primitives = PrimitiveManager;
 
 // ExtensionLinter: Checks if extension primitives are used without declaring
 // the extension, or invalid extensions are declared
-export const ExtensionLinter = buildLinter((view, parseState) => {
+export const ExtensionLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   let extension_index = 0;
+  const context = getCheckContext(view);
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
@@ -41,8 +45,7 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
             !checkValidIdentifier(
               noderef.node,
               view.state.sliceDoc(noderef.from, noderef.to),
-              view.state,
-              parseState
+              context
             ))) &&
         !noderef.name.includes('Special')
       ) {
@@ -77,4 +80,4 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};

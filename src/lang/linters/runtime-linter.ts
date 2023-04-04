@@ -1,7 +1,7 @@
-import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 
 // CompilerLinter: Present all linting results from the compiler.
-export const CompilerLinter = buildLinter((view, parseState) => {
+export const CompilerLinter: Linter = (view, parseState) => {
   return parseState.CompilerErrors.map(function (Error) {
     return {
       from: Error.start,
@@ -10,10 +10,10 @@ export const CompilerLinter = buildLinter((view, parseState) => {
       message: Error.message,
     };
   });
-});
+};
 
 // RuntimeLinter: Present all runtime errors.
-export const RuntimeLinter = buildLinter((view, parseState) => {
+export const RuntimeLinter: Linter = (view, parseState) => {
   return parseState.RuntimeErrors.map(function (Error) {
     return {
       from: Error.start,
@@ -22,7 +22,7 @@ export const RuntimeLinter = buildLinter((view, parseState) => {
       message: Error.message,
     };
   });
-});
+};
 
 // RuntimeError: Error from the compiler.
 export interface RuntimeError {

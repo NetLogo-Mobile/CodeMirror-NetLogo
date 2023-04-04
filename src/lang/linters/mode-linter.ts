@@ -1,12 +1,12 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 import { SyntaxNode } from '@lezer/common';
 import { ParseMode } from '../../editor-config';
 
 /** ModeLinter: Checks if mode matches grammar. */
-export const ModeLinter = buildLinter((view, parseState) => {
+export const ModeLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   if (view.state.doc.length == 0) return diagnostics;
   var node = syntaxTree(view.state).cursor().node;
@@ -56,7 +56,7 @@ export const ModeLinter = buildLinter((view, parseState) => {
     }
   }
   return diagnostics;
-});
+};
 
 // GetMode: Get the mode node.
 const GetMode = function (Node: SyntaxNode, Mode: string) {

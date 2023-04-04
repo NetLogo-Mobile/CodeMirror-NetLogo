@@ -1,6 +1,6 @@
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 import { Procedure, CodeBlock } from '../classes';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import {
@@ -9,13 +9,13 @@ import {
 } from '../../codemirror/utils/context_utils';
 
 // ContextLinter: Checks if procedures and code blocks have a valid context
-export const ContextLinter = buildLinter((view, parseState) => {
+export const ContextLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   for (let p of parseState.Procedures.values()) {
     diagnostics.push(...checkProcedureContents(p, parseState));
   }
   return diagnostics;
-});
+};
 
 // checkProcedureContents: Checks contents of procedures and codeblocks for valid context
 const checkProcedureContents = function (

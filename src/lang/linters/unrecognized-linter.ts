@@ -1,10 +1,10 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
-export const UnrecognizedLinter = buildLinter((view, parseState) => {
+export const UnrecognizedLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -30,4 +30,4 @@ export const UnrecognizedLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};

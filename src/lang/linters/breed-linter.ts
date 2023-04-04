@@ -1,19 +1,22 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
-import { EditorState } from '@codemirror/state';
-import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
-import { checkValidIdentifier } from './identifier-linter';
 import { Localized } from '../../editor';
-import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { Breed } from '../lang/classes.ts';
+import {
+  CheckContext,
+  checkValidIdentifier,
+  getCheckContext,
+} from './utils/check-identifier';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
-export const BreedLinter = buildLinter((view, parseState) => {
+export const BreedLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   const breeds = parseState.GetBreeds();
+  const context = getCheckContext(view);
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
@@ -33,7 +36,7 @@ export const BreedLinter = buildLinter((view, parseState) => {
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
-        if (!checkValidBreed(Node, value, view.state, parseState, breeds)) {
+        if (!checkValidBreed(Node, value, context, breeds)) {
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
@@ -44,15 +47,14 @@ export const BreedLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};
 
 // checkValidBreed: Checks if the term in the structure of a breed command/reporter
 // is the name of an actual breed, and in the correct singular/plural form
 const checkValidBreed = function (
   node: SyntaxNode,
   value: string,
-  state: EditorState,
-  parseState: StateNetLogo,
+  context: CheckContext,
   breeds: Breed[]
 ) {
   let isValid = true;
@@ -96,15 +98,13 @@ const checkValidBreed = function (
   // some procedure names I've come across accidentally use the structure of a
   // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
   // before declaring it invalid
-  if (!isValid) {
-    if (parseState.Procedures.get(value)) {
-      isValid = true;
-    }
+  if (!isValid && context.parseState.Procedures.get(value)) {
+    isValid = true;
   }
   if (!isValid && node.name != 'Own') {
     // Why do we need this one?
     //We need it to check if it is actually a valid identifier, e.g. a variable name
-    isValid = checkValidIdentifier(node, value, state, parseState);
+    isValid = checkValidIdentifier(node, value, context);
   }
   return isValid;
 };

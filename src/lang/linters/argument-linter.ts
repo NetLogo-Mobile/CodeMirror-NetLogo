@@ -5,13 +5,13 @@ import { EditorState } from '@codemirror/state';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
-import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 import { Localized } from '../../editor';
 
 let primitives = PrimitiveManager;
 
 // ArgumentLinter: ensure all primitives have an acceptable number of arguments
-export const ArgumentLinter = buildLinter((view, parseState) => {
+export const ArgumentLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -136,7 +136,7 @@ export const ArgumentLinter = buildLinter((view, parseState) => {
       d.from >= view.state.selection.ranges[0].to ||
       d.to <= view.state.selection.ranges[0].from
   );
-});
+};
 
 // getArgs: collects everything used as an argument so it can be counted
 export const getArgs = function (Node: SyntaxNode) {
