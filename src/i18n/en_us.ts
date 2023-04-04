@@ -97,6 +97,11 @@ const en_us: Record<string, Function> = {
   '~CustomReporter': (Name: string) => `A user-defined reporter. `,
   '~BreedCommand': (Name: string) => `A command for the "${Name}" breed. `,
   '~CustomCommand': (Name: string) => `A user-defined command. `,
+
+  // Chat and AI assistant
+  Reconnect: () => `Reconnect`,
+  'Connection to server failed _': (Error: string) =>
+    `Sorry, the connection to our server failed. Code ${Error}.`,
 };
 
 export { en_us };

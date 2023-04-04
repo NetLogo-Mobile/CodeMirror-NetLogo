@@ -95,6 +95,11 @@ const zh_cn: Record<string, Function> = {
   '~CustomReporter': (Name: string) => `代码中定义的一个函数。`,
   '~BreedCommand': (Name: string) => `关于 "${Name}" 种类的过程。 `,
   '~CustomCommand': (Name: string) => `代码中定义的一个过程。`,
+
+  // Chat and AI assistant
+  Reconnect: () => `重新连接`,
+  'Connection to server failed _': (Error: string) =>
+    `抱歉，和服务器的连接中断了。代码 ${Error}。`,
 };
 
 export { zh_cn };

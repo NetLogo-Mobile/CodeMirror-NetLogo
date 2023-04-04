@@ -1,12 +1,11 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { undo, redo, selectAll, indentWithTab } from '@codemirror/commands';
-import { closeCompletion } from '@codemirror/autocomplete';
+import { closeCompletion, acceptCompletion } from '@codemirror/autocomplete';
 import {
   forceParsing,
   LanguageSupport,
   syntaxTree,
 } from '@codemirror/language';
-import { diagnosticCount, LintSource } from '@codemirror/lint';
 import {
   replaceAll,
   selectMatches,
@@ -18,8 +17,8 @@ import {
   openSearchPanel,
   closeSearchPanel,
 } from '@codemirror/search';
-import { Compartment, EditorState, Extension } from '@codemirror/state';
-import { ViewUpdate, keymap, ViewPlugin } from '@codemirror/view';
+import { Prec, Compartment, EditorState, Extension } from '@codemirror/state';
+import { ViewUpdate, keymap } from '@codemirror/view';
 import { NetLogo } from './lang/netlogo.js';
 import { EditorConfig, EditorLanguage, ParseMode } from './editor-config';
 import { highlight, highlightStyle } from './codemirror/style-highlight';
@@ -77,7 +76,7 @@ export class GalapagosEditor {
       // Events
       updateExtension((Update) => this.onUpdate(Update)),
       highlight,
-      // indentExtension,
+      // indentExtension
       keymap.of([indentWithTab]),
     ];
 
@@ -103,6 +102,12 @@ export class GalapagosEditor {
           Extensions.push(tooltipExtension);
         } else {
           this.Linters = onelineLinters;
+          Extensions.unshift(
+            Prec.highest(keymap.of([{ key: 'Enter', run: () => true }]))
+          );
+          Extensions.unshift(
+            Prec.highest(keymap.of([{ key: 'Tab', run: acceptCompletion }]))
+          );
         }
         Extensions.push(...this.Linters);
     }
@@ -145,16 +150,28 @@ export class GalapagosEditor {
   // #region "Highlighting & Linting"
   /** Highlight: Highlight a given snippet of code. */
   Highlight(Content: string): HTMLElement {
+    var LastPosition = 0;
     const Container = document.createElement('span');
     this.highlightInternal(Content, (Text, Style, From, To) => {
       if (Style == '') {
-        Container.appendChild(document.createTextNode(Text));
+        var Lines = Text.split('\n');
+        for (var I = 0; I < Lines.length; I++) {
+          var Line = Lines[I];
+          var Span = document.createElement('span');
+          Span.innerText = Line;
+          Span.innerHTML = Span.innerHTML.replace(/ /g, '&nbsp;');
+          Container.appendChild(Span);
+          if (I != Lines.length - 1)
+            Container.appendChild(document.createElement('br'));
+        }
       } else {
         const Node = document.createElement('span');
         Node.innerText = Text;
+        Node.innerHTML = Node.innerHTML.replace(/ /g, '&nbsp;');
         Node.className = Style;
         Container.appendChild(Node);
       }
+      LastPosition = To;
     });
     return Container;
   }
