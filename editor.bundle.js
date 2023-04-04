@@ -30238,6 +30238,9 @@ if(!String.prototype.matchAll) {
         '~CustomReporter': (Name) => `A user-defined reporter. `,
         '~BreedCommand': (Name) => `A command for the "${Name}" breed. `,
         '~CustomCommand': (Name) => `A user-defined command. `,
+        // Chat and AI assistant
+        Reconnect: () => `Reconnect`,
+        'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
     };
 
     const zh_cn = {
@@ -30292,6 +30295,9 @@ if(!String.prototype.matchAll) {
         '~CustomReporter': (Name) => `代码中定义的一个函数。`,
         '~BreedCommand': (Name) => `关于 "${Name}" 种类的过程。 `,
         '~CustomCommand': (Name) => `代码中定义的一个过程。`,
+        // Chat and AI assistant
+        Reconnect: () => `重新连接`,
+        'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
     };
 
     /** LocalizationManager: Manage all localized texts. */
@@ -30365,7 +30371,7 @@ if(!String.prototype.matchAll) {
                 // Events
                 updateExtension((Update) => this.onUpdate(Update)),
                 highlight,
-                // indentExtension,
+                // indentExtension
                 keymap.of([indentWithTab]),
             ];
             // Language-specific
@@ -30388,6 +30394,8 @@ if(!String.prototype.matchAll) {
                     // Special case: One-line mode
                     if (!this.Options.OneLine) {
                         Extensions.push(tooltipExtension);
+                        Extensions.unshift(Prec.highest(keymap.of([{ key: 'Enter', run: () => true }])));
+                        Extensions.unshift(Prec.highest(keymap.of([{ key: 'Tab', run: acceptCompletion }])));
                     }
                     Extensions.push(...this.Linters);
             }
@@ -30421,10 +30429,16 @@ if(!String.prototype.matchAll) {
             const Container = document.createElement('span');
             this.highlightInternal(Content, (Text, Style, From, To) => {
                 if (Style == '') {
-                    const Node = document.createElement('span');
-                    Node.innerText = Text;
-                    Node.innerHTML = Node.innerHTML.replace(' ', '&nbsp;');
-                    Container.appendChild(Node);
+                    var Lines = Text.split('\n');
+                    for (var I = 0; I < Lines.length; I++) {
+                        var Line = Lines[I];
+                        var Span = document.createElement('span');
+                        Span.innerText = Line;
+                        Span.innerHTML = Span.innerHTML.replace(/ /g, '&nbsp;');
+                        Container.appendChild(Span);
+                        if (I != Lines.length - 1)
+                            Container.appendChild(document.createElement('br'));
+                    }
                 }
                 else {
                     const Node = document.createElement('span');
