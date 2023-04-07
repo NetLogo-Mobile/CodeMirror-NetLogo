@@ -110,31 +110,31 @@ export class Breed {
   public Plural: string;
   /** Variables: Variables defined for the breed. */
   public Variables: string[];
-  /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
-  public isLinkBreed: boolean;
+  /** IsLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
+  public IsLinkBreed: boolean;
   /** Build a breed. */
   public constructor(
     Singular: string,
     Plural: string,
     Variables: string[],
-    isLinkBreed: boolean
+    IsLinkBreed: boolean
   ) {
     this.Singular = Singular;
     this.Plural = Plural;
     this.Variables = Variables;
-    this.isLinkBreed = isLinkBreed;
+    this.IsLinkBreed = IsLinkBreed;
   }
 }
 
 /** Procedure: Dynamic metadata of a procedure. */
 export class Procedure {
-  /** name: The name of the procedure. */
+  /** Name: The name of the procedure. */
   public Name: string = '';
   /** Arguments: The arguments of the procedure. */
   public Arguments: string[] = [];
-  /** Variables: local variables defined for the procedure. */
+  /** Variables: Local variables defined within the procedure. */
   public Variables: LocalVariable[] = [];
-  /** AnonymousProcedures: anonymous procedures defined for the procedure. */
+  /** AnonymousProcedures: Anonymous procedures defined for the procedure. */
   public AnonymousProcedures: Procedure[] = [];
   /** PositionStart: The starting position of the procedure in the document. */
   public PositionStart: number = 0;
@@ -144,9 +144,9 @@ export class Procedure {
   public IsCommand: boolean = false;
   /** IsCommand: Is the procedure anonymous? */
   public IsAnonymous: boolean = false;
-  /** Context: The possible contexts for the procedure */
+  /** Context: The possible contexts for the procedure. */
   public Context: AgentContexts = new AgentContexts();
-  /** CodeBlocks: code blocks within the procedure. */
+  /** CodeBlocks: Code blocks within the procedure. */
   public CodeBlocks: CodeBlock[] = [];
 }
 
@@ -158,9 +158,9 @@ export class CodeBlock {
   public PositionEnd: number = 0;
   /** Context: The possible contexts for the code block */
   public Context: AgentContexts = new AgentContexts();
-  /** CodeBlocks: code blocks within the code block. */
+  /** CodeBlocks: Code blocks within the code block. */
   public CodeBlocks: CodeBlock[] = [];
-  /** Variables: local variables defined for the code block. */
+  /** Variables: Local variables defined within the code block. */
   public Variables: LocalVariable[] = [];
   /** Arguments: The arguments accessible within the code block. */
   public Arguments: string[] = [];
@@ -182,7 +182,7 @@ export class AnonymousProcedure {
   public PositionEnd: number = 0;
   /** Arguments: The arguments of the procedure. */
   public Arguments: string[] = [];
-  /** Variables: local variables defined for the procedure. */
+  /** Variables: Local variables defined within the procedure. */
   public Variables: LocalVariable[] = [];
 }
 

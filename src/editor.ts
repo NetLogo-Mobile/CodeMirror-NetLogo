@@ -197,7 +197,9 @@ export class GalapagosEditor {
   // #region "Editor Statuses"
   /** GetState: Get the current parser state of the NetLogo code. */
   GetState(): StateNetLogo {
-    return this.CodeMirror.state.field(stateExtension);
+    return this.CodeMirror.state
+      .field(stateExtension)
+      .ParseState(this.CodeMirror.state);
   }
 
   /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
@@ -354,6 +356,7 @@ export class GalapagosEditor {
   /** ForceParse: Force the editor to finish any parsing. */
   ForceParse() {
     forceParsing(this.CodeMirror, this.CodeMirror.state.doc.length, 100000);
+    this.CodeMirror.state.field(stateExtension).SetDirty();
   }
 
   /** ForceLint: Force the editor to do another round of linting. */

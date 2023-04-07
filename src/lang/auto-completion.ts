@@ -103,7 +103,7 @@ export class AutoCompletion {
   private getBreedCommands(state: StateNetLogo): string[] {
     let commands: string[] = [];
     for (let b of state.Breeds.values()) {
-      if (!b.isLinkBreed) {
+      if (!b.IsLinkBreed) {
         commands.push('hatch-' + b.Plural);
         commands.push('sprout-' + b.Plural);
         commands.push('create-' + b.Plural);
@@ -123,7 +123,7 @@ export class AutoCompletion {
   private getBreedReporters(state: StateNetLogo): string[] {
     let reporters: string[] = [];
     for (let b of state.Breeds.values()) {
-      if (!b.isLinkBreed) {
+      if (!b.IsLinkBreed) {
         reporters.push(b.Plural + '-at');
         reporters.push(b.Plural + '-here');
         reporters.push(b.Plural + '-on');

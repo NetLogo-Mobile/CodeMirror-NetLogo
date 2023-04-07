@@ -14,7 +14,6 @@ import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
 import { ParseMode } from '../editor-config';
-import { cursorTo } from 'readline';
 
 let primitives = PrimitiveManager;
 
@@ -287,7 +286,7 @@ export class StateNetLogo {
             } else if (n) {
               for (let breed of this.Breeds.values()) {
                 if (breed.Variables.includes(name)) {
-                  if (breed.isLinkBreed) {
+                  if (breed.IsLinkBreed) {
                     c = new AgentContexts('---L');
                   } else if (breed.Singular == 'patch') {
                     c = new AgentContexts('-TP-');
@@ -415,7 +414,7 @@ export class StateNetLogo {
           }
         }
         if (breed) {
-          if (breed.isLinkBreed) {
+          if (breed.IsLinkBreed) {
             prim.context = new AgentContexts('---L');
           } else if (breed.Singular == 'patch') {
             prim.context = new AgentContexts('-TP-');
