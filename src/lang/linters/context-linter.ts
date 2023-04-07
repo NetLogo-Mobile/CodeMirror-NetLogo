@@ -31,7 +31,7 @@ const checkProcedureContents = function (
       severity: 'error',
       message: Localized.Get(
         'Invalid context _.',
-        p.isProcedure ? 'procedure' : 'code block'
+        p instanceof Procedure ? 'procedure' : 'code block'
       ),
     });
   } else {

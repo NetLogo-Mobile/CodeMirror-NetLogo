@@ -26,6 +26,7 @@ export interface Primitive {
   IntroducesContext?: boolean;
   /** CanBeConcise: Unsure what this is for. */
   CanBeConcise?: boolean;
+  /** InheritParentContext: If this primitive inherits the context of its parent. */
   InheritParentContext?: boolean;
 }
 
@@ -75,9 +76,13 @@ export enum BreedLocation {
 
 /** AgentContexts: Agent contexts of a primitive. */
 export class AgentContexts {
+  /** Observer: Whether the context includes observers. */
   public Observer: boolean;
+  /** Turtle: Whether the context includes turtles. */
   public Turtle: boolean;
+  /** Patch: Whether the context includes patches. */
   public Patch: boolean;
+  /** Link: Whether the context includes links. */
   public Link: boolean;
   /** Parse an agent-context string. */
   public constructor(Input?: string) {
@@ -143,9 +148,9 @@ export class Procedure {
   public Context: AgentContexts = new AgentContexts();
   /** CodeBlocks: code blocks within the procedure. */
   public CodeBlocks: CodeBlock[] = [];
-  public isProcedure: boolean = true;
 }
 
+/** CodeBlock: Dynamic metadata of a code block. */
 export class CodeBlock {
   /** PositionStart: The position at the start of the code block. */
   public PositionStart: number = 0;
@@ -159,11 +164,13 @@ export class CodeBlock {
   public Variables: LocalVariable[] = [];
   /** Arguments: The arguments accessible within the code block. */
   public Arguments: string[] = [];
-  /** AnonymousProcedures: anonymous procedures defined within the code block. */
+  /** AnonymousProcedures: Anonymous procedures defined within the code block. */
   public AnonymousProcedures: Procedure[] = [];
-  public isProcedure: boolean = false;
+  /** Primitive: The primitive that the code block is associated with. */
   public Primitive: string = '';
+  /** Breed: The breed that the code block is associated with. */
   public Breed: string | null = null;
+  /** InheritParentContext: Whether the code block inherits the context of its parent. */
   public InheritParentContext: boolean = false;
 }
 
