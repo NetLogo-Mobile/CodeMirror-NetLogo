@@ -25208,23 +25208,23 @@ if(!String.prototype.matchAll) {
     /** Breed: Dynamic metadata of a single breed. */
     class Breed {
         /** Build a breed. */
-        constructor(Singular, Plural, Variables, isLinkBreed) {
+        constructor(Singular, Plural, Variables, IsLinkBreed) {
             this.Singular = Singular;
             this.Plural = Plural;
             this.Variables = Variables;
-            this.isLinkBreed = isLinkBreed;
+            this.IsLinkBreed = IsLinkBreed;
         }
     }
     /** Procedure: Dynamic metadata of a procedure. */
     class Procedure {
         constructor() {
-            /** name: The name of the procedure. */
+            /** Name: The name of the procedure. */
             this.Name = '';
             /** Arguments: The arguments of the procedure. */
             this.Arguments = [];
-            /** Variables: local variables defined for the procedure. */
+            /** Variables: Local variables defined within the procedure. */
             this.Variables = [];
-            /** AnonymousProcedures: anonymous procedures defined for the procedure. */
+            /** AnonymousProcedures: Anonymous procedures defined for the procedure. */
             this.AnonymousProcedures = [];
             /** PositionStart: The starting position of the procedure in the document. */
             this.PositionStart = 0;
@@ -25234,9 +25234,9 @@ if(!String.prototype.matchAll) {
             this.IsCommand = false;
             /** IsCommand: Is the procedure anonymous? */
             this.IsAnonymous = false;
-            /** Context: The possible contexts for the procedure */
+            /** Context: The possible contexts for the procedure. */
             this.Context = new AgentContexts();
-            /** CodeBlocks: code blocks within the procedure. */
+            /** CodeBlocks: Code blocks within the procedure. */
             this.CodeBlocks = [];
         }
     }
@@ -25249,9 +25249,9 @@ if(!String.prototype.matchAll) {
             this.PositionEnd = 0;
             /** Context: The possible contexts for the code block */
             this.Context = new AgentContexts();
-            /** CodeBlocks: code blocks within the code block. */
+            /** CodeBlocks: Code blocks within the code block. */
             this.CodeBlocks = [];
-            /** Variables: local variables defined for the code block. */
+            /** Variables: Local variables defined within the code block. */
             this.Variables = [];
             /** Arguments: The arguments accessible within the code block. */
             this.Arguments = [];
@@ -26301,7 +26301,7 @@ if(!String.prototype.matchAll) {
                             else if (n) {
                                 for (let breed of this.Breeds.values()) {
                                     if (breed.Variables.includes(name)) {
-                                        if (breed.isLinkBreed) {
+                                        if (breed.IsLinkBreed) {
                                             c = new AgentContexts('---L');
                                         }
                                         else if (breed.Singular == 'patch') {
@@ -26396,7 +26396,7 @@ if(!String.prototype.matchAll) {
                         }
                     }
                     if (breed) {
-                        if (breed.isLinkBreed) {
+                        if (breed.IsLinkBreed) {
                             prim.context = new AgentContexts('---L');
                         }
                         else if (breed.Singular == 'patch') {
@@ -26711,7 +26711,7 @@ if(!String.prototype.matchAll) {
         getBreedCommands(state) {
             let commands = [];
             for (let b of state.Breeds.values()) {
-                if (!b.isLinkBreed) {
+                if (!b.IsLinkBreed) {
                     commands.push('hatch-' + b.Plural);
                     commands.push('sprout-' + b.Plural);
                     commands.push('create-' + b.Plural);
@@ -26731,7 +26731,7 @@ if(!String.prototype.matchAll) {
         getBreedReporters(state) {
             let reporters = [];
             for (let b of state.Breeds.values()) {
-                if (!b.isLinkBreed) {
+                if (!b.IsLinkBreed) {
                     reporters.push(b.Plural + '-at');
                     reporters.push(b.Plural + '-here');
                     reporters.push(b.Plural + '-on');
@@ -30470,7 +30470,9 @@ if(!String.prototype.matchAll) {
         // #region "Editor Statuses"
         /** GetState: Get the current parser state of the NetLogo code. */
         GetState() {
-            return this.CodeMirror.state.field(stateExtension);
+            return this.CodeMirror.state
+                .field(stateExtension)
+                .ParseState(this.CodeMirror.state);
         }
         /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
         GetPreprocessState() {
@@ -30608,6 +30610,7 @@ if(!String.prototype.matchAll) {
         /** ForceParse: Force the editor to finish any parsing. */
         ForceParse() {
             forceParsing(this.CodeMirror, this.CodeMirror.state.doc.length, 100000);
+            this.CodeMirror.state.field(stateExtension).SetDirty();
         }
         /** ForceLint: Force the editor to do another round of linting. */
         ForceLint() {

@@ -90,20 +90,20 @@ export declare class Breed {
     Plural: string;
     /** Variables: Variables defined for the breed. */
     Variables: string[];
-    /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
-    isLinkBreed: boolean;
+    /** IsLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
+    IsLinkBreed: boolean;
     /** Build a breed. */
-    constructor(Singular: string, Plural: string, Variables: string[], isLinkBreed: boolean);
+    constructor(Singular: string, Plural: string, Variables: string[], IsLinkBreed: boolean);
 }
 /** Procedure: Dynamic metadata of a procedure. */
 export declare class Procedure {
-    /** name: The name of the procedure. */
+    /** Name: The name of the procedure. */
     Name: string;
     /** Arguments: The arguments of the procedure. */
     Arguments: string[];
-    /** Variables: local variables defined for the procedure. */
+    /** Variables: Local variables defined within the procedure. */
     Variables: LocalVariable[];
-    /** AnonymousProcedures: anonymous procedures defined for the procedure. */
+    /** AnonymousProcedures: Anonymous procedures defined for the procedure. */
     AnonymousProcedures: Procedure[];
     /** PositionStart: The starting position of the procedure in the document. */
     PositionStart: number;
@@ -113,9 +113,9 @@ export declare class Procedure {
     IsCommand: boolean;
     /** IsCommand: Is the procedure anonymous? */
     IsAnonymous: boolean;
-    /** Context: The possible contexts for the procedure */
+    /** Context: The possible contexts for the procedure. */
     Context: AgentContexts;
-    /** CodeBlocks: code blocks within the procedure. */
+    /** CodeBlocks: Code blocks within the procedure. */
     CodeBlocks: CodeBlock[];
 }
 /** CodeBlock: Dynamic metadata of a code block. */
@@ -126,9 +126,9 @@ export declare class CodeBlock {
     PositionEnd: number;
     /** Context: The possible contexts for the code block */
     Context: AgentContexts;
-    /** CodeBlocks: code blocks within the code block. */
+    /** CodeBlocks: Code blocks within the code block. */
     CodeBlocks: CodeBlock[];
-    /** Variables: local variables defined for the code block. */
+    /** Variables: Local variables defined within the code block. */
     Variables: LocalVariable[];
     /** Arguments: The arguments accessible within the code block. */
     Arguments: string[];
@@ -149,7 +149,7 @@ export declare class AnonymousProcedure {
     PositionEnd: number;
     /** Arguments: The arguments of the procedure. */
     Arguments: string[];
-    /** Variables: local variables defined for the procedure. */
+    /** Variables: Local variables defined within the procedure. */
     Variables: LocalVariable[];
 }
 /** LocalVariable: metadata for local variables */
