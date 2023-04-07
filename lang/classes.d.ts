@@ -26,6 +26,7 @@ export interface Primitive {
     IntroducesContext?: boolean;
     /** CanBeConcise: Unsure what this is for. */
     CanBeConcise?: boolean;
+    /** InheritParentContext: If this primitive inherits the context of its parent. */
     InheritParentContext?: boolean;
 }
 /** Argument: Static metadata of a NetLogo primitive's argument. */
@@ -70,9 +71,13 @@ export declare enum BreedLocation {
 }
 /** AgentContexts: Agent contexts of a primitive. */
 export declare class AgentContexts {
+    /** Observer: Whether the context includes observers. */
     Observer: boolean;
+    /** Turtle: Whether the context includes turtles. */
     Turtle: boolean;
+    /** Patch: Whether the context includes patches. */
     Patch: boolean;
+    /** Link: Whether the context includes links. */
     Link: boolean;
     /** Parse an agent-context string. */
     constructor(Input?: string);
@@ -112,8 +117,8 @@ export declare class Procedure {
     Context: AgentContexts;
     /** CodeBlocks: code blocks within the procedure. */
     CodeBlocks: CodeBlock[];
-    isProcedure: boolean;
 }
+/** CodeBlock: Dynamic metadata of a code block. */
 export declare class CodeBlock {
     /** PositionStart: The position at the start of the code block. */
     PositionStart: number;
@@ -127,11 +132,13 @@ export declare class CodeBlock {
     Variables: LocalVariable[];
     /** Arguments: The arguments accessible within the code block. */
     Arguments: string[];
-    /** AnonymousProcedures: anonymous procedures defined within the code block. */
+    /** AnonymousProcedures: Anonymous procedures defined within the code block. */
     AnonymousProcedures: Procedure[];
-    isProcedure: boolean;
+    /** Primitive: The primitive that the code block is associated with. */
     Primitive: string;
+    /** Breed: The breed that the code block is associated with. */
     Breed: string | null;
+    /** InheritParentContext: Whether the code block inherits the context of its parent. */
     InheritParentContext: boolean;
 }
 /** Procedure: Dynamic metadata of an anonymous procedure. */

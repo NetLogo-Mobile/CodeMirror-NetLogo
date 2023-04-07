@@ -25238,9 +25238,9 @@ if(!String.prototype.matchAll) {
             this.Context = new AgentContexts();
             /** CodeBlocks: code blocks within the procedure. */
             this.CodeBlocks = [];
-            this.isProcedure = true;
         }
     }
+    /** CodeBlock: Dynamic metadata of a code block. */
     class CodeBlock {
         constructor() {
             /** PositionStart: The position at the start of the code block. */
@@ -25255,11 +25255,13 @@ if(!String.prototype.matchAll) {
             this.Variables = [];
             /** Arguments: The arguments accessible within the code block. */
             this.Arguments = [];
-            /** AnonymousProcedures: anonymous procedures defined within the code block. */
+            /** AnonymousProcedures: Anonymous procedures defined within the code block. */
             this.AnonymousProcedures = [];
-            this.isProcedure = false;
+            /** Primitive: The primitive that the code block is associated with. */
             this.Primitive = '';
+            /** Breed: The breed that the code block is associated with. */
             this.Breed = null;
+            /** InheritParentContext: Whether the code block inherits the context of its parent. */
             this.InheritParentContext = false;
         }
     }
@@ -27748,7 +27750,7 @@ if(!String.prototype.matchAll) {
                     }
                 }),
                 /*@__PURE__*/foldNodeProp.add({
-                    "Block ClassBody SwitchBody EnumBody ObjectExpression ArrayExpression": foldInside,
+                    "Block ClassBody SwitchBody EnumBody ObjectExpression ArrayExpression ObjectType": foldInside,
                     BlockComment(tree) { return { from: tree.from + 2, to: tree.to - 2 }; }
                 })
             ]
@@ -29968,7 +29970,7 @@ if(!String.prototype.matchAll) {
                 from: p.PositionStart,
                 to: p.PositionEnd,
                 severity: 'error',
-                message: Localized.Get('Invalid context _.', p.isProcedure ? 'procedure' : 'code block'),
+                message: Localized.Get('Invalid context _.', p instanceof Procedure ? 'procedure' : 'code block'),
             });
         }
         else {
