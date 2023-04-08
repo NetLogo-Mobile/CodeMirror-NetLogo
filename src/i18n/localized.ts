@@ -29,11 +29,4 @@ class LocalizationManager {
   }
 }
 
-/** Singleton */
-const Localized = new LocalizationManager();
-export { Localized };
-
-/** Global singleton */
-try {
-  (window as any).EditorLocalized = Localized;
-} catch (error) {}
+export { LocalizationManager };

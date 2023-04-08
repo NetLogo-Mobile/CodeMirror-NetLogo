@@ -6,7 +6,6 @@ import {
   patchVars,
   linkVars,
   constants,
-  unsupported,
 } from './keywords';
 
 import {
@@ -16,13 +15,11 @@ import {
   End,
   Directive,
   Command,
-  Extension,
   Reporter,
   TurtleVar,
   PatchVar,
   LinkVar,
   Constant,
-  Unsupported,
   Identifier,
   Own,
   GlobalStr,
@@ -138,16 +135,6 @@ export const keyword = new ExternalTokenizer((input) => {
   ) {
     input.acceptToken(UnsupportedPrim);
   } else {
-    // Check if token is a reporter/commander
-    const primitive = PrimitiveManager.GetNamedPrimitive(token);
-    if (primitive != null) {
-      if (PrimitiveManager.IsReporter(primitive)) {
-        input.acceptToken(Reporter);
-      } else {
-        input.acceptToken(Command);
-      }
-      return;
-    }
     // Check if token is a breed reporter/command
     const match = matchBreed(token);
     if (match != 0) {
@@ -158,6 +145,18 @@ export const keyword = new ExternalTokenizer((input) => {
     const customMatch = matchCustomProcedure(token);
     if (customMatch != 0) {
       input.acceptToken(customMatch);
+      return;
+    }
+
+    // Check if token is a reporter/commander
+    const primitive = PrimitiveManager.GetNamedPrimitive(token);
+    if (primitive != null) {
+      if (PrimitiveManager.IsReporter(primitive)) {
+        input.acceptToken(Reporter);
+      } else {
+        input.acceptToken(Command);
+      }
+      return;
     } else {
       input.acceptToken(Identifier);
     }

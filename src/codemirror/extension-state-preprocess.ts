@@ -1,6 +1,6 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
 
-/** StatePreprocess: Editor state for the NetLogo Language. */
+/** StatePreprocess: The first-pass state for the NetLogo Language. */
 export class StatePreprocess {
   /** PluralBreeds: Breeds in the model. */
   public PluralBreeds: string[] = [];
@@ -26,7 +26,6 @@ export class StatePreprocess {
     this.PluralBreeds = processedBreeds[1];
     let breedVars = doc.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
     this.BreedVars = this.processBreedVars(breedVars);
-
     // Commands
     let commands = doc.matchAll(/(^|\n)\s*to\s+([^\s\[]+)(\s*\[([^\]]*)\])?/g);
     this.Commands = this.processProcedures(commands);
@@ -38,6 +37,7 @@ export class StatePreprocess {
     return this;
   }
 
+  /** processBreedVars: Parse the code for breed variables. */
   private processBreedVars(
     matches: IterableIterator<RegExpMatchArray>
   ): string[] {
@@ -52,6 +52,7 @@ export class StatePreprocess {
     return vars;
   }
 
+  /** processProcedures: Parse the code for procedure names. */
   private processProcedures(
     procedures: IterableIterator<RegExpMatchArray>
   ): Record<string, number> {
@@ -64,6 +65,7 @@ export class StatePreprocess {
     return matches;
   }
 
+  /** processBreeds: Parse the code for breed names. */
   private processBreeds(
     breeds: IterableIterator<RegExpMatchArray>
   ): string[][] {

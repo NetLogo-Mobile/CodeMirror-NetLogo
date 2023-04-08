@@ -9,6 +9,8 @@ export interface EditorConfig {
   /** OneLine: Is the editor in forced one-line mode? */
   // Basically, we will make the editor an one-line input without additional features & keyboard shortcuts.
   OneLine?: boolean;
+  /** ParseMode: The parsing mode of the editor. */
+  ParseMode?: ParseMode;
   /** Wrapping: Should we auto-wrap lines? */
   Wrapping?: boolean;
   /** OnUpdate: Handle the Update event. */
@@ -19,10 +21,9 @@ export interface EditorConfig {
   OnKeyUp?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
   /** OnDictionaryClick: Triggers when a dictionary tooltip is clicked. */
   OnDictionaryClick?: (Key: string) => void;
-  ParseMode?: ParseMode;
 }
 
-/** Language: Language. */
+/** EditorLanguage: Language. */
 export enum EditorLanguage {
   NetLogo = 0,
   Javascript = 1,
@@ -30,10 +31,12 @@ export enum EditorLanguage {
   CSS = 3,
 }
 
-export enum ParseMode{
-  Normal = 0,
-  OneLine=1,
-  Embedded=2
+/** ParseMode: The parsing mode. */
+export enum ParseMode {
+  Normal = 'Normal',
+  Oneline = 'Oneline',
+  OnelineReporter = 'OnelineReporter',
+  Embedded = 'Embedded',
 }
 
 /** Export classes globally. */

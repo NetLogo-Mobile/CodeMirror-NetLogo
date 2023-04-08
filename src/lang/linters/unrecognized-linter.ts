@@ -1,11 +1,10 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { Localized } from '../../i18n/localized';
-import { buildLinter } from './linter-builder';
+import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
-export const UnrecognizedLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
+export const UnrecognizedLinter: Linter = (view, parseState) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -26,14 +25,6 @@ export const UnrecognizedLinter: Linter = (view, parseState,preprocessContext,li
             to: node.to,
             severity: 'error',
             message: Localized.Get('Unrecognized statement _', value),
-            /* actions: [
-              {
-                name: 'Remove',
-                apply(view, from, to) {
-                  view.dispatch({ changes: { from, to } });
-                },
-              },
-            ], */
           });
         }
       }

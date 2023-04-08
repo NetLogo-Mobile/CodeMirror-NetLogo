@@ -1,4 +1,4 @@
-import { Localized } from './localized';
+import { Localized } from '../editor';
 
 /** DictionaryManager: Dictionary support. */
 class DictionaryManager {

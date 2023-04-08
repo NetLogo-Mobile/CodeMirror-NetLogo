@@ -1,9 +1,6 @@
 import { matchBrackets, syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { Localized } from '../../i18n/localized';
-import { buildLinter } from './linter-builder';
-import { SyntaxNode } from '@lezer/common';
-import { EditorView } from '@codemirror/view';
+import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 
 // BracketLinter: Checks if all brackets/parentheses have matches
@@ -12,40 +9,53 @@ export const BracketLinter: Linter = (view, parseState,preprocessContext,lintCon
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
-      let matched = false;
-      let match = null;
+      // Match the bracket/paren
       if (['OpenBracket', 'OpenParen'].includes(node.name)) {
-        match = matchBrackets(view.state, node.from, 1);
-        if (match && match.matched) {
-          matched = true;
-        }
+        let match = matchBrackets(view.state, node.from, 1);
+        if (match && match.matched) return;
       }
-      // else if (['CloseBracket','CloseParen'].includes(node.name)){
-      //   match =matchBrackets(view.state,node.from,-1)
-      //   if (match && match.matched){
-      //     matched = true
-      //   }
-      // }
+      let current = '',
+        expected = '';
+      // [ need ]
       if (
-        !matched &&
-        ((node.name == 'OpenBracket' &&
-          node.node.parent?.getChildren('CloseBracket').length != 1) ||
-          (node.name == 'CloseBracket' &&
-            node.node.parent?.getChildren('OpenBracket').length != 1) ||
-          (node.name == 'OpenParen' &&
-            node.node.parent?.getChildren('CloseParen').length != 1) ||
-          (node.name == 'CloseParen' &&
-            node.node.parent?.getChildren('OpenParen').length != 1))
+        node.name == 'OpenBracket' &&
+        node.node.parent?.getChildren('CloseBracket').length != 1
       ) {
-        //console.log(matched, node.name, node.from, node.to, match);
-        const value = view.state.sliceDoc(node.from, node.to);
+        current = '[';
+        expected = ']';
+      }
+      // ] need [
+      if (
+        node.name == 'CloseBracket' &&
+        node.node.parent?.getChildren('OpenBracket').length != 1
+      ) {
+        current = ']';
+        expected = '[';
+      }
+      // ( need )
+      if (
+        node.name == 'OpenParen' &&
+        node.node.parent?.getChildren('CloseParen').length != 1
+      ) {
+        current = '(';
+        expected = ')';
+      }
+      // ) need (
+      if (
+        node.name == 'OpenParen' &&
+        node.node.parent?.getChildren('CloseParen').length != 1
+      ) {
+        current = ')';
+        expected = '(';
+      }
+      // Push the diagnostic
+      if (current != '')
         diagnostics.push({
           from: node.from,
           to: node.to,
           severity: 'error',
-          message: Localized.Get('Unmatched item _', value),
+          message: Localized.Get('Unmatched item _', current, expected),
         });
-      }
     });
   return diagnostics;
 };

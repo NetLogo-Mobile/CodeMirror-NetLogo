@@ -6,3 +6,7 @@ node_modules
 .DS_Store
 src/.DS_Store
 /dist/editor.tests.js
+/dist/*.d.ts
+/dist/*/*.d.ts
+/dist/*/*/*.d.ts
+/dist/*/*/*/*.d.ts

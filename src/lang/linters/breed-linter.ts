@@ -1,21 +1,21 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
-import { EditorState } from '@codemirror/state';
-import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
-import { checkValid } from './identifier-linter';
-import { Localized } from '../../i18n/localized';
-import { buildLinter } from './linter-builder';
+import { Localized } from '../../editor';
+import { Linter } from './linter-builder';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { Breed } from '../lang/classes.ts';
-import { getCheckContext } from './utils/check-identifier';
-import { Linter } from './linter-builder';
+import {
+  CheckContext,
+  checkValidIdentifier,
+  getCheckContext,
+} from './utils/check-identifier';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  const breeds = Array.from(lintContext.Breeds.values())
+  const breeds = parseState.GetBreeds();
   const context = getCheckContext(view,lintContext,preprocessContext);
   syntaxTree(view.state)
     .cursor()
@@ -37,20 +37,12 @@ export const BreedLinter: Linter = (view, parseState,preprocessContext,lintConte
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
-        if (!checkValidBreed(Node, value, view.state, parseState, breeds)) {
+        if (!checkValidBreed(Node, value, context, breeds)) {
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
             severity: 'error',
             message: Localized.Get('Unrecognized breed name _', value),
-            /* actions: [
-              {
-                name: 'Remove',
-                apply(view, from, to) {
-                  view.dispatch({ changes: { from, to } });
-                },
-              },
-            ], */
           });
         }
       }
@@ -58,13 +50,12 @@ export const BreedLinter: Linter = (view, parseState,preprocessContext,lintConte
   return diagnostics;
 };
 
-// Checks if the term in the structure of a breed command/reporter is the name
-// of an actual breed, and in the correct singular/plural form
+// checkValidBreed: Checks if the term in the structure of a breed command/reporter
+// is the name of an actual breed, and in the correct singular/plural form
 const checkValidBreed = function (
   node: SyntaxNode,
   value: string,
-  state: EditorState,
-  parseState: StateNetLogo,
+  context: CheckContext,
   breeds: Breed[]
 ) {
   let isValid = true;
@@ -108,22 +99,18 @@ const checkValidBreed = function (
   // some procedure names I've come across accidentally use the structure of a
   // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
   // before declaring it invalid
-  if (!isValid) {
-    if (parseState.Procedures.get(value)) {
-      isValid = true;
-    }
+  if (!isValid && context.parseState.Procedures.get(value)) {
+    isValid = true;
   }
   if (!isValid && node.name != 'Own') {
-    const breedNames = parseState.GetBreedNames();
-    const breedVars = parseState.GetBreedVariables();
     // Why do we need this one?
     //We need it to check if it is actually a valid identifier, e.g. a variable name
-    isValid = checkValid(node, value, state, parseState, breedNames, breedVars);
+    isValid = checkValidIdentifier(node, value, context);
   }
   return isValid;
 };
 
-//checks if any member of a list is in a string
+//listItemInString: checks if any member of a list is in a string
 const listItemInString = function (str: string, lst: string[]) {
   let found = false;
   for (let l of lst) {

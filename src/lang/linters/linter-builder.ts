@@ -28,8 +28,9 @@ const buildLinter = function (Source: Linter,editor:GalapagosEditor): Extension 
     }
     return Cached;
   };
-  //lintSources.push(BuiltSource);
-  return linter(BuiltSource);
+  var Extension = linter(BuiltSource);
+  (Extension as any).Source = BuiltSource;
+  return Extension;
 };
 
 export { buildLinter, Linter };

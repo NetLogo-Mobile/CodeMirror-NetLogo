@@ -1,4 +1,8 @@
 const zh_cn: Record<string, Function> = {
+  // Buttons
+  Add: () => '添加',
+
+  // Linting messages
   'Unrecognized breed name _': (Name: string) =>
     `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
   'Unrecognized identifier _': (Name: string) =>
@@ -9,6 +13,14 @@ const zh_cn: Record<string, Function> = {
     `"${Name}" 似乎不是合理的 NetLogo 代码。`,
   'Unsupported statement _': (Name: string) =>
     `此版本 NetLogo 不支持 "${Name}"。`,
+  'Invalid for Normal mode _': (Value: string) =>
+    `此编辑器模式只用于编辑 NetLogo 模型。`,
+  'Invalid for Embedded mode _': (Value: string) =>
+    `此编辑器模式只用于编辑 NetLogo 模型中的一小段代码。`,
+  'Invalid for Oneline mode _': (Value: string) =>
+    `此编辑器模式只用于编辑单行命令或单行函数。`,
+  'Invalid for OnelineReporter mode _': (Value: string) =>
+    `此编辑器模式只用于编辑单行函数。`,
   'Problem identifying primitive _. Expected _, found _.': (
     Name: string,
     Expected: string,
@@ -42,16 +54,18 @@ const zh_cn: Record<string, Function> = {
     `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
   'Improperly placed procedure _': (Name: string) =>
     `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
-  'Unmatched item _': (Name: string) => `This "${Name}" is unmatched.`,
-  'Invalid context _.': (Name: string) =>
-    `The context for this ${Name} is invalid.`,
-  'Incorrect extension _.': (Name: string) =>
-    `"${Name}" is not a valid extension.`,
+  'Unmatched item _': (Current: string, Expected: string) =>
+    `"${Current}" 需要对应的 ${Expected}。`,
+  'Invalid context _.': (Current: string, Expected: string) =>
+    `这个代码块的上下文不正确。`,
+  'Unsupported extension _.': (Name: string) =>
+    `这个编辑器不支持扩展 "${Name}"。`,
   'Missing extension _.': (Name: string) =>
-    `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+    `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
   'Unsupported missing extension _.': (Name: string) =>
-    `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
+    `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
 
+  // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,
   '~Arguments/Identifier': (Name: string) => `过程或函数定义的参数名称。`,
@@ -81,6 +95,11 @@ const zh_cn: Record<string, Function> = {
   '~CustomReporter': (Name: string) => `代码中定义的一个函数。`,
   '~BreedCommand': (Name: string) => `关于 "${Name}" 种类的过程。 `,
   '~CustomCommand': (Name: string) => `代码中定义的一个过程。`,
+
+  // Chat and AI assistant
+  Reconnect: () => `重新连接`,
+  'Connection to server failed _': (Error: string) =>
+    `抱歉，和服务器的连接中断了。代码 ${Error}。`,
 };
 
 export { zh_cn };

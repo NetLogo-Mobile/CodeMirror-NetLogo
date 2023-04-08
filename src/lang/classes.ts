@@ -26,6 +26,7 @@ export interface Primitive {
   IntroducesContext?: boolean;
   /** CanBeConcise: Unsure what this is for. */
   CanBeConcise?: boolean;
+  /** InheritParentContext: If this primitive inherits the context of its parent. */
   InheritParentContext?: boolean;
 }
 
@@ -63,11 +64,25 @@ export enum NetLogoType {
   Other = 21,
 }
 
+/** BreedLocation: Possible locations of breed name in primitives. */
+export enum BreedLocation {
+  First,
+  Second,
+  Third,
+  Middle,
+  Question,
+  Null,
+}
+
 /** AgentContexts: Agent contexts of a primitive. */
 export class AgentContexts {
+  /** Observer: Whether the context includes observers. */
   public Observer: boolean;
+  /** Turtle: Whether the context includes turtles. */
   public Turtle: boolean;
+  /** Patch: Whether the context includes patches. */
   public Patch: boolean;
+  /** Link: Whether the context includes links. */
   public Link: boolean;
   /** Parse an agent-context string. */
   public constructor(Input?: string) {
@@ -96,7 +111,7 @@ export class Breed {
   /** Variables: Variables defined for the breed. */
   public Variables: string[];
   /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
-  public isLinkBreed: boolean;
+  public IsLinkBreed: boolean;
   /** EditorId: which editor created the breed (for LinkContext). */
   public EditorId?:number;
   /** Build a breed. */
@@ -104,24 +119,24 @@ export class Breed {
     Singular: string,
     Plural: string,
     Variables: string[],
-    isLinkBreed: boolean
+    IsLinkBreed: boolean
   ) {
     this.Singular = Singular;
     this.Plural = Plural;
     this.Variables = Variables;
-    this.isLinkBreed = isLinkBreed;
+    this.IsLinkBreed = IsLinkBreed;
   }
 }
 
 /** Procedure: Dynamic metadata of a procedure. */
 export class Procedure {
-  /** name: The name of the procedure. */
+  /** Name: The name of the procedure. */
   public Name: string = '';
   /** Arguments: The arguments of the procedure. */
   public Arguments: string[] = [];
-  /** Variables: local variables defined for the procedure. */
+  /** Variables: Local variables defined within the procedure. */
   public Variables: LocalVariable[] = [];
-  /** AnonymousProcedures: anonymous procedures defined for the procedure. */
+  /** AnonymousProcedures: Anonymous procedures defined for the procedure. */
   public AnonymousProcedures: Procedure[] = [];
   /** PositionStart: The starting position of the procedure in the document. */
   public PositionStart: number = 0;
@@ -131,9 +146,9 @@ export class Procedure {
   public IsCommand: boolean = false;
   /** IsCommand: Is the procedure anonymous? */
   public IsAnonymous: boolean = false;
-  /** Context: The possible contexts for the procedure */
+  /** Context: The possible contexts for the procedure. */
   public Context: AgentContexts = new AgentContexts();
-  /** CodeBlocks: code blocks within the procedure. */
+  /** CodeBlocks: Code blocks within the procedure. */
   public CodeBlocks: CodeBlock[] = [];
   /** EditorId: which editor created the procedure (for LinkContext). */
   public EditorId?: number;
@@ -141,6 +156,7 @@ export class Procedure {
   public isProcedure: boolean = true;
 }
 
+/** CodeBlock: Dynamic metadata of a code block. */
 export class CodeBlock {
   /** PositionStart: The position at the start of the code block. */
   public PositionStart: number = 0;
@@ -148,13 +164,13 @@ export class CodeBlock {
   public PositionEnd: number = 0;
   /** Context: The possible contexts for the code block */
   public Context: AgentContexts = new AgentContexts();
-  /** CodeBlocks: code blocks within the code block. */
+  /** CodeBlocks: Code blocks within the code block. */
   public CodeBlocks: CodeBlock[] = [];
-  /** Variables: local variables defined for the code block. */
+  /** Variables: Local variables defined within the code block. */
   public Variables: LocalVariable[] = [];
   /** Arguments: The arguments accessible within the code block. */
   public Arguments: string[] = [];
-  /** AnonymousProcedures: anonymous procedures defined within the code block. */
+  /** AnonymousProcedures: Anonymous procedures defined within the code block. */
   public AnonymousProcedures: Procedure[] = [];
   /** isProcedure: used for linting; whether is a procedure or codeblock. */
   public isProcedure: boolean = false;
@@ -174,7 +190,7 @@ export class AnonymousProcedure {
   public PositionEnd: number = 0;
   /** Arguments: The arguments of the procedure. */
   public Arguments: string[] = [];
-  /** Variables: local variables defined for the procedure. */
+  /** Variables: Local variables defined within the procedure. */
   public Variables: LocalVariable[] = [];
 }
 
