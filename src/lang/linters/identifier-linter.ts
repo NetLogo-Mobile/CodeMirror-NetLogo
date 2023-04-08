@@ -12,9 +12,14 @@ import {
 } from './utils/check-identifier';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
-export const IdentifierLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
+export const IdentifierLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   const diagnostics: Diagnostic[] = [];
-  const context = getCheckContext(view,lintContext,preprocessContext);
+  const context = getCheckContext(view, lintContext, preprocessContext);
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {

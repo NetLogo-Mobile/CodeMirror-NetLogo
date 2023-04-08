@@ -12,7 +12,12 @@ import { PreprocessContext } from '../classes';
 let primitives = PrimitiveManager;
 
 // ArgumentLinter: ensure all primitives have an acceptable number of arguments
-export const ArgumentLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
+export const ArgumentLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -74,7 +79,7 @@ export const ArgumentLinter: Linter = (view, parseState,preprocessContext,lintCo
         //ensures there is a primitive to check
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
           //identify the errors and terms to be conveyed in error message
-          const result = checkValidNumArgs(view.state, args,preprocessContext);
+          const result = checkValidNumArgs(view.state, args, preprocessContext);
           let error_type = result[0];
           let func = result[1];
           let expected = result[2];

@@ -572,7 +572,7 @@ export class StateNetLogo {
           'BreedDeclarative',
           'Globals',
           'Breed',
-          'Extensions'
+          'Extensions',
         ].includes(noderef.name) &&
         !this.getText(State, noderef.node).includes('\n')
       ) {

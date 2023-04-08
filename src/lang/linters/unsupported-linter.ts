@@ -12,9 +12,14 @@ import {
 // Important note: anything with a colon and no supported extension is tokenized as
 // 'UnsupportedPrim', so acceptable uses of variable names that include colons need
 // to be filtered out here
-export const UnsupportedLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
+export const UnsupportedLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   const diagnostics: Diagnostic[] = [];
-  const context = getCheckContext(view,lintContext,preprocessContext);
+  const context = getCheckContext(view, lintContext, preprocessContext);
   let indices: number[] = [];
   syntaxTree(view.state)
     .cursor()

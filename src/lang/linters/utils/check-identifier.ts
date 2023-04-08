@@ -9,7 +9,12 @@ import {
 } from '../../../codemirror/extension-state-preprocess';
 import { EditorState } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
-import { CodeBlock, LintContext, PreprocessContext, Procedure } from '../../classes';
+import {
+  CodeBlock,
+  LintContext,
+  PreprocessContext,
+  Procedure,
+} from '../../classes';
 
 /** CheckContext: The context of the current check. */
 export interface CheckContext {
@@ -21,7 +26,11 @@ export interface CheckContext {
 }
 
 /* getCheckContext: gets the context of the current check. */
-export const getCheckContext = function (view: EditorView,lintContext:LintContext,preprocessContext:PreprocessContext): CheckContext {
+export const getCheckContext = function (
+  view: EditorView,
+  lintContext: LintContext,
+  preprocessContext: PreprocessContext
+): CheckContext {
   var state = view.state;
   //var parseState = state.field(stateExtension);
   return {
@@ -57,7 +66,7 @@ export const checkValidIdentifier = function (
   // checks if parent is in a category that is always valid (e.g. 'Globals')
   if (acceptableIdentifiers.includes(Node.parent?.name ?? '')) return true;
   // checks if identifier is a global variable
-  console.log(context.parseState.Globals)
+  console.log(context.parseState.Globals);
   if (
     context.parseState.Globals.has(value) ||
     context.parseState.WidgetGlobals.has(value) ||

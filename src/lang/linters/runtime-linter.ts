@@ -1,7 +1,12 @@
 import { Linter } from './linter-builder';
 
 // CompilerLinter: Present all linting results from the compiler.
-export const CompilerLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
+export const CompilerLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   return parseState.CompilerErrors.map(function (Error) {
     return {
       from: Error.start,
@@ -13,7 +18,12 @@ export const CompilerLinter: Linter = (view, parseState,preprocessContext,lintCo
 };
 
 // RuntimeLinter: Present all runtime errors.
-export const RuntimeLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
+export const RuntimeLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   return parseState.RuntimeErrors.map(function (Error) {
     return {
       from: Error.start,

@@ -113,7 +113,7 @@ export class Breed {
   /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
   public IsLinkBreed: boolean;
   /** EditorId: which editor created the breed (for LinkContext). */
-  public EditorId?:number;
+  public EditorId?: number;
   /** Build a breed. */
   public constructor(
     Singular: string,
@@ -213,11 +213,11 @@ export class LocalVariable {
 /** PreprocessContext: master context from preprocessing */
 export class PreprocessContext {
   /** PluralBreeds: Breeds in the model. */
-  public PluralBreeds: Map<string,number> = new Map<string,number>();
+  public PluralBreeds: Map<string, number> = new Map<string, number>();
   /** SingularBreeds: Breeds in the model. */
-  public SingularBreeds: Map<string,number> = new Map<string,number>();
+  public SingularBreeds: Map<string, number> = new Map<string, number>();
   /** BreedVars: Breed variables in the model. */
-  public BreedVars: Map<string,number> = new Map<string,number>();
+  public BreedVars: Map<string, number> = new Map<string, number>();
   /** Commands: Commands in the model with number of arguments. */
   public Commands: Record<string, number> = {};
   /** Reporters: Reporters in the model with number of arguments. */
@@ -231,11 +231,11 @@ export class PreprocessContext {
 /** LintPreprocessContext: master context from statenetlogo */
 export class LintContext {
   /** Extensions: Extensions in the code. */
-  public Extensions: Map<string,number> = new Map<string,number>();
+  public Extensions: Map<string, number> = new Map<string, number>();
   /** Globals: Globals in the code. */
-  public Globals: Map<string,number> = new Map<string,number>();
+  public Globals: Map<string, number> = new Map<string, number>();
   /** WidgetGlobals: Globals from the widgets. */
-  public WidgetGlobals: Map<string,number> = new Map<string,number>();
+  public WidgetGlobals: Map<string, number> = new Map<string, number>();
   /** Breeds: Breeds in the code. */
   public Breeds: Map<string, Breed> = new Map<string, Breed>();
   /** Procedures: Procedures in the code. */

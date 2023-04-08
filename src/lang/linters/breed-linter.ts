@@ -13,10 +13,15 @@ import {
 } from './utils/check-identifier';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
-export const BreedLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
+export const BreedLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   const diagnostics: Diagnostic[] = [];
   const breeds = parseState.GetBreeds();
-  const context = getCheckContext(view,lintContext,preprocessContext);
+  const context = getCheckContext(view, lintContext, preprocessContext);
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {

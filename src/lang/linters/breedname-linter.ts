@@ -4,7 +4,12 @@ import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 
 // BreedNameLinter: Ensures no duplicate breed names
-export const BreedNameLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
+export const BreedNameLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   const diagnostics: Diagnostic[] = [];
   let seen: string[] = [];
   syntaxTree(view.state)

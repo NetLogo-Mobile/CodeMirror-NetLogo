@@ -12,10 +12,15 @@ let primitives = PrimitiveManager;
 
 // ExtensionLinter: Checks if extension primitives are used without declaring
 // the extension, or invalid extensions are declared
-export const ExtensionLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
+export const ExtensionLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   const diagnostics: Diagnostic[] = [];
   let extension_index = 0;
-  const context = getCheckContext(view,lintContext,preprocessContext);
+  const context = getCheckContext(view, lintContext, preprocessContext);
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
