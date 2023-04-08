@@ -4,7 +4,12 @@ import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
-export const UnrecognizedLinter: Linter = (view, parseState) => {
+export const UnrecognizedLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()

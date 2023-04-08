@@ -6,7 +6,12 @@ import { SyntaxNode } from '@lezer/common';
 import { ParseMode } from '../../editor-config';
 
 /** ModeLinter: Checks if mode matches grammar. */
-export const ModeLinter: Linter = (view, parseState) => {
+export const ModeLinter: Linter = (
+  view,
+  parseState,
+  preprocessContext,
+  lintContext
+) => {
   const diagnostics: Diagnostic[] = [];
   if (view.state.doc.length == 0) return diagnostics;
   var node = syntaxTree(view.state).cursor().node;

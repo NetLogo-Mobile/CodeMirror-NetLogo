@@ -20,7 +20,7 @@ export const BreedLinter: Linter = (
   lintContext
 ) => {
   const diagnostics: Diagnostic[] = [];
-  const breeds = parseState.GetBreeds();
+  const breeds = Array.from(lintContext.Breeds.values());
   const context = getCheckContext(view, lintContext, preprocessContext);
   syntaxTree(view.state)
     .cursor()
