@@ -713,6 +713,12 @@ export class StateNetLogo {
           'LineComment',
           'BreedsOwn',
           'Own',
+          'GlobalStr',
+          'ExtensionStr',
+          'BreedDeclarative',
+          'Globals',
+          'Breed',
+          'Extensions'
         ].includes(noderef.name) &&
         !this.getText(State, noderef.node).includes('\n')
       ) {

@@ -4,15 +4,16 @@ import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 import { AgentContexts, Procedure, CodeBlock } from '../classes';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
+import { Linter } from './linter-builder';
 
-//Checks if procedures and code blocks have a valid context
-export const ContextLinter = buildLinter((view, parseState) => {
+// ContextLinter: Checks if procedures and code blocks have a valid context
+export const ContextLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
   for (let p of parseState.Procedures.values()) {
-    diagnostics.push(...checkProcedureContents(p, parseState));
+    diagnostics.push(...checkProcedureContents(p,parseState));
   }
   return diagnostics;
-});
+};
 
 const checkProcedureContents = function (
   p: Procedure | CodeBlock,
@@ -32,10 +33,10 @@ const checkProcedureContents = function (
     });
   } else {
     for (let a of p.AnonymousProcedures) {
-      diagnostics.push(...checkProcedureContents(a, parseState));
+      diagnostics.push(...checkProcedureContents(a,parseState));
     }
     for (let c of p.CodeBlocks) {
-      diagnostics.push(...checkProcedureContents(c, parseState));
+      diagnostics.push(...checkProcedureContents(c,parseState));
       if (
         c.InheritParentContext &&
         parseState.noContext(parseState.combineContexts(c.Context, p.Context))

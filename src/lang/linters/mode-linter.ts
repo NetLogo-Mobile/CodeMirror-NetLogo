@@ -3,9 +3,10 @@ import { Diagnostic } from '@codemirror/lint';
 import { GalapagosEditor } from '../../editor';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 
-// ModeLinter: Checks if mode matches grammar
-export const ModeLinter = buildLinter((view, parseState) => {
+/** ModeLinter: Checks if mode matches grammar. */
+export const ModeLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -68,4 +69,4 @@ export const ModeLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};

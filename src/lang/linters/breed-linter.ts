@@ -9,11 +9,14 @@ import { buildLinter } from './linter-builder';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { Breed } from '../lang/classes.ts';
+import { getCheckContext } from './utils/check-identifier';
+import { Linter } from './linter-builder';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
-export const BreedLinter = buildLinter((view, parseState) => {
+export const BreedLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  const breeds = parseState.GetBreeds();
+  const breeds = Array.from(lintContext.Breeds.values())
+  const context = getCheckContext(view,lintContext,preprocessContext);
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
@@ -29,6 +32,7 @@ export const BreedLinter = buildLinter((view, parseState) => {
         noderef.name == 'SpecialCommandCreateLink' ||
         noderef.name == 'Own'
       ) {
+        //console.log(lintContext)
         const Node = noderef.node;
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
@@ -52,7 +56,7 @@ export const BreedLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};
 
 // Checks if the term in the structure of a breed command/reporter is the name
 // of an actual breed, and in the correct singular/plural form
@@ -64,7 +68,7 @@ const checkValidBreed = function (
   breeds: Breed[]
 ) {
   let isValid = true;
-
+  //console.log(breeds)
   //collect possible breed names in the correct categories
   let pluralTurtle: string[] = [];
   let singularTurtle: string[] = [];

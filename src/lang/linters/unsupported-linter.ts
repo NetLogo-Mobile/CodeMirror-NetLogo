@@ -4,10 +4,16 @@ import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 import { unsupported } from '../keywords';
 import { checkValid } from './identifier-linter';
+import { Linter } from './linter-builder';
+import { getCheckContext } from './utils/check-identifier';
 
 // UnsupportedLinter: Checks for unsupported primitives
-export const UnsupportedLinter = buildLinter((view, parseState) => {
+// Important note: anything with a colon and no supported extension is tokenized as
+// 'UnsupportedPrim', so acceptable uses of variable names that include colons need
+// to be filtered out here
+export const UnsupportedLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
+  const context = getCheckContext(view,lintContext,preprocessContext);
   let indices: number[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -49,4 +55,4 @@ export const UnsupportedLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};

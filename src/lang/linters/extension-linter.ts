@@ -4,13 +4,17 @@ import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
 import { checkValid } from './identifier-linter';
+import { Linter } from './linter-builder';
+import { getCheckContext } from './utils/check-identifier';
 
 let primitives = PrimitiveManager;
 
-//Checks if extension primitives are used without declaring the extension, or invalid extensions are declared
-export const ExtensionLinter = buildLinter((view, parseState) => {
+// ExtensionLinter: Checks if extension primitives are used without declaring
+// the extension, or invalid extensions are declared
+export const ExtensionLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
   let extension_index = 0;
+  const context = getCheckContext(view,lintContext,preprocessContext);
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
@@ -87,4 +91,4 @@ export const ExtensionLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};

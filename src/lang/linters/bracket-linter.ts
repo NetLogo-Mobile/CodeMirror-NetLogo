@@ -4,9 +4,10 @@ import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
 import { SyntaxNode } from '@lezer/common';
 import { EditorView } from '@codemirror/view';
+import { Linter } from './linter-builder';
 
-// BracketLinter: Checks if all brackets have matches
-export const BracketLinter = buildLinter((view, parseState) => {
+// BracketLinter: Checks if all brackets/parentheses have matches
+export const BracketLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -47,4 +48,4 @@ export const BracketLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};

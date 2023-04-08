@@ -5,13 +5,14 @@ import { EditorState } from '@codemirror/state';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
+import { Linter } from './linter-builder';
 import { Localized } from '../../i18n/localized';
-import { buildLinter } from './linter-builder';
+import { PreprocessContext } from '../classes';
 
 let primitives = PrimitiveManager;
 
-// Checks number of arguments
-export const ArgumentLinter = buildLinter((view, parseState) => {
+// ArgumentLinter: ensure all primitives have an acceptable number of arguments
+export const ArgumentLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -73,7 +74,7 @@ export const ArgumentLinter = buildLinter((view, parseState) => {
         //ensures there is a primitive to check
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
           //identify the errors and terms to be conveyed in error message
-          const result = checkValid(view.state, args);
+          const result = checkValidNumArgs(view.state, args,preprocessContext);
           let error_type = result[0];
           let func = result[1];
           let expected = result[2];
@@ -136,7 +137,7 @@ export const ArgumentLinter = buildLinter((view, parseState) => {
       d.from >= view.state.selection.ranges[0].to ||
       d.to <= view.state.selection.ranges[0].from
   );
-});
+};
 
 //collects everything used as an argument so it can be counted
 export const getArgs = function (Node: SyntaxNode) {
@@ -192,22 +193,23 @@ export const getArgs = function (Node: SyntaxNode) {
 };
 
 //checks if correct number of arguments are present
-export const checkValid = function (
+export const checkValidNumArgs = function (
   state: EditorState,
   args: {
     leftArgs: SyntaxNode | null;
     rightArgs: SyntaxNode[];
     func: SyntaxNode | null;
     hasParentheses: boolean;
-  }
+  },
+  preprocessContext: PreprocessContext
 ) {
   //get the text/name of the primitive
   let func = state.sliceDoc(args.func?.from, args.func?.to).toLowerCase();
   //checking for "Special" cases (custom and breed procedures)
   if (args.func?.name.includes('Special')) {
     let numArgs =
-      state.field(preprocessStateExtension).Commands[func] ??
-      state.field(preprocessStateExtension).Reporters[func] ??
+      preprocessContext.Commands[func] ??
+      preprocessContext.Reporters[func] ??
       getBreedCommandArgs(func) ??
       getBreedProcedureArgs(args.func.name);
     return [

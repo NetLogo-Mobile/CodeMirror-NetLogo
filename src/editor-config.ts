@@ -19,6 +19,7 @@ export interface EditorConfig {
   OnKeyUp?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
   /** OnDictionaryClick: Triggers when a dictionary tooltip is clicked. */
   OnDictionaryClick?: (Key: string) => void;
+  ParseMode?: ParseMode;
 }
 
 /** Language: Language. */
@@ -27,6 +28,12 @@ export enum EditorLanguage {
   Javascript = 1,
   HTML = 2,
   CSS = 3,
+}
+
+export enum ParseMode{
+  Normal = 0,
+  OneLine=1,
+  Embedded=2
 }
 
 /** Export classes globally. */

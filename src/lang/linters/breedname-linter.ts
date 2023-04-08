@@ -2,9 +2,10 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../i18n/localized';
 import { buildLinter } from './linter-builder';
+import { Linter } from './linter-builder';
 
-// Ensures no duplicate breed names
-export const BreedNameLinter = buildLinter((view, parseState) => {
+// BreedNameLinter: Ensures no duplicate breed names
+export const BreedNameLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
   let seen: string[] = [];
   syntaxTree(view.state)
@@ -26,4 +27,4 @@ export const BreedNameLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};

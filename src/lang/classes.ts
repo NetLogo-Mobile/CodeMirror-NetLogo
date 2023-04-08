@@ -97,6 +97,8 @@ export class Breed {
   public Variables: string[];
   /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
   public isLinkBreed: boolean;
+  /** EditorId: which editor created the breed (for LinkContext). */
+  public EditorId?:number;
   /** Build a breed. */
   public constructor(
     Singular: string,
@@ -133,6 +135,9 @@ export class Procedure {
   public Context: AgentContexts = new AgentContexts();
   /** CodeBlocks: code blocks within the procedure. */
   public CodeBlocks: CodeBlock[] = [];
+  /** EditorId: which editor created the procedure (for LinkContext). */
+  public EditorId?: number;
+  /** isProcedure: used for linting; whether is a procedure or codeblock. */
   public isProcedure: boolean = true;
 }
 
@@ -151,9 +156,13 @@ export class CodeBlock {
   public Arguments: string[] = [];
   /** AnonymousProcedures: anonymous procedures defined within the code block. */
   public AnonymousProcedures: Procedure[] = [];
+  /** isProcedure: used for linting; whether is a procedure or codeblock. */
   public isProcedure: boolean = false;
+  /** Primitive: the primitive that created the codeblock. */
   public Primitive: string = '';
+  /** Breed: the breed in the primitive that created the codeblock (if present). */
   public Breed: string | null = null;
+  /** InheritParentContext: whether context needs to match parent context. */
   public InheritParentContext: boolean = false;
 }
 
@@ -182,5 +191,54 @@ export class LocalVariable {
     this.Name = Name;
     this.Type = Type;
     this.CreationPos = CreationPos;
+  }
+}
+
+/** PreprocessContext: master context from preprocessing */
+export class PreprocessContext {
+  /** PluralBreeds: Breeds in the model. */
+  public PluralBreeds: Map<string,number> = new Map<string,number>();
+  /** SingularBreeds: Breeds in the model. */
+  public SingularBreeds: Map<string,number> = new Map<string,number>();
+  /** BreedVars: Breed variables in the model. */
+  public BreedVars: Map<string,number> = new Map<string,number>();
+  /** Commands: Commands in the model with number of arguments. */
+  public Commands: Record<string, number> = {};
+  /** Reporters: Reporters in the model with number of arguments. */
+  public Reporters: Record<string, number> = {};
+  /** Commands: Commands in the model with editor id. */
+  public CommandsOrigin: Record<string, number> = {};
+  /** Reporters: Reporters in the model with editor id. */
+  public ReportersOrigin: Record<string, number> = {};
+}
+
+/** LintPreprocessContext: master context from statenetlogo */
+export class LintContext {
+  /** Extensions: Extensions in the code. */
+  public Extensions: Map<string,number> = new Map<string,number>();
+  /** Globals: Globals in the code. */
+  public Globals: Map<string,number> = new Map<string,number>();
+  /** WidgetGlobals: Globals from the widgets. */
+  public WidgetGlobals: Map<string,number> = new Map<string,number>();
+  /** Breeds: Breeds in the code. */
+  public Breeds: Map<string, Breed> = new Map<string, Breed>();
+  /** Procedures: Procedures in the code. */
+  public Procedures: Map<string, Procedure> = new Map<string, Procedure>();
+  /** GetBreedNames: Get names related to breeds. */
+  public GetBreedNames(): string[] {
+    var breedNames: string[] = [];
+    for (let breed of this.Breeds.values()) {
+      breedNames.push(breed.Singular);
+      breedNames.push(breed.Plural);
+    }
+    return breedNames;
+  }
+  /** GetBreedVariables: Get variable names related to breeds. */
+  public GetBreedVariables(): string[] {
+    var breedNames: string[] = [];
+    for (let breed of this.Breeds.values()) {
+      breedNames = breedNames.concat(breed.Variables);
+    }
+    return breedNames;
   }
 }

@@ -1,18 +1,25 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { SyntaxNode } from '@lezer/common';
+import { Localized } from '../../i18n/localized'
+import { Linter } from './linter-builder';
+import {
+  checkValidIdentifier,
+  getCheckContext,
+} from './utils/check-identifier';
+import { globalStateExtension } from '../../codemirror/extension-global-state';
+import {SyntaxNode} from '@lezer/common'
 import { EditorState } from '@codemirror/state';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
-import { Localized } from '../../i18n/localized';
-import { buildLinter } from './linter-builder';
-import { AnonymousProcedure, Procedure, CodeBlock } from '../classes';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
+import { CodeBlock,Procedure } from '../classes';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
-export const IdentifierLinter = buildLinter((view, parseState) => {
+export const IdentifierLinter: Linter = (view, parseState,preprocessContext,lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  const breedNames = parseState.GetBreedNames();
-  const breedVars = parseState.GetBreedVariables();
+  const context = getCheckContext(view,lintContext,preprocessContext);
+  const breedNames = lintContext.GetBreedNames();
+  const breedVars = lintContext.GetBreedVariables();
+  //console.log("context",parseState.Mode,view.state.field(globalStateExtension),lintContext,context.parseState)
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
@@ -69,7 +76,7 @@ export const IdentifierLinter = buildLinter((view, parseState) => {
       }
     });
   return diagnostics;
-});
+};
 
 // always acceptable identifiers (Unrecognized is always acceptable because previous linter already errors)
 const acceptableIdentifiers = [
