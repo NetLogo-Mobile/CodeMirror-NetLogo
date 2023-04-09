@@ -13,12 +13,7 @@ import {
 } from './utils/check-identifier';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
-export const BreedLinter: Linter = (
-  view,
-  parseState,
-  preprocessContext,
-  lintContext
-) => {
+export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
   const breeds = Array.from(lintContext.Breeds.values());
   const context = getCheckContext(view, lintContext, preprocessContext);

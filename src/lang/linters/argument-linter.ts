@@ -14,7 +14,6 @@ let primitives = PrimitiveManager;
 // ArgumentLinter: ensure all primitives have an acceptable number of arguments
 export const ArgumentLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
   lintContext
 ) => {

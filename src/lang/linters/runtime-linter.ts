@@ -3,11 +3,11 @@ import { Linter } from './linter-builder';
 // CompilerLinter: Present all linting results from the compiler.
 export const CompilerLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
-  lintContext
+  lintContext,
+  parseState
 ) => {
-  return parseState.CompilerErrors.map(function (Error) {
+  return parseState!.CompilerErrors.map(function (Error) {
     return {
       from: Error.start,
       to: Error.end,
@@ -20,11 +20,11 @@ export const CompilerLinter: Linter = (
 // RuntimeLinter: Present all runtime errors.
 export const RuntimeLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
-  lintContext
+  lintContext,
+  parseState
 ) => {
-  return parseState.RuntimeErrors.map(function (Error) {
+  return parseState!.RuntimeErrors.map(function (Error) {
     return {
       from: Error.start,
       to: Error.end,

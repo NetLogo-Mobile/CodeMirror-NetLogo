@@ -6,7 +6,6 @@ import { Linter } from './linter-builder';
 // BreedNameLinter: Ensures no duplicate breed names
 export const BreedNameLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
   lintContext
 ) => {

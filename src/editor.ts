@@ -62,8 +62,6 @@ export class GalapagosEditor {
   public readonly Parent: HTMLElement;
   /** Linters: The linters used in this instance. */
   public readonly Linters: Extension[] = [];
-  /** IsVisible: Whether this editor is visible. */
-  public IsVisible: boolean = true;
 
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
@@ -365,6 +363,8 @@ export class GalapagosEditor {
   public LintContext: LintContext = new LintContext();
   /** Version: Version of the state (for linter cache). */
   private Version: number = 0;
+  /** IsVisible: Whether this editor is visible. */
+  public IsVisible: boolean = true;
   /** GetID: Get ID of the editor. */
   public GetID(): number {
     return this.ID;
@@ -373,8 +373,19 @@ export class GalapagosEditor {
   public GetVersion(): number {
     return this.Version;
   }
-  /** UpdateContext: Update the context of this editor. */
-  UpdateContext() {
+  public SetVisible(status: boolean) {
+    if (this.IsVisible == status) return;
+    this.IsVisible = status;
+    if (this.IsVisible) this.ForceLint();
+  }
+  /** UpdateContext: Try to update the context of this editor. */
+  public UpdateContext(): boolean {
+    const State = this.CodeMirror.state.field(stateExtension);
+    if (!State.GetDirty()) return false;
+    // Force the parsing
+    this.ForceParse();
+    State.ParseState(this.CodeMirror.state);
+    // Update the shared editor, if needed
     if (!this.ParentEditor) {
       this.UpdateSharedContext();
     } else if (
@@ -383,6 +394,7 @@ export class GalapagosEditor {
     ) {
       this.ParentEditor.UpdateContext();
     }
+    return true;
   }
   /** UpdateSharedContext: Update the shared context of the editor. */
   private UpdateSharedContext() {
@@ -447,7 +459,10 @@ export class GalapagosEditor {
   private SetContexts(preprocess: PreprocessContext, lint: LintContext) {
     this.PreprocessContext = preprocess;
     this.LintContext = lint;
-    if (this.IsVisible) this.ForceLint();
+    if (this.IsVisible) {
+      this.ForceParse(false);
+      this.ForceLint();
+    }
     for (var child of this.Children) {
       child.Version = this.Version;
       child.SetContexts(preprocess, lint);
@@ -476,9 +491,9 @@ export class GalapagosEditor {
   }
 
   /** ForceParse: Force the editor to finish any parsing. */
-  ForceParse() {
+  ForceParse(SetDirty: boolean = true) {
     forceParsing(this.CodeMirror, this.CodeMirror.state.doc.length, 100000);
-    this.CodeMirror.state.field(stateExtension).SetDirty();
+    if (SetDirty) this.CodeMirror.state.field(stateExtension).SetDirty();
   }
 
   /** ForceLint: Force the editor to do another round of linting. */

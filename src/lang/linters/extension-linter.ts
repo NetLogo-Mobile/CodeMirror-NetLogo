@@ -14,7 +14,6 @@ let primitives = PrimitiveManager;
 // the extension, or invalid extensions are declared
 export const ExtensionLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
   lintContext
 ) => {
@@ -58,8 +57,7 @@ export const ExtensionLinter: Linter = (
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
         let vals = value.split(':');
-        if (vals.length <= 1 || parseState.Extensions.indexOf(vals[0]) != -1)
-          return;
+        if (vals.length <= 1 || lintContext.Extensions.has(vals[0])) return;
         diagnostics.push({
           from: noderef.from,
           to: noderef.to,

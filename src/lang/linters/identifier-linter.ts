@@ -14,7 +14,6 @@ import {
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
   lintContext
 ) => {

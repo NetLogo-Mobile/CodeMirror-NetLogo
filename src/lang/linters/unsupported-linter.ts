@@ -14,7 +14,6 @@ import {
 // to be filtered out here
 export const UnsupportedLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
   lintContext
 ) => {

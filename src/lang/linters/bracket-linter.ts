@@ -4,12 +4,7 @@ import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 
 // BracketLinter: Checks if all brackets/parentheses have matches
-export const BracketLinter: Linter = (
-  view,
-  parseState,
-  preprocessContext,
-  lintContext
-) => {
+export const BracketLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()

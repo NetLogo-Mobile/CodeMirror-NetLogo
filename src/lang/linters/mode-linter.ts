@@ -8,25 +8,26 @@ import { ParseMode } from '../../editor-config';
 /** ModeLinter: Checks if mode matches grammar. */
 export const ModeLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
-  lintContext
+  lintContext,
+  state
 ) => {
   const diagnostics: Diagnostic[] = [];
   if (view.state.doc.length == 0) return diagnostics;
   var node = syntaxTree(view.state).cursor().node;
   if (node.name != 'Program') return diagnostics;
+  var mode = state!.Mode;
   // Check the oneline/embedded modes
-  var Unexpected = CheckMode(node, 'OnelineReporter', parseState.Mode);
-  Unexpected = Unexpected ?? CheckMode(node, 'Embedded', parseState.Mode);
-  Unexpected = Unexpected ?? CheckMode(node, 'Normal', parseState.Mode);
+  var Unexpected = CheckMode(node, 'OnelineReporter', mode);
+  Unexpected = Unexpected ?? CheckMode(node, 'Embedded', mode);
+  Unexpected = Unexpected ?? CheckMode(node, 'Normal', mode);
   if (Unexpected != null) {
     let value = view.state.sliceDoc(Unexpected.from, Unexpected.to);
     diagnostics.push({
       from: node.from,
       to: node.to,
       severity: 'error',
-      message: Localized.Get(`Invalid for ${parseState.Mode} mode _`, value),
+      message: Localized.Get(`Invalid for ${mode} mode _`, value),
     });
     return diagnostics;
   }
@@ -39,7 +40,7 @@ export const ModeLinter: Linter = (
     node.getChildren('Breed').length > 0 ||
     node.getChildren('BreedsOwn').length > 0
   ) {
-    if (parseState.Mode != 'Normal') {
+    if (mode! != 'Normal') {
       for (let name of [
         'Unrecognized',
         'Procedure',

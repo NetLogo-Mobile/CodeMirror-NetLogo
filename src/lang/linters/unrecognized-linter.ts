@@ -6,7 +6,6 @@ import { Linter } from './linter-builder';
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
 export const UnrecognizedLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
   lintContext
 ) => {

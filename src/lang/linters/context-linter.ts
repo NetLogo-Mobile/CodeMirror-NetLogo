@@ -1,23 +1,17 @@
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
-import { Procedure, CodeBlock } from '../classes';
-import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
+import { Procedure, CodeBlock, LintContext } from '../classes';
 import {
   combineContexts,
   noContext,
 } from '../../codemirror/utils/context_utils';
 
 // ContextLinter: Checks if procedures and code blocks have a valid context
-export const ContextLinter: Linter = (
-  view,
-  parseState,
-  preprocessContext,
-  lintContext
-) => {
+export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  for (let p of parseState.Procedures.values()) {
-    diagnostics.push(...checkProcedureContents(p, parseState));
+  for (let p of lintContext.Procedures.values()) {
+    diagnostics.push(...checkProcedureContents(p, lintContext));
   }
   return diagnostics;
 };
@@ -25,7 +19,7 @@ export const ContextLinter: Linter = (
 // checkProcedureContents: Checks contents of procedures and codeblocks for valid context
 const checkProcedureContents = function (
   p: Procedure | CodeBlock,
-  parseState: StateNetLogo
+  lintContext: LintContext
 ) {
   let diagnostics: Diagnostic[] = [];
   // checks if current procedure/code block has at least one valid context
@@ -42,10 +36,10 @@ const checkProcedureContents = function (
   } else {
     // checks nested anonymous procedures and codeblocks for valid context
     for (let a of p.AnonymousProcedures) {
-      diagnostics.push(...checkProcedureContents(a, parseState));
+      diagnostics.push(...checkProcedureContents(a, lintContext));
     }
     for (let c of p.CodeBlocks) {
-      diagnostics.push(...checkProcedureContents(c, parseState));
+      diagnostics.push(...checkProcedureContents(c, lintContext));
       if (
         c.InheritParentContext &&
         noContext(combineContexts(c.Context, p.Context))

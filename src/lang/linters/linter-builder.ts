@@ -11,9 +11,9 @@ import { GalapagosEditor } from '../../editor';
 /** Linter: A function that takes a view and parse state and returns a list of diagnostics. */
 type Linter = (
   view: EditorView,
-  parseState: StateNetLogo,
   preprocessContext: PreprocessContext,
-  lintContext: LintContext
+  lintContext: LintContext,
+  parseState?: StateNetLogo
 ) => Diagnostic[];
 
 /** buildLinter: Builds a linter extension from a linter function. */
@@ -24,18 +24,13 @@ const buildLinter = function (
   var LastVersion = 0;
   var Cached: Diagnostic[];
   var BuiltSource: LintSource = (view) => {
-    const State = view.state.field(stateExtension);
-    var Dirty = State.GetDirty();
-    if (Dirty) {
-      State.ParseState(view.state);
-      Editor.UpdateContext();
-    }
-    if (Dirty || Editor.GetVersion() > LastVersion) {
+    if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
+      var state = view.state.field(stateExtension);
       Cached = Source(
         view,
-        State,
         Editor.PreprocessContext,
-        Editor.LintContext
+        Editor.LintContext,
+        state
       );
       LastVersion = Editor.GetVersion();
     }

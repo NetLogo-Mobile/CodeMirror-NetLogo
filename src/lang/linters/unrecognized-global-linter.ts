@@ -6,7 +6,6 @@ import { Linter } from './linter-builder';
 // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
 export const UnrecognizedGlobalLinter: Linter = (
   view,
-  parseState,
   preprocessContext,
   lintContext
 ) => {
