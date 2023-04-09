@@ -384,6 +384,7 @@ export class GalapagosEditor {
     if (!State.GetDirty()) return false;
     // Force the parsing
     this.ForceParse();
+    this.Version += 1;
     State.ParseState(this.CodeMirror.state);
     // Update the shared editor, if needed
     if (!this.ParentEditor) {
@@ -452,7 +453,6 @@ export class GalapagosEditor {
         }
       }
     }
-    this.Version++;
     this.SetContexts(mainPreprocess, mainLint);
   }
   /** SetContexts: Set the lint context of the editor. */
@@ -464,7 +464,7 @@ export class GalapagosEditor {
       this.ForceLint();
     }
     for (var child of this.Children) {
-      child.Version = this.Version;
+      child.Version += 1;
       child.SetContexts(preprocess, lint);
     }
   }
