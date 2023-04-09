@@ -46,7 +46,6 @@ import { LocalizationManager } from './i18n/localized.js';
 import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { buildLinter } from './lang/linters/linter-builder.js';
 import { PreprocessContext, LintContext } from './lang/classes.js';
-import { globalStateExtension } from './codemirror/extension-global-state.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -63,15 +62,8 @@ export class GalapagosEditor {
   public readonly Parent: HTMLElement;
   /** Linters: The linters used in this instance. */
   public readonly Linters: Extension[] = [];
-  /** Children: The connected editors. */
-  public Children: GalapagosEditor[] = [];
-  /** isParent: Whether the editor is the parent editor. */
-  public isParent: Boolean = false;
-  /** PreprocessContext: the combined preprocessed context of the parent editor. */
-  public PreprocessContext: PreprocessContext = new PreprocessContext();
-  /** LintContext: the combined statenetlogo context of the parent editor. */
-  public LintContext: LintContext = new LintContext();
-  public ParentEditor: GalapagosEditor | null = null;
+  /** IsVisible: Whether this editor is visible. */
+  public IsVisible: boolean = true;
 
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
@@ -108,7 +100,6 @@ export class GalapagosEditor {
         this.Language = NetLogo();
         Extensions.push(preprocessStateExtension);
         Extensions.push(stateExtension);
-        Extensions.push(globalStateExtension);
         Dictionary.ClickHandler = Options.OnDictionaryClick;
         this.Linters = netlogoLinters.map((linter) =>
           buildLinter(linter, this)
@@ -268,17 +259,15 @@ export class GalapagosEditor {
     });
   }
 
-  /** AddEditor: Add an editor. */
-  AddEditor(editor: GalapagosEditor) {
-    console.log('adding editor', editor);
-    this.Children.push(editor);
-    this.isParent = true;
-  }
-
-  /** AddParent: Add a parent editor. */
-  AddParent(editor: GalapagosEditor) {
-    console.log('adding parent', editor);
-    this.ParentEditor = editor;
+  /** AddChild: Add a child editor. */
+  AddChild(child: GalapagosEditor) {
+    if (child.Children.length > 0)
+      throw new Error(
+        'Cannot add an editor that already has children as child.'
+      );
+    this.Children.push(child);
+    child.ID = this.Children.length;
+    child.ParentEditor = this;
   }
 
   /** SetCursorPosition: Set the cursor position of the editor. */
@@ -317,6 +306,8 @@ export class GalapagosEditor {
 
   /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
   SetWidgetVariables(Variables: string[], ForceLint?: boolean) {
+    if (this.ParentEditor != null)
+      throw new Error('Cannot set widget variables on a child editor.');
     var State = this.GetState();
     var Current = State.WidgetGlobals;
     var Changed = Current.length != Variables.length;
@@ -330,7 +321,7 @@ export class GalapagosEditor {
     }
     if (Changed) {
       State.WidgetGlobals = Variables.map((str) => str.toLowerCase());
-      State.IncVersion();
+      this.UpdateContext();
       if (ForceLint) this.ForceLint();
     }
   }
@@ -341,7 +332,7 @@ export class GalapagosEditor {
     var Current = State.Mode;
     if (Current != Mode) {
       State.Mode = Mode;
-      State.IncVersion();
+      this.UpdateContext();
       if (ForceLint) this.ForceLint();
     }
   }
@@ -361,99 +352,106 @@ export class GalapagosEditor {
   }
   // #endregion
 
-  //#region "SharedContext"
-  /** UpdateSharedContext: Get the shared context of the editor. */
-  UpdateSharedContext() {
-    //if (this.isParent){
-    this.PreprocessContext = new PreprocessContext();
-    this.LintContext = new LintContext();
-    let index = 0;
+  // #region " Share Context "
+  /** ID: ID of the editor. */
+  private ID: number = 0;
+  /** Children: The connected editors. */
+  public readonly Children: GalapagosEditor[] = [];
+  /** ParentEditor: The parent editor of this instance. */
+  public ParentEditor: GalapagosEditor | null = null;
+  /** PreprocessContext: The combined preprocessed context of this editor. */
+  public PreprocessContext: PreprocessContext = new PreprocessContext();
+  /** LintContext: The combined main parsing context of this editor. */
+  public LintContext: LintContext = new LintContext();
+  /** Version: Version of the state (for linter cache). */
+  private Version: number = 0;
+  /** GetID: Get ID of the editor. */
+  public GetID(): number {
+    return this.ID;
+  }
+  /** GetVersion: Get version of the state. */
+  public GetVersion(): number {
+    return this.Version;
+  }
+  /** UpdateContext: Update the context of this editor. */
+  UpdateContext() {
+    if (!this.ParentEditor) {
+      this.UpdateSharedContext();
+    } else if (
+      this.ParentEditor &&
+      this.Options.ParseMode == ParseMode.Normal
+    ) {
+      this.ParentEditor.UpdateContext();
+    }
+  }
+  /** UpdateSharedContext: Update the shared context of the editor. */
+  private UpdateSharedContext() {
+    var mainPreprocess = new PreprocessContext();
+    var mainLint = new LintContext();
     for (var child of [...this.Children, this]) {
       if (child.Options.ParseMode == ParseMode.Normal) {
         let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
         let statenetlogo = child.CodeMirror.state.field(stateExtension);
-        //console.log(statenetlogo)
         for (var p of preprocess.PluralBreeds) {
-          this.PreprocessContext.PluralBreeds.set(p, index);
+          mainPreprocess.PluralBreeds.set(p, child.ID);
         }
         for (var p of preprocess.SingularBreeds) {
-          this.PreprocessContext.SingularBreeds.set(p, index);
+          mainPreprocess.SingularBreeds.set(p, child.ID);
         }
         for (var p of preprocess.BreedVars) {
-          this.PreprocessContext.BreedVars.set(p, index);
+          mainPreprocess.BreedVars.set(p, child.ID);
         }
         for (var p of Object.keys(preprocess.Commands)) {
           let numArgs = preprocess.Commands[p];
           if (numArgs) {
-            this.PreprocessContext.Commands[p] = numArgs;
-            this.PreprocessContext.CommandsOrigin[p] = index;
+            mainPreprocess.Commands[p] = numArgs;
+            mainPreprocess.CommandsOrigin[p] = child.ID;
           }
         }
         for (var p of Object.keys(preprocess.Reporters)) {
           let numArgs = preprocess.Reporters[p];
           if (numArgs) {
-            this.PreprocessContext.Reporters[p] = numArgs;
-            this.PreprocessContext.ReportersOrigin[p] = index;
+            mainPreprocess.Reporters[p] = numArgs;
+            mainPreprocess.ReportersOrigin[p] = child.ID;
           }
         }
         for (var p of statenetlogo.Extensions) {
-          this.LintContext.Extensions.set(p, index);
+          mainLint.Extensions.set(p, child.ID);
         }
         for (var p of statenetlogo.Globals) {
-          this.LintContext.Globals.set(p, index);
+          mainLint.Globals.set(p, child.ID);
         }
         for (var p of statenetlogo.WidgetGlobals) {
-          this.LintContext.WidgetGlobals.set(p, index);
+          mainLint.WidgetGlobals.set(p, child.ID);
         }
         for (var p of statenetlogo.Procedures.keys()) {
           let copy = statenetlogo.Procedures.get(p);
           if (copy) {
-            copy.EditorId = index;
-            this.LintContext.Procedures.set(p, copy);
+            copy.EditorId = child.ID;
+            mainLint.Procedures.set(p, copy);
           }
         }
         for (var p of statenetlogo.Breeds.keys()) {
           let copy = statenetlogo.Breeds.get(p);
           if (copy) {
-            copy.EditorId = index;
-            this.LintContext.Breeds.set(p, copy);
+            copy.EditorId = child.ID;
+            mainLint.Breeds.set(p, copy);
           }
         }
       }
-      index++;
     }
-    //console.log("SETTING MASTER")
-    this.CodeMirror.state
-      .field(globalStateExtension)
-      .SetLintContext(this.LintContext);
-    this.CodeMirror.state
-      .field(globalStateExtension)
-      .SetPreprocessContext(this.PreprocessContext);
-    //console.log(this.PreprocessContext,this.LintContext)
-    for (var child of this.Children) {
-      //console.log("old",child.LintContext,child.PreprocessContext)
-      console.log('Setting child');
-      child.SetLintContext(this.LintContext);
-      child.SetPreprocessContext(this.PreprocessContext);
-      //console.log("new",child.LintContext,child.PreprocessContext)
-    }
-    //}
+    this.Version++;
+    this.SetContexts(mainPreprocess, mainLint);
   }
-  SetLintContext(lint: LintContext) {
-    //console.log("old child",this.LintContext)
-    this.LintContext = lint;
-    this.CodeMirror.state
-      .field(globalStateExtension)
-      .SetLintContext(this.LintContext, true);
-    this.GetState().IncVersion();
-    //console.log("new child",this.LintContext)
-  }
-  SetPreprocessContext(preprocess: PreprocessContext) {
+  /** SetContexts: Set the lint context of the editor. */
+  private SetContexts(preprocess: PreprocessContext, lint: LintContext) {
     this.PreprocessContext = preprocess;
-    this.CodeMirror.state
-      .field(globalStateExtension)
-      .SetPreprocessContext(this.PreprocessContext, true);
-    this.GetState().IncVersion();
+    this.LintContext = lint;
+    if (this.IsVisible) this.ForceLint();
+    for (var child of this.Children) {
+      child.Version = this.Version;
+      child.SetContexts(preprocess, lint);
+    }
   }
   // #endregion
 
@@ -738,22 +736,6 @@ export class GalapagosEditor {
   // #region "Event Handling"
   /** onUpdate: Handle the Update event. */
   private onUpdate(update: ViewUpdate) {
-    // forceParsing(update.view)
-    if (update.docChanged) {
-      if (!this.ParentEditor) {
-        //console.log("1")
-        this.UpdateSharedContext();
-        //console.log(this.LintContext)
-      } else if (
-        this.ParentEditor &&
-        this.Options.ParseMode == ParseMode.Normal
-      ) {
-        //console.log("2")
-        //console.log("old",this.LintContext)
-        this.ParentEditor.UpdateSharedContext();
-        //console.log("new",this.LintContext)
-      }
-    }
     if (this.Options.OnUpdate != null) {
       this.Options.OnUpdate(update.docChanged, update);
     }

@@ -27,7 +27,17 @@
       "returnType": "unit"
     },
     {
+      "name": "get-speed",
+      "argTypes": [],
+      "returnType": "number"
+    },
+    {
       "name": "get-platform",
+      "argTypes": [],
+      "returnType": "string"
+    },
+    {
+      "name": "id",
       "argTypes": [],
       "returnType": "string"
     },

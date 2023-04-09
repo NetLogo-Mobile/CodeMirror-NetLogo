@@ -87,7 +87,6 @@ const preprocessStateExtension = StateField.define<StatePreprocess>({
   update: (Original: StatePreprocess, Transaction: Transaction) => {
     if (!Transaction.docChanged) return Original;
     Original.ParseState(Transaction.state);
-    console.log(Original);
     return Original;
   },
 });

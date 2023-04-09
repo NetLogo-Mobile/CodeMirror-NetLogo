@@ -36,8 +36,6 @@ export class StateNetLogo {
   public RuntimeErrors: RuntimeError[] = [];
   /** IsDirty: Whether the current state is dirty. */
   private IsDirty: boolean = true;
-  /** Version: Version of the state (for linter cache). */
-  private Version: number = 0;
   /** Mode: The editor's parsing mode. */
   public Mode: ParseMode = ParseMode.Normal;
   // #endregion
@@ -125,14 +123,6 @@ export class StateNetLogo {
   public GetDirty() {
     return this.IsDirty;
   }
-  /** GetVersion: Get version of the state. */
-  public GetVersion(): number {
-    return this.Version;
-  }
-  /** IncVersion: Increase version of the state. */
-  public IncVersion(): number {
-    return ++this.Version;
-  }
   // #endregion
 
   // #region "Parsing"
@@ -140,11 +130,6 @@ export class StateNetLogo {
   public ParseState(State: EditorState): StateNetLogo {
     if (!this.IsDirty) return this;
     const Cursor = syntaxTree(State).cursor();
-    if (!Cursor.firstChild()) return this;
-    while (Cursor.node.name == 'LineComment') {
-      Cursor.nextSibling();
-    }
-    if (!Cursor.firstChild()) return this;
     // Clear some global states to avoid contamination
     this.Breeds = new Map<string, Breed>();
     this.Procedures = new Map<string, Procedure>();
@@ -154,6 +139,12 @@ export class StateNetLogo {
     this.Breeds.set('patch', new Breed('patch', 'patches', [], false));
     this.Breeds.set('link', new Breed('link', 'links', [], true));
     let tempBreedVars: Map<string, string[]> = new Map<string, string[]>();
+    this.IsDirty = false;
+    if (!Cursor.firstChild()) return this;
+    while (Cursor.node.name == 'LineComment') {
+      Cursor.nextSibling();
+    }
+    if (!Cursor.firstChild()) return this;
     // Start parsing
     while (true) {
       // get extensions
@@ -206,12 +197,7 @@ export class StateNetLogo {
         let procedure = this.getProcedure(Cursor.node, State);
         this.Procedures.set(procedure.Name, procedure);
       }
-
-      if (!Cursor.nextSibling()) {
-        this.IncVersion();
-        this.IsDirty = false;
-        return this;
-      }
+      if (!Cursor.nextSibling()) return this;
     }
   }
 
@@ -599,11 +585,7 @@ export class StateNetLogo {
 const stateExtension = StateField.define<StateNetLogo>({
   create: (State) => new StateNetLogo().ParseState(State),
   update: (Original: StateNetLogo, Transaction: Transaction) => {
-    if (Transaction.docChanged) {
-      console.log(Original);
-      console.log(Transaction.changes);
-      Original.SetDirty();
-    }
+    if (Transaction.docChanged) Original.SetDirty();
     return Original;
   },
 });

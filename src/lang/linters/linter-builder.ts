@@ -7,7 +7,6 @@ import {
 } from '../../codemirror/extension-state-netlogo';
 import { LintContext, PreprocessContext } from '../classes';
 import { GalapagosEditor } from '../../editor';
-import { globalStateExtension } from '../../codemirror/extension-global-state';
 
 /** Linter: A function that takes a view and parse state and returns a list of diagnostics. */
 type Linter = (
@@ -20,23 +19,25 @@ type Linter = (
 /** buildLinter: Builds a linter extension from a linter function. */
 const buildLinter = function (
   Source: Linter,
-  editor: GalapagosEditor
+  Editor: GalapagosEditor
 ): Extension {
   var LastVersion = 0;
   var Cached: Diagnostic[];
   var BuiltSource: LintSource = (view) => {
     const State = view.state.field(stateExtension);
-    const PreprocessContext = view.state
-      .field(globalStateExtension)
-      .GetPreprocessContext(State.Mode == 'Embedded');
-    const LintContext = view.state
-      .field(globalStateExtension)
-      .GetLintContext(State.Mode == 'Embedded');
-    if (State.GetDirty() || State.GetVersion() > LastVersion) {
-      //console.log("linter",PreprocessContext,LintContext,State.Mode)
+    var Dirty = State.GetDirty();
+    if (Dirty) {
       State.ParseState(view.state);
-      Cached = Source(view, State, PreprocessContext, LintContext);
-      LastVersion = State.GetVersion();
+      Editor.UpdateContext();
+    }
+    if (Dirty || Editor.GetVersion() > LastVersion) {
+      Cached = Source(
+        view,
+        State,
+        Editor.PreprocessContext,
+        Editor.LintContext
+      );
+      LastVersion = Editor.GetVersion();
     }
     return Cached;
   };
