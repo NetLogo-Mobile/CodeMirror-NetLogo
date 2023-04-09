@@ -95,7 +95,7 @@ export class GalapagosEditor {
         this.Language = html();
         break;
       default:
-        this.Language = NetLogo();
+        this.Language = NetLogo(this);
         Extensions.push(preprocessStateExtension);
         Extensions.push(stateExtension);
         Dictionary.ClickHandler = Options.OnDictionaryClick;

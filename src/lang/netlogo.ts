@@ -15,6 +15,7 @@ import { styleTags, tags as t } from '@lezer/highlight';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { AutoCompletion } from './auto-completion';
 import { SyntaxNode } from '@lezer/common';
+import { GalapagosEditor } from '../editor';
 
 /** NetLogoLanguage: The NetLogo language. */
 export const NetLogoLanguage = LRLanguage.define({
@@ -121,10 +122,10 @@ export const NetLogoLanguage = LRLanguage.define({
 });
 
 /** NetLogo: The NetLogo language support. */
-export function NetLogo(): LanguageSupport {
+export function NetLogo(Editor: GalapagosEditor): LanguageSupport {
   return new LanguageSupport(NetLogoLanguage, [
     NetLogoLanguage.data.of({
-      autocomplete: new AutoCompletion().GetCompletionSource(),
+      autocomplete: new AutoCompletion(Editor).GetCompletionSource(),
     }),
   ]);
 }

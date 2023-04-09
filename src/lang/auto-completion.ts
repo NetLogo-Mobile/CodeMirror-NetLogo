@@ -6,10 +6,6 @@ import {
   constants,
 } from './keywords';
 import {
-  stateExtension,
-  StateNetLogo,
-} from '../codemirror/extension-state-netlogo';
-import {
   Completion,
   CompletionSource,
   CompletionContext,
@@ -18,6 +14,8 @@ import {
 import { syntaxTree } from '@codemirror/language';
 import { PrimitiveManager } from './primitives/primitives';
 import { getLocalVars } from './linters/utils/check-identifier';
+import { GalapagosEditor } from '../editor';
+import { LintContext } from './classes';
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 /* Possible Types of Autocompletion Tokens:
@@ -27,6 +25,13 @@ Breed;
 Command; Command-Custom; Reporter; Reporter-Custom.
 */
 export class AutoCompletion {
+  /** Editor: The editor instance. */
+  private Editor: GalapagosEditor;
+  /** Constructor: Create a new auto completion service. */
+  constructor(Editor: GalapagosEditor) {
+    this.Editor = Editor;
+  }
+
   /** BuiltinVariables: The completion list of built-in variables. */
   private BuiltinVariables: Completion[] = this.KeywordsToCompletions(
     [...turtleVars, ...patchVars, ...linkVars],
@@ -75,17 +80,18 @@ export class AutoCompletion {
   private ParentTypes = Object.keys(this.ParentMaps);
 
   /** GetParentKeywords: Get keywords of a certain type. */
-  private GetParentKeywords(Type: string, State: StateNetLogo): Completion[] {
+  private GetParentKeywords(Type: string, State: LintContext): Completion[] {
     let results = this.ParentMaps[Type];
     switch (Type) {
       case 'Extensions':
-        results = results.filter(
-          (ext) => !State.Extensions.includes(ext.label)
-        );
+        results = results.filter((ext) => !State.Extensions.has(ext.label));
         break;
       case 'VariableName':
         results = results.concat(
-          this.KeywordsToCompletions(State.Globals, 'Variable')
+          this.KeywordsToCompletions(
+            [...State.Globals.keys(), ...State.WidgetGlobals.keys()],
+            'Variable'
+          )
         );
         break;
       case 'Program':
@@ -100,7 +106,8 @@ export class AutoCompletion {
     return results;
   }
 
-  private getBreedCommands(state: StateNetLogo): string[] {
+  /** getBreedCommands: Get breed commands. */
+  private getBreedCommands(state: LintContext): string[] {
     let commands: string[] = [];
     for (let b of state.Breeds.values()) {
       if (!b.IsLinkBreed) {
@@ -120,7 +127,8 @@ export class AutoCompletion {
     return commands;
   }
 
-  private getBreedReporters(state: StateNetLogo): string[] {
+  /** getBreedReporters: Get breed reporters. */
+  private getBreedReporters(state: LintContext): string[] {
     let reporters: string[] = [];
     for (let b of state.Breeds.values()) {
       if (!b.IsLinkBreed) {
@@ -157,7 +165,7 @@ export class AutoCompletion {
     const nodeName = node.type.name;
     const parentName = node.parent?.type.name ?? '';
     const grandparentName = node.parent?.parent?.type.name ?? '';
-    const state = Context.state.field(stateExtension);
+    const context = this.Editor.LintContext;
 
     // Debug output
     let curr = node;
@@ -166,16 +174,19 @@ export class AutoCompletion {
       parents.push(curr.parent.name);
       curr = curr.parent;
     }
-    console.log(node.name + '/' + parents.join('/'));
+    // console.log(node.name + '/' + parents.join('/'));
 
     // If the parent/grand parent node is of a type specified in this.maps
     if (this.ParentTypes.indexOf(parentName) > -1)
-      return { from, options: this.GetParentKeywords(parentName, state) };
+      return { from, options: this.GetParentKeywords(parentName, context) };
     if (
       this.ParentTypes.indexOf(grandparentName) > -1 &&
       (parentName != 'Procedure' || nodeName == 'To')
     )
-      return { from, options: this.GetParentKeywords(grandparentName, state) };
+      return {
+        from,
+        options: this.GetParentKeywords(grandparentName, context),
+      };
 
     // Otherwise, try to build a full list
     if (
@@ -189,15 +200,16 @@ export class AutoCompletion {
     ) {
       let results = this.SharedIdentifiers;
       // Extensions
-      const extensionNames = state.Extensions.join(',');
+      const extensions = [...context.Extensions.keys()];
+      const extensionNames = extensions.join(',');
       if (this.LastExtensions != extensionNames) {
-        this.LastPrimitives = PrimitiveManager.GetCompletions(state.Extensions);
+        this.LastPrimitives = PrimitiveManager.GetCompletions(extensions);
         this.LastExtensions = extensionNames;
       }
       results = results.concat(this.LastPrimitives);
       // Breeds
-      if (state.Breeds.size > 0) {
-        let breeds = state.GetBreedNames();
+      if (context.Breeds.size > 0) {
+        let breeds = context.GetBreedNames();
         breeds = breeds.filter(
           (breed) =>
             ![
@@ -211,30 +223,33 @@ export class AutoCompletion {
         );
         results.push(...this.KeywordsToCompletions(breeds, 'Breed'));
         results.push(
-          ...this.KeywordsToCompletions(this.getBreedCommands(state), 'Command')
+          ...this.KeywordsToCompletions(
+            this.getBreedCommands(context),
+            'Command'
+          )
         );
         results.push(
           ...this.KeywordsToCompletions(
-            this.getBreedReporters(state),
+            this.getBreedReporters(context),
             'Reporter'
           )
         );
         results.push(
           ...this.KeywordsToCompletions(
-            state.GetBreedVariables(),
+            context.GetBreedVariables(),
             'Variable-Breed'
           )
         );
       }
       // Global Variables
       results.push(
-        ...this.KeywordsToCompletions(state.Globals, 'Variable-Global')
-      );
-      results.push(
-        ...this.KeywordsToCompletions(state.WidgetGlobals, 'Variable-Global')
+        ...this.KeywordsToCompletions(
+          [...context.Globals.keys(), ...context.WidgetGlobals.keys()],
+          'Variable-Global'
+        )
       );
       // Custom Procedures
-      for (var Procedure of state.Procedures.values()) {
+      for (var Procedure of context.Procedures.values()) {
         results.push({
           label: Procedure.Name,
           type: Procedure.IsCommand ? 'Command-Custom' : 'Reporter-Custom',
@@ -243,7 +258,7 @@ export class AutoCompletion {
       // Valid local variables
       results.push(
         ...this.KeywordsToCompletions(
-          getLocalVars(node, Context.state, state),
+          getLocalVars(node, Context.state, context),
           'Variable-Local'
         )
       );

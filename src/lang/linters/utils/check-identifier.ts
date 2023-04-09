@@ -66,7 +66,6 @@ export const checkValidIdentifier = function (
   // checks if parent is in a category that is always valid (e.g. 'Globals')
   if (acceptableIdentifiers.includes(Node.parent?.name ?? '')) return true;
   // checks if identifier is a global variable
-  console.log(context.parseState.Globals);
   if (
     context.parseState.Globals.has(value) ||
     context.parseState.WidgetGlobals.has(value) ||
