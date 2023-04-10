@@ -21,8 +21,8 @@ const buildLinter = function (
   Source: Linter,
   Editor: GalapagosEditor
 ): Extension {
-  var LastVersion = 0;
-  var Cached: Diagnostic[];
+  var LastVersion = -1;
+  var Cached: Diagnostic[] = [];
   var BuiltSource: LintSource = (view) => {
     if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
       var state = view.state.field(stateExtension);
