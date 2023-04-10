@@ -339,14 +339,23 @@ export class GalapagosEditor {
   /** SetCompilerErrors: Sync the compiler errors and present it on the editor. */
   // TODO: Some errors come with start 2147483647, which needs to be rendered as a tip without position.
   SetCompilerErrors(Errors: RuntimeError[]) {
-    this.GetState().CompilerErrors = Errors;
-    this.GetState().RuntimeErrors = [];
+    var State = this.GetState();
+    if (
+      State.CompilerErrors.length == 0 &&
+      State.RuntimeErrors.length == 0 &&
+      Errors.length == 0
+    )
+      return;
+    State.CompilerErrors = Errors;
+    State.RuntimeErrors = [];
     this.ForceLint();
   }
 
   /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
   SetRuntimeErrors(Errors: RuntimeError[]) {
-    this.GetState().RuntimeErrors = Errors;
+    var State = this.GetState();
+    if (State.RuntimeErrors.length == 0 && Errors.length == 0) return;
+    State.RuntimeErrors = Errors;
     this.ForceLint();
   }
   // #endregion
