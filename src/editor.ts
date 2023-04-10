@@ -319,6 +319,7 @@ export class GalapagosEditor {
     }
     if (Changed) {
       State.WidgetGlobals = Variables.map((str) => str.toLowerCase());
+      State.SetDirty();
       this.UpdateContext();
       if (ForceLint) this.ForceLint();
     }
@@ -402,7 +403,7 @@ export class GalapagosEditor {
     var mainPreprocess = new PreprocessContext();
     var mainLint = new LintContext();
     for (var child of [...this.Children, this]) {
-      if (child.Options.ParseMode == ParseMode.Normal) {
+      if (child.Options.ParseMode == ParseMode.Normal || child == this) {
         let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
         let statenetlogo = child.CodeMirror.state.field(stateExtension);
         for (var p of preprocess.PluralBreeds) {
