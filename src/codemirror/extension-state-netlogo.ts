@@ -583,7 +583,11 @@ export class StateNetLogo {
 
 /** StateExtension: Extension for managing the editor state.  */
 const stateExtension = StateField.define<StateNetLogo>({
-  create: (State) => new StateNetLogo().ParseState(State),
+  create: (State) => {
+    var NewState = new StateNetLogo();
+    NewState.SetDirty();
+    return NewState;
+  },
   update: (Original: StateNetLogo, Transaction: Transaction) => {
     if (Transaction.docChanged) Original.SetDirty();
     return Original;
