@@ -257,4 +257,60 @@ export class LintContext {
     }
     return breedNames;
   }
+
+  /** GetBreeds: Get list of breeds. */
+  public GetBreeds(): Breed[] {
+    var breedList: Breed[] = [];
+    for (let breed of this.Breeds.values()) {
+      breedList.push(breed);
+    }
+    return breedList;
+  }
+
+  /** GetBreedFromVariable: Find the breed which defines a certain variable. */
+  public GetBreedFromVariable(varName: string): string | null {
+    for (let breed of this.Breeds.values()) {
+      if (breed.Variables.includes(varName)) return breed.Plural;
+    }
+    return null;
+  }
+  /** GetBreedFromProcedure: Get breed name from breed procedure. */
+  public GetBreedFromProcedure(term: string): string | null {
+    let breed = '';
+    for (let b of this.GetBreedNames()) {
+      if (term.includes(b) && b.length > breed.length) {
+        breed = b;
+      }
+    }
+    return breed;
+  }
+  /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
+  public GetProcedureFromVariable(
+    varName: string,
+    from: number,
+    to: number
+  ): string | null {
+    for (let proc of this.Procedures.values()) {
+      if (proc.PositionEnd < from || proc.PositionStart > to) continue;
+      // Check the argument list in a procedure
+      if (proc.Arguments.includes(varName)) return proc.Name;
+      // Check the local variable list in a procedure
+      for (let localVar of proc.Variables) {
+        if (localVar.Name == varName && localVar.CreationPos <= to)
+          return proc.Name;
+      }
+      // Check the anonymous arguments in a procedure
+      for (let anonProc of proc.AnonymousProcedures) {
+        if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
+          continue;
+        if (anonProc.Arguments.includes(varName))
+          return '{anonymous},' + proc.Name;
+        for (let localVar of anonProc.Variables) {
+          if (localVar.Name == varName && localVar.CreationPos <= to)
+            return '{anonymous},' + proc.Name;
+        }
+      }
+    }
+    return null;
+  }
 }

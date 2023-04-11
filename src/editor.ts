@@ -31,7 +31,7 @@ import {
   preprocessStateExtension,
   StatePreprocess,
 } from './codemirror/extension-state-preprocess.js';
-import { tooltipExtension } from './codemirror/extension-tooltip';
+import { buildToolTips } from './codemirror/extension-tooltip';
 import { lightTheme } from './codemirror/theme-light';
 import { highlightTree } from '@lezer/highlight';
 import { javascript } from '@codemirror/lang-javascript';
@@ -104,7 +104,7 @@ export class GalapagosEditor {
         );
         // Special case: One-line mode
         if (!this.Options.OneLine) {
-          Extensions.push(tooltipExtension);
+          Extensions.push(buildToolTips(this));
         } else {
           Extensions.unshift(
             Prec.highest(keymap.of([{ key: 'Enter', run: () => true }]))
