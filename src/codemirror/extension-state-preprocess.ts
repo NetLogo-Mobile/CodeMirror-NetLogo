@@ -1,4 +1,6 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
+import { PreprocessContext } from '../lang/classes';
+import { GalapagosEditor, Localized } from '../editor';
 
 /** StatePreprocess: The first-pass state for the NetLogo Language. */
 export class StatePreprocess {
@@ -9,15 +11,36 @@ export class StatePreprocess {
   /** BreedVars: Breed variables in the model. */
   public BreedVars: string[] = [];
   /** Commands: Commands in the model. */
-  public Commands: Record<string, number> = {};
+  public Commands: Map<string, number> = new Map<string, number>();
   /** Reporters: Reporters in the model. */
-  public Reporters: Record<string, number> = {};
+  public Reporters: Map<string, number> = new Map<string, number>();
+  /** Context: The shared preprocess context. */
+  public Context: PreprocessContext | null = null;
+  /** IsDirty: Whether the current state is dirty. */
+  private IsDirty: boolean = true;
+  private editor: GalapagosEditor | null = null;
+
+  // #region "Version Control"
+  /** SetDirty: Make the state dirty. */
+  public SetDirty() {
+    this.IsDirty = true;
+  }
+  /** GetDirty: Gets if the state is dirty. */
+  public GetDirty() {
+    return this.IsDirty;
+  }
+
+  public SetClean() {
+    this.IsDirty = false;
+  }
+  // #endregion
+
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StatePreprocess {
     this.PluralBreeds = [];
     this.SingularBreeds = [];
-    this.Commands = {};
-    this.Reporters = {};
+    this.Commands.clear();
+    this.Reporters.clear();
     let doc = State.doc.toString();
     // Breeds
     let breeds = doc.matchAll(/breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g);
@@ -34,7 +57,15 @@ export class StatePreprocess {
       /(^|\n)\s*to-report\s+([^\s\[]+)(\s*\[([^\]]*)\])?/g
     );
     this.Reporters = this.processProcedures(reporters);
+    this.IsDirty = true;
+    if (this.editor) {
+      this.editor.UpdatePreprocessContext();
+    }
     return this;
+  }
+
+  public SetEditor(editor: GalapagosEditor) {
+    this.editor = editor;
   }
 
   /** processBreedVars: Parse the code for breed variables. */
@@ -55,12 +86,15 @@ export class StatePreprocess {
   /** processProcedures: Parse the code for procedure names. */
   private processProcedures(
     procedures: IterableIterator<RegExpMatchArray>
-  ): Record<string, number> {
-    let matches: Record<string, number> = {};
+  ): Map<string, number> {
+    let matches: Map<string, number> = new Map<string, number>();
     for (var match of procedures) {
       const name = match[2].toLowerCase();
       const args = match[4];
-      matches[name] = args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length;
+      matches.set(
+        name,
+        args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length
+      );
     }
     return matches;
   }
@@ -83,10 +117,17 @@ export class StatePreprocess {
 
 /** StateExtension: Extension for managing the editor state.  */
 const preprocessStateExtension = StateField.define<StatePreprocess>({
-  create: (State) => new StatePreprocess().ParseState(State),
+  create: (State) => {
+    let state = new StatePreprocess();
+    state.ParseState(State);
+    state.SetDirty();
+    return state;
+  },
   update: (Original: StatePreprocess, Transaction: Transaction) => {
     if (!Transaction.docChanged) return Original;
     Original.ParseState(Transaction.state);
+    Original.SetDirty();
+    console.log(Original);
     return Original;
   },
 });

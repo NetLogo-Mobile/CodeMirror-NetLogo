@@ -3,40 +3,64 @@ import { StateField, EditorState, EditorSelection } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { Dictionary } from '../i18n/dictionary';
-import { StateNetLogo, stateExtension } from './extension-state-netlogo';
 import {
   classifyPrimitive,
   classifyBreedName,
   getLink,
-} from './utils/tooltip_utils';
-import { Localized } from '../editor';
+} from './utils/tooltip-utils';
+import { GalapagosEditor, Localized } from '../editor';
+import { LintContext } from '../lang/classes';
 
 /** TooltipExtension: Extension for displaying language-specific tooltips. */
-export const tooltipExtension = StateField.define<readonly Tooltip[]>({
-  create: getSelectionTooltips,
+export const buildToolTips = function (Editor: GalapagosEditor) {
+  let tooltipExtension = StateField.define<readonly Tooltip[]>({
+    create: (State) => getSelectionTooltips(State, Editor),
 
-  update(tooltips, tr) {
-    if (!tr.docChanged && !tr.selection) return tooltips;
-    return getSelectionTooltips(tr.state);
-  },
+    update(tooltips, tr) {
+      if (!tr.docChanged && !tr.selection) return tooltips;
+      return getSelectionTooltips(tr.state, Editor);
+    },
 
-  provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
-});
+    provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
+  });
+  return tooltipExtension;
+};
+
+// /** TooltipExtension: Extension for displaying language-specific tooltips. */
+// export const tooltipExtension = StateField.define<readonly Tooltip[]>({
+//   create: getSelectionTooltips,
+
+//   update(tooltips, tr) {
+//     if (!tr.docChanged && !tr.selection) return tooltips;
+//     return getSelectionTooltips(tr.state);
+//   },
+
+//   provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
+// });
 
 // getSelectionTooltips: Get the tooltips for the current selection
-function getSelectionTooltips(state: EditorState): readonly Tooltip[] {
+function getSelectionTooltips(
+  state: EditorState,
+  Editor: GalapagosEditor
+): readonly Tooltip[] {
   var ranges = state.selection.ranges.filter(
     (range) =>
       !range.empty &&
       state.doc.lineAt(range.from).number == state.doc.lineAt(range.to).number
   );
   if (ranges.length != 1) return [];
-  return [getTooltip(ranges[0].from, ranges[0].to, state)];
+  return [getTooltip(ranges[0].from, ranges[0].to, state, Editor)];
 }
 
 // getTooltip: Get the tooltip for the given range
-function getTooltip(from: number, to: number, state: EditorState): Tooltip {
-  var NLState = state.field(stateExtension);
+function getTooltip(
+  from: number,
+  to: number,
+  state: EditorState,
+  editor: GalapagosEditor
+): Tooltip {
+  console.log(editor.LintContext);
+  var NLState = editor.LintContext;
   // Check what to display & if the selected range covers more than one token
   var multipleTokens = false;
   var lastFrom = 0;
@@ -88,19 +112,16 @@ function getTooltip(from: number, to: number, state: EditorState): Tooltip {
     closestTerm = term;
   }
   // check if term is a global variable
-  else if (state.field(stateExtension).Globals.includes(term)) {
+  else if (NLState.Globals.has(term)) {
     closestTerm = '~Globals/Identifier';
   }
   //check if term is a widget global variable
-  else if (state.field(stateExtension).WidgetGlobals.includes(term)) {
+  else if (NLState.WidgetGlobals.has(term)) {
     closestTerm = '~WidgetGlobal';
   }
   //check if term is the name of a breed
-  else if (state.field(stateExtension).GetBreedNames().includes(term)) {
-    closestTerm = classifyBreedName(
-      term,
-      state.field(stateExtension).GetBreeds()
-    );
+  else if (NLState.GetBreedNames().includes(term)) {
+    closestTerm = classifyBreedName(term, NLState.GetBreeds());
   }
   //otherwise check if term is a breed variable
   else {
@@ -193,7 +214,7 @@ function getInternalLink(
   closestTerm: string,
   secondTerm: string,
   state: EditorState,
-  NLState: StateNetLogo
+  NLState: LintContext
 ): { hasLink: boolean; to: number; from: number } {
   let linkData = {
     to: 0,

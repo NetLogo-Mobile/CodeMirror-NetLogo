@@ -66,7 +66,7 @@ const checkValidBreed = function (
   let pluralLink: string[] = [];
   let singularLink: string[] = [];
   for (let b of breeds) {
-    if (b.isLinkBreed) {
+    if (b.IsLinkBreed) {
       pluralLink.push(b.Plural);
       singularLink.push(b.Singular);
     } else {
@@ -74,6 +74,7 @@ const checkValidBreed = function (
       singularTurtle.push(b.Singular);
     }
   }
+  //console.log(pluralTurtle,singularTurtle,pluralLink,singularLink)
   //check for correct breed name (depending on function type)
   if (node.name == 'SpecialCommandCreateLink') {
     isValid = listItemInString(value, singularLink.concat(pluralLink));

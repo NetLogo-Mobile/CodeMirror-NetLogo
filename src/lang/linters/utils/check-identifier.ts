@@ -1,12 +1,5 @@
 import { EditorView } from '@codemirror/view';
-import {
-  StateNetLogo,
-  stateExtension,
-} from '../../../codemirror/extension-state-netlogo';
-import {
-  StatePreprocess,
-  preprocessStateExtension,
-} from '../../../codemirror/extension-state-preprocess';
+import { StateNetLogo } from '../../../codemirror/extension-state-netlogo';
 import { EditorState } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
 import {
@@ -70,8 +63,8 @@ export const checkValidIdentifier = function (
     context.parseState.Globals.has(value) ||
     context.parseState.WidgetGlobals.has(value) ||
     context.parseState.Procedures.has(value) ||
-    context.preprocessState.Commands[value] ||
-    context.preprocessState.Reporters[value]
+    context.preprocessState.Commands.has(value) ||
+    context.preprocessState.Reporters.has(value)
   )
     return true;
   // checks if identifier is a breed name or variable

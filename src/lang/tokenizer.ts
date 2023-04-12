@@ -42,9 +42,8 @@ import {
   // @ts-ignore
 } from './lang.terms.js';
 
-import { ParseContext } from '@codemirror/language';
-import { preprocessStateExtension } from '../codemirror/extension-state-preprocess';
 import { PrimitiveManager } from './primitives/primitives';
+import { GetContext } from './netlogo';
 
 let primitives = PrimitiveManager;
 
@@ -191,23 +190,22 @@ function isValidKeyword(ch: number) {
 
 // JC: Two issues with this approach: first, CJK breed names won't work; second, you can potentially do /\w+-(own|at|here)/ without doing many times
 // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
+// Another issue: what if one breed is called sheep, the other sheep-sheep? I would recommend to rewrite into regex with capture groups.
+// Such as: ^(.*?)-own$ and then check if the first capture group is a breed name.
 function matchBreed(token: string) {
   let tag = 0;
-  let parseContext = ParseContext.get();
-  let pluralBreedNames =
-    parseContext?.state.field(preprocessStateExtension).PluralBreeds ?? [];
-  let singularBreedNames =
-    parseContext?.state.field(preprocessStateExtension).SingularBreeds ?? [];
-  let breedVars =
-    parseContext?.state.field(preprocessStateExtension).BreedVars ?? [];
-  if (breedVars.includes(token.toLowerCase())) {
+  let parseContext = GetContext();
+  let pluralBreedNames = parseContext.PluralBreeds;
+  let singularBreedNames = parseContext.SingularBreeds;
+  let breedVars = parseContext.BreedVars;
+  if (breedVars.has(token.toLowerCase())) {
     tag = Identifier;
     return tag;
   }
   let foundMatch = false;
   let matchedBreed = '';
   let isSingular = false;
-  for (let b of pluralBreedNames) {
+  for (let [b] of pluralBreedNames) {
     if (
       token.toLowerCase().includes(b.toLowerCase()) &&
       b.length > matchedBreed.length
@@ -217,7 +215,7 @@ function matchBreed(token: string) {
       isSingular = false;
     }
   }
-  for (let b of singularBreedNames) {
+  for (let [b] of singularBreedNames) {
     if (
       token.toLowerCase().includes(b.toLowerCase()) &&
       b.length > matchedBreed.length
@@ -231,11 +229,7 @@ function matchBreed(token: string) {
   if (!foundMatch) {
     return tag;
   }
-  if (
-    parseContext?.state
-      .field(preprocessStateExtension)
-      .SingularBreeds.includes(token)
-  ) {
+  if (singularBreedNames.has(token)) {
     tag = SpecialReporter;
   } else if (
     token.match(new RegExp(`^${matchedBreed}-own$`, 'i')) &&
@@ -297,17 +291,11 @@ function matchBreed(token: string) {
 }
 
 function matchCustomProcedure(token: string) {
-  let parseContext = ParseContext.get();
-  let commands =
-    parseContext?.state.field(preprocessStateExtension).Commands ?? {};
-  let reporters =
-    parseContext?.state.field(preprocessStateExtension).Reporters ?? {};
-  // console.log(commands, reporters, token);
-  if (commands[token] >= 0) {
-    // console.log("found special command")
+  let parseContext = GetContext();
+  if ((parseContext.Commands.get(token) ?? -1) >= 0) {
     return SpecialCommand;
   }
-  if (reporters[token] >= 0) {
+  if ((parseContext.Reporters.get(token) ?? -1) >= 0) {
     return SpecialReporter;
   }
   return 0;

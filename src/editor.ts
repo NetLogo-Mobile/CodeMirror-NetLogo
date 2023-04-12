@@ -31,7 +31,7 @@ import {
   preprocessStateExtension,
   StatePreprocess,
 } from './codemirror/extension-state-preprocess.js';
-import { tooltipExtension } from './codemirror/extension-tooltip';
+import { buildToolTips } from './codemirror/extension-tooltip';
 import { lightTheme } from './codemirror/theme-light';
 import { highlightTree } from '@lezer/highlight';
 import { javascript } from '@codemirror/lang-javascript';
@@ -104,7 +104,7 @@ export class GalapagosEditor {
         );
         // Special case: One-line mode
         if (!this.Options.OneLine) {
-          Extensions.push(tooltipExtension);
+          Extensions.push(buildToolTips(this));
         } else {
           Extensions.unshift(
             Prec.highest(keymap.of([{ key: 'Enter', run: () => true }]))
@@ -144,6 +144,8 @@ export class GalapagosEditor {
       extensions: Extensions,
       parent: Parent,
     });
+    this.GetPreprocessState().Context = this.PreprocessContext;
+    this.GetPreprocessState().SetEditor(this);
     this.GetState().Mode = this.Options.ParseMode ?? ParseMode.Normal;
 
     // Disable Grammarly
@@ -265,6 +267,9 @@ export class GalapagosEditor {
     this.Children.push(child);
     child.ID = this.Children.length;
     child.ParentEditor = this;
+    child.PreprocessContext = this.PreprocessContext;
+    child.LintContext = this.LintContext;
+    child.GetPreprocessState().Context = this.PreprocessContext;
   }
 
   /** SetCursorPosition: Set the cursor position of the editor. */
@@ -406,14 +411,31 @@ export class GalapagosEditor {
     }
     return true;
   }
-  /** UpdateSharedContext: Update the shared context of the editor. */
-  private UpdateSharedContext() {
-    var mainPreprocess = new PreprocessContext();
-    var mainLint = new LintContext();
+
+  /** UpdatePreprocessContext: Try to update the context of this editor. */
+  public UpdatePreprocessContext(): boolean {
+    const State = this.CodeMirror.state.field(preprocessStateExtension);
+    if (!State.GetDirty()) return false;
+    State.SetClean();
+    // Force the parsing
+    this.Version += 1;
+    // Update the shared editor, if needed
+    if (!this.ParentEditor) {
+      this.UpdatePreprocess();
+    } else if (
+      this.ParentEditor &&
+      this.Options.ParseMode == ParseMode.Normal
+    ) {
+      this.ParentEditor.UpdatePreprocessContext();
+    }
+    return true;
+  }
+
+  public UpdatePreprocess() {
+    var mainPreprocess = this.PreprocessContext.Clear();
     for (var child of [...this.Children, this]) {
       if (child.Options.ParseMode == ParseMode.Normal || child == this) {
         let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
-        let statenetlogo = child.CodeMirror.state.field(stateExtension);
         for (var p of preprocess.PluralBreeds) {
           mainPreprocess.PluralBreeds.set(p, child.ID);
         }
@@ -423,20 +445,31 @@ export class GalapagosEditor {
         for (var p of preprocess.BreedVars) {
           mainPreprocess.BreedVars.set(p, child.ID);
         }
-        for (var p of Object.keys(preprocess.Commands)) {
-          let numArgs = preprocess.Commands[p];
-          if (numArgs) {
-            mainPreprocess.Commands[p] = numArgs;
-            mainPreprocess.CommandsOrigin[p] = child.ID;
+        for (var p of preprocess.Commands.keys()) {
+          let num_args = preprocess.Commands.get(p) ?? -1;
+          if (num_args >= 0) {
+            mainPreprocess.Commands.set(p, num_args);
+            mainPreprocess.CommandsOrigin.set(p, child.ID);
           }
         }
-        for (var p of Object.keys(preprocess.Reporters)) {
-          let numArgs = preprocess.Reporters[p];
-          if (numArgs) {
-            mainPreprocess.Reporters[p] = numArgs;
-            mainPreprocess.ReportersOrigin[p] = child.ID;
+        for (var p of preprocess.Reporters.keys()) {
+          let num_args = preprocess.Reporters.get(p) ?? -1;
+          if (num_args >= 0) {
+            mainPreprocess.Reporters.set(p, num_args);
+            mainPreprocess.ReportersOrigin.set(p, child.ID);
           }
         }
+      }
+    }
+    this.RefreshContexts();
+  }
+
+  /** UpdateSharedContext: Update the shared context of the editor. */
+  private UpdateSharedContext() {
+    var mainLint = this.LintContext.Clear();
+    for (var child of [...this.Children, this]) {
+      if (child.Options.ParseMode == ParseMode.Normal || child == this) {
+        let statenetlogo = child.CodeMirror.state.field(stateExtension);
         for (var p of statenetlogo.Extensions) {
           mainLint.Extensions.set(p, child.ID);
         }
@@ -462,19 +495,17 @@ export class GalapagosEditor {
         }
       }
     }
-    this.SetContexts(mainPreprocess, mainLint);
+    this.RefreshContexts();
   }
-  /** SetContexts: Set the lint context of the editor. */
-  private SetContexts(preprocess: PreprocessContext, lint: LintContext) {
-    this.PreprocessContext = preprocess;
-    this.LintContext = lint;
+  /** RefreshContexts: Refresh contexts of the editor. */
+  private RefreshContexts() {
     if (this.IsVisible) {
       this.ForceParse(false);
       this.ForceLint();
     }
     for (var child of this.Children) {
       child.Version += 1;
-      child.SetContexts(preprocess, lint);
+      child.RefreshContexts();
     }
   }
   // #endregion

@@ -10,12 +10,15 @@ import {
   foldNodeProp,
   foldInside,
   continuedIndent,
+  ParseContext,
 } from '@codemirror/language';
 import { styleTags, tags as t } from '@lezer/highlight';
 import { closeBrackets } from '@codemirror/autocomplete';
 import { AutoCompletion } from './auto-completion';
 import { SyntaxNode } from '@lezer/common';
 import { GalapagosEditor } from '../editor';
+import { preprocessStateExtension } from '../codemirror/extension-state-preprocess.js';
+import { PreprocessContext } from './classes.js';
 
 /** NetLogoLanguage: The NetLogo language. */
 export const NetLogoLanguage = LRLanguage.define({
@@ -121,15 +124,6 @@ export const NetLogoLanguage = LRLanguage.define({
   },
 });
 
-/** NetLogo: The NetLogo language support. */
-export function NetLogo(Editor: GalapagosEditor): LanguageSupport {
-  return new LanguageSupport(NetLogoLanguage, [
-    NetLogoLanguage.data.of({
-      autocomplete: new AutoCompletion(Editor).GetCompletionSource(),
-    }),
-  ]);
-}
-
 /// [Fold](#language.foldNodeProp) function that folds everything but
 /// the first and the last child of a syntax node. Useful for nodes
 /// that start and end with delimiters.
@@ -141,4 +135,21 @@ function foldProcedure(node: SyntaxNode): { from: number; to: number } | null {
   return first && first.to < last!.from
     ? { from: first.to, to: last!.type.isError ? node.to : last!.to }
     : null;
+}
+
+/** NetLogo: The NetLogo language support. */
+export function NetLogo(Editor: GalapagosEditor): LanguageSupport {
+  return new LanguageSupport(NetLogoLanguage, [
+    NetLogoLanguage.data.of({
+      autocomplete: new AutoCompletion(Editor).GetCompletionSource(),
+    }),
+  ]);
+}
+
+/** GetContext: Get the preprocess context from the parsing context. */
+export function GetContext(): PreprocessContext {
+  var Context = ParseContext.get()! as any;
+  Context.Context =
+    Context.Context ?? Context.state.field(preprocessStateExtension).Context;
+  return Context.Context;
 }

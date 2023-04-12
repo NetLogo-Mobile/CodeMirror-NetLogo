@@ -8,8 +8,8 @@ import {
   CodeBlock,
   AgentContexts,
 } from '../lang/classes';
-import { combineContexts, noContext } from './utils/context_utils';
-import { getBreedName } from './utils/breed_utils';
+import { combineContexts, noContext } from './utils/context-utils';
+import { getBreedName } from './utils/breed-utils';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
@@ -38,80 +38,6 @@ export class StateNetLogo {
   private IsDirty: boolean = true;
   /** Mode: The editor's parsing mode. */
   public Mode: ParseMode = ParseMode.Normal;
-  // #endregion
-
-  // #region "Utilities"
-  /** GetBreedNames: Get names related to breeds. */
-  public GetBreedNames(): string[] {
-    var breedNames: string[] = [];
-    for (let breed of this.Breeds.values()) {
-      breedNames.push(breed.Singular);
-      breedNames.push(breed.Plural);
-    }
-    return breedNames;
-  }
-  /** GetBreeds: Get list of breeds. */
-  public GetBreeds(): Breed[] {
-    var breedList: Breed[] = [];
-    for (let breed of this.Breeds.values()) {
-      breedList.push(breed);
-    }
-    return breedList;
-  }
-  /** GetBreedVariables: Get variable names related to breeds. */
-  public GetBreedVariables(): string[] {
-    var breedNames: string[] = [];
-    for (let breed of this.Breeds.values()) {
-      breedNames = breedNames.concat(breed.Variables);
-    }
-    return breedNames;
-  }
-  /** GetBreedFromVariable: Find the breed which defines a certain variable. */
-  public GetBreedFromVariable(varName: string): string | null {
-    for (let breed of this.Breeds.values()) {
-      if (breed.Variables.includes(varName)) return breed.Plural;
-    }
-    return null;
-  }
-  /** GetBreedFromProcedure: Get breed name from breed procedure. */
-  public GetBreedFromProcedure(term: string): string | null {
-    let breed = '';
-    for (let b of this.GetBreedNames()) {
-      if (term.includes(b) && b.length > breed.length) {
-        breed = b;
-      }
-    }
-    return breed;
-  }
-  /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
-  public GetProcedureFromVariable(
-    varName: string,
-    from: number,
-    to: number
-  ): string | null {
-    for (let proc of this.Procedures.values()) {
-      if (proc.PositionEnd < from || proc.PositionStart > to) continue;
-      // Check the argument list in a procedure
-      if (proc.Arguments.includes(varName)) return proc.Name;
-      // Check the local variable list in a procedure
-      for (let localVar of proc.Variables) {
-        if (localVar.Name == varName && localVar.CreationPos <= to)
-          return proc.Name;
-      }
-      // Check the anonymous arguments in a procedure
-      for (let anonProc of proc.AnonymousProcedures) {
-        if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
-          continue;
-        if (anonProc.Arguments.includes(varName))
-          return '{anonymous},' + proc.Name;
-        for (let localVar of anonProc.Variables) {
-          if (localVar.Name == varName && localVar.CreationPos <= to)
-            return '{anonymous},' + proc.Name;
-        }
-      }
-    }
-    return null;
-  }
   // #endregion
 
   // #region "Version Control"
@@ -589,7 +515,10 @@ const stateExtension = StateField.define<StateNetLogo>({
     return NewState;
   },
   update: (Original: StateNetLogo, Transaction: Transaction) => {
-    if (Transaction.docChanged) Original.SetDirty();
+    if (Transaction.docChanged) {
+      Original.SetDirty();
+      console.log(Original);
+    }
     return Original;
   },
 });
