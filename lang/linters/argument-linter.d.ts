@@ -1,6 +1,7 @@
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { Linter } from './linter-builder';
+import { PreprocessContext } from '../classes';
 export declare const ArgumentLinter: Linter;
 export declare const getArgs: (Node: SyntaxNode) => {
     leftArgs: SyntaxNode | null;
@@ -13,4 +14,4 @@ export declare const checkValidNumArgs: (state: EditorState, args: {
     rightArgs: SyntaxNode[];
     func: SyntaxNode | null;
     hasParentheses: boolean;
-}) => (string | number | boolean)[];
+}, preprocessContext: PreprocessContext) => (string | number | boolean | null)[];

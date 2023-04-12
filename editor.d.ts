@@ -8,6 +8,7 @@ import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Diagnostic } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
 import { Tree, SyntaxNodeRef } from '@lezer/common';
+import { PreprocessContext, LintContext } from './lang/classes.js';
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export declare class GalapagosEditor {
     readonly EditorState: EditorState;
@@ -44,6 +45,8 @@ export declare class GalapagosEditor {
     GetCode(): string;
     /** SetReadOnly: Set the readonly status for the editor. */
     SetReadOnly(status: boolean): void;
+    /** AddChild: Add a child editor. */
+    AddChild(child: GalapagosEditor): void;
     /** SetCursorPosition: Set the cursor position of the editor. */
     SetCursorPosition(position: number): void;
     /** Blur: Make the editor lose the focus (if any). */
@@ -64,12 +67,40 @@ export declare class GalapagosEditor {
     SetCompilerErrors(Errors: RuntimeError[]): void;
     /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
     SetRuntimeErrors(Errors: RuntimeError[]): void;
+    /** ID: ID of the editor. */
+    private ID;
+    /** Children: The connected editors. */
+    readonly Children: GalapagosEditor[];
+    /** ParentEditor: The parent editor of this instance. */
+    ParentEditor: GalapagosEditor | null;
+    /** PreprocessContext: The combined preprocessed context of this editor. */
+    PreprocessContext: PreprocessContext;
+    /** LintContext: The combined main parsing context of this editor. */
+    LintContext: LintContext;
+    /** Version: Version of the state (for linter cache). */
+    private Version;
+    /** IsVisible: Whether this editor is visible. */
+    IsVisible: boolean;
+    /** GetID: Get ID of the editor. */
+    GetID(): number;
+    /** GetVersion: Get version of the state. */
+    GetVersion(): number;
+    SetVisible(status: boolean): void;
+    /** UpdateContext: Try to update the context of this editor. */
+    UpdateContext(): boolean;
+    /** UpdatePreprocessContext: Try to update the context of this editor. */
+    UpdatePreprocessContext(): boolean;
+    UpdatePreprocess(): void;
+    /** UpdateSharedContext: Update the shared context of the editor. */
+    private UpdateSharedContext;
+    /** RefreshContexts: Refresh contexts of the editor. */
+    private RefreshContexts;
     /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
     ForEachDiagnostic(Callback: (d: Diagnostic, from: number, to: number) => void): void;
     /** ForceLintAsync: Force the editor to lint without rendering. */
     ForceLintAsync(): Promise<Diagnostic[]>;
     /** ForceParse: Force the editor to finish any parsing. */
-    ForceParse(): void;
+    ForceParse(SetDirty?: boolean): void;
     /** ForceLint: Force the editor to do another round of linting. */
     ForceLint(): void;
     /** Undo: Make the editor undo. Returns false if no group was available. */

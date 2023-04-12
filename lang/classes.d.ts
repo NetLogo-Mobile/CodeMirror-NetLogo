@@ -90,8 +90,10 @@ export declare class Breed {
     Plural: string;
     /** Variables: Variables defined for the breed. */
     Variables: string[];
-    /** IsLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
+    /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
     IsLinkBreed: boolean;
+    /** EditorId: which editor created the breed (for LinkContext). */
+    EditorId?: number;
     /** Build a breed. */
     constructor(Singular: string, Plural: string, Variables: string[], IsLinkBreed: boolean);
 }
@@ -117,6 +119,10 @@ export declare class Procedure {
     Context: AgentContexts;
     /** CodeBlocks: Code blocks within the procedure. */
     CodeBlocks: CodeBlock[];
+    /** EditorId: which editor created the procedure (for LinkContext). */
+    EditorId?: number;
+    /** isProcedure: used for linting; whether is a procedure or codeblock. */
+    isProcedure: boolean;
 }
 /** CodeBlock: Dynamic metadata of a code block. */
 export declare class CodeBlock {
@@ -134,11 +140,13 @@ export declare class CodeBlock {
     Arguments: string[];
     /** AnonymousProcedures: Anonymous procedures defined within the code block. */
     AnonymousProcedures: Procedure[];
-    /** Primitive: The primitive that the code block is associated with. */
+    /** isProcedure: used for linting; whether is a procedure or codeblock. */
+    isProcedure: boolean;
+    /** Primitive: the primitive that created the codeblock. */
     Primitive: string;
-    /** Breed: The breed that the code block is associated with. */
+    /** Breed: the breed in the primitive that created the codeblock (if present). */
     Breed: string | null;
-    /** InheritParentContext: Whether the code block inherits the context of its parent. */
+    /** InheritParentContext: whether context needs to match parent context. */
     InheritParentContext: boolean;
 }
 /** Procedure: Dynamic metadata of an anonymous procedure. */
@@ -162,4 +170,50 @@ export declare class LocalVariable {
     CreationPos: number;
     /** Build a local variable. */
     constructor(Name: string, Type: NetLogoType, CreationPos: number);
+}
+/** PreprocessContext: master context from preprocessing */
+export declare class PreprocessContext {
+    /** PluralBreeds: Breeds in the model. */
+    PluralBreeds: Map<string, number>;
+    /** SingularBreeds: Singular breeds in the model. */
+    SingularBreeds: Map<string, number>;
+    /** BreedVars: Breed variables in the model. */
+    BreedVars: Map<string, number>;
+    /** Commands: Commands in the model with number of arguments. */
+    Commands: Map<string, number>;
+    /** Reporters: Reporters in the model with number of arguments. */
+    Reporters: Map<string, number>;
+    /** CommandsOrigin: Commands in the model with editor ID. */
+    CommandsOrigin: Map<string, number>;
+    /** ReportersOrigin: Reporters in the model with editor ID. */
+    ReportersOrigin: Map<string, number>;
+    /** Clear: Clear the context. */
+    Clear(): PreprocessContext;
+}
+/** LintPreprocessContext: master context from statenetlogo */
+export declare class LintContext {
+    /** Extensions: Extensions in the code. */
+    Extensions: Map<string, number>;
+    /** Globals: Globals in the code. */
+    Globals: Map<string, number>;
+    /** WidgetGlobals: Globals from the widgets. */
+    WidgetGlobals: Map<string, number>;
+    /** Breeds: Breeds in the code. */
+    Breeds: Map<string, Breed>;
+    /** Procedures: Procedures in the code. */
+    Procedures: Map<string, Procedure>;
+    /** Clear: Clear the context. */
+    Clear(): LintContext;
+    /** GetBreedNames: Get names related to breeds. */
+    GetBreedNames(): string[];
+    /** GetBreedVariables: Get variable names related to breeds. */
+    GetBreedVariables(): string[];
+    /** GetBreeds: Get list of breeds. */
+    GetBreeds(): Breed[];
+    /** GetBreedFromVariable: Find the breed which defines a certain variable. */
+    GetBreedFromVariable(varName: string): string | null;
+    /** GetBreedFromProcedure: Get breed name from breed procedure. */
+    GetBreedFromProcedure(term: string): string | null;
+    /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
+    GetProcedureFromVariable(varName: string, from: number, to: number): string | null;
 }

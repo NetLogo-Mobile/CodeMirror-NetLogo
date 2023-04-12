@@ -20,30 +20,12 @@ export declare class StateNetLogo {
     RuntimeErrors: RuntimeError[];
     /** IsDirty: Whether the current state is dirty. */
     private IsDirty;
-    /** Version: Version of the state (for linter cache). */
-    private Version;
     /** Mode: The editor's parsing mode. */
     Mode: ParseMode;
-    /** GetBreedNames: Get names related to breeds. */
-    GetBreedNames(): string[];
-    /** GetBreeds: Get list of breeds. */
-    GetBreeds(): Breed[];
-    /** GetBreedVariables: Get variable names related to breeds. */
-    GetBreedVariables(): string[];
-    /** GetBreedFromVariable: Find the breed which defines a certain variable. */
-    GetBreedFromVariable(varName: string): string | null;
-    /** GetBreedFromProcedure: Get breed name from breed procedure. */
-    GetBreedFromProcedure(term: string): string | null;
-    /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
-    GetProcedureFromVariable(varName: string, from: number, to: number): string | null;
     /** SetDirty: Make the state dirty. */
     SetDirty(): void;
     /** GetDirty: Gets if the state is dirty. */
     GetDirty(): boolean;
-    /** GetVersion: Get version of the state. */
-    GetVersion(): number;
-    /** IncVersion: Increase version of the state. */
-    IncVersion(): number;
     /** ParseState: Parse the state from an editor state. */
     ParseState(State: EditorState): StateNetLogo;
     /** getProcedure: Gather all information about a procedure. */
