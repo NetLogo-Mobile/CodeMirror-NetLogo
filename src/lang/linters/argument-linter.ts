@@ -2,7 +2,6 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
-import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes';
 import { Linter } from './linter-builder';

@@ -1,12 +1,7 @@
 import { EditorView } from '@codemirror/view';
 import {
   StateNetLogo,
-  stateExtension,
 } from '../../../codemirror/extension-state-netlogo';
-import {
-  StatePreprocess,
-  preprocessStateExtension,
-} from '../../../codemirror/extension-state-preprocess';
 import { EditorState } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
 import {
