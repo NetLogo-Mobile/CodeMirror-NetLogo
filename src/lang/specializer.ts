@@ -1,5 +1,3 @@
-import { ParseContext } from '@codemirror/language';
-import { preprocessStateExtension } from '../codemirror/extension-state-preprocess.js';
 import {
   Reporter0Args,
   Reporter1Args,
@@ -59,8 +57,10 @@ import {
   // @ts-ignore
 } from './lang.terms.js';
 import { PrimitiveManager } from './primitives/primitives';
+import { GetContext } from './netlogo.js';
 
 let primitives = PrimitiveManager;
+
 const specializeReporter = function (token: string) {
   token = token.toLowerCase();
 
@@ -132,9 +132,8 @@ const specializeReporter = function (token: string) {
 const specializeSpecialReporter = function (token: string) {
   token = token.toLowerCase();
 
-  let parseContext = ParseContext.get();
-  let reporters =
-    parseContext?.state.field(preprocessStateExtension).Reporters ?? {};
+  let parseContext = GetContext();
+  let reporters = parseContext.Reporters;
   if (reporters[token] >= 0) {
     let args = reporters[token];
     if (args == 0) {
@@ -156,11 +155,9 @@ const specializeSpecialReporter = function (token: string) {
     }
   }
 
-  let singularBreedNames =
-    parseContext?.state.field(preprocessStateExtension).SingularBreeds ?? [];
   if (token == 'patch' || token == 'link') {
     return SpecialReporter2Args;
-  } else if (singularBreedNames.includes(token)) {
+  } else if (parseContext.SingularBreeds.has(token)) {
     return SpecialReporter1Args;
   }
 
@@ -250,9 +247,8 @@ const specializeCommand = function (token: string) {
 
 const specializeSpecialCommand = function (token: string) {
   token = token.toLowerCase();
-  let parseContext = ParseContext.get();
-  let commands =
-    parseContext?.state.field(preprocessStateExtension).Commands ?? {};
+  let parseContext = GetContext();
+  let commands = parseContext.Commands;
   if (commands[token] >= 0) {
     let args = commands[token];
     if (args == 0) {

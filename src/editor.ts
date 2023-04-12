@@ -144,6 +144,7 @@ export class GalapagosEditor {
       extensions: Extensions,
       parent: Parent,
     });
+    this.GetPreprocessState().Context = this.PreprocessContext;
     this.GetState().Mode = this.Options.ParseMode ?? ParseMode.Normal;
 
     // Disable Grammarly
@@ -266,6 +267,9 @@ export class GalapagosEditor {
     this.Children.push(child);
     child.ID = this.Children.length;
     child.ParentEditor = this;
+    child.PreprocessContext = this.PreprocessContext;
+    child.LintContext = this.LintContext;
+    child.GetPreprocessState().Context = this.PreprocessContext;
   }
 
   /** SetCursorPosition: Set the cursor position of the editor. */
@@ -409,8 +413,8 @@ export class GalapagosEditor {
   }
   /** UpdateSharedContext: Update the shared context of the editor. */
   private UpdateSharedContext() {
-    var mainPreprocess = new PreprocessContext();
-    var mainLint = new LintContext();
+    var mainPreprocess = this.PreprocessContext.Clear();
+    var mainLint = this.LintContext.Clear();
     for (var child of [...this.Children, this]) {
       if (child.Options.ParseMode == ParseMode.Normal || child == this) {
         let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
@@ -425,18 +429,12 @@ export class GalapagosEditor {
           mainPreprocess.BreedVars.set(p, child.ID);
         }
         for (var p of Object.keys(preprocess.Commands)) {
-          let numArgs = preprocess.Commands[p];
-          if (numArgs) {
-            mainPreprocess.Commands[p] = numArgs;
-            mainPreprocess.CommandsOrigin[p] = child.ID;
-          }
+          mainPreprocess.Commands[p] = preprocess.Commands[p];
+          mainPreprocess.CommandsOrigin[p] = child.ID;
         }
         for (var p of Object.keys(preprocess.Reporters)) {
-          let numArgs = preprocess.Reporters[p];
-          if (numArgs) {
-            mainPreprocess.Reporters[p] = numArgs;
-            mainPreprocess.ReportersOrigin[p] = child.ID;
-          }
+          mainPreprocess.Reporters[p] = preprocess.Reporters[p];
+          mainPreprocess.ReportersOrigin[p] = child.ID;
         }
         for (var p of statenetlogo.Extensions) {
           mainLint.Extensions.set(p, child.ID);
@@ -463,19 +461,17 @@ export class GalapagosEditor {
         }
       }
     }
-    this.SetContexts(mainPreprocess, mainLint);
+    this.RefreshContexts();
   }
-  /** SetContexts: Set the lint context of the editor. */
-  private SetContexts(preprocess: PreprocessContext, lint: LintContext) {
-    this.PreprocessContext = preprocess;
-    this.LintContext = lint;
+  /** RefreshContexts: Refresh contexts of the editor. */
+  private RefreshContexts() {
     if (this.IsVisible) {
       this.ForceParse(false);
       this.ForceLint();
     }
     for (var child of this.Children) {
       child.Version += 1;
-      child.SetContexts(preprocess, lint);
+      child.RefreshContexts();
     }
   }
   // #endregion

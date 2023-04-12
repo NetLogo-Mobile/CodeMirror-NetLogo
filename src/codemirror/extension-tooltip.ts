@@ -3,12 +3,11 @@ import { StateField, EditorState, EditorSelection } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { Dictionary } from '../i18n/dictionary';
-import { StateNetLogo, stateExtension } from './extension-state-netlogo';
 import {
   classifyPrimitive,
   classifyBreedName,
   getLink,
-} from './utils/tooltip_utils';
+} from './utils/tooltip-utils';
 import { GalapagosEditor, Localized } from '../editor';
 import { LintContext } from '../lang/classes';
 

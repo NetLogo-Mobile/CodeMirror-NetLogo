@@ -5,7 +5,7 @@ import { Procedure, CodeBlock, LintContext } from '../classes';
 import {
   combineContexts,
   noContext,
-} from '../../codemirror/utils/context_utils';
+} from '../../codemirror/utils/context-utils';
 
 // ContextLinter: Checks if procedures and code blocks have a valid context
 export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {

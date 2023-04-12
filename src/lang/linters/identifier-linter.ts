@@ -5,7 +5,7 @@ import { Linter } from './linter-builder';
 import {
   checkBreedLike,
   getBreedName,
-} from '../../codemirror/utils/breed_utils';
+} from '../../codemirror/utils/breed-utils';
 import {
   checkValidIdentifier,
   getCheckContext,

@@ -214,7 +214,7 @@ export class LocalVariable {
 export class PreprocessContext {
   /** PluralBreeds: Breeds in the model. */
   public PluralBreeds: Map<string, number> = new Map<string, number>();
-  /** SingularBreeds: Breeds in the model. */
+  /** SingularBreeds: Singular breeds in the model. */
   public SingularBreeds: Map<string, number> = new Map<string, number>();
   /** BreedVars: Breed variables in the model. */
   public BreedVars: Map<string, number> = new Map<string, number>();
@@ -222,10 +222,21 @@ export class PreprocessContext {
   public Commands: Record<string, number> = {};
   /** Reporters: Reporters in the model with number of arguments. */
   public Reporters: Record<string, number> = {};
-  /** Commands: Commands in the model with editor id. */
+  /** CommandsOrigin: Commands in the model with editor ID. */
   public CommandsOrigin: Record<string, number> = {};
-  /** Reporters: Reporters in the model with editor id. */
+  /** ReportersOrigin: Reporters in the model with editor ID. */
   public ReportersOrigin: Record<string, number> = {};
+  /** Clear: Clear the context. */
+  public Clear(): PreprocessContext {
+    this.PluralBreeds.clear();
+    this.SingularBreeds.clear();
+    this.BreedVars.clear();
+    this.Commands = {};
+    this.Reporters = {};
+    this.CommandsOrigin = {};
+    this.ReportersOrigin = {};
+    return this;
+  }
 }
 
 /** LintPreprocessContext: master context from statenetlogo */
@@ -240,6 +251,15 @@ export class LintContext {
   public Breeds: Map<string, Breed> = new Map<string, Breed>();
   /** Procedures: Procedures in the code. */
   public Procedures: Map<string, Procedure> = new Map<string, Procedure>();
+  /** Clear: Clear the context. */
+  public Clear(): LintContext {
+    this.Extensions.clear();
+    this.Globals.clear();
+    this.WidgetGlobals.clear();
+    this.Breeds.clear();
+    this.Procedures.clear();
+    return this;
+  }
   /** GetBreedNames: Get names related to breeds. */
   public GetBreedNames(): string[] {
     var breedNames: string[] = [];
@@ -257,7 +277,6 @@ export class LintContext {
     }
     return breedNames;
   }
-
   /** GetBreeds: Get list of breeds. */
   public GetBreeds(): Breed[] {
     var breedList: Breed[] = [];
@@ -266,7 +285,6 @@ export class LintContext {
     }
     return breedList;
   }
-
   /** GetBreedFromVariable: Find the breed which defines a certain variable. */
   public GetBreedFromVariable(varName: string): string | null {
     for (let breed of this.Breeds.values()) {

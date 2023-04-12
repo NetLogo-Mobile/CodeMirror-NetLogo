@@ -1,4 +1,5 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
+import { PreprocessContext } from '../lang/classes';
 
 /** StatePreprocess: The first-pass state for the NetLogo Language. */
 export class StatePreprocess {
@@ -12,6 +13,9 @@ export class StatePreprocess {
   public Commands: Record<string, number> = {};
   /** Reporters: Reporters in the model. */
   public Reporters: Record<string, number> = {};
+  /** Context: The shared preprocess context. */
+  public Context: PreprocessContext | null = null;
+
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StatePreprocess {
     this.PluralBreeds = [];
