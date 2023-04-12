@@ -149,6 +149,7 @@ export function NetLogo(Editor: GalapagosEditor): LanguageSupport {
 /** GetContext: Get the preprocess context from the parsing context. */
 export function GetContext(): PreprocessContext {
   var Context = ParseContext.get()! as any;
-  Context.Context = Context.Context ?? Context.state.field(preprocessStateExtension).Context;
+  Context.Context =
+    Context.Context ?? Context.state.field(preprocessStateExtension).Context;
   return Context.Context;
 }

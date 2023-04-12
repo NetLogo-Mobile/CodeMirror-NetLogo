@@ -145,6 +145,7 @@ export class GalapagosEditor {
       parent: Parent,
     });
     this.GetPreprocessState().Context = this.PreprocessContext;
+    this.GetPreprocessState().SetEditor(this);
     this.GetState().Mode = this.Options.ParseMode ?? ParseMode.Normal;
 
     // Disable Grammarly
@@ -411,14 +412,31 @@ export class GalapagosEditor {
     }
     return true;
   }
-  /** UpdateSharedContext: Update the shared context of the editor. */
-  private UpdateSharedContext() {
+
+  /** UpdatePreprocessContext: Try to update the context of this editor. */
+  public UpdatePreprocessContext(): boolean {
+    const State = this.CodeMirror.state.field(preprocessStateExtension);
+    if (!State.GetDirty()) return false;
+    State.SetClean();
+    // Force the parsing
+    this.Version += 1;
+    // Update the shared editor, if needed
+    if (!this.ParentEditor) {
+      this.UpdatePreprocess();
+    } else if (
+      this.ParentEditor &&
+      this.Options.ParseMode == ParseMode.Normal
+    ) {
+      this.ParentEditor.UpdatePreprocessContext();
+    }
+    return true;
+  }
+
+  public UpdatePreprocess() {
     var mainPreprocess = this.PreprocessContext.Clear();
-    var mainLint = this.LintContext.Clear();
     for (var child of [...this.Children, this]) {
       if (child.Options.ParseMode == ParseMode.Normal || child == this) {
         let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
-        let statenetlogo = child.CodeMirror.state.field(stateExtension);
         for (var p of preprocess.PluralBreeds) {
           mainPreprocess.PluralBreeds.set(p, child.ID);
         }
@@ -428,14 +446,31 @@ export class GalapagosEditor {
         for (var p of preprocess.BreedVars) {
           mainPreprocess.BreedVars.set(p, child.ID);
         }
-        for (var p of Object.keys(preprocess.Commands)) {
-          mainPreprocess.Commands[p] = preprocess.Commands[p];
-          mainPreprocess.CommandsOrigin[p] = child.ID;
+        for (var p of preprocess.Commands.keys()) {
+          let num_args = preprocess.Commands.get(p) ?? -1;
+          if (num_args >= 0) {
+            mainPreprocess.Commands.set(p, num_args);
+            mainPreprocess.CommandsOrigin.set(p, child.ID);
+          }
         }
-        for (var p of Object.keys(preprocess.Reporters)) {
-          mainPreprocess.Reporters[p] = preprocess.Reporters[p];
-          mainPreprocess.ReportersOrigin[p] = child.ID;
+        for (var p of preprocess.Reporters.keys()) {
+          let num_args = preprocess.Reporters.get(p) ?? -1;
+          if (num_args >= 0) {
+            mainPreprocess.Reporters.set(p, num_args);
+            mainPreprocess.ReportersOrigin.set(p, child.ID);
+          }
         }
+      }
+    }
+    this.RefreshContexts();
+  }
+
+  /** UpdateSharedContext: Update the shared context of the editor. */
+  private UpdateSharedContext() {
+    var mainLint = this.LintContext.Clear();
+    for (var child of [...this.Children, this]) {
+      if (child.Options.ParseMode == ParseMode.Normal || child == this) {
+        let statenetlogo = child.CodeMirror.state.field(stateExtension);
         for (var p of statenetlogo.Extensions) {
           mainLint.Extensions.set(p, child.ID);
         }

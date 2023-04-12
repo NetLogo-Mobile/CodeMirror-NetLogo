@@ -82,8 +82,10 @@ export const ArgumentLinter: Linter = (
           let func = result[1];
           let expected = result[2];
           let actual = result[3];
+          if (func == null || expected == null || actual == null) {
+          }
           //create error messages
-          if (error_type == 'no primitive') {
+          else if (error_type == 'no primitive') {
             diagnostics.push({
               from: noderef.from,
               to: noderef.to,
@@ -211,8 +213,8 @@ export const checkValidNumArgs = function (
   //checking for "Special" cases (custom and breed procedures)
   if (args.func?.name.includes('Special')) {
     let numArgs =
-      preprocessContext.Commands[func] ??
-      preprocessContext.Reporters[func] ??
+      preprocessContext.Commands.get(func) ??
+      preprocessContext.Reporters.get(func) ??
       getBreedCommandArgs(func) ??
       getBreedProcedureArgs(args.func.name);
     return [

@@ -219,22 +219,22 @@ export class PreprocessContext {
   /** BreedVars: Breed variables in the model. */
   public BreedVars: Map<string, number> = new Map<string, number>();
   /** Commands: Commands in the model with number of arguments. */
-  public Commands: Record<string, number> = {};
+  public Commands: Map<string, number> = new Map<string, number>();
   /** Reporters: Reporters in the model with number of arguments. */
-  public Reporters: Record<string, number> = {};
+  public Reporters: Map<string, number> = new Map<string, number>();
   /** CommandsOrigin: Commands in the model with editor ID. */
-  public CommandsOrigin: Record<string, number> = {};
+  public CommandsOrigin: Map<string, number> = new Map<string, number>();
   /** ReportersOrigin: Reporters in the model with editor ID. */
-  public ReportersOrigin: Record<string, number> = {};
+  public ReportersOrigin: Map<string, number> = new Map<string, number>();
   /** Clear: Clear the context. */
   public Clear(): PreprocessContext {
     this.PluralBreeds.clear();
     this.SingularBreeds.clear();
     this.BreedVars.clear();
-    this.Commands = {};
-    this.Reporters = {};
-    this.CommandsOrigin = {};
-    this.ReportersOrigin = {};
+    this.Commands.clear();
+    this.Reporters.clear();
+    this.CommandsOrigin.clear();
+    this.ReportersOrigin.clear();
     return this;
   }
 }

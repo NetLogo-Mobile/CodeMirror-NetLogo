@@ -517,7 +517,7 @@ const stateExtension = StateField.define<StateNetLogo>({
   update: (Original: StateNetLogo, Transaction: Transaction) => {
     if (Transaction.docChanged) {
       Original.SetDirty();
-      //console.log(Original)
+      console.log(Original);
     }
     return Original;
   },
