@@ -15,16 +15,11 @@ export declare class StatePreprocess {
     Reporters: Map<string, number>;
     /** Context: The shared preprocess context. */
     Context: PreprocessContext | null;
-    /** IsDirty: Whether the current state is dirty. */
-    private IsDirty;
-    private editor;
-    /** SetDirty: Make the state dirty. */
-    SetDirty(): void;
-    /** GetDirty: Gets if the state is dirty. */
-    GetDirty(): boolean;
-    SetClean(): void;
+    /** Editor: The editor for the state. */
+    Editor: GalapagosEditor | null;
     /** ParseState: Parse the state from an editor state. */
     ParseState(State: EditorState): StatePreprocess;
+    /** SetEditor: Set the editor for the state. */
     SetEditor(editor: GalapagosEditor): void;
     /** processBreedVars: Parse the code for breed variables. */
     private processBreedVars;

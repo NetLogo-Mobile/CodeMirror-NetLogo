@@ -30,7 +30,7 @@ export declare class GalapagosEditor {
     Highlight(Content: string): HTMLElement;
     private highlightInternal;
     /** GetState: Get the current parser state of the NetLogo code. */
-    GetState(): StateNetLogo;
+    GetState(Refresh?: boolean): StateNetLogo;
     /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
     GetPreprocessState(): StatePreprocess;
     /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
@@ -88,13 +88,14 @@ export declare class GalapagosEditor {
     SetVisible(status: boolean): void;
     /** UpdateContext: Try to update the context of this editor. */
     UpdateContext(): boolean;
-    /** UpdatePreprocessContext: Try to update the context of this editor. */
-    UpdatePreprocessContext(): boolean;
-    UpdatePreprocess(): void;
     /** UpdateSharedContext: Update the shared context of the editor. */
     private UpdateSharedContext;
     /** RefreshContexts: Refresh contexts of the editor. */
     private RefreshContexts;
+    /** UpdatePreprocessContext: Try to update the context of this editor. */
+    UpdatePreprocessContext(): boolean;
+    /** UpdateSharedPreprocess: Update the shared preprocess context of the editor. */
+    private UpdateSharedPreprocess;
     /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
     ForEachDiagnostic(Callback: (d: Diagnostic, from: number, to: number) => void): void;
     /** ForceLintAsync: Force the editor to lint without rendering. */

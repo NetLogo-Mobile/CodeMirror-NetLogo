@@ -20943,13 +20943,14 @@ if(!String.prototype.matchAll) {
         };
     }
     class Option {
-        constructor(completion, source, match) {
+        constructor(completion, source, match, score) {
             this.completion = completion;
             this.source = source;
             this.match = match;
+            this.score = score;
         }
     }
-    function cur(state) { return state.selection.main.head; }
+    function cur(state) { return state.selection.main.from; }
     // Make sure the given regexp has a $ at its end and, if `start` is
     // true, a ^ at its start.
     function ensureAnchor(expr, start) {
@@ -20971,18 +20972,13 @@ if(!String.prototype.matchAll) {
     selection range that has the same text in front of it.
     */
     function insertCompletionText(state, text, from, to) {
+        let { main } = state.selection, len = to - from;
         return Object.assign(Object.assign({}, state.changeByRange(range => {
-            if (range == state.selection.main)
-                return {
-                    changes: { from: from, to: to, insert: text },
-                    range: EditorSelection.cursor(from + text.length)
-                };
-            let len = to - from;
-            if (!range.empty ||
-                len && state.sliceDoc(range.from - len, range.from) != state.sliceDoc(from, to))
+            if (range != main && len &&
+                state.sliceDoc(range.from - len, range.from + to - main.from) != state.sliceDoc(from, to))
                 return { range };
             return {
-                changes: { from: range.from - len, to: range.from, insert: text },
+                changes: { from: range.from - len, to: to == main.from ? range.to : range.from + to - main.from, insert: text },
                 range: EditorSelection.cursor(range.from - len + text.length)
             };
         })), { userEvent: "input.complete" });
@@ -21149,6 +21145,7 @@ if(!String.prototype.matchAll) {
                 aboveCursor: false,
                 icons: true,
                 addToOptions: [],
+                positionInfo: defaultPositionInfo,
                 compareCompletions: (a, b) => a.label.localeCompare(b.label),
                 interactionDelay: 75
             }, {
@@ -21163,6 +21160,36 @@ if(!String.prototype.matchAll) {
     });
     function joinClass(a, b) {
         return a ? b ? a + " " + b : a : b;
+    }
+    function defaultPositionInfo(view, list, option, info, space) {
+        let rtl = view.textDirection == Direction.RTL, left = rtl, narrow = false;
+        let side = "top", offset, maxWidth;
+        let spaceLeft = list.left - space.left, spaceRight = space.right - list.right;
+        let infoWidth = info.right - info.left, infoHeight = info.bottom - info.top;
+        if (left && spaceLeft < Math.min(infoWidth, spaceRight))
+            left = false;
+        else if (!left && spaceRight < Math.min(infoWidth, spaceLeft))
+            left = true;
+        if (infoWidth <= (left ? spaceLeft : spaceRight)) {
+            offset = Math.max(space.top, Math.min(option.top, space.bottom - infoHeight)) - list.top;
+            maxWidth = Math.min(400 /* Info.Width */, left ? spaceLeft : spaceRight);
+        }
+        else {
+            narrow = true;
+            maxWidth = Math.min(400 /* Info.Width */, (rtl ? list.right : space.right - list.left) - 30 /* Info.Margin */);
+            let spaceBelow = space.bottom - list.bottom;
+            if (spaceBelow >= infoHeight || spaceBelow > list.top) { // Below the completion
+                offset = option.bottom - list.top;
+            }
+            else { // Above it
+                side = "bottom";
+                offset = list.bottom - option.top;
+            }
+        }
+        return {
+            style: `${side}: ${offset}px; max-width: ${maxWidth}px`,
+            class: "cm-completionInfo-" + (narrow ? (rtl ? "left-narrow" : "right-narrow") : left ? "left" : "right")
+        };
     }
 
     function optionContent(config) {
@@ -21228,9 +21255,9 @@ if(!String.prototype.matchAll) {
             this.view = view;
             this.stateField = stateField;
             this.info = null;
-            this.placeInfo = {
+            this.placeInfoReq = {
                 read: () => this.measureInfo(),
-                write: (pos) => this.positionInfo(pos),
+                write: (pos) => this.placeInfo(pos),
                 key: this
             };
             this.space = null;
@@ -21257,7 +21284,7 @@ if(!String.prototype.matchAll) {
             this.list = this.dom.appendChild(this.createListBox(options, cState.id, this.range));
             this.list.addEventListener("scroll", () => {
                 if (this.info)
-                    this.view.requestMeasure(this.placeInfo);
+                    this.view.requestMeasure(this.placeInfoReq);
             });
         }
         mount() { this.updateSel(); }
@@ -21287,7 +21314,7 @@ if(!String.prototype.matchAll) {
         positioned(space) {
             this.space = space;
             if (this.info)
-                this.view.requestMeasure(this.placeInfo);
+                this.view.requestMeasure(this.placeInfoReq);
         }
         updateSel() {
             let cState = this.view.state.field(this.stateField), open = cState.open;
@@ -21297,7 +21324,7 @@ if(!String.prototype.matchAll) {
                 this.list = this.dom.appendChild(this.createListBox(open.options, cState.id, this.range));
                 this.list.addEventListener("scroll", () => {
                     if (this.info)
-                        this.view.requestMeasure(this.placeInfo);
+                        this.view.requestMeasure(this.placeInfoReq);
                 });
             }
             if (this.updateSelectedOption(open.selected)) {
@@ -21328,12 +21355,15 @@ if(!String.prototype.matchAll) {
             dom.className = "cm-tooltip cm-completionInfo";
             dom.appendChild(content);
             this.dom.appendChild(dom);
-            this.view.requestMeasure(this.placeInfo);
+            this.view.requestMeasure(this.placeInfoReq);
         }
         updateSelectedOption(selected) {
             let set = null;
             for (let opt = this.list.firstChild, i = this.range.from; opt; opt = opt.nextSibling, i++) {
-                if (i == selected) {
+                if (opt.nodeName != "LI" || !opt.id) {
+                    i--; // A section header
+                }
+                else if (i == selected) {
                     if (!opt.hasAttribute("aria-selected")) {
                         opt.setAttribute("aria-selected", "true");
                         set = opt;
@@ -21363,41 +21393,17 @@ if(!String.prototype.matchAll) {
             if (selRect.top > Math.min(space.bottom, listRect.bottom) - 10 ||
                 selRect.bottom < Math.max(space.top, listRect.top) + 10)
                 return null;
-            let rtl = this.view.textDirection == Direction.RTL, left = rtl, narrow = false, maxWidth;
-            let top = "", bottom = "";
-            let spaceLeft = listRect.left - space.left, spaceRight = space.right - listRect.right;
-            if (left && spaceLeft < Math.min(infoRect.width, spaceRight))
-                left = false;
-            else if (!left && spaceRight < Math.min(infoRect.width, spaceLeft))
-                left = true;
-            if (infoRect.width <= (left ? spaceLeft : spaceRight)) {
-                top = (Math.max(space.top, Math.min(selRect.top, space.bottom - infoRect.height)) - listRect.top) + "px";
-                maxWidth = Math.min(400 /* Info.Width */, left ? spaceLeft : spaceRight) + "px";
-            }
-            else {
-                narrow = true;
-                maxWidth = Math.min(400 /* Info.Width */, (rtl ? listRect.right : space.right - listRect.left) - 30 /* Info.Margin */) + "px";
-                let spaceBelow = space.bottom - listRect.bottom;
-                if (spaceBelow >= infoRect.height || spaceBelow > listRect.top) // Below the completion
-                    top = (selRect.bottom - listRect.top) + "px";
-                else // Above it
-                    bottom = (listRect.bottom - selRect.top) + "px";
-            }
-            return {
-                top, bottom, maxWidth,
-                class: narrow ? (rtl ? "left-narrow" : "right-narrow") : left ? "left" : "right",
-            };
+            return this.view.state.facet(completionConfig).positionInfo(this.view, listRect, selRect, infoRect, space);
         }
-        positionInfo(pos) {
+        placeInfo(pos) {
             if (this.info) {
                 if (pos) {
-                    this.info.style.top = pos.top;
-                    this.info.style.bottom = pos.bottom;
-                    this.info.style.maxWidth = pos.maxWidth;
-                    this.info.className = "cm-tooltip cm-completionInfo cm-completionInfo-" + pos.class;
+                    if (pos.style)
+                        this.info.style.cssText = pos.style;
+                    this.info.className = "cm-tooltip cm-completionInfo " + (pos.class || "");
                 }
                 else {
-                    this.info.style.top = "-1e6px";
+                    this.info.style.cssText = "top: -1e6px";
                 }
             }
         }
@@ -21407,8 +21413,22 @@ if(!String.prototype.matchAll) {
             ul.setAttribute("role", "listbox");
             ul.setAttribute("aria-expanded", "true");
             ul.setAttribute("aria-label", this.view.state.phrase("Completions"));
+            let curSection = null;
             for (let i = range.from; i < range.to; i++) {
-                let { completion, match } = options[i];
+                let { completion, match } = options[i], { section } = completion;
+                if (section) {
+                    let name = typeof section == "string" ? section : section.name;
+                    if (name != curSection && (i > range.from || range.from == 0)) {
+                        curSection = name;
+                        if (typeof section != "string" && section.header) {
+                            ul.appendChild(section.header(section));
+                        }
+                        else {
+                            let header = ul.appendChild(document.createElement("completion-section"));
+                            header.textContent = name;
+                        }
+                    }
+                }
                 const li = ul.appendChild(document.createElement("li"));
                 li.id = id + "-" + i;
                 li.setAttribute("role", "option");
@@ -21449,32 +21469,55 @@ if(!String.prototype.matchAll) {
             (option.type ? 1 : 0);
     }
     function sortOptions(active, state) {
-        let options = [], i = 0;
+        let options = [];
+        let sections = null;
+        let addOption = (option) => {
+            options.push(option);
+            let { section } = option.completion;
+            if (section) {
+                if (!sections)
+                    sections = [];
+                let name = typeof section == "string" ? section : section.name;
+                if (!sections.some(s => s.name == name))
+                    sections.push(typeof section == "string" ? { name } : section);
+            }
+        };
         for (let a of active)
             if (a.hasResult()) {
                 if (a.result.filter === false) {
                     let getMatch = a.result.getMatch;
                     for (let option of a.result.options) {
-                        let match = [1e9 - i++];
+                        let match = [1e9 - options.length];
                         if (getMatch)
                             for (let n of getMatch(option))
                                 match.push(n);
-                        options.push(new Option(option, a, match));
+                        addOption(new Option(option, a, match, match[0]));
                     }
                 }
                 else {
                     let matcher = new FuzzyMatcher(state.sliceDoc(a.from, a.to)), match;
                     for (let option of a.result.options)
                         if (match = matcher.match(option.label)) {
-                            if (option.boost != null)
-                                match[0] += option.boost;
-                            options.push(new Option(option, a, match));
+                            addOption(new Option(option, a, match, match[0] + (option.boost || 0)));
                         }
                 }
             }
+        if (sections) {
+            let sectionOrder = Object.create(null), pos = 0;
+            let cmp = (a, b) => { var _a, _b; return ((_a = a.rank) !== null && _a !== void 0 ? _a : 1e9) - ((_b = b.rank) !== null && _b !== void 0 ? _b : 1e9) || (a.name < b.name ? -1 : 1); };
+            for (let s of sections.sort(cmp)) {
+                pos -= 1e5;
+                sectionOrder[s.name] = pos;
+            }
+            for (let option of options) {
+                let { section } = option.completion;
+                if (section)
+                    option.score += sectionOrder[typeof section == "string" ? section : section.name];
+            }
+        }
         let result = [], prev = null;
         let compare = state.facet(completionConfig).compareCompletions;
-        for (let opt of options.sort((a, b) => (b.match[0] - a.match[0]) || compare(a.completion, b.completion))) {
+        for (let opt of options.sort((a, b) => (b.score - a.score) || compare(a.completion, b.completion))) {
             if (!prev || prev.label != opt.completion.label || prev.detail != opt.completion.detail ||
                 (prev.type != null && opt.completion.type != null && prev.type != opt.completion.type) ||
                 prev.apply != opt.completion.apply)
@@ -21909,13 +21952,21 @@ if(!String.prototype.matchAll) {
                 listStyle: "none",
                 margin: 0,
                 padding: 0,
-                "& > li": {
-                    overflowX: "hidden",
-                    textOverflow: "ellipsis",
-                    cursor: "pointer",
+                "& > li, & > completion-section": {
                     padding: "1px 3px",
                     lineHeight: 1.2
                 },
+                "& > li": {
+                    overflowX: "hidden",
+                    textOverflow: "ellipsis",
+                    cursor: "pointer"
+                },
+                "& > completion-section": {
+                    display: "list-item",
+                    borderBottom: "1px solid silver",
+                    paddingLeft: "0.5em",
+                    opacity: 0.7
+                }
             }
         },
         "&light .cm-tooltip-autocomplete ul li[aria-selected]": {
@@ -22272,9 +22323,6 @@ if(!String.prototype.matchAll) {
             return mapped == null ? undefined : mapped;
         }
     });
-    const skipBracketEffect = /*@__PURE__*/StateEffect.define({
-        map(value, mapping) { return mapping.mapPos(value); }
-    });
     const closedBracket = /*@__PURE__*/new class extends RangeValue {
     };
     closedBracket.startSide = 1;
@@ -22289,12 +22337,9 @@ if(!String.prototype.matchAll) {
                     value = RangeSet.empty;
             }
             value = value.map(tr.changes);
-            for (let effect of tr.effects) {
+            for (let effect of tr.effects)
                 if (effect.is(closeBracketEffect))
                     value = value.update({ add: [closedBracket.range(effect.value, effect.value + 1)] });
-                else if (effect.is(skipBracketEffect))
-                    value = value.update({ filter: from => from != effect.value });
-            }
             return value;
         }
     });
@@ -22422,15 +22467,15 @@ if(!String.prototype.matchAll) {
         });
     }
     function handleClose(state, _open, close) {
-        let dont = null, moved = state.selection.ranges.map(range => {
+        let dont = null, changes = state.changeByRange(range => {
             if (range.empty && nextChar(state.doc, range.head) == close)
-                return EditorSelection.cursor(range.head + close.length);
-            return dont = range;
+                return { changes: { from: range.head, to: range.head + close.length, insert: close },
+                    range: EditorSelection.cursor(range.head + close.length) };
+            return dont = { range };
         });
-        return dont ? null : state.update({
-            selection: EditorSelection.create(moved, state.selection.mainIndex),
+        return dont ? null : state.update(changes, {
             scrollIntoView: true,
-            effects: state.selection.ranges.map(({ from }) => skipBracketEffect.of(from))
+            userEvent: "input.type"
         });
     }
     // Handles cases where the open and close token are the same, and
@@ -22451,8 +22496,9 @@ if(!String.prototype.matchAll) {
                 }
                 else if (closedBracketAt(state, pos)) {
                     let isTriple = allowTriple && state.sliceDoc(pos, pos + token.length * 3) == token + token + token;
-                    return { range: EditorSelection.cursor(pos + token.length * (isTriple ? 3 : 1)),
-                        effects: skipBracketEffect.of(pos) };
+                    let content = isTriple ? token + token + token : token;
+                    return { changes: { from: pos, to: pos + content.length, insert: content },
+                        range: EditorSelection.cursor(pos + content.length) };
                 }
             }
             else if (allowTriple && state.sliceDoc(pos - 2 * token.length, pos) == token + token &&
@@ -22595,17 +22641,7 @@ if(!String.prototype.matchAll) {
         return !!(tr.effects.some(e => e.is(setDiagnosticsEffect)) || tr.changes.touchesRange(tooltip.pos));
     }
     function maybeEnableLint(state, effects) {
-        return state.field(lintState, false) ? effects : effects.concat(StateEffect.appendConfig.of([
-            lintState,
-            EditorView.decorations.compute([lintState], state => {
-                let { selected, panel } = state.field(lintState);
-                return !selected || !panel || selected.from == selected.to ? Decoration.none : Decoration.set([
-                    activeMark.range(selected.from, selected.to)
-                ]);
-            }),
-            hoverTooltip(lintTooltip, { hideOn: hideTooltip }),
-            baseTheme
-        ]));
+        return state.field(lintState, false) ? effects : effects.concat(StateEffect.appendConfig.of(lintExtensions));
     }
     /**
     Returns a transaction spec which updates the current set of
@@ -22786,8 +22822,7 @@ if(!String.prototype.matchAll) {
             }, {
                 needsRefresh: (a, b) => !a ? b : !b ? a : u => a(u) || b(u)
             }));
-        },
-        enables: lintPlugin
+        }
     });
     /**
     Given a diagnostic source, this function returns an extension that
@@ -22795,7 +22830,11 @@ if(!String.prototype.matchAll) {
     editor is idle (after its content changed).
     */
     function linter(source, config = {}) {
-        return lintConfig.of({ source, config });
+        return [
+            lintConfig.of({ source, config }),
+            lintPlugin,
+            lintExtensions
+        ];
     }
     function assignKeys(actions) {
         let assigned = [];
@@ -23116,6 +23155,17 @@ if(!String.prototype.matchAll) {
             }
         }
     });
+    const lintExtensions = [
+        lintState,
+        /*@__PURE__*/EditorView.decorations.compute([lintState], state => {
+            let { selected, panel } = state.field(lintState);
+            return !selected || !panel || selected.from == selected.to ? Decoration.none : Decoration.set([
+                activeMark.range(selected.from, selected.to)
+            ]);
+        }),
+        /*@__PURE__*/hoverTooltip(lintTooltip, { hideOn: hideTooltip }),
+        baseTheme
+    ];
     /**
     Iterate over the marked diagnostics for the given editor state,
     calling `f` for each of them. Note that, if the document changed
@@ -25677,14 +25727,11 @@ if(!String.prototype.matchAll) {
         return tag;
     }
     function matchCustomProcedure(token) {
-        var _a, _b;
         let parseContext = GetContext();
-        if (((_a = parseContext.Commands.get(token)) !== null && _a !== void 0 ? _a : -1) >= 0) {
+        if (parseContext.Commands.has(token))
             return SpecialCommand;
-        }
-        if (((_b = parseContext.Reporters.get(token)) !== null && _b !== void 0 ? _b : -1) >= 0) {
+        if (parseContext.Reporters.has(token))
             return SpecialReporter;
-        }
         return 0;
     }
 
@@ -25766,11 +25813,10 @@ if(!String.prototype.matchAll) {
         }
     };
     const specializeSpecialReporter = function (token) {
-        var _a;
         token = token.toLowerCase();
         let parseContext = GetContext();
         let reporters = parseContext.Reporters;
-        if (((_a = reporters.get(token)) !== null && _a !== void 0 ? _a : -1) >= 0) {
+        if (reporters.has(token)) {
             let args = reporters.get(token);
             if (args == 0) {
                 return SpecialReporter0Args;
@@ -25909,11 +25955,10 @@ if(!String.prototype.matchAll) {
         }
     };
     const specializeSpecialCommand = function (token) {
-        var _a;
         token = token.toLowerCase();
         let parseContext = GetContext();
         let commands = parseContext.Commands;
-        if (((_a = commands.get(token)) !== null && _a !== void 0 ? _a : -1) >= 0) {
+        if (commands.has(token)) {
             let args = commands.get(token);
             if (args == 0) {
                 return SpecialCommand0Args;
@@ -26283,23 +26328,9 @@ if(!String.prototype.matchAll) {
             this.Reporters = new Map();
             /** Context: The shared preprocess context. */
             this.Context = null;
-            /** IsDirty: Whether the current state is dirty. */
-            this.IsDirty = true;
-            this.editor = null;
+            /** Editor: The editor for the state. */
+            this.Editor = null;
         }
-        // #region "Version Control"
-        /** SetDirty: Make the state dirty. */
-        SetDirty() {
-            this.IsDirty = true;
-        }
-        /** GetDirty: Gets if the state is dirty. */
-        GetDirty() {
-            return this.IsDirty;
-        }
-        SetClean() {
-            this.IsDirty = false;
-        }
-        // #endregion
         /** ParseState: Parse the state from an editor state. */
         ParseState(State) {
             this.PluralBreeds = [];
@@ -26320,14 +26351,11 @@ if(!String.prototype.matchAll) {
             // Reporters
             let reporters = doc.matchAll(/(^|\n)\s*to-report\s+([^\s\[]+)(\s*\[([^\]]*)\])?/g);
             this.Reporters = this.processProcedures(reporters);
-            this.IsDirty = true;
-            if (this.editor) {
-                this.editor.UpdatePreprocessContext();
-            }
             return this;
         }
+        /** SetEditor: Set the editor for the state. */
         SetEditor(editor) {
-            this.editor = editor;
+            this.Editor = editor;
         }
         /** processBreedVars: Parse the code for breed variables. */
         processBreedVars(matches) {
@@ -26369,14 +26397,15 @@ if(!String.prototype.matchAll) {
         create: (State) => {
             let state = new StatePreprocess();
             state.ParseState(State);
-            state.SetDirty();
             return state;
         },
         update: (Original, Transaction) => {
             if (!Transaction.docChanged)
                 return Original;
             Original.ParseState(Transaction.state);
-            Original.SetDirty();
+            // Notify the editor
+            if (Original.Editor)
+                Original.Editor.UpdatePreprocessContext();
             console.log(Original);
             return Original;
         },
@@ -26505,10 +26534,14 @@ if(!String.prototype.matchAll) {
             }),
         ]);
     }
+    /** EmptyContext: An empty preprocess context. */
+    const EmptyContext = new PreprocessContext();
     /** GetContext: Get the preprocess context from the parsing context. */
     function GetContext() {
         var _a;
         var Context = ParseContext.get();
+        if (Context == null)
+            return EmptyContext;
         Context.Context =
             (_a = Context.Context) !== null && _a !== void 0 ? _a : Context.state.field(preprocessStateExtension).Context;
         return Context.Context;
@@ -27940,7 +27973,7 @@ if(!String.prototype.matchAll) {
         for (;;) {
             if (node.name == "JSXOpenTag" || node.name == "JSXSelfClosingTag" || node.name == "JSXFragmentTag")
                 return node;
-            if (!node.parent)
+            if (node.name == "JSXEscape" || !node.parent)
                 return null;
             node = node.parent;
         }
@@ -30625,10 +30658,10 @@ if(!String.prototype.matchAll) {
         // #endregion
         // #region "Editor Statuses"
         /** GetState: Get the current parser state of the NetLogo code. */
-        GetState() {
-            return this.CodeMirror.state
-                .field(stateExtension)
-                .ParseState(this.CodeMirror.state);
+        GetState(Refresh) {
+            if (Refresh)
+                this.UpdateContext();
+            return this.CodeMirror.state.field(stateExtension);
         }
         /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
         GetPreprocessState() {
@@ -30802,57 +30835,6 @@ if(!String.prototype.matchAll) {
             }
             return true;
         }
-        /** UpdatePreprocessContext: Try to update the context of this editor. */
-        UpdatePreprocessContext() {
-            const State = this.CodeMirror.state.field(preprocessStateExtension);
-            if (!State.GetDirty())
-                return false;
-            State.SetClean();
-            // Force the parsing
-            this.Version += 1;
-            // Update the shared editor, if needed
-            if (!this.ParentEditor) {
-                this.UpdatePreprocess();
-            }
-            else if (this.ParentEditor &&
-                this.Options.ParseMode == ParseMode.Normal) {
-                this.ParentEditor.UpdatePreprocessContext();
-            }
-            return true;
-        }
-        UpdatePreprocess() {
-            var _a, _b;
-            var mainPreprocess = this.PreprocessContext.Clear();
-            for (var child of [...this.Children, this]) {
-                if (child.Options.ParseMode == ParseMode.Normal || child == this) {
-                    let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
-                    for (var p of preprocess.PluralBreeds) {
-                        mainPreprocess.PluralBreeds.set(p, child.ID);
-                    }
-                    for (var p of preprocess.SingularBreeds) {
-                        mainPreprocess.SingularBreeds.set(p, child.ID);
-                    }
-                    for (var p of preprocess.BreedVars) {
-                        mainPreprocess.BreedVars.set(p, child.ID);
-                    }
-                    for (var p of preprocess.Commands.keys()) {
-                        let num_args = (_a = preprocess.Commands.get(p)) !== null && _a !== void 0 ? _a : -1;
-                        if (num_args >= 0) {
-                            mainPreprocess.Commands.set(p, num_args);
-                            mainPreprocess.CommandsOrigin.set(p, child.ID);
-                        }
-                    }
-                    for (var p of preprocess.Reporters.keys()) {
-                        let num_args = (_b = preprocess.Reporters.get(p)) !== null && _b !== void 0 ? _b : -1;
-                        if (num_args >= 0) {
-                            mainPreprocess.Reporters.set(p, num_args);
-                            mainPreprocess.ReportersOrigin.set(p, child.ID);
-                        }
-                    }
-                }
-            }
-            this.RefreshContexts();
-        }
         /** UpdateSharedContext: Update the shared context of the editor. */
         UpdateSharedContext() {
             var mainLint = this.LintContext.Clear();
@@ -30895,6 +30877,47 @@ if(!String.prototype.matchAll) {
             for (var child of this.Children) {
                 child.Version += 1;
                 child.RefreshContexts();
+            }
+        }
+        /** UpdatePreprocessContext: Try to update the context of this editor. */
+        UpdatePreprocessContext() {
+            this.CodeMirror.state.field(preprocessStateExtension);
+            // Force the parsing
+            this.Version += 1;
+            // Update the shared editor, if needed
+            if (!this.ParentEditor) {
+                this.UpdateSharedPreprocess();
+            }
+            else if (this.ParentEditor &&
+                this.Options.ParseMode == ParseMode.Normal) {
+                this.ParentEditor.UpdatePreprocessContext();
+            }
+            return true;
+        }
+        /** UpdateSharedPreprocess: Update the shared preprocess context of the editor. */
+        UpdateSharedPreprocess() {
+            var mainPreprocess = this.PreprocessContext.Clear();
+            for (var child of [...this.Children, this]) {
+                if (child.Options.ParseMode == ParseMode.Normal || child == this) {
+                    let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
+                    for (var p of preprocess.PluralBreeds) {
+                        mainPreprocess.PluralBreeds.set(p, child.ID);
+                    }
+                    for (var p of preprocess.SingularBreeds) {
+                        mainPreprocess.SingularBreeds.set(p, child.ID);
+                    }
+                    for (var p of preprocess.BreedVars) {
+                        mainPreprocess.BreedVars.set(p, child.ID);
+                    }
+                    for (var [p, num_args] of preprocess.Commands) {
+                        mainPreprocess.Commands.set(p, num_args);
+                        mainPreprocess.CommandsOrigin.set(p, child.ID);
+                    }
+                    for (var [p, num_args] of preprocess.Reporters) {
+                        mainPreprocess.Reporters.set(p, num_args);
+                        mainPreprocess.ReportersOrigin.set(p, child.ID);
+                    }
+                }
             }
         }
         // #endregion
