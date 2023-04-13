@@ -146,9 +146,13 @@ export function NetLogo(Editor: GalapagosEditor): LanguageSupport {
   ]);
 }
 
+/** EmptyContext: An empty preprocess context. */
+const EmptyContext = new PreprocessContext();
+
 /** GetContext: Get the preprocess context from the parsing context. */
 export function GetContext(): PreprocessContext {
   var Context = ParseContext.get()! as any;
+  if (Context == null) return EmptyContext;
   Context.Context =
     Context.Context ?? Context.state.field(preprocessStateExtension).Context;
   return Context.Context;

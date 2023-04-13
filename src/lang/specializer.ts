@@ -134,7 +134,7 @@ const specializeSpecialReporter = function (token: string) {
 
   let parseContext = GetContext();
   let reporters = parseContext.Reporters;
-  if ((reporters.get(token) ?? -1) >= 0) {
+  if (reporters.has(token)) {
     let args = reporters.get(token);
     if (args == 0) {
       return SpecialReporter0Args;
@@ -249,7 +249,7 @@ const specializeSpecialCommand = function (token: string) {
   token = token.toLowerCase();
   let parseContext = GetContext();
   let commands = parseContext.Commands;
-  if ((commands.get(token) ?? -1) >= 0) {
+  if (commands.has(token)) {
     let args = commands.get(token);
     if (args == 0) {
       return SpecialCommand0Args;

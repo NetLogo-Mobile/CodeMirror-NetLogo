@@ -16,25 +16,8 @@ export class StatePreprocess {
   public Reporters: Map<string, number> = new Map<string, number>();
   /** Context: The shared preprocess context. */
   public Context: PreprocessContext | null = null;
-  /** IsDirty: Whether the current state is dirty. */
-  private IsDirty: boolean = true;
-  private editor: GalapagosEditor | null = null;
-
-  // #region "Version Control"
-  /** SetDirty: Make the state dirty. */
-  public SetDirty() {
-    this.IsDirty = true;
-  }
-  /** GetDirty: Gets if the state is dirty. */
-  public GetDirty() {
-    return this.IsDirty;
-  }
-
-  public SetClean() {
-    this.IsDirty = false;
-  }
-  // #endregion
-
+  /** Editor: The editor for the state. */
+  public Editor: GalapagosEditor | null = null;
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StatePreprocess {
     this.PluralBreeds = [];
@@ -57,15 +40,12 @@ export class StatePreprocess {
       /(^|\n)\s*to-report\s+([^\s\[]+)(\s*\[([^\]]*)\])?/g
     );
     this.Reporters = this.processProcedures(reporters);
-    this.IsDirty = true;
-    if (this.editor) {
-      this.editor.UpdatePreprocessContext();
-    }
     return this;
   }
 
+  /** SetEditor: Set the editor for the state. */
   public SetEditor(editor: GalapagosEditor) {
-    this.editor = editor;
+    this.Editor = editor;
   }
 
   /** processBreedVars: Parse the code for breed variables. */
@@ -120,13 +100,13 @@ const preprocessStateExtension = StateField.define<StatePreprocess>({
   create: (State) => {
     let state = new StatePreprocess();
     state.ParseState(State);
-    state.SetDirty();
     return state;
   },
   update: (Original: StatePreprocess, Transaction: Transaction) => {
     if (!Transaction.docChanged) return Original;
     Original.ParseState(Transaction.state);
-    Original.SetDirty();
+    // Notify the editor
+    if (Original.Editor) Original.Editor.UpdatePreprocessContext();
     console.log(Original);
     return Original;
   },

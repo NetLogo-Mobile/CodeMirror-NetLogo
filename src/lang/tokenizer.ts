@@ -292,11 +292,7 @@ function matchBreed(token: string) {
 
 function matchCustomProcedure(token: string) {
   let parseContext = GetContext();
-  if ((parseContext.Commands.get(token) ?? -1) >= 0) {
-    return SpecialCommand;
-  }
-  if ((parseContext.Reporters.get(token) ?? -1) >= 0) {
-    return SpecialReporter;
-  }
+  if (parseContext.Commands.has(token)) return SpecialCommand;
+  if (parseContext.Reporters.has(token)) return SpecialReporter;
   return 0;
 }
