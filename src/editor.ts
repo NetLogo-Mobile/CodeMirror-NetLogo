@@ -272,12 +272,27 @@ export class GalapagosEditor {
     child.GetPreprocessState().Context = this.PreprocessContext;
   }
 
+  /** GetCursorPosition: Set the cursor position of the editor. */
+  GetCursorPosition(): number {
+    return this.CodeMirror.state.selection.ranges[0]?.from ?? 0;
+  }
+
   /** SetCursorPosition: Set the cursor position of the editor. */
   SetCursorPosition(position: number) {
     this.CodeMirror.dispatch({
       selection: { anchor: position },
       scrollIntoView: true,
     });
+  }
+
+  /** GetSelections: Get the selections of the editor. */
+  GetSelections() {
+    return this.CodeMirror.state.selection.ranges;
+  }
+
+  /** RefreshCursor: Refresh the cursor position. */
+  RefreshCursor() {
+    this.SetCursorPosition(this.GetCursorPosition());
   }
 
   /** Blur: Make the editor lose the focus (if any). */

@@ -59,7 +59,6 @@ function getTooltip(
   state: EditorState,
   editor: GalapagosEditor
 ): Tooltip {
-  console.log(editor.LintContext);
   var NLState = editor.LintContext;
   // Check what to display & if the selected range covers more than one token
   var multipleTokens = false;
