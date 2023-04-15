@@ -21000,6 +21000,8 @@ if(!String.prototype.matchAll) {
             SourceCache.set(source, known = completeFromList(source));
         return known;
     }
+    const startCompletionEffect = /*@__PURE__*/StateEffect.define();
+    const closeCompletionEffect = /*@__PURE__*/StateEffect.define();
 
     // A pattern matcher for fuzzy completion matching. Create an instance
     // once for a pattern, and then use that to match any number of
@@ -21280,6 +21282,12 @@ if(!String.prototype.matchAll) {
                         return;
                     }
                 }
+            });
+            this.dom.addEventListener("focusout", (e) => {
+                let state = view.state.field(this.stateField, false);
+                if (state && state.tooltip && view.state.facet(completionConfig).closeOnBlur &&
+                    e.relatedTarget != view.contentDOM)
+                    view.dispatch({ effects: closeCompletionEffect.of(null) });
             });
             this.list = this.dom.appendChild(this.createListBox(options, cState.id, this.range));
             this.list.addEventListener("scroll", () => {
@@ -21711,8 +21719,6 @@ if(!String.prototype.matchAll) {
         let text = state.sliceDoc(from, to);
         return typeof validFor == "function" ? validFor(text, from, to, state) : ensureAnchor(validFor, true).test(text);
     }
-    const startCompletionEffect = /*@__PURE__*/StateEffect.define();
-    const closeCompletionEffect = /*@__PURE__*/StateEffect.define();
     const setActiveEffect = /*@__PURE__*/StateEffect.define({
         map(sources, mapping) { return sources.map(s => s.map(mapping)); }
     });
@@ -21919,10 +21925,13 @@ if(!String.prototype.matchAll) {
         }
     }, {
         eventHandlers: {
-            blur() {
+            blur(event) {
                 let state = this.view.state.field(completionState, false);
-                if (state && state.tooltip && this.view.state.facet(completionConfig).closeOnBlur)
-                    this.view.dispatch({ effects: closeCompletionEffect.of(null) });
+                if (state && state.tooltip && this.view.state.facet(completionConfig).closeOnBlur) {
+                    let dialog = state.open && getTooltip$1(this.view, state.open.tooltip);
+                    if (!dialog || !dialog.dom.contains(event.relatedTarget))
+                        this.view.dispatch({ effects: closeCompletionEffect.of(null) });
+                }
             },
             compositionstart() {
                 this.composing = 1 /* CompositionState.Started */;
@@ -27294,7 +27303,6 @@ if(!String.prototype.matchAll) {
     }
     // getTooltip: Get the tooltip for the given range
     function getTooltip(from, to, state, editor) {
-        console.log(editor.LintContext);
         var NLState = editor.LintContext;
         // Check what to display & if the selected range covers more than one token
         var multipleTokens = false;
@@ -30719,12 +30727,25 @@ if(!String.prototype.matchAll) {
             child.LintContext = this.LintContext;
             child.GetPreprocessState().Context = this.PreprocessContext;
         }
+        /** GetCursorPosition: Set the cursor position of the editor. */
+        GetCursorPosition() {
+            var _a, _b;
+            return (_b = (_a = this.CodeMirror.state.selection.ranges[0]) === null || _a === void 0 ? void 0 : _a.from) !== null && _b !== void 0 ? _b : 0;
+        }
         /** SetCursorPosition: Set the cursor position of the editor. */
         SetCursorPosition(position) {
             this.CodeMirror.dispatch({
                 selection: { anchor: position },
                 scrollIntoView: true,
             });
+        }
+        /** GetSelections: Get the selections of the editor. */
+        GetSelections() {
+            return this.CodeMirror.state.selection.ranges;
+        }
+        /** RefreshCursor: Refresh the cursor position. */
+        RefreshCursor() {
+            this.SetCursorPosition(this.GetCursorPosition());
         }
         /** Blur: Make the editor lose the focus (if any). */
         Blur() {

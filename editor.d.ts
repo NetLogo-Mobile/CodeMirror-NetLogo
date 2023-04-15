@@ -47,8 +47,14 @@ export declare class GalapagosEditor {
     SetReadOnly(status: boolean): void;
     /** AddChild: Add a child editor. */
     AddChild(child: GalapagosEditor): void;
+    /** GetCursorPosition: Set the cursor position of the editor. */
+    GetCursorPosition(): number;
     /** SetCursorPosition: Set the cursor position of the editor. */
     SetCursorPosition(position: number): void;
+    /** GetSelections: Get the selections of the editor. */
+    GetSelections(): readonly import("@codemirror/state").SelectionRange[];
+    /** RefreshCursor: Refresh the cursor position. */
+    RefreshCursor(): void;
     /** Blur: Make the editor lose the focus (if any). */
     Blur(): void;
     /** Focus: Make the editor gain the focus (if possible). */
