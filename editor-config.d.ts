@@ -17,6 +17,10 @@ export interface EditorConfig {
     OnKeyDown?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
     /** OnKeyUp: Handle the KeyUp event. */
     OnKeyUp?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
+    /** OnFocused: Handle the focused event. */
+    OnFocused?: (View: EditorView) => void;
+    /** OnBlurred: Handle the blurred event. */
+    OnBlurred?: (View: EditorView) => void;
     /** OnDictionaryClick: Triggers when a dictionary tooltip is clicked. */
     OnDictionaryClick?: (Key: string) => void;
 }
