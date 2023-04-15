@@ -798,6 +798,15 @@ export class GalapagosEditor {
     if (this.Options.OnUpdate != null) {
       this.Options.OnUpdate(update.docChanged, update);
     }
+    if (update.focusChanged) {
+      if (this.CodeMirror.hasFocus) {
+        if (this.Options.OnFocused != null)
+          this.Options.OnFocused(this.CodeMirror);
+      } else {
+        if (this.Options.OnBlurred != null)
+          this.Options.OnBlurred(this.CodeMirror);
+      }
+    }
   }
   // #endregion
 }
