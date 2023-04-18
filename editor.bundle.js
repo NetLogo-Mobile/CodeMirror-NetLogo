@@ -26193,6 +26193,28 @@ if(!String.prototype.matchAll) {
         return procedureVars;
     };
 
+    /** EditorLanguage: Language. */
+    var EditorLanguage;
+    (function (EditorLanguage) {
+        EditorLanguage[EditorLanguage["NetLogo"] = 0] = "NetLogo";
+        EditorLanguage[EditorLanguage["Javascript"] = 1] = "Javascript";
+        EditorLanguage[EditorLanguage["HTML"] = 2] = "HTML";
+        EditorLanguage[EditorLanguage["CSS"] = 3] = "CSS";
+    })(EditorLanguage || (EditorLanguage = {}));
+    /** ParseMode: The parsing mode. */
+    var ParseMode;
+    (function (ParseMode) {
+        ParseMode["Normal"] = "Normal";
+        ParseMode["Oneline"] = "Oneline";
+        ParseMode["OnelineReporter"] = "OnelineReporter";
+        ParseMode["Embedded"] = "Embedded";
+    })(ParseMode || (ParseMode = {}));
+    /** Export classes globally. */
+    try {
+        window.EditorLanguage = EditorLanguage;
+    }
+    catch (error) { }
+
     /** AutoCompletion: Auto completion service for a NetLogo model. */
     /* Possible Types of Autocompletion Tokens:
     Directive; Constant; Extension;
@@ -26242,6 +26264,7 @@ if(!String.prototype.matchAll) {
         }
         /** GetParentKeywords: Get keywords of a certain type. */
         GetParentKeywords(Type, State) {
+            console.log(Type);
             let results = this.ParentMaps[Type];
             switch (Type) {
                 case 'Extensions':
@@ -26312,9 +26335,10 @@ if(!String.prototype.matchAll) {
             const node = syntaxTree(Context.state).resolveInner(Context.pos, -1);
             const from = /\./.test(node.name) ? node.to : node.from;
             const nodeName = node.type.name;
-            const parentName = (_b = (_a = node.parent) === null || _a === void 0 ? void 0 : _a.type.name) !== null && _b !== void 0 ? _b : '';
+            let parentName = (_b = (_a = node.parent) === null || _a === void 0 ? void 0 : _a.type.name) !== null && _b !== void 0 ? _b : '';
             const grandparentName = (_e = (_d = (_c = node.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.type.name) !== null && _e !== void 0 ? _e : '';
             const context = this.Editor.LintContext;
+            //console.log(nodeName,parentName,grandparentName)
             // Debug output
             let curr = node;
             let parents = [];
@@ -26322,7 +26346,12 @@ if(!String.prototype.matchAll) {
                 parents.push(curr.parent.name);
                 curr = curr.parent;
             }
-            // console.log(node.name + '/' + parents.join('/'));
+            //console.log(node.name + '/' + parents.join('/'));
+            if ((parents.includes('OnelineReporter') &&
+                this.Editor.Options.ParseMode == ParseMode.Normal) ||
+                (grandparentName == 'Normal' && parentName == '⚠')) {
+                parentName = 'Program';
+            }
             // If the parent/grand parent node is of a type specified in this.maps
             if (this.ParentTypes.indexOf(parentName) > -1)
                 return { from, options: this.GetParentKeywords(parentName, context) };
@@ -26620,28 +26649,6 @@ if(!String.prototype.matchAll) {
             (_a = Context.Context) !== null && _a !== void 0 ? _a : Context.state.field(preprocessStateExtension).Context;
         return Context.Context;
     }
-
-    /** EditorLanguage: Language. */
-    var EditorLanguage;
-    (function (EditorLanguage) {
-        EditorLanguage[EditorLanguage["NetLogo"] = 0] = "NetLogo";
-        EditorLanguage[EditorLanguage["Javascript"] = 1] = "Javascript";
-        EditorLanguage[EditorLanguage["HTML"] = 2] = "HTML";
-        EditorLanguage[EditorLanguage["CSS"] = 3] = "CSS";
-    })(EditorLanguage || (EditorLanguage = {}));
-    /** ParseMode: The parsing mode. */
-    var ParseMode;
-    (function (ParseMode) {
-        ParseMode["Normal"] = "Normal";
-        ParseMode["Oneline"] = "Oneline";
-        ParseMode["OnelineReporter"] = "OnelineReporter";
-        ParseMode["Embedded"] = "Embedded";
-    })(ParseMode || (ParseMode = {}));
-    /** Export classes globally. */
-    try {
-        window.EditorLanguage = EditorLanguage;
-    }
-    catch (error) { }
 
     const highlightStyle = HighlightStyle.define([
         { tag: tags$1.strong, color: '#007F69', 'font-weight': 'bold' },
