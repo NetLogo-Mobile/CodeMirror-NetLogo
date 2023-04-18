@@ -77,6 +77,17 @@
       "returnType": "unit"
     },
     {
+      "name": "play-at",
+      "argTypes": ["number", "number"],
+      "returnType": "unit"
+    },
+    {
+      "name": "play-here",
+      "argTypes": [],
+      "returnType": "unit",
+      "agentClassString": "-TP-"
+    },
+    {
       "name": "clear",
       "argTypes": [],
       "returnType": "unit"

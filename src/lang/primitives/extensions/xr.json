@@ -56,6 +56,12 @@
       "agentClassString": "OTPL"
     },
     {
+      "name": "zcor",
+      "argTypes": [],
+      "returnType": "number",
+      "agentClassString": "OTPL"
+    },
+    {
       "name": "dx",
       "argTypes": [],
       "returnType": "number",

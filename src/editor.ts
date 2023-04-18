@@ -38,10 +38,14 @@ import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { netlogoLinters } from './lang/linters/linters';
-import { RuntimeError } from './lang/linters/runtime-linter.js';
+import {
+  CompilerLinter,
+  RuntimeError,
+  RuntimeLinter,
+} from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
 import { prettify, prettifyAll } from './codemirror/prettify.js';
-import { forEachDiagnostic, Diagnostic } from '@codemirror/lint';
+import { forEachDiagnostic, Diagnostic, linter } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
 import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { buildLinter } from './lang/linters/linter-builder.js';
@@ -114,6 +118,8 @@ export class GalapagosEditor {
           );
         }
         Extensions.push(...this.Linters);
+        Extensions.push(linter(CompilerLinter));
+        Extensions.push(linter(RuntimeLinter));
     }
     Extensions.push(this.Language);
 
@@ -542,6 +548,7 @@ export class GalapagosEditor {
 
   /** ForceLint: Force the editor to do another round of linting. */
   ForceLint() {
+    // Note that there are 2 linters that are not in this.Linters: runtime/compile
     const plugins: any[] = (this.CodeMirror as any).plugins;
     for (var I = 0; I < plugins.length; I++) {
       if (plugins[I].value.hasOwnProperty('lintTime')) {

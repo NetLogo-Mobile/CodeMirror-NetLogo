@@ -11,7 +11,7 @@ import {
 import { GalapagosEditor, Localized } from '../editor';
 import { LintContext } from '../lang/classes';
 
-/** TooltipExtension: Extension for displaying language-specific tooltips. */
+/** buildToolTips: Extension for displaying language-specific tooltips. */
 export const buildToolTips = function (Editor: GalapagosEditor) {
   let tooltipExtension = StateField.define<readonly Tooltip[]>({
     create: (State) => getSelectionTooltips(State, Editor),
@@ -25,18 +25,6 @@ export const buildToolTips = function (Editor: GalapagosEditor) {
   });
   return tooltipExtension;
 };
-
-// /** TooltipExtension: Extension for displaying language-specific tooltips. */
-// export const tooltipExtension = StateField.define<readonly Tooltip[]>({
-//   create: getSelectionTooltips,
-
-//   update(tooltips, tr) {
-//     if (!tr.docChanged && !tr.selection) return tooltips;
-//     return getSelectionTooltips(tr.state);
-//   },
-
-//   provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
-// });
 
 // getSelectionTooltips: Get the tooltips for the current selection
 function getSelectionTooltips(

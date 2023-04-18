@@ -1,13 +1,11 @@
-import { Linter } from './linter-builder';
+import { LintSource } from '@codemirror/lint';
+import { EditorView } from '@codemirror/view';
+import { stateExtension } from '../../codemirror/extension-state-netlogo';
 
 // CompilerLinter: Present all linting results from the compiler.
-export const CompilerLinter: Linter = (
-  view,
-  preprocessContext,
-  lintContext,
-  parseState
-) => {
-  return parseState!.CompilerErrors.map(function (Error) {
+export const CompilerLinter: LintSource = (view: EditorView) => {
+  var state = view.state.field(stateExtension);
+  return state.CompilerErrors.map(function (Error) {
     return {
       from: Error.start,
       to: Error.end,
@@ -18,13 +16,9 @@ export const CompilerLinter: Linter = (
 };
 
 // RuntimeLinter: Present all runtime errors.
-export const RuntimeLinter: Linter = (
-  view,
-  preprocessContext,
-  lintContext,
-  parseState
-) => {
-  return parseState!.RuntimeErrors.map(function (Error) {
+export const RuntimeLinter: LintSource = (view: EditorView) => {
+  var state = view.state.field(stateExtension);
+  return state.RuntimeErrors.map(function (Error) {
     return {
       from: Error.start,
       to: Error.end,
