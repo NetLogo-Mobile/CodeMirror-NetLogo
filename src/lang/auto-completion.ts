@@ -16,6 +16,7 @@ import { PrimitiveManager } from './primitives/primitives';
 import { getLocalVars } from './linters/utils/check-identifier';
 import { GalapagosEditor } from '../editor';
 import { LintContext } from './classes';
+import { ParseMode } from '../editor-config';
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 /* Possible Types of Autocompletion Tokens:
@@ -81,6 +82,7 @@ export class AutoCompletion {
 
   /** GetParentKeywords: Get keywords of a certain type. */
   private GetParentKeywords(Type: string, State: LintContext): Completion[] {
+    console.log(Type);
     let results = this.ParentMaps[Type];
     switch (Type) {
       case 'Extensions':
@@ -163,9 +165,10 @@ export class AutoCompletion {
     const node = syntaxTree(Context.state).resolveInner(Context.pos, -1);
     const from = /\./.test(node.name) ? node.to : node.from;
     const nodeName = node.type.name;
-    const parentName = node.parent?.type.name ?? '';
+    let parentName = node.parent?.type.name ?? '';
     const grandparentName = node.parent?.parent?.type.name ?? '';
     const context = this.Editor.LintContext;
+    //console.log(nodeName,parentName,grandparentName)
 
     // Debug output
     let curr = node;
@@ -174,7 +177,15 @@ export class AutoCompletion {
       parents.push(curr.parent.name);
       curr = curr.parent;
     }
-    // console.log(node.name + '/' + parents.join('/'));
+    //console.log(node.name + '/' + parents.join('/'));
+
+    if (
+      (parents.includes('OnelineReporter') &&
+        this.Editor.Options.ParseMode == ParseMode.Normal) ||
+      (grandparentName == 'Normal' && parentName == '⚠')
+    ) {
+      parentName = 'Program';
+    }
 
     // If the parent/grand parent node is of a type specified in this.maps
     if (this.ParentTypes.indexOf(parentName) > -1)
