@@ -1,6 +1,6 @@
-import { Linter } from './linter-builder';
-export declare const CompilerLinter: Linter;
-export declare const RuntimeLinter: Linter;
+import { LintSource } from '@codemirror/lint';
+export declare const CompilerLinter: LintSource;
+export declare const RuntimeLinter: LintSource;
 export interface RuntimeError {
     message: string;
     start: number;
