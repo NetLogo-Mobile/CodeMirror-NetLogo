@@ -25577,10 +25577,11 @@ if(!String.prototype.matchAll) {
         // Find if the token belongs to any category
         // When these were under the regular tokenizer, they matched to word parts rather than whole words
         if (stack.context) {
-            console.log('TRUE', token);
+            // console.log('TRUE', token);
             input.acceptToken(Identifier$1);
             return;
         }
+        // else{console.log('FALSE', token)}
         if (token == 'set') {
             input.acceptToken(Set$1);
         }
@@ -25828,9 +25829,14 @@ if(!String.prototype.matchAll) {
                 input.advance();
             }
             token = token.toLowerCase();
-            //console.log("shift",token)
-            if (token == 'extensions') {
-                return true;
+            if (token == 'extensions' || token == 'globals') {
+                //|| token=='directed-link-breed' || token == 'undirected-link-breed') {
+                while (input.next == 32) {
+                    input.advance();
+                }
+                if (input.next == 91) {
+                    return true;
+                }
             }
             return context;
         },
