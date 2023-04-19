@@ -30664,7 +30664,7 @@ if(!String.prototype.matchAll) {
         'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
         'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
         'Invalid extension _.': (Name) => `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
-        'Term _ already used.': (Name) => `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
+        'Term _ already used.': (Name) => `"${Name}" 已经被定义过了。试试换个名字吧。`,
         'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
         'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
         'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
