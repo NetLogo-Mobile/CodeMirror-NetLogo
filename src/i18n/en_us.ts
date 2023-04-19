@@ -51,8 +51,8 @@ const en_us: Record<string, Function> = {
     `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
   'Unsupported extension _.': (Name: string) =>
     `The extension "${Name}" is not supported in this editor.`,
-  'Breed name _ already used.': (Name: string) =>
-    `"${Name}" is already used as a breed name. Try to take a different name.`,
+  'Term _ already used.': (Name: string) =>
+    `"${Name}" is already used. Try a different name.`,
   'Invalid breed procedure _': (Name: string) =>
     `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
   'Missing command before _': (Name: string) =>

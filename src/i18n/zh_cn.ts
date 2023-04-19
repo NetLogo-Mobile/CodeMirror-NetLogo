@@ -46,7 +46,7 @@ const zh_cn: Record<string, Function> = {
     `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
   'Invalid extension _.': (Name: string) =>
     `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
-  'Breed name _ already used.': (Name: string) =>
+  'Term _ already used.': (Name: string) =>
     `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
   'Invalid breed procedure _': (Name: string) =>
     `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,

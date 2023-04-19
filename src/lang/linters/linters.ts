@@ -5,7 +5,7 @@ import { UnrecognizedLinter } from './unrecognized-linter';
 import { ArgumentLinter } from './argument-linter';
 import { UnsupportedLinter } from './unsupported-linter';
 import { ExtensionLinter } from './extension-linter';
-import { BreedNameLinter } from './breedname-linter';
+import { NamingLinter } from './naming-linter';
 import { BracketLinter } from './bracket-linter';
 import { ModeLinter } from './mode-linter';
 import { ContextLinter } from './context-linter';
@@ -18,7 +18,7 @@ export const netlogoLinters = [
   ArgumentLinter,
   UnsupportedLinter,
   ExtensionLinter,
-  BreedNameLinter,
+  NamingLinter,
   BracketLinter,
   ModeLinter,
   ContextLinter,

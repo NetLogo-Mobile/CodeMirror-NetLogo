@@ -131,7 +131,7 @@ const gatherAnonVars = function (
       Node.to <= anonProc.PositionEnd
     ) {
       anonProc.Variables.map((variable) => {
-        if (variable.CreationPos <= Node.from) {
+        if (variable.CreationPos < Node.from) {
           procedureVars.push(variable.Name);
         }
       });
