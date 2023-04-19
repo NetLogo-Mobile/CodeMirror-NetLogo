@@ -47,7 +47,7 @@ const zh_cn: Record<string, Function> = {
   'Invalid extension _.': (Name: string) =>
     `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
   'Term _ already used.': (Name: string) =>
-    `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
+    `"${Name}" 已经被定义过了。试试换个名字吧。`,
   'Invalid breed procedure _': (Name: string) =>
     `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
   'Missing command before _': (Name: string) =>
