@@ -25564,7 +25564,7 @@ if(!String.prototype.matchAll) {
 
     let primitives$4 = PrimitiveManager;
     // Keyword tokenizer
-    const keyword = new ExternalTokenizer((input) => {
+    const keyword = new ExternalTokenizer((input, stack) => {
         let token = '';
         // Find until the token is complete
         while (isValidKeyword(input.next)) {
@@ -25576,6 +25576,11 @@ if(!String.prototype.matchAll) {
         token = token.toLowerCase();
         // Find if the token belongs to any category
         // When these were under the regular tokenizer, they matched to word parts rather than whole words
+        if (stack.context) {
+            console.log('TRUE', token);
+            input.acceptToken(Identifier$1);
+            return;
+        }
         if (token == 'set') {
             input.acceptToken(Set$1);
         }
@@ -25808,6 +25813,28 @@ if(!String.prototype.matchAll) {
             return SpecialReporter;
         return 0;
     }
+
+    const contextTracker = new ContextTracker({
+        start: false,
+        shift: (context, term, stack, input) => {
+            let token = '';
+            if (input.next == 93) {
+                input.advance();
+                return false;
+            }
+            // Find until the token is complete
+            while (isValidKeyword(input.next)) {
+                token += String.fromCharCode(input.next).toLowerCase();
+                input.advance();
+            }
+            token = token.toLowerCase();
+            //console.log("shift",token)
+            if (token == 'extensions') {
+                return true;
+            }
+            return context;
+        },
+    });
 
     let primitives$3 = PrimitiveManager;
     const specializeReporter = function (token) {
@@ -26078,6 +26105,7 @@ if(!String.prototype.matchAll) {
       goto: "!Gr$VPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPPP$W$Z$`$kPP$n$z%a%z4t<OPPPCrKd!$tP!%O!,sP!,|!4f!<U!=Z4t4t!=t!>]!>]!>t!>x!>x!>x!>}!?S!?V!>x$W$W!?Y!?`!?g!?z!@q!Fe!Fq!F}!G]PPP!Gg!GkR!TOVwOx!RSvO!RQ#YxT#c!S#bR#Xu^!`P!X!v$a'R'S(dR$i#XwsOPt!X!Z!v#X#n$O$a$g$i$w%V%]'R'S(d(nvrOPt!X!Z!v#X#n$O$a$g$i$w%V%]'R'S(d(nT!lT#U^UOT!f&`&b)w)x$O!gSVWhi!h!m!p!q!|!}#S#w#x$[$]$z${%Q%R%e%f%h%i%p%q%r%s%u%v%x%{%}&S&U&[&]&c&h&j&m&r&s&w&x&|&}'Q'Z'i'p'x(R(T(Y(c(h(m(r(w({)P)S)X)Z)^)`)b)dQ!qXQ!rYQ!sZQ!t[Q!u]Q!y_Q!}jQ#OkQ#PlQ#QmQ#RnQ#SoQ#t!jS#x!n!rQ#y!oQ#z!sQ#{!tQ#|!uQ$]#OQ$^#PQ$_#QQ$`#RQ${#zQ$|#{Q$}#|Q%R$^Q%S$_Q%T$`Q%f$|Q%g$}Q%i%SQ%j%TQ%q%gQ%s%jQ&['[Q&^'aS&h's'zQ&i&VQ&r(`Q&w(jQ&|(t['T!v#n$P$a$u(dS'U'}(OS'V&_&aQ'v)fQ'w)gQ'x)hQ'y)iQ'z)jQ'{)lQ'|)mQ(Q)tQ(R)uQ(S'jQ(T'kS(W)z*OY(X$U&k&l)}*PS(Y){*QS(Z)|*RQ(['tQ(]&YQ(^)WS(_&W&XQ(`*SQ(b*TQ(c*UQ(f*VQ(g*WQ(h*XQ(i*YQ(j*ZQ(l*[Q(m*]Q(p*^Q(q*_Q(r*`Q(s*aQ(t*bQ(v*cQ(w*dQ(y*eQ(z*fQ({*gQ(|*hQ)O*iQ)P*jQ)Y*lS)[*p*qQ)])VQ)_*rQ)a*sQ)c*tW)eP!X'R'S$Q)yq!V!x#T$S$T%z%|&Z&f&g&p&q&u&v&z&{'O'P'W'X'Y'g'h'l'o'q'r'u'v'w'y(P(Q(S(U(V(W(X(Z(a(b(e(f(g(i(k(l(o(p(q(s(u(v(x(y(z(|(})O)Q)R)T)U)Y)[)_)a)c)vQ*O*uQ*P*vQ*Q*wQ*R*xQ*S*yQ*T*zQ*U*{Q*V*|Q*W*}Q*X+OQ*Y+PQ*Z+QQ*[+RQ*]+SQ*^+TQ*_+UQ*`+VQ*a+WQ*b+XQ*c+YQ*d+ZQ*e+[Q*f+]Q*g+^Q*h+_Q*i+`Q*j+aS*k!z!{Q*q+bQ*r+cQ*s+dQ*t+eQ*|+fQ*}+gQ+O+hQ+P+iQ+Q+jQ+R+kQ+S+lQ+T+mQ+U+nQ+V+oQ+W+pQ+X+qQ+Y+rQ+Z+sQ+[+tQ+]+uQ+^+vQ+_+wQ+`+xQ+a+yQ+c+zQ+d+{Q+e+|Q+m+}Q+n,OQ+o,PQ+p,QQ+q,RQ+r,SQ+s,TQ+t,UQ+u,VQ+v,WQ+w,XQ+x,YQ+y,ZQ+{,[Q+|,]Q,U,^Q,V,_Q,W,`Q,X,aQ,Y,bQ,Z,cR,],d/acOPSTVWXYZ[]_hijklmnoq!V!X!f!h!j!m!n!o!p!q!r!s!t!u!v!z!{!|!}#O#P#Q#R#S#T#n#w#x#z#{#|$P$T$U$[$]$^$_$`$a$u$z${$|$}%Q%R%S%T%e%f%g%h%i%j%p%q%r%s%u%v%x%z%{%|%}&S&U&V&W&X&Y&Z&[&]&_&`&a&b&c&g&h&j&l&m&q&r&s&v&w&x&{&|&}'P'Q'R'S'W'X'Y'Z'['a'g'h'i'j'k'l'o'p'q'r's't'u'v'w'x'y'z'}(O(P(Q(R(S(T(U(V(W(X(Y(Z(`(a(b(c(d(e(f(g(h(i(j(k(l(m(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O)P)Q)R)S)T)U)V)W)X)Y)Z)[)^)_)`)a)b)c)d)f)g)h)i)j)l)m)t)u)v)w)x)z){)|)}*O*P*Q*R*S*T*U*V*W*X*Y*Z*[*]*^*_*`*a*b*c*d*e*f*g*h*i*j*l*p*q*r*s*t*u*v*w*x*y*z*{*|*}+O+P+Q+R+S+T+U+V+W+X+Y+Z+[+]+^+_+`+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z+{+|+},O,P,Q,R,S,T,U,V,W,X,Y,Z,[,],^,_,`,a,b,c,d.tcSVWXYZ[]_hijklmnoq!V!h!j!m!n!o!p!q!r!s!t!u!x!|!}#O#P#Q#R#S#T#w#x#z#{#|$P$S$T$U$[$]$^$_$`$u$z${$|$}%Q%R%S%T%e%f%g%h%i%j%p%q%r%s%u%v%x%z%{%|%}&S&U&V&W&X&Y&Z&[&]&c&f&g&h&j&k&l&m&p&q&r&s&u&v&w&x&z&{&|&}'O'P'Q'W'X'Y'Z'['a'g'h'i'j'k'l'o'p'q'r's't'u'v'w'x'y'z(P(Q(R(S(T(U(V(W(X(Y(Z(`(a(b(c(e(f(g(h(i(j(k(l(m(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O)P)Q)R)S)T)U)V)W)X)Y)Z)[)^)_)`)a)b)c)d)f)g)h)i)j)l)m)t)u)v)z){)|)}*O*P*Q*R*S*T*U*V*W*X*Y*Z*[*]*^*_*`*a*b*c*d*e*f*g*h*i*j*l*p*q*r*s*t*u*v*w*x*y*z*{*|*}+O+P+Q+R+S+T+U+V+W+X+Y+Z+[+]+^+_+`+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z+{+|+},O,P,Q,R,S,T,U,V,W,X,Y,Z,[,],^,_,`,a,b,c,dQdOW!dP!X'R'SW!kT!f)w)xQ$Q!vW$X!z&_&`'}W$Z!{&a&b(OQ$x#nT%W$a(d/dbOSTVWXYZ[]_hijklmnoq!V!f!h!j!m!n!o!p!q!r!s!t!u!v!x!z!{!|!}#O#P#Q#R#S#T#n#w#x#z#{#|$P$S$T$U$[$]$^$_$`$u$z${$|$}%Q%R%S%T%e%f%g%h%i%j%p%q%r%s%u%v%x%z%{%|%}&S&U&V&W&X&Y&Z&[&]&_&`&a&b&c&f&g&h&j&k&l&m&p&q&r&s&u&v&w&x&z&{&|&}'O'P'Q'W'X'Y'Z'['a'g'h'i'j'k'l'o'p'q'r's't'u'v'w'x'y'z'}(O(P(Q(R(S(T(U(V(W(X(Y(Z(`(a(b(c(e(f(g(h(i(j(k(l(m(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O)P)Q)R)S)T)U)V)W)X)Y)Z)[)^)_)`)a)b)c)d)f)g)h)i)j)l)m)t)u)v)w)x)z){)|)}*O*P*Q*R*S*T*U*V*W*X*Y*Z*[*]*^*_*`*a*b*c*d*e*f*g*h*i*j*l*p*q*r*s*t*u*v*w*x*y*z*{*|*}+O+P+Q+R+S+T+U+V+W+X+Y+Z+[+]+^+_+`+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z+{+|+},O,P,Q,R,S,T,U,V,W,X,Y,Z,[,],^,_,`,a,b,c,d[!cP!X$a'R'S(dQ!{fQ&a'eQ&b'fR(O)s/SbOSTVWXYZ[]_hijklmnoq!V!f!h!j!m!n!o!p!q!r!s!t!u!v!z!{!|!}#O#P#Q#R#S#T#n#w#x#z#{#|$P$T$U$[$]$^$_$`$u$z${$|$}%Q%R%S%T%e%f%g%h%i%j%p%q%r%s%u%v%x%z%{%|%}&S&U&V&W&X&Y&Z&[&]&_&`&a&b&c&g&h&j&l&m&q&r&s&v&w&x&{&|&}'P'Q'W'X'Y'Z'['a'g'h'i'j'k'l'o'p'q'r's't'u'v'w'x'y'z'}(O(P(Q(R(S(T(U(V(W(X(Y(Z(`(a(b(c(e(f(g(h(i(j(k(l(m(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O)P)Q)R)S)T)U)V)W)X)Y)Z)[)^)_)`)a)b)c)d)f)g)h)i)j)l)m)t)u)v)w)x)z){)|)}*O*P*Q*R*S*T*U*V*W*X*Y*Z*[*]*^*_*`*a*b*c*d*e*f*g*h*i*j*l*p*q*r*s*t*u*v*w*x*y*z*{*|*}+O+P+Q+R+S+T+U+V+W+X+Y+Z+[+]+^+_+`+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z+{+|+},O,P,Q,R,S,T,U,V,W,X,Y,Z,[,],^,_,`,a,b,c,dS!]!_#l]!^P!X$a'R'S(da!]P!X!_#l$a'R'S(d/[bOPSTVWXYZ[]_hijklmnoq!V!X!f!h!j!m!n!o!p!q!r!s!t!u!v!z!{!|!}#O#P#Q#R#S#n#w#x#z#{#|$P$T$U$[$]$^$_$`$a$u$z${$|$}%Q%R%S%T%e%f%g%h%i%j%p%q%r%s%u%v%x%z%{%|%}&S&U&V&W&X&Y&Z&[&]&_&`&a&b&c&g&h&j&l&m&q&r&s&v&w&x&{&|&}'P'Q'R'S'W'X'Y'Z'['a'g'h'i'j'k'l'o'p'q'r's't'u'v'w'x'y'z'}(O(P(Q(R(S(T(V(W(X(Y(Z(`(a(b(c(d(e(f(g(h(i(j(k(l(m(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O)P)Q)R)S)T)U)V)W)X)Y)Z)[)^)_)`)a)b)c)d)f)g)h)i)j)l)m)t)u)v)w)x)z){)|)}*O*P*Q*R*S*T*U*V*W*X*Y*Z*[*]*^*_*`*a*b*c*d*e*f*g*h*i*j*l*p*q*r*s*t*u*v*w*x*y*z*{*|*}+O+P+Q+R+S+T+U+V+W+X+Y+Z+[+]+^+_+`+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z+{+|+},O,P,Q,R,S,T,U,V,W,X,Y,Z,[,],^,_,`,a,b,c,dv!w^`!y&^']'^'_'`'b'{'|)k)n)o)p)q*m*n*oQ$c#TR&o(U_!bP!X!v$a'R'S(d/[cOSTVWXYZ[]_hijklmnoq!V!f!h!j!m!n!o!p!q!r!s!t!u!x!z!{!|!}#O#P#Q#R#S#T#w#x#z#{#|$S$T$U$[$]$^$_$`$z${$|$}%Q%R%S%T%e%f%g%h%i%j%p%q%r%s%u%v%x%z%{%|%}&S&U&V&W&X&Y&Z&[&]&_&`&a&b&c&f&g&h&j&k&l&m&p&q&r&s&u&v&w&x&z&{&|&}'O'P'Q'W'X'Y'Z'['a'g'h'i'j'k'l'o'p'q'r's't'u'v'w'x'y'z'}(O(P(Q(R(S(T(U(V(W(X(Y(Z(`(a(b(c(e(f(g(h(i(j(k(l(m(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O)P)Q)R)S)T)U)V)W)X)Y)Z)[)^)_)`)a)b)c)d)f)g)h)i)j)l)m)t)u)v)w)x)z){)|)}*O*P*Q*R*S*T*U*V*W*X*Y*Z*[*]*^*_*`*a*b*c*d*e*f*g*h*i*j*l*p*q*r*s*t*u*v*w*x*y*z*{*|*}+O+P+Q+R+S+T+U+V+W+X+Y+Z+[+]+^+_+`+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z+{+|+},O,P,Q,R,S,T,U,V,W,X,Y,Z,[,],^,_,`,a,b,c,dW!dP!X'R'SW$R!v#n$P$uT%X$a(dQaO/U!aPSVWXYZ[]_hijklmnoq!V!X!h!j!m!n!o!p!q!r!s!t!u!v!x!|!}#O#P#Q#R#S#T#n#w#x#z#{#|$P$S$T$U$[$]$^$_$`$a$u$z${$|$}%Q%R%S%T%e%f%g%h%i%j%p%q%r%s%u%v%x%z%{%|%}&S&U&V&W&X&Y&Z&[&]&c&f&g&h&j&k&l&m&p&q&r&s&u&v&w&x&z&{&|&}'O'P'Q'R'S'W'X'Y'Z'['a'g'h'i'j'k'l'o'p'q'r's't'u'v'w'x'y'z(P(Q(R(S(T(U(V(W(X(Y(Z(`(a(b(c(d(e(f(g(h(i(j(k(l(m(o(p(q(r(s(t(u(v(w(x(y(z({(|(})O)P)Q)R)S)T)U)V)W)X)Y)Z)[)^)_)`)a)b)c)d)f)g)h)i)j)l)m)t)u)v)z){)|)}*O*P*Q*R*S*T*U*V*W*X*Y*Z*[*]*^*_*`*a*b*c*d*e*f*g*h*i*j*l*p*q*r*s*t*u*v*w*x*y*z*{*|*}+O+P+Q+R+S+T+U+V+W+X+Y+Z+[+]+^+_+`+a+b+c+d+e+f+g+h+i+j+k+l+m+n+o+p+q+r+s+t+u+v+w+x+y+z+{+|+},O,P,Q,R,S,T,U,V,W,X,Y,Z,[,],^,_,`,a,b,c,dS!iT)wW$W!z&_&`'}W$Y!{&a&b(OQ'm!fR'n)xQ!m`Q!o^W$V!y&^'{'|Q&U'bQ&V']Q&W'^Q&X'_Q&Y'`Q'o)nQ'p)pQ'q)qQ'r)oQ't)kQ)U*oQ)V*mR)W*nv!w^`!y&^']'^'_'`'b'{'|)k)n)o)p)q*m*n*oT$d#T(U{pOPTt!X!Z!v#U#X#n$O$a$g$i$w%V%]'R'S(d(n{gOPTt!X!Z!v#U#X#n$O$a$g$i$w%V%]'R'S(d(nT$e#T(UV!OOx!RV|Ox!RR$p#_R%b$pQ!ROR#a!RSxO!RR#Zx[!WP!v$a'R'S(dU#f!W#g%YQ#g!XR%Y$fQtOW!ZP!X'R'S`#Vt!Z$O$g$w%V%](nQ$O!vQ$g#XQ$w#nQ%V$aQ%]$iR(n(dQ!hSS!pVWU!|hioQ#TqS#q%{)T#`#r!h!p!|#T#w$S$[$z%Q%e%h%p%r%u%v&S&Z&c&f&g&j&m&p&q&s&u&v&x&z&{&}'O'P'Q'l'u(P(U(V(a(e(k(o(u(x(})Q)R)X)Z)^)`)b)dS#w!m!qS$S!x'YW$V&U&[)U)YS$[!}#SS$y&h)[Q$z#xQ%Q$]Q%e${Q%h%RS%o&r)_Q%p%fQ%r%iS%t&w)aQ%u%qQ%v%sS%w&|)cQ&S%xS&Z%z%|U&c%}'i'kU&f$T'r'wS&g'q'yQ&j&]S&m(R(TQ&p(XQ&q(ZQ&s(cQ&u(gQ&v(iQ&x(mQ&z(qQ&{(sQ&}(wQ'O(zQ'P(|Q'Q)PQ'l!VS'u'W'XU(P'g'h'jQ(U)vS(V'o'vS(a(Q(SQ(e(WQ(k(bQ(o(fQ(u(lQ(x(pQ(}(vQ)Q(yQ)R)OS)X'Z)SS)Z'p'xQ)^(YQ)`(hQ)b(rR)d({^!_P!X#l$a'R'S(dR#k!_U$P!v$a(dQ$u#nT%P$P$uQ$k#]Q$m#^Q$q#`V%^$k$m$qQ!SOQ#b!RT#d!S#bT!QO!RS!PO!RR#[x",
       nodeNames: "⚠ ReporterLeft1Args ReporterLeft2Args ReporterLeft1ArgsOpt GlobalStr ExtensionStr BreedStr PlusMinus Own Set Let To End And Or Identifier Directive Command Reporter Extension TurtleVar PatchVar LinkVar Constant Unsupported SpecialReporter SpecialCommand BreedToken AndOr APCommand APReporterFlip APReporterVar APReporter UnsupportedPrim Reporter0Args Reporter1Args Reporter2Args Reporter3Args Reporter4Args Reporter5Args Reporter6Args Reporter0ArgsVar Reporter1ArgsVar Reporter2ArgsVar Reporter3ArgsVar Reporter4ArgsVar Reporter5ArgsVar Reporter6ArgsVar Reporter2ArgsVar0 Reporter1ArgsVar0 SpecialReporter0Args SpecialReporter1Args SpecialReporter2Args SpecialReporter3Args SpecialReporter4Args SpecialReporter5Args SpecialReporter6Args SpecialReporter1ArgsBoth SpecialReporter0ArgsLink SpecialReporter1ArgsLink SpecialReporter2ArgsTurtle SpecialReporter0ArgsTurtle SpecialReporter1ArgsTurtle SpecialReporter0ArgsLinkP Command0Args Command1Args Command2Args Command3Args Command4Args Command5Args Command6Args Command0ArgsVar Command1ArgsVar Command2ArgsVar Command3ArgsVar Command4ArgsVar Command5ArgsVar Command6ArgsVar Command3ArgsVar2 SpecialCommand0Args SpecialCommand1Args SpecialCommand2Args SpecialCommand3Args SpecialCommand4Args SpecialCommand5Args SpecialCommand6Args SpecialCommandCreateTurtle SpecialCommandCreateLink LineComment Program Normal Unrecognized Procedure ProcedureName CloseBracket OpenBracket Arguments ProcedureContent CommandStatement Arg CodeBlock Value OpenParen CloseParen String VariableName List Literal Numeric AnonymousProcedure AnonArguments Arrow ReporterContent ReporterStatement Reporters ShortAnonymousProcedure ReporterBlock Property VariableDeclaration NewVariableDeclaration SetVariable Commands Extensions Globals Breed BreedDeclarative BreedPlural BreedSingular BreedsOwn OnelineReporter Embedded",
       maxTerm: 144,
+      context: contextTracker,
       nodeProps: [
         ["openedBy", 94,"OpenBracket"],
         ["closedBy", 95,"CloseBracket"]
