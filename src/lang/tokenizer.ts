@@ -48,7 +48,7 @@ import { GetContext } from './netlogo';
 let primitives = PrimitiveManager;
 
 // Keyword tokenizer
-export const keyword = new ExternalTokenizer((input) => {
+export const keyword = new ExternalTokenizer((input, stack) => {
   let token = '';
   // Find until the token is complete
   while (isValidKeyword(input.next)) {
@@ -59,6 +59,12 @@ export const keyword = new ExternalTokenizer((input) => {
   token = token.toLowerCase();
   // Find if the token belongs to any category
   // When these were under the regular tokenizer, they matched to word parts rather than whole words
+  if (stack.context) {
+    console.log('TRUE', token);
+    input.acceptToken(Identifier);
+    return;
+  }
+
   if (token == 'set') {
     input.acceptToken(Set);
   } else if (token == 'let') {
@@ -164,7 +170,7 @@ export const keyword = new ExternalTokenizer((input) => {
 
 // Check if the character is valid for a keyword.
 // JC: For performance, can we turn this into a Bool[256] that requires O(1) to check?
-function isValidKeyword(ch: number) {
+export function isValidKeyword(ch: number) {
   return (
     ch >= 160 || // Unicode characters
     ch == 35 || //#
