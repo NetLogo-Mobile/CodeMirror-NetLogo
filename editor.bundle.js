@@ -18369,7 +18369,7 @@ if(!String.prototype.matchAll) {
             if (last >= 0 && ranges[last].to > fromLine.from)
                 ranges[last].to = toLine.to;
             else
-                ranges.push({ from: fromLine.from, to: toLine.to });
+                ranges.push({ from: fromLine.from + /^\s*/.exec(fromLine.text)[0].length, to: toLine.to });
         }
         return ranges;
     }
@@ -19647,7 +19647,7 @@ if(!String.prototype.matchAll) {
     - Shift-Alt-ArrowUp: [`copyLineUp`](https://codemirror.net/6/docs/ref/#commands.copyLineUp)
     - Shift-Alt-ArrowDown: [`copyLineDown`](https://codemirror.net/6/docs/ref/#commands.copyLineDown)
     - Escape: [`simplifySelection`](https://codemirror.net/6/docs/ref/#commands.simplifySelection)
-    - Ctrl-Enter (Comd-Enter on macOS): [`insertBlankLine`](https://codemirror.net/6/docs/ref/#commands.insertBlankLine)
+    - Ctrl-Enter (Cmd-Enter on macOS): [`insertBlankLine`](https://codemirror.net/6/docs/ref/#commands.insertBlankLine)
     - Alt-l (Ctrl-l on macOS): [`selectLine`](https://codemirror.net/6/docs/ref/#commands.selectLine)
     - Ctrl-i (Cmd-i on macOS): [`selectParentSyntax`](https://codemirror.net/6/docs/ref/#commands.selectParentSyntax)
     - Ctrl-[ (Cmd-[ on macOS): [`indentLess`](https://codemirror.net/6/docs/ref/#commands.indentLess)
@@ -26181,7 +26181,7 @@ if(!String.prototype.matchAll) {
             if (Node.from >= anonProc.PositionStart &&
                 Node.to <= anonProc.PositionEnd) {
                 anonProc.Variables.map((variable) => {
-                    if (variable.CreationPos <= Node.from) {
+                    if (variable.CreationPos < Node.from) {
                         procedureVars.push(variable.Name);
                     }
                 });
@@ -26549,12 +26549,28 @@ if(!String.prototype.matchAll) {
                     Reporter6ArgsVar: tags$1.operator,
                     Reporter2ArgsVar0: tags$1.operator,
                     Reporter1ArgsVar0: tags$1.operator,
+                    ReporterLeft1ArgsOpt: tags$1.operator,
                     ReporterLeft1Args: tags$1.operator,
                     ReporterLeft2Args: tags$1.operator,
+                    SpecialReporter0Args: tags$1.operator,
+                    SpecialReporter1Args: tags$1.operator,
+                    SpecialReporter2Args: tags$1.operator,
+                    SpecialReporter3Args: tags$1.operator,
+                    SpecialReporter4Args: tags$1.operator,
+                    SpecialReporter5Args: tags$1.operator,
+                    SpecialReporter6Args: tags$1.operator,
+                    SpecialReporter1ArgsBoth: tags$1.operator,
+                    SpecialReporter0ArgsLink: tags$1.operator,
+                    SpecialReporter1ArgsLink: tags$1.operator,
+                    SpecialReporter2ArgsTurtle: tags$1.operator,
+                    SpecialReporter0ArgsTurtle: tags$1.operator,
+                    SpecialReporter1ArgsTurtle: tags$1.operator,
+                    SpecialReporter0ArgsLinkP: tags$1.operator,
                     APReporter: tags$1.operator,
                     APReporterFlip: tags$1.operator,
                     APReporterVar: tags$1.operator,
                     Command: tags$1.variableName,
+                    SpecialCommand: tags$1.variableName,
                     Command0Args: tags$1.variableName,
                     Command1Args: tags$1.variableName,
                     Command2Args: tags$1.variableName,
@@ -26570,6 +26586,15 @@ if(!String.prototype.matchAll) {
                     Command5ArgsVar: tags$1.variableName,
                     Command6ArgsVar: tags$1.variableName,
                     Command3ArgsVar2: tags$1.variableName,
+                    SpecialCommand0Args: tags$1.variableName,
+                    SpecialCommand1Args: tags$1.variableName,
+                    SpecialCommand2Args: tags$1.variableName,
+                    SpecialCommand3Args: tags$1.variableName,
+                    SpecialCommand4Args: tags$1.variableName,
+                    SpecialCommand5Args: tags$1.variableName,
+                    SpecialCommand6Args: tags$1.variableName,
+                    SpecialCommandCreateTurtle: tags$1.variableName,
+                    SpecialCommandCreateLink: tags$1.variableName,
                     APCommand: tags$1.variableName,
                     // Variables
                     Set: tags$1.variableName,
@@ -26587,6 +26612,7 @@ if(!String.prototype.matchAll) {
                     // Procedures
                     To: tags$1.strong,
                     End: tags$1.strong,
+                    ProcedureName: tags$1.strong,
                 }),
                 // Indentations
                 indentNodeProp.add({
@@ -28057,6 +28083,9 @@ if(!String.prototype.matchAll) {
         }
         return "";
     }
+    function isEndTag(node) {
+        return node && (node.name == "JSXEndTag" || node.name == "JSXSelfCloseEndTag");
+    }
     const android = typeof navigator == "object" && /*@__PURE__*//Android\b/.test(navigator.userAgent);
     /**
     Extension that will automatically insert JSX close tags when a `>` or
@@ -28069,11 +28098,12 @@ if(!String.prototype.matchAll) {
             return false;
         let { state } = view;
         let changes = state.changeByRange(range => {
-            var _a, _b;
+            var _a;
             let { head } = range, around = syntaxTree(state).resolveInner(head, -1), name;
             if (around.name == "JSXStartTag")
                 around = around.parent;
-            if (text == ">" && around.name == "JSXFragmentTag") {
+            if (around.name == "JSXAttributeValue" && around.to > head) ;
+            else if (text == ">" && around.name == "JSXFragmentTag") {
                 return { range: EditorSelection.cursor(head + 1), changes: { from: head, insert: `></>` } };
             }
             else if (text == "/" && around.name == "JSXFragmentTag") {
@@ -28086,7 +28116,7 @@ if(!String.prototype.matchAll) {
             }
             else if (text == ">") {
                 let openTag = findOpenTag(around);
-                if (openTag && ((_b = openTag.lastChild) === null || _b === void 0 ? void 0 : _b.name) != "JSXEndTag" &&
+                if (openTag && !isEndTag(openTag.lastChild) &&
                     state.sliceDoc(head, head + 2) != "</" &&
                     (name = elementName$1(state.doc, openTag, head)))
                     return { range: EditorSelection.cursor(head + 1), changes: { from: head, insert: `></${name}>` } };
@@ -30028,29 +30058,157 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     };
 
-    // BreedNameLinter: Ensures no duplicate breed names
-    const BreedNameLinter = (view, preprocessContext, lintContext) => {
+    // NamingLinter: Ensures no duplicate breed names
+    const NamingLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
+        let all = [];
         let seen = [];
+        let link_vars = [];
+        let turtle_vars = [];
+        let patch_vars = [];
         syntaxTree(view.state)
             .cursor()
             .iterate((noderef) => {
+            var _a, _b;
             if (noderef.name == 'BreedSingular' || noderef.name == 'BreedPlural') {
                 const value = view.state
                     .sliceDoc(noderef.from, noderef.to)
                     .toLowerCase();
-                if (seen.includes(value)) {
+                if (all.includes(value)) {
                     diagnostics.push({
                         from: noderef.from,
                         to: noderef.to,
                         severity: 'error',
-                        message: Localized.Get('Breed name _ already used.', value),
+                        message: Localized.Get('Term _ already used.', value),
                     });
                 }
                 seen.push(value);
+                all.push(value);
+            }
+            else if (noderef.name == 'Identifier' &&
+                ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Globals') {
+                const value = view.state
+                    .sliceDoc(noderef.from, noderef.to)
+                    .toLowerCase();
+                if (all.includes(value)) {
+                    diagnostics.push({
+                        from: noderef.from,
+                        to: noderef.to,
+                        severity: 'error',
+                        message: Localized.Get('Term _ already used.', value),
+                    });
+                }
+                seen.push(value);
+                all.push(value);
+            }
+            else if (noderef.name == 'ProcedureName') {
+                const value = view.state
+                    .sliceDoc(noderef.from, noderef.to)
+                    .toLowerCase();
+                if (all.includes(value)) {
+                    diagnostics.push({
+                        from: noderef.from,
+                        to: noderef.to,
+                        severity: 'error',
+                        message: Localized.Get('Term _ already used.', value),
+                    });
+                }
+                seen.push(value);
+                all.push(value);
+            }
+            else if (noderef.name == 'BreedsOwn') {
+                let own = noderef.node.getChild('Own');
+                let internal_vars = [];
+                if (own) {
+                    let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
+                    breedName = breedName.substring(0, breedName.length - 4);
+                    if (breedName == 'turtles' ||
+                        getBreedType(breedName, lintContext) == false) {
+                        noderef.node.getChildren('Identifier').map((child) => {
+                            let name = view.state.sliceDoc(child.from, child.to);
+                            if (turtle_vars.includes(name) ||
+                                seen.includes(name) ||
+                                internal_vars.includes(name)) {
+                                diagnostics.push({
+                                    from: child.from,
+                                    to: child.to,
+                                    severity: 'error',
+                                    message: Localized.Get('Term _ already used.', name),
+                                });
+                            }
+                            internal_vars.push(name);
+                            all.push(name);
+                            if (breedName == 'turtles') {
+                                turtle_vars.push(name);
+                            }
+                        });
+                    }
+                    else if (breedName == 'links' ||
+                        getBreedType(breedName, lintContext) == true) {
+                        noderef.node.getChildren('Identifier').map((child) => {
+                            let name = view.state.sliceDoc(child.from, child.to);
+                            if (link_vars.includes(name) ||
+                                seen.includes(name) ||
+                                internal_vars.includes(name)) {
+                                diagnostics.push({
+                                    from: child.from,
+                                    to: child.to,
+                                    severity: 'error',
+                                    message: Localized.Get('Term _ already used.', name),
+                                });
+                            }
+                            internal_vars.push(name);
+                            all.push(name);
+                            if (breedName == 'links') {
+                                link_vars.push(name);
+                            }
+                        });
+                    }
+                    else if (breedName == 'patches') {
+                        noderef.node.getChildren('Identifier').map((child) => {
+                            let name = view.state.sliceDoc(child.from, child.to);
+                            if (patch_vars.includes(name) ||
+                                seen.includes(name) ||
+                                internal_vars.includes(name)) {
+                                diagnostics.push({
+                                    from: child.from,
+                                    to: child.to,
+                                    severity: 'error',
+                                    message: Localized.Get('Term _ already used.', name),
+                                });
+                            }
+                            all.push(name);
+                            internal_vars.push(name);
+                            patch_vars.push(name);
+                        });
+                    }
+                }
+            }
+            else if (noderef.name == 'NewVariableDeclaration') {
+                let child = (_b = noderef.node.getChild('Identifier')) !== null && _b !== void 0 ? _b : noderef.node.getChild('UnsupportedPrim');
+                if (child) {
+                    let local_vars = getLocalVars(child, view.state, lintContext);
+                    let name = view.state.sliceDoc(child.from, child.to);
+                    if (all.includes(name) || local_vars.includes(name)) {
+                        diagnostics.push({
+                            from: child.from,
+                            to: child.to,
+                            severity: 'error',
+                            message: Localized.Get('Term _ already used.', name),
+                        });
+                    }
+                }
             }
         });
         return diagnostics;
+    };
+    const getBreedType = (breedName, lintContext) => {
+        for (var [name, breed] of lintContext.Breeds) {
+            if (breed.Plural.toLowerCase() == breedName.toLowerCase()) {
+                return breed.IsLinkBreed;
+            }
+        }
+        return null;
     };
 
     // BracketLinter: Checks if all brackets/parentheses have matches
@@ -30222,7 +30380,7 @@ if(!String.prototype.matchAll) {
         ArgumentLinter,
         UnsupportedLinter,
         ExtensionLinter,
-        BreedNameLinter,
+        NamingLinter,
         BracketLinter,
         ModeLinter,
         ContextLinter,
@@ -30452,7 +30610,7 @@ if(!String.prototype.matchAll) {
         'Missing extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
         'Unsupported missing extension _.': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
         'Unsupported extension _.': (Name) => `The extension "${Name}" is not supported in this editor.`,
-        'Breed name _ already used.': (Name) => `"${Name}" is already used as a breed name. Try to take a different name.`,
+        'Term _ already used.': (Name) => `"${Name}" is already used. Try a different name.`,
         'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
         'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
         'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
@@ -30506,7 +30664,7 @@ if(!String.prototype.matchAll) {
         'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
         'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
         'Invalid extension _.': (Name) => `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
-        'Breed name _ already used.': (Name) => `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
+        'Term _ already used.': (Name) => `"${Name}" 已经是另一个种类的名字了。试试换个名字吧。`,
         'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
         'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
         'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
