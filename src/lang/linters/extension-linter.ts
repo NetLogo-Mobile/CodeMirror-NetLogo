@@ -18,6 +18,7 @@ export const ExtensionLinter: Linter = (
   lintContext
 ) => {
   const diagnostics: Diagnostic[] = [];
+  let foundExtension = false;
   let extension_index = 0;
   const context = getCheckContext(view, lintContext, preprocessContext);
   syntaxTree(view.state)
@@ -37,6 +38,7 @@ export const ExtensionLinter: Linter = (
         });
         noderef.node.getChildren('CloseBracket').map((child) => {
           extension_index = child.from;
+          foundExtension = true;
         });
       } else if (
         (noderef.name.includes('Args') ||
@@ -73,7 +75,9 @@ export const ExtensionLinter: Linter = (
                   changes: {
                     from: extension_index,
                     to: extension_index,
-                    insert: vals[0] + ' ',
+                    insert: foundExtension
+                      ? vals[0] + ' '
+                      : 'extensions [' + vals[0] + ']\n',
                   },
                 });
               },
