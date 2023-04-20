@@ -2,6 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
+import { SyntaxNode } from '@lezer/common';
 
 // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
 export const UnrecognizedGlobalLinter: Linter = (
@@ -10,41 +11,33 @@ export const UnrecognizedGlobalLinter: Linter = (
   lintContext
 ) => {
   const diagnostics: Diagnostic[] = [];
-  syntaxTree(view.state)
-    .cursor()
-    .iterate((node) => {
-      if (node.name == 'Unrecognized') {
-        if (node.node.getChildren('Procedure').length > 0) {
-          if (
-            (node.node.parent?.getChildren('Globals').length ?? 0) > 0 ||
-            (node.node.parent?.getChildren('Extensions').length ?? 0) > 0 ||
-            (node.node.parent?.getChildren('Breed').length ?? 0) > 0 ||
-            (node.node.parent?.getChildren('BreedsOwn').length ?? 0) > 0
-          ) {
-            let value = view.state.sliceDoc(node.from, node.to).split('\n')[0];
-            let nameNode = node.node
-              .getChild('Procedure')
-              ?.getChild('ProcedureName');
-            if (nameNode) {
-              value = view.state.sliceDoc(nameNode.from, nameNode.to);
-            }
-            diagnostics.push({
-              from: node.from,
-              to: node.to,
-              severity: 'error',
-              message: Localized.Get('Improperly placed procedure _', value),
-            });
-          }
-        } else {
-          const value = view.state.sliceDoc(node.from, node.to);
-          diagnostics.push({
-            from: node.from,
-            to: node.to,
-            severity: 'error',
-            message: Localized.Get('Unrecognized global statement _', value),
-          });
+  let cursor = syntaxTree(view.state).cursor();
+  let lastGlobalPos = 0;
+  if (cursor.firstChild() && cursor.node.name == 'Normal') {
+    for (var key of ['Extensions', 'Globals', 'BreedsOwn', 'Breed']) {
+      cursor.node.getChildren(key).map((child) => {
+        if (child.from > lastGlobalPos) {
+          lastGlobalPos = child.from;
         }
+      });
+    }
+    cursor.node.getChildren('Procedure').map((child) => {
+      if (child.from < lastGlobalPos) {
+        let value = view.state.sliceDoc(child.from, child.to).split('\n')[0];
+        let nameNode = child.node
+          .getChild('Procedure')
+          ?.getChild('ProcedureName');
+        if (nameNode) {
+          value = view.state.sliceDoc(nameNode.from, nameNode.to);
+        }
+        diagnostics.push({
+          from: child.from,
+          to: child.to,
+          severity: 'error',
+          message: Localized.Get('Improperly placed procedure _', value),
+        });
       }
     });
+  }
   return diagnostics;
 };

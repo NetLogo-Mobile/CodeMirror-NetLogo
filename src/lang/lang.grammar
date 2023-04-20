@@ -13,7 +13,7 @@
 
 @top Program { 
   Normal {
-    setup* Procedure* ~statement
+    (globalStatement | Procedure)*
   } |
   OnelineReporter {
     ReporterStatement | Value
@@ -26,14 +26,6 @@
 @detectDelim
 
 @skip { space | LineComment }
-
-setup {
-  Unrecognized* globalStatement
-}
-
-Unrecognized {
-  Procedure ~statement
-}
 
 globalStatement {
   Extensions { ExtensionStr OpenBracket Identifier* CloseBracket } |

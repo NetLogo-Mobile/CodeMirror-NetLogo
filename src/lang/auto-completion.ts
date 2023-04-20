@@ -177,7 +177,7 @@ export class AutoCompletion {
       parents.push(curr.parent.name);
       curr = curr.parent;
     }
-    //console.log(node.name + '/' + parents.join('/'));
+    console.log(node.name + '/' + parents.join('/'));
 
     if (
       (parents.includes('OnelineReporter') &&

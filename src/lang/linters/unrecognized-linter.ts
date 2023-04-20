@@ -24,12 +24,21 @@ export const UnrecognizedLinter: Linter = (
         const value = view.state.sliceDoc(node.from, node.to);
         console.log(value, node.name, parents);
         if (!['[', ']', ')', '(', '"'].includes(value)) {
-          diagnostics.push({
-            from: node.from,
-            to: node.to,
-            severity: 'error',
-            message: Localized.Get('Unrecognized statement _', value),
-          });
+          if (node.node.parent?.name == 'Normal') {
+            diagnostics.push({
+              from: node.from,
+              to: node.to,
+              severity: 'error',
+              message: Localized.Get('Unrecognized global statement _', value),
+            });
+          } else {
+            diagnostics.push({
+              from: node.from,
+              to: node.to,
+              severity: 'error',
+              message: Localized.Get('Unrecognized statement _', value),
+            });
+          }
         }
       }
     });

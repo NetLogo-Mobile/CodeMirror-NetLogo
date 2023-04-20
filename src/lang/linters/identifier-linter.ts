@@ -30,7 +30,7 @@ export const IdentifierLinter: Linter = (
           //check if the identifier looks like a breed procedure (e.g. "create-___")
           let result = checkBreedLike(value);
           if (!result[0]) {
-            console.log(value, noderef.name, noderef.node.parent?.name);
+            //console.log(value, noderef.name, noderef.node.parent?.name);
             diagnostics.push({
               from: noderef.from,
               to: noderef.to,
