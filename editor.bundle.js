@@ -30031,6 +30031,7 @@ if(!String.prototype.matchAll) {
     // the extension, or invalid extensions are declared
     const ExtensionLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
+        let foundExtension = false;
         let extension_index = 0;
         const context = getCheckContext(view, lintContext, preprocessContext);
         syntaxTree(view.state)
@@ -30051,6 +30052,7 @@ if(!String.prototype.matchAll) {
                 });
                 noderef.node.getChildren('CloseBracket').map((child) => {
                     extension_index = child.from;
+                    foundExtension = true;
                 });
             }
             else if ((noderef.name.includes('Args') ||
@@ -30083,7 +30085,9 @@ if(!String.prototype.matchAll) {
                                     changes: {
                                         from: extension_index,
                                         to: extension_index,
-                                        insert: vals[0] + ' ',
+                                        insert: foundExtension
+                                            ? vals[0] + ' '
+                                            : 'extensions [' + vals[0] + ']\n',
                                     },
                                 });
                             },
