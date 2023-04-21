@@ -3,9 +3,17 @@ import { EditorView } from 'codemirror';
 import { SyntaxNode } from '@lezer/common';
 
 /** prettify: Change selection to fit formatting standards. */
-export const prettify = function (view: EditorView) {
-  let from = view.state.selection.main.from;
-  let to = view.state.selection.main.to;
+export const prettify = function (
+  view: EditorView,
+  from: number | null = null,
+  to: number | null = null
+) {
+  if (from && to) {
+    view.dispatch({ selection: { anchor: from, head: to } });
+  }
+
+  from = view.state.selection.main.from;
+  to = view.state.selection.main.to;
   let doc = view.state.doc.toString().substring(from, to);
 
   // eliminate extra spacing

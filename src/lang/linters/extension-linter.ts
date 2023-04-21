@@ -1,5 +1,6 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
+import { EditorSelection } from '@codemirror/state';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
@@ -7,6 +8,8 @@ import {
   checkValidIdentifier,
   getCheckContext,
 } from './utils/check-identifier';
+import { prettify } from '../../codemirror/prettify';
+import { SyntaxNode } from '@lezer/common';
 
 let primitives = PrimitiveManager;
 
@@ -20,6 +23,7 @@ export const ExtensionLinter: Linter = (
   const diagnostics: Diagnostic[] = [];
   let foundExtension = false;
   let extension_index = 0;
+  let extension_node: null | SyntaxNode = null;
   const context = getCheckContext(view, lintContext, preprocessContext);
   syntaxTree(view.state)
     .cursor()
@@ -39,12 +43,12 @@ export const ExtensionLinter: Linter = (
         noderef.node.getChildren('CloseBracket').map((child) => {
           extension_index = child.from;
           foundExtension = true;
+          extension_node = noderef.node;
         });
       } else if (
         (noderef.name.includes('Args') ||
           (noderef.name.includes('Unsupported') &&
             noderef.node.parent?.name != 'VariableName' &&
-            noderef.node.parent?.name != 'NewVariableDeclaration' &&
             noderef.node.parent?.name != 'Arguments' &&
             noderef.node.parent?.name != 'AnonArguments' &&
             noderef.node.parent?.name != 'ProcedureName' &&
@@ -80,6 +84,48 @@ export const ExtensionLinter: Linter = (
                       : 'extensions [' + vals[0] + ']\n',
                   },
                 });
+              },
+            },
+            {
+              name: Localized.Get('Add and Prettify'),
+              apply(view, from, to) {
+                if (extension_node) {
+                  view.dispatch({
+                    changes: {
+                      from: extension_index,
+                      to: extension_index,
+                      insert: vals[0] + ' ',
+                    },
+                    selection: EditorSelection.create(
+                      [
+                        EditorSelection.range(
+                          extension_node.from,
+                          extension_node.to + (vals[0] + ' ').length
+                        ),
+                      ],
+                      0
+                    ),
+                  });
+                  prettify(view);
+                } else {
+                  view.dispatch({
+                    changes: {
+                      from: extension_index,
+                      to: extension_index,
+                      insert: 'extensions [' + vals[0] + ']\n',
+                    },
+                    selection: EditorSelection.create(
+                      [
+                        EditorSelection.range(
+                          0,
+                          ('extensions [' + vals[0] + ']\n').length
+                        ),
+                      ],
+                      0
+                    ),
+                  });
+                  prettify(view);
+                }
               },
             },
           ],

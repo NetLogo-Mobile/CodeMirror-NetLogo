@@ -1,6 +1,7 @@
 const en_us: Record<string, Function> = {
   // Buttons
   Add: () => 'Add',
+  'Add and Prettify': () => 'Add and Prettify',
 
   // Linting messages
   'Unrecognized breed name _': (Name: string) =>

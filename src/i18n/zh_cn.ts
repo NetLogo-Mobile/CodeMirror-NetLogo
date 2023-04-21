@@ -1,6 +1,7 @@
 const zh_cn: Record<string, Function> = {
   // Buttons
   Add: () => '添加',
+  'Add and Prettify': () => 'Add and Prettify',
 
   // Linting messages
   'Unrecognized breed name _': (Name: string) =>
