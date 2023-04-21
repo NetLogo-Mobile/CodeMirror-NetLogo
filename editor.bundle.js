@@ -30026,6 +30026,188 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     };
 
+    /** prettify: Change selection to fit formatting standards. */
+    const prettify = function (view, from = null, to = null) {
+        if (from && to) {
+            view.dispatch({ selection: { anchor: from, head: to } });
+        }
+        from = view.state.selection.main.from;
+        to = view.state.selection.main.to;
+        let doc = view.state.doc.toString().substring(from, to);
+        // eliminate extra spacing
+        let new_doc = initialSpaceRemoval(doc);
+        view.dispatch(view.state.replaceSelection(new_doc));
+        view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
+        // add in new lines based on grammar
+        view.dispatch({
+            changes: addSpacing(view, view.state.selection.main.from, view.state.selection.main.to),
+        });
+        // ensure spacing is correct
+        from = view.state.selection.main.from;
+        to = view.state.selection.main.to;
+        new_doc = finalSpacing(view.state.doc.toString().substring(from, to));
+        view.dispatch(view.state.replaceSelection(new_doc));
+        view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
+        // add indentation
+        view.dispatch({
+            changes: indentRange(view.state, view.state.selection.main.from, view.state.selection.main.to),
+        });
+    };
+    /** prettifyAll: Make whole code file follow formatting standards. */
+    const prettifyAll = function (view) {
+        let doc = view.state.doc.toString();
+        // eliminate extra spacing
+        let new_doc = initialSpaceRemoval(doc);
+        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+        // give certain nodes their own lines
+        view.dispatch({
+            changes: addSpacing(view, 0, view.state.doc.toString().length),
+        });
+        // ensure spacing is correct
+        doc = view.state.doc.toString();
+        new_doc = finalSpacing(doc);
+        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+        // add indentation
+        view.dispatch({
+            changes: indentRange(view.state, 0, view.state.doc.toString().length),
+        });
+    };
+    /** initialSpaceRemoval: Make initial spacing adjustments. */
+    const initialSpaceRemoval = function (doc) {
+        let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
+        new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
+        new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
+        new_doc = new_doc.replace(/\n[ ]+/g, '\n');
+        new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 [');
+        new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
+        new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
+        new_doc = new_doc.replace(/(\n)( +)(to[ -])/g, '$1$3');
+        new_doc = new_doc.replace(/ +/g, ' ');
+        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
+        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
+        return new_doc;
+    };
+    /** finalSpacing: Make final spacing adjustments. */
+    const finalSpacing = function (doc) {
+        let new_doc = doc.replace(/\n[ ]+/g, '\n');
+        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
+        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
+        new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
+        new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
+        return new_doc;
+    };
+    /** addSpacing: Give certain types of nodes their own lines. */
+    const addSpacing = function (view, from, to) {
+        let changes = [];
+        let doc = view.state.doc.toString();
+        syntaxTree(view.state)
+            .cursor()
+            .iterate((node) => {
+            var _a, _b;
+            if (node.from >= from && node.to <= to) {
+                if (((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' &&
+                    node.name != 'LineComment') ||
+                    node.name == 'To' ||
+                    node.name == 'End' ||
+                    (node.name == 'ProcedureContent' &&
+                        ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) != 'CodeBlock')) &&
+                    node.from > 0 &&
+                    doc[node.from - 1] != '\n') {
+                    changes.push({ from: node.from, to: node.from, insert: '\n' });
+                }
+                else if (node.name == 'CodeBlock' &&
+                    checkBlock(node.node, 'ProcedureContent', doc)) {
+                    for (var name of ['ProcedureContent', 'CloseBracket']) {
+                        node.node.getChildren(name).map((child) => {
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
+                        });
+                    }
+                }
+                else if (node.name == 'ReporterBlock' &&
+                    checkBlock(node.node, 'ReporterContent', doc)) {
+                    for (var name of ['ReporterContent', 'CloseBracket']) {
+                        node.node.getChildren(name).map((child) => {
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
+                        });
+                    }
+                }
+                else if (node.name == 'AnonymousProcedure' &&
+                    (checkBlock(node.node, 'ReporterContent', doc) ||
+                        checkBlock(node.node, 'ProcedureContent', doc))) {
+                    // console.log(changes.length);
+                    for (var name of [
+                        'ProcedureContent',
+                        'ReporterContent',
+                        'CloseBracket',
+                    ]) {
+                        node.node.getChildren(name).map((child) => {
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
+                        });
+                    }
+                }
+                if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
+                    if (doc.substring(node.from, node.to).includes('\n')) {
+                        for (var name of ['CloseBracket', 'Extension', 'Identifier']) {
+                            node.node.getChildren(name).map((child) => {
+                                if (doc[child.from - 1] != '\n') {
+                                    changes.push({
+                                        from: child.from,
+                                        to: child.from,
+                                        insert: '\n',
+                                    });
+                                }
+                            });
+                        }
+                    }
+                }
+                if (node.name.includes('Args') && !node.name.includes('Special')) {
+                    let prim = doc.substring(node.from, node.to).toLowerCase();
+                    changes.push({ from: node.from, to: node.to, insert: prim });
+                }
+            }
+        });
+        return changes;
+    };
+    /** checkBlock: checks if code block needs to be multiline. */
+    const checkBlock = function (node, childName, doc) {
+        let count = 0;
+        let multiline = false;
+        let multilineChildren = false;
+        node.node.getChildren(childName).map((child) => {
+            count += 1;
+            multiline = doc.substring(child.from, child.to).includes('\n');
+            child.getChildren('CommandStatement').map((node) => {
+                node.getChildren('Arg').map((subnode) => {
+                    if (subnode.getChildren('CodeBlock').length > 0) {
+                        multilineChildren = true;
+                    }
+                    else if (subnode.getChildren('AnonymousProcedure').length > 0) {
+                        multilineChildren = true;
+                    }
+                });
+            });
+        });
+        return ((multiline || multilineChildren) && count == 1) || count > 1;
+    };
+
     let primitives = PrimitiveManager;
     // ExtensionLinter: Checks if extension primitives are used without declaring
     // the extension, or invalid extensions are declared
@@ -30033,11 +30215,12 @@ if(!String.prototype.matchAll) {
         const diagnostics = [];
         let foundExtension = false;
         let extension_index = 0;
+        let extension_node = null;
         const context = getCheckContext(view, lintContext, preprocessContext);
         syntaxTree(view.state)
             .cursor()
             .iterate((noderef) => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d;
             if (noderef.name == 'Extensions') {
                 noderef.node.getChildren('Identifier').map((child) => {
                     let name = view.state.sliceDoc(child.from, child.to);
@@ -30053,15 +30236,15 @@ if(!String.prototype.matchAll) {
                 noderef.node.getChildren('CloseBracket').map((child) => {
                     extension_index = child.from;
                     foundExtension = true;
+                    extension_node = noderef.node;
                 });
             }
             else if ((noderef.name.includes('Args') ||
                 (noderef.name.includes('Unsupported') &&
                     ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) != 'VariableName' &&
-                    ((_b = noderef.node.parent) === null || _b === void 0 ? void 0 : _b.name) != 'NewVariableDeclaration' &&
-                    ((_c = noderef.node.parent) === null || _c === void 0 ? void 0 : _c.name) != 'Arguments' &&
-                    ((_d = noderef.node.parent) === null || _d === void 0 ? void 0 : _d.name) != 'AnonArguments' &&
-                    ((_e = noderef.node.parent) === null || _e === void 0 ? void 0 : _e.name) != 'ProcedureName' &&
+                    ((_b = noderef.node.parent) === null || _b === void 0 ? void 0 : _b.name) != 'Arguments' &&
+                    ((_c = noderef.node.parent) === null || _c === void 0 ? void 0 : _c.name) != 'AnonArguments' &&
+                    ((_d = noderef.node.parent) === null || _d === void 0 ? void 0 : _d.name) != 'ProcedureName' &&
                     !checkValidIdentifier(noderef.node, view.state.sliceDoc(noderef.from, noderef.to), context))) &&
                 !noderef.name.includes('Special')) {
                 const value = view.state
@@ -30090,6 +30273,37 @@ if(!String.prototype.matchAll) {
                                             : 'extensions [' + vals[0] + ']\n',
                                     },
                                 });
+                            },
+                        },
+                        {
+                            name: Localized.Get('Add and Prettify'),
+                            apply(view, from, to) {
+                                if (extension_node) {
+                                    view.dispatch({
+                                        changes: {
+                                            from: extension_index,
+                                            to: extension_index,
+                                            insert: vals[0] + ' ',
+                                        },
+                                        selection: EditorSelection.create([
+                                            EditorSelection.range(extension_node.from, extension_node.to + (vals[0] + ' ').length),
+                                        ], 0),
+                                    });
+                                    prettify(view);
+                                }
+                                else {
+                                    view.dispatch({
+                                        changes: {
+                                            from: extension_index,
+                                            to: extension_index,
+                                            insert: 'extensions [' + vals[0] + ']\n',
+                                        },
+                                        selection: EditorSelection.create([
+                                            EditorSelection.range(0, ('extensions [' + vals[0] + ']\n').length),
+                                        ], 0),
+                                    });
+                                    prettify(view);
+                                }
                             },
                         },
                     ],
@@ -30452,188 +30666,10 @@ if(!String.prototype.matchAll) {
         });
     };
 
-    /** prettify: Change selection to fit formatting standards. */
-    const prettify = function (view) {
-        let from = view.state.selection.main.from;
-        let to = view.state.selection.main.to;
-        let doc = view.state.doc.toString().substring(from, to);
-        // eliminate extra spacing
-        let new_doc = initialSpaceRemoval(doc);
-        view.dispatch(view.state.replaceSelection(new_doc));
-        view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
-        // add in new lines based on grammar
-        view.dispatch({
-            changes: addSpacing(view, view.state.selection.main.from, view.state.selection.main.to),
-        });
-        // ensure spacing is correct
-        from = view.state.selection.main.from;
-        to = view.state.selection.main.to;
-        new_doc = finalSpacing(view.state.doc.toString().substring(from, to));
-        view.dispatch(view.state.replaceSelection(new_doc));
-        view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
-        // add indentation
-        view.dispatch({
-            changes: indentRange(view.state, view.state.selection.main.from, view.state.selection.main.to),
-        });
-    };
-    /** prettifyAll: Make whole code file follow formatting standards. */
-    const prettifyAll = function (view) {
-        let doc = view.state.doc.toString();
-        // eliminate extra spacing
-        let new_doc = initialSpaceRemoval(doc);
-        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
-        // give certain nodes their own lines
-        view.dispatch({
-            changes: addSpacing(view, 0, view.state.doc.toString().length),
-        });
-        // ensure spacing is correct
-        doc = view.state.doc.toString();
-        new_doc = finalSpacing(doc);
-        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
-        // add indentation
-        view.dispatch({
-            changes: indentRange(view.state, 0, view.state.doc.toString().length),
-        });
-    };
-    /** initialSpaceRemoval: Make initial spacing adjustments. */
-    const initialSpaceRemoval = function (doc) {
-        let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
-        new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
-        new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
-        new_doc = new_doc.replace(/\n[ ]+/g, '\n');
-        new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 [');
-        new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
-        new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
-        new_doc = new_doc.replace(/(\n)( +)(to[ -])/g, '$1$3');
-        new_doc = new_doc.replace(/ +/g, ' ');
-        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
-        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
-        return new_doc;
-    };
-    /** finalSpacing: Make final spacing adjustments. */
-    const finalSpacing = function (doc) {
-        let new_doc = doc.replace(/\n[ ]+/g, '\n');
-        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
-        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
-        new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
-        new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
-        return new_doc;
-    };
-    /** addSpacing: Give certain types of nodes their own lines. */
-    const addSpacing = function (view, from, to) {
-        let changes = [];
-        let doc = view.state.doc.toString();
-        syntaxTree(view.state)
-            .cursor()
-            .iterate((node) => {
-            var _a, _b;
-            if (node.from >= from && node.to <= to) {
-                if (((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' &&
-                    node.name != 'LineComment') ||
-                    node.name == 'To' ||
-                    node.name == 'End' ||
-                    (node.name == 'ProcedureContent' &&
-                        ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) != 'CodeBlock')) &&
-                    node.from > 0 &&
-                    doc[node.from - 1] != '\n') {
-                    changes.push({ from: node.from, to: node.from, insert: '\n' });
-                }
-                else if (node.name == 'CodeBlock' &&
-                    checkBlock(node.node, 'ProcedureContent', doc)) {
-                    for (var name of ['ProcedureContent', 'CloseBracket']) {
-                        node.node.getChildren(name).map((child) => {
-                            if (doc[child.from - 1] != '\n') {
-                                changes.push({
-                                    from: child.from,
-                                    to: child.from,
-                                    insert: '\n',
-                                });
-                            }
-                        });
-                    }
-                }
-                else if (node.name == 'ReporterBlock' &&
-                    checkBlock(node.node, 'ReporterContent', doc)) {
-                    for (var name of ['ReporterContent', 'CloseBracket']) {
-                        node.node.getChildren(name).map((child) => {
-                            if (doc[child.from - 1] != '\n') {
-                                changes.push({
-                                    from: child.from,
-                                    to: child.from,
-                                    insert: '\n',
-                                });
-                            }
-                        });
-                    }
-                }
-                else if (node.name == 'AnonymousProcedure' &&
-                    (checkBlock(node.node, 'ReporterContent', doc) ||
-                        checkBlock(node.node, 'ProcedureContent', doc))) {
-                    // console.log(changes.length);
-                    for (var name of [
-                        'ProcedureContent',
-                        'ReporterContent',
-                        'CloseBracket',
-                    ]) {
-                        node.node.getChildren(name).map((child) => {
-                            if (doc[child.from - 1] != '\n') {
-                                changes.push({
-                                    from: child.from,
-                                    to: child.from,
-                                    insert: '\n',
-                                });
-                            }
-                        });
-                    }
-                }
-                if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
-                    if (doc.substring(node.from, node.to).includes('\n')) {
-                        for (var name of ['CloseBracket', 'Extension', 'Identifier']) {
-                            node.node.getChildren(name).map((child) => {
-                                if (doc[child.from - 1] != '\n') {
-                                    changes.push({
-                                        from: child.from,
-                                        to: child.from,
-                                        insert: '\n',
-                                    });
-                                }
-                            });
-                        }
-                    }
-                }
-                if (node.name.includes('Args') && !node.name.includes('Special')) {
-                    let prim = doc.substring(node.from, node.to).toLowerCase();
-                    changes.push({ from: node.from, to: node.to, insert: prim });
-                }
-            }
-        });
-        return changes;
-    };
-    /** checkBlock: checks if code block needs to be multiline. */
-    const checkBlock = function (node, childName, doc) {
-        let count = 0;
-        let multiline = false;
-        let multilineChildren = false;
-        node.node.getChildren(childName).map((child) => {
-            count += 1;
-            multiline = doc.substring(child.from, child.to).includes('\n');
-            child.getChildren('CommandStatement').map((node) => {
-                node.getChildren('Arg').map((subnode) => {
-                    if (subnode.getChildren('CodeBlock').length > 0) {
-                        multilineChildren = true;
-                    }
-                    else if (subnode.getChildren('AnonymousProcedure').length > 0) {
-                        multilineChildren = true;
-                    }
-                });
-            });
-        });
-        return ((multiline || multilineChildren) && count == 1) || count > 1;
-    };
-
     const en_us = {
         // Buttons
         Add: () => 'Add',
+        'Add and Prettify': () => 'Add and Prettify',
         // Linting messages
         'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
         'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
@@ -30690,6 +30726,7 @@ if(!String.prototype.matchAll) {
     const zh_cn = {
         // Buttons
         Add: () => '添加',
+        'Add and Prettify': () => 'Add and Prettify',
         // Linting messages
         'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
         'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
