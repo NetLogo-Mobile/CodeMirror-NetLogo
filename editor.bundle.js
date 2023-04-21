@@ -30052,6 +30052,7 @@ if(!String.prototype.matchAll) {
         view.dispatch({
             changes: indentRange(view.state, view.state.selection.main.from, view.state.selection.main.to),
         });
+        return view.state.selection.main.to;
     };
     /** prettifyAll: Make whole code file follow formatting standards. */
     const prettifyAll = function (view) {
@@ -30286,6 +30287,7 @@ if(!String.prototype.matchAll) {
         else {
             let anchor = view.state.selection.main.anchor;
             let head = view.state.selection.main.head;
+            let end = extension_node ? extension_node.to : 0;
             if (extension_node) {
                 view.dispatch({
                     changes: {
@@ -30310,8 +30312,15 @@ if(!String.prototype.matchAll) {
                     ], 0),
                 });
             }
-            prettify(view);
-            view.dispatch({ selection: { anchor: anchor, head: head } });
+            let offset = prettify(view) - end;
+            if (anchor < index) {
+                view.dispatch({ selection: { anchor: anchor, head: head } });
+            }
+            else {
+                view.dispatch({
+                    selection: { anchor: anchor + offset, head: head + offset },
+                });
+            }
         }
     };
 
