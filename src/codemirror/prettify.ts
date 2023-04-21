@@ -45,6 +45,7 @@ export const prettify = function (
       view.state.selection.main.to
     ),
   });
+  return view.state.selection.main.to;
 };
 
 /** prettifyAll: Make whole code file follow formatting standards. */

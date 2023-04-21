@@ -112,6 +112,7 @@ export const addExtension = (
   } else {
     let anchor = view.state.selection.main.anchor;
     let head = view.state.selection.main.head;
+    let end = extension_node ? extension_node.to : 0;
     if (extension_node) {
       view.dispatch({
         changes: {
@@ -147,7 +148,13 @@ export const addExtension = (
         ),
       });
     }
-    prettify(view);
-    view.dispatch({ selection: { anchor: anchor, head: head } });
+    let offset = prettify(view) - end;
+    if (anchor < index) {
+      view.dispatch({ selection: { anchor: anchor, head: head } });
+    } else {
+      view.dispatch({
+        selection: { anchor: anchor + offset, head: head + offset },
+      });
+    }
   }
 };
