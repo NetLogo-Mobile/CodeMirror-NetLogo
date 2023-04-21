@@ -10,6 +10,7 @@ import {
 } from './utils/check-identifier';
 import { prettify } from '../../codemirror/prettify';
 import { SyntaxNode } from '@lezer/common';
+import { EditorView } from 'codemirror';
 
 let primitives = PrimitiveManager;
 
@@ -75,57 +76,13 @@ export const ExtensionLinter: Linter = (
             {
               name: Localized.Get('Add'),
               apply(view, from, to) {
-                view.dispatch({
-                  changes: {
-                    from: extension_index,
-                    to: extension_index,
-                    insert: foundExtension
-                      ? vals[0] + ' '
-                      : 'extensions [' + vals[0] + ']\n',
-                  },
-                });
-              },
-            },
-            {
-              name: Localized.Get('Add and Prettify'),
-              apply(view, from, to) {
-                if (extension_node) {
-                  view.dispatch({
-                    changes: {
-                      from: extension_index,
-                      to: extension_index,
-                      insert: vals[0] + ' ',
-                    },
-                    selection: EditorSelection.create(
-                      [
-                        EditorSelection.range(
-                          extension_node.from,
-                          extension_node.to + (vals[0] + ' ').length
-                        ),
-                      ],
-                      0
-                    ),
-                  });
-                  prettify(view);
-                } else {
-                  view.dispatch({
-                    changes: {
-                      from: extension_index,
-                      to: extension_index,
-                      insert: 'extensions [' + vals[0] + ']\n',
-                    },
-                    selection: EditorSelection.create(
-                      [
-                        EditorSelection.range(
-                          0,
-                          ('extensions [' + vals[0] + ']\n').length
-                        ),
-                      ],
-                      0
-                    ),
-                  });
-                  prettify(view);
-                }
+                addExtension(
+                  view,
+                  extension_index,
+                  vals[0],
+                  extension_node,
+                  true
+                );
               },
             },
           ],
@@ -133,4 +90,64 @@ export const ExtensionLinter: Linter = (
       }
     });
   return diagnostics;
+};
+
+export const addExtension = (
+  view: EditorView,
+  index: number,
+  extension: string,
+  extension_node: null | SyntaxNode,
+  make_pretty: boolean
+) => {
+  if (!make_pretty) {
+    view.dispatch({
+      changes: {
+        from: index,
+        to: index,
+        insert: extension_node
+          ? extension + ' '
+          : 'extensions [' + extension + ']\n',
+      },
+    });
+  } else {
+    let anchor = view.state.selection.main.anchor;
+    let head = view.state.selection.main.head;
+    if (extension_node) {
+      view.dispatch({
+        changes: {
+          from: index,
+          to: index,
+          insert: extension + ' ',
+        },
+        selection: EditorSelection.create(
+          [
+            EditorSelection.range(
+              extension_node.from,
+              extension_node.to + (extension + ' ').length
+            ),
+          ],
+          0
+        ),
+      });
+    } else {
+      view.dispatch({
+        changes: {
+          from: index,
+          to: index,
+          insert: 'extensions [' + extension + ']\n',
+        },
+        selection: EditorSelection.create(
+          [
+            EditorSelection.range(
+              0,
+              ('extensions [' + extension + ']\n').length
+            ),
+          ],
+          0
+        ),
+      });
+    }
+    prettify(view);
+    view.dispatch({ selection: { anchor: anchor, head: head } });
+  }
 };
