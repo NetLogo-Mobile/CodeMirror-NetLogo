@@ -1,7 +1,6 @@
 const en_us: Record<string, Function> = {
   // Buttons
   Add: () => 'Add',
-  'Add and Prettify': () => 'Add and Prettify',
 
   // Linting messages
   'Unrecognized breed name _': (Name: string) =>
@@ -64,6 +63,11 @@ const en_us: Record<string, Function> = {
     `This "${Current}" needs a matching ${Expected}.`,
   'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
     `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
+
+  Observer: () => 'Observer',
+  Turtle: () => 'Turtle',
+  Patch: () => 'Patch',
+  Link: () => 'Link',
 
   // Help messages
   '~VariableName': (Name: string) => `A (unknown) variable. `,

@@ -1,5 +1,6 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
+import { Log } from '../../codemirror/utils/debug-utils';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 
@@ -22,7 +23,7 @@ export const UnrecognizedLinter: Linter = (
         }
 
         const value = view.state.sliceDoc(node.from, node.to);
-        console.log(value, node.name, parents);
+        Log(value, node.name, parents);
         if (!['[', ']', ')', '(', '"'].includes(value)) {
           if (node.node.parent?.name == 'Normal') {
             diagnostics.push({

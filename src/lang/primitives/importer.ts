@@ -1,5 +1,6 @@
 import * as File from 'fs';
 import path from 'path';
+import { Log } from '../../codemirror/utils/debug-utils';
 // Thanks to the stupidity of TypeScript
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -166,7 +167,7 @@ export const Dataset: Primitive[] = ${JSON.stringify(this.Primitives)}`
     } else if (Type == 'command') {
       return NetLogoType.Command;
     } else {
-      console.log('Unrecognized type: ' + Type);
+      Log('Unrecognized type: ' + Type);
       return NetLogoType.Other;
     }
   }

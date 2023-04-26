@@ -34,16 +34,16 @@ export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
 const contextToString = function (context: AgentContexts) {
   let contexts: string[] = [];
   if (context.Observer) {
-    contexts.push('Observer');
+    contexts.push(Localized.Get('Observer'));
   }
   if (context.Turtle) {
-    contexts.push('Turtle');
+    contexts.push(Localized.Get('Turtle'));
   }
   if (context.Patch) {
-    contexts.push('Patch');
+    contexts.push(Localized.Get('Patch'));
   }
   if (context.Link) {
-    contexts.push('Link');
+    contexts.push(Localized.Get('Link'));
   }
   return contexts.join('/');
 };

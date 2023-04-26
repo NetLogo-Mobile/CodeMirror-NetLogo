@@ -7,6 +7,7 @@ import { NetLogoType } from '../classes';
 import { Linter } from './linter-builder';
 import { Localized } from '../../editor';
 import { PreprocessContext } from '../classes';
+import { Log } from '../../codemirror/utils/debug-utils';
 
 let primitives = PrimitiveManager;
 
@@ -225,10 +226,10 @@ export const checkValidNumArgs = function (
     ];
   } else if (func == '-') {
     if (!args.hasParentheses && !args.leftArgs) {
-      console.log('left args');
+      Log('left args');
       let expected = 1;
       let actual = args.leftArgs ? 1 : 0;
-      console.log('left', expected, actual);
+      Log('left', expected, actual);
       return ['left', func, expected, actual];
     } else if (args.rightArgs.length > 1) {
       return ['rightmax', func, 1, args.rightArgs.length];
@@ -239,7 +240,7 @@ export const checkValidNumArgs = function (
     let primitive = primitives.GetNamedPrimitive(func);
     //checks for terms used as primitives but don't exist in our dataset
     if (!primitive) {
-      console.log('no primitive', args.func?.name, func);
+      Log('no primitive', args.func?.name, func);
       return ['no primitive', func, 0, 0];
     } else if (
       //checks for incorrect numbers of arguments on the left side
@@ -248,11 +249,11 @@ export const checkValidNumArgs = function (
       (primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit &&
         !args.leftArgs)
     ) {
-      console.log('left args');
+      Log('left args');
       let expected =
         primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit ? 1 : 0;
       let actual = args.leftArgs ? 1 : 0;
-      console.log('left', expected, actual);
+      Log('left', expected, actual);
       return ['left', func, expected, actual];
     } else {
       let rightArgMin = 0;
@@ -285,14 +286,8 @@ export const checkValidNumArgs = function (
       }
       //ensure at least minimum # right args present
       if (args.rightArgs.length < rightArgMin) {
-        console.log(args.rightArgs);
-        console.log(
-          func,
-          'rightargs',
-          rightArgMin,
-          rightArgMax,
-          args.rightArgs.length
-        );
+        Log(args.rightArgs);
+        Log(func, 'rightargs', rightArgMin, rightArgMax, args.rightArgs.length);
         return ['rightmin', func, rightArgMin, args.rightArgs.length];
         //ensure at most max # right args present
       } else if (args.rightArgs.length > rightArgMax) {

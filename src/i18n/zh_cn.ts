@@ -1,7 +1,6 @@
 const zh_cn: Record<string, Function> = {
   // Buttons
   Add: () => '添加',
-  'Add and Prettify': () => 'Add and Prettify',
 
   // Linting messages
   'Unrecognized breed name _': (Name: string) =>
@@ -65,6 +64,11 @@ const zh_cn: Record<string, Function> = {
     `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
   'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
     `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
+
+  Observer: () => 'Observer',
+  Turtle: () => 'Turtle',
+  Patch: () => 'Patch',
+  Link: () => 'Link',
 
   // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
