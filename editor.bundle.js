@@ -29754,7 +29754,7 @@ if(!String.prototype.matchAll) {
                     curr = curr.parent;
                 }
                 const value = view.state.sliceDoc(node.from, node.to);
-                console.log(value, node.name, parents);
+                Log(value, node.name, parents);
                 if (!['[', ']', ')', '(', '"'].includes(value)) {
                     if (((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Normal') {
                         diagnostics.push({
@@ -29945,10 +29945,10 @@ if(!String.prototype.matchAll) {
         }
         else if (func == '-') {
             if (!args.hasParentheses && !args.leftArgs) {
-                console.log('left args');
+                Log('left args');
                 let expected = 1;
                 let actual = args.leftArgs ? 1 : 0;
-                console.log('left', expected, actual);
+                Log('left', expected, actual);
                 return ['left', func, expected, actual];
             }
             else if (args.rightArgs.length > 1) {
@@ -29962,7 +29962,7 @@ if(!String.prototype.matchAll) {
             let primitive = primitives$1.GetNamedPrimitive(func);
             //checks for terms used as primitives but don't exist in our dataset
             if (!primitive) {
-                console.log('no primitive', (_g = args.func) === null || _g === void 0 ? void 0 : _g.name, func);
+                Log('no primitive', (_g = args.func) === null || _g === void 0 ? void 0 : _g.name, func);
                 return ['no primitive', func, 0, 0];
             }
             else if (
@@ -29971,10 +29971,10 @@ if(!String.prototype.matchAll) {
                 args.leftArgs) ||
                 (((_j = primitive.LeftArgumentType) === null || _j === void 0 ? void 0 : _j.Types[0]) != NetLogoType.Unit &&
                     !args.leftArgs)) {
-                console.log('left args');
+                Log('left args');
                 let expected = ((_k = primitive.LeftArgumentType) === null || _k === void 0 ? void 0 : _k.Types[0]) != NetLogoType.Unit ? 1 : 0;
                 let actual = args.leftArgs ? 1 : 0;
-                console.log('left', expected, actual);
+                Log('left', expected, actual);
                 return ['left', func, expected, actual];
             }
             else {
@@ -30004,8 +30004,8 @@ if(!String.prototype.matchAll) {
                 }
                 //ensure at least minimum # right args present
                 if (args.rightArgs.length < rightArgMin) {
-                    console.log(args.rightArgs);
-                    console.log(func, 'rightargs', rightArgMin, rightArgMax, args.rightArgs.length);
+                    Log(args.rightArgs);
+                    Log(func, 'rightargs', rightArgMin, rightArgMax, args.rightArgs.length);
                     return ['rightmin', func, rightArgMin, args.rightArgs.length];
                     //ensure at most max # right args present
                 }
@@ -30666,16 +30666,16 @@ if(!String.prototype.matchAll) {
     const contextToString = function (context) {
         let contexts = [];
         if (context.Observer) {
-            contexts.push('Observer');
+            contexts.push(Localized.Get('Observer'));
         }
         if (context.Turtle) {
-            contexts.push('Turtle');
+            contexts.push(Localized.Get('Turtle'));
         }
         if (context.Patch) {
-            contexts.push('Patch');
+            contexts.push(Localized.Get('Patch'));
         }
         if (context.Link) {
-            contexts.push('Link');
+            contexts.push(Localized.Get('Link'));
         }
         return contexts.join('/');
     };
@@ -30722,7 +30722,6 @@ if(!String.prototype.matchAll) {
     const en_us = {
         // Buttons
         Add: () => 'Add',
-        'Add and Prettify': () => 'Add and Prettify',
         // Linting messages
         'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
         'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
@@ -30746,6 +30745,10 @@ if(!String.prototype.matchAll) {
         'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
         'Unmatched item _': (Current, Expected) => `This "${Current}" needs a matching ${Expected}.`,
         'Invalid context _.': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
+        Observer: () => 'Observer',
+        Turtle: () => 'Turtle',
+        Patch: () => 'Patch',
+        Link: () => 'Link',
         // Help messages
         '~VariableName': (Name) => `A (unknown) variable. `,
         '~ProcedureName': (Name) => `The name of a procedure. `,
@@ -30779,7 +30782,6 @@ if(!String.prototype.matchAll) {
     const zh_cn = {
         // Buttons
         Add: () => '添加',
-        'Add and Prettify': () => 'Add and Prettify',
         // Linting messages
         'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
         'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
@@ -30804,6 +30806,10 @@ if(!String.prototype.matchAll) {
         'Missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
         'Unsupported missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
         'Invalid context _.': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
+        Observer: () => 'Observer',
+        Turtle: () => 'Turtle',
+        Patch: () => 'Patch',
+        Link: () => 'Link',
         // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,
