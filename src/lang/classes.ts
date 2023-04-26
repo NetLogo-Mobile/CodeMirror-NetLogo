@@ -332,3 +332,31 @@ export class LintContext {
     return null;
   }
 }
+
+/** LocalVariable: metadata for local variables */
+export class ContextError {
+  /** From: The start of the error. */
+  public From: number;
+  /** To: The end of the error. */
+  public To: number;
+  /** PriorContext: The context of the procedure/code block. */
+  public PriorContext: AgentContexts;
+  /** ConflictingContext: The new context that is conflicting. */
+  public ConflictingContext: AgentContexts;
+  /** Primitive: The primitive that causes the conflict. */
+  public Primitive: string;
+
+  public constructor(
+    From: number,
+    To: number,
+    PriorContext: AgentContexts,
+    ConflictingContext: AgentContexts,
+    Primitive: string
+  ) {
+    this.From = From;
+    this.To = To;
+    this.PriorContext = PriorContext;
+    this.ConflictingContext = ConflictingContext;
+    this.Primitive = Primitive;
+  }
+}

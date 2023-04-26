@@ -7,6 +7,7 @@ import {
   Procedure,
   CodeBlock,
   AgentContexts,
+  ContextError,
 } from '../lang/classes';
 import { combineContexts, noContext } from './utils/context-utils';
 import { getBreedName } from './utils/breed-utils';
@@ -38,6 +39,8 @@ export class StateNetLogo {
   private IsDirty: boolean = true;
   /** Mode: The editor's parsing mode. */
   public Mode: ParseMode = ParseMode.Normal;
+  /** ContextErrors: Context errors detected during processing. */
+  public ContextErrors: ContextError[] = [];
   // #endregion
 
   // #region "Version Control"
@@ -61,6 +64,7 @@ export class StateNetLogo {
     this.Procedures = new Map<string, Procedure>();
     this.Extensions = [];
     this.Globals = [];
+    this.ContextErrors = [];
     this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], false));
     this.Breeds.set('patch', new Breed('patch', 'patches', [], false));
     this.Breeds.set('link', new Breed('link', 'links', [], true));
@@ -158,6 +162,8 @@ export class StateNetLogo {
   /** getContext: Identify context of a block by looking at primitives and variable names. */
   private getContext(node: SyntaxNode, state: EditorState) {
     let context = new AgentContexts();
+    let priorContext = new AgentContexts();
+    let newContext = context;
     node.getChildren('ProcedureContent').map((node2) => {
       node2.getChildren('CommandStatement').map((node3) => {
         let cursor = node3.cursor();
@@ -170,7 +176,20 @@ export class StateNetLogo {
           ) {
             let c = this.getPrimitiveContext(cursor.node, state);
             if (c) {
-              context = combineContexts(c, context);
+              newContext = combineContexts(c, priorContext);
+              if (!noContext(newContext)) {
+                priorContext = newContext;
+              } else {
+                this.ContextErrors.push(
+                  new ContextError(
+                    cursor.node.from,
+                    cursor.node.to,
+                    priorContext,
+                    c,
+                    state.sliceDoc(cursor.node.from, cursor.node.to)
+                  )
+                );
+              }
             }
           } else if (cursor.node.name == 'VariableDeclaration') {
             let n = cursor.node
@@ -208,14 +227,27 @@ export class StateNetLogo {
                 }
               }
             }
-
-            context = combineContexts(c, context);
+            newContext = combineContexts(c, priorContext);
+            if (!noContext(newContext)) {
+              priorContext = newContext;
+            } else {
+              this.ContextErrors.push(
+                new ContextError(
+                  cursor.node.from,
+                  cursor.node.to,
+                  priorContext,
+                  c,
+                  name
+                )
+              );
+            }
+            //context = combineContexts(c, context);
           }
           child = cursor.nextSibling();
         }
       });
     });
-    return context;
+    return priorContext;
   }
 
   /** getPrimitiveContext: Identify context for a builtin primitive. */
@@ -251,14 +283,14 @@ export class StateNetLogo {
               this.getContext(child, state),
               noContext(prim.context) ? parentContext : prim.context
             );
-            if (noContext(block.Context)) {
-              console.log(
-                parentContext,
-                prim.context,
-                noContext(prim.context) ? parentContext : prim.context,
-                this.getContext(child, state)
-              );
-            }
+            // if (noContext(block.Context)) {
+            //   console.log(
+            //     parentContext,
+            //     prim.context,
+            //     noContext(prim.context) ? parentContext : prim.context,
+            //     this.getContext(child, state)
+            //   );
+            // }
             block.Variables = vars.concat(
               this.getLocalVars(child.node, state, true)
             );

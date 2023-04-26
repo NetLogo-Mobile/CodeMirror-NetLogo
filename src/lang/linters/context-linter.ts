@@ -1,19 +1,51 @@
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
-import { Procedure, CodeBlock, LintContext } from '../classes';
+import { Procedure, CodeBlock, LintContext, AgentContexts } from '../classes';
 import {
   combineContexts,
   noContext,
 } from '../../codemirror/utils/context-utils';
+import { stateExtension } from '../../codemirror/extension-state-netlogo';
 
 // ContextLinter: Checks if procedures and code blocks have a valid context
 export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  for (let p of lintContext.Procedures.values()) {
-    diagnostics.push(...checkProcedureContents(p, lintContext));
+  // for (let p of lintContext.Procedures.values()) {
+  //   diagnostics.push(...checkProcedureContents(p, lintContext));
+  // }
+  let stateNetLogo = view.state.field(stateExtension);
+  for (let c of stateNetLogo.ContextErrors) {
+    diagnostics.push({
+      from: c.From,
+      to: c.To,
+      severity: 'error',
+      message: Localized.Get(
+        'Invalid context _.',
+        contextToString(c.PriorContext),
+        contextToString(c.ConflictingContext),
+        c.Primitive
+      ),
+    });
   }
   return diagnostics;
+};
+
+const contextToString = function (context: AgentContexts) {
+  let contexts: string[] = [];
+  if (context.Observer) {
+    contexts.push('Observer');
+  }
+  if (context.Turtle) {
+    contexts.push('Turtle');
+  }
+  if (context.Patch) {
+    contexts.push('Patch');
+  }
+  if (context.Link) {
+    contexts.push('Link');
+  }
+  return contexts.join('/');
 };
 
 // checkProcedureContents: Checks contents of procedures and codeblocks for valid context

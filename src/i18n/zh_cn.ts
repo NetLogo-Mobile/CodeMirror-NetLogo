@@ -57,14 +57,14 @@ const zh_cn: Record<string, Function> = {
     `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
   'Unmatched item _': (Current: string, Expected: string) =>
     `"${Current}" 需要对应的 ${Expected}。`,
-  'Invalid context _.': (Current: string, Expected: string) =>
-    `这个代码块的上下文不正确。`,
   'Unsupported extension _.': (Name: string) =>
     `这个编辑器不支持扩展 "${Name}"。`,
   'Missing extension _.': (Name: string) =>
     `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
   'Unsupported missing extension _.': (Name: string) =>
     `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
+  'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
+    `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
 
   // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,

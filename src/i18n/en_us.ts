@@ -62,8 +62,8 @@ const en_us: Record<string, Function> = {
     `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
   'Unmatched item _': (Current: string, Expected: string) =>
     `This "${Current}" needs a matching ${Expected}.`,
-  'Invalid context _.': (Current: string, Expected: string) =>
-    `The context for this code block is invalid.`,
+  'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
+    `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
 
   // Help messages
   '~VariableName': (Name: string) => `A (unknown) variable. `,
