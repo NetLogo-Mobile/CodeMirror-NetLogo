@@ -26262,6 +26262,12 @@ if(!String.prototype.matchAll) {
     }
     catch (error) { }
 
+    /** Log: Log to console if debug is enabled. */
+    function Log(...args) {
+        if (window.GalapagosEditor.DebugEnabled)
+            console.log(...args);
+    }
+
     /** AutoCompletion: Auto completion service for a NetLogo model. */
     /* Possible Types of Autocompletion Tokens:
     Directive; Constant; Extension;
@@ -26311,7 +26317,7 @@ if(!String.prototype.matchAll) {
         }
         /** GetParentKeywords: Get keywords of a certain type. */
         GetParentKeywords(Type, State) {
-            console.log(Type);
+            // console.log(Type);
             let results = this.ParentMaps[Type];
             switch (Type) {
                 case 'Extensions':
@@ -26393,7 +26399,7 @@ if(!String.prototype.matchAll) {
                 parents.push(curr.parent.name);
                 curr = curr.parent;
             }
-            console.log(node.name + '/' + parents.join('/'));
+            Log(node.name + '/' + parents.join('/'));
             if ((parents.includes('OnelineReporter') &&
                 this.Editor.Options.ParseMode == ParseMode.Normal) ||
                 (grandparentName == 'Normal' && parentName == '⚠')) {
@@ -26556,7 +26562,7 @@ if(!String.prototype.matchAll) {
             // Notify the editor
             if (Original.Editor)
                 Original.Editor.UpdatePreprocessContext();
-            console.log(Original);
+            Log(Original);
             return Original;
         },
     });
@@ -27168,7 +27174,7 @@ if(!String.prototype.matchAll) {
                 prim.inheritParentContext = (_e = primitive === null || primitive === void 0 ? void 0 : primitive.InheritParentContext) !== null && _e !== void 0 ? _e : false;
             }
             if (noContext(prim.context)) {
-                console.log(prim);
+                Log('No available context: ' + prim);
             }
             return prim;
         }
@@ -27299,7 +27305,7 @@ if(!String.prototype.matchAll) {
         update: (Original, Transaction) => {
             if (Transaction.docChanged) {
                 Original.SetDirty();
-                console.log(Original);
+                Log(Original);
             }
             return Original;
         },
@@ -27538,7 +27544,7 @@ if(!String.prototype.matchAll) {
         if (closestTerm == '~BreedReporter' || closestTerm == '~BreedCommand') {
             secondTerm = NLState.GetBreedFromProcedure(term);
         }
-        console.log('Term: ' + term, closestTerm, parentName);
+        Log('Term: ' + term, closestTerm, parentName);
         if (closestTerm == '')
             return getEmptyTooltip();
         // Check if there is an internal link for the tooltip
@@ -27639,7 +27645,7 @@ if(!String.prototype.matchAll) {
                 .cursor()
                 .iterate((node) => {
                 if (node.name == 'ProcedureName')
-                    console.log(state.sliceDoc(node.from, node.to));
+                    Log(state.sliceDoc(node.from, node.to));
                 if (node.name == 'ProcedureName' &&
                     state.sliceDoc(node.from, node.to) == term) {
                     linkData.to = node.to;

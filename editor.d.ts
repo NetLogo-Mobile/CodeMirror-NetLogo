@@ -1,6 +1,6 @@
 import { EditorView } from 'codemirror';
 import { LanguageSupport } from '@codemirror/language';
-import { EditorState, Extension } from '@codemirror/state';
+import { Extension } from '@codemirror/state';
 import { EditorConfig, ParseMode } from './editor-config';
 import { StateNetLogo } from './codemirror/extension-state-netlogo';
 import { StatePreprocess } from './codemirror/extension-state-preprocess.js';
@@ -11,7 +11,6 @@ import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { PreprocessContext, LintContext } from './lang/classes.js';
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export declare class GalapagosEditor {
-    readonly EditorState: EditorState;
     /** CodeMirror: The CodeMirror 6 component. */
     readonly CodeMirror: EditorView;
     /** Options: Options of this editor. */
@@ -24,6 +23,8 @@ export declare class GalapagosEditor {
     readonly Parent: HTMLElement;
     /** Linters: The linters used in this instance. */
     readonly Linters: Extension[];
+    /** DebugEnabled: Whether the debug output is enabled. */
+    static DebugEnabled: boolean;
     /** Constructor: Create an editor instance. */
     constructor(Parent: HTMLElement, Options: EditorConfig);
     /** Highlight: Highlight a given snippet of code. */
