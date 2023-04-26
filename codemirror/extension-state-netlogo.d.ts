@@ -1,5 +1,5 @@
 import { StateField, EditorState } from '@codemirror/state';
-import { Breed, Procedure } from '../lang/classes';
+import { Breed, Procedure, ContextError } from '../lang/classes';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { ParseMode } from '../editor-config';
 /** StateNetLogo: The second-pass editor state for the NetLogo Language. */
@@ -22,6 +22,8 @@ export declare class StateNetLogo {
     private IsDirty;
     /** Mode: The editor's parsing mode. */
     Mode: ParseMode;
+    /** ContextErrors: Context errors detected during processing. */
+    ContextErrors: ContextError[];
     /** SetDirty: Make the state dirty. */
     SetDirty(): void;
     /** GetDirty: Gets if the state is dirty. */

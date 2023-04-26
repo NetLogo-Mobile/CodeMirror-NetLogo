@@ -217,3 +217,17 @@ export declare class LintContext {
     /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
     GetProcedureFromVariable(varName: string, from: number, to: number): string | null;
 }
+/** LocalVariable: metadata for local variables */
+export declare class ContextError {
+    /** From: The start of the error. */
+    From: number;
+    /** To: The end of the error. */
+    To: number;
+    /** PriorContext: The context of the procedure/code block. */
+    PriorContext: AgentContexts;
+    /** ConflictingContext: The new context that is conflicting. */
+    ConflictingContext: AgentContexts;
+    /** Primitive: The primitive that causes the conflict. */
+    Primitive: string;
+    constructor(From: number, To: number, PriorContext: AgentContexts, ConflictingContext: AgentContexts, Primitive: string);
+}
