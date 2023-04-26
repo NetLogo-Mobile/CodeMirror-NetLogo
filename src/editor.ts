@@ -53,7 +53,6 @@ import { PreprocessContext, LintContext } from './lang/classes.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
-  public readonly EditorState!: EditorState;
   /** CodeMirror: The CodeMirror 6 component. */
   public readonly CodeMirror: EditorView;
   /** Options: Options of this editor. */
@@ -66,6 +65,8 @@ export class GalapagosEditor {
   public readonly Parent: HTMLElement;
   /** Linters: The linters used in this instance. */
   public readonly Linters: Extension[] = [];
+  /** DebugEnabled: Whether the debug output is enabled. */
+  public static DebugEnabled: boolean;
 
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {

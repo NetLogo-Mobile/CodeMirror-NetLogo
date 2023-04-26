@@ -10,6 +10,7 @@ import {
 } from './utils/tooltip-utils';
 import { GalapagosEditor, Localized } from '../editor';
 import { LintContext } from '../lang/classes';
+import { Log } from './utils/debug-utils';
 
 /** buildToolTips: Extension for displaying language-specific tooltips. */
 export const buildToolTips = function (Editor: GalapagosEditor) {
@@ -132,7 +133,7 @@ function getTooltip(
     secondTerm = NLState.GetBreedFromProcedure(term);
   }
 
-  console.log('Term: ' + term, closestTerm, parentName);
+  Log('Term: ' + term, closestTerm, parentName);
   if (closestTerm == '') return getEmptyTooltip();
 
   // Check if there is an internal link for the tooltip
@@ -252,7 +253,7 @@ function getInternalLink(
       .cursor()
       .iterate((node) => {
         if (node.name == 'ProcedureName')
-          console.log(state.sliceDoc(node.from, node.to));
+          Log(state.sliceDoc(node.from, node.to));
         if (
           node.name == 'ProcedureName' &&
           state.sliceDoc(node.from, node.to) == term

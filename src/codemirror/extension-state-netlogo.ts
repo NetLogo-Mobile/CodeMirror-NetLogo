@@ -15,6 +15,7 @@ import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
 import { ParseMode } from '../editor-config';
+import { Log } from './utils/debug-utils';
 
 let primitives = PrimitiveManager;
 
@@ -373,7 +374,7 @@ export class StateNetLogo {
       prim.inheritParentContext = primitive?.InheritParentContext ?? false;
     }
     if (noContext(prim.context)) {
-      console.log(prim);
+      Log('No available context: ' + prim);
     }
     return prim;
   }
@@ -549,7 +550,7 @@ const stateExtension = StateField.define<StateNetLogo>({
   update: (Original: StateNetLogo, Transaction: Transaction) => {
     if (Transaction.docChanged) {
       Original.SetDirty();
-      console.log(Original);
+      Log(Original);
     }
     return Original;
   },

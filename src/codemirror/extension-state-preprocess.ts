@@ -1,6 +1,7 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
 import { PreprocessContext } from '../lang/classes';
 import { GalapagosEditor, Localized } from '../editor';
+import { Log } from './utils/debug-utils';
 
 /** StatePreprocess: The first-pass state for the NetLogo Language. */
 export class StatePreprocess {
@@ -107,7 +108,7 @@ const preprocessStateExtension = StateField.define<StatePreprocess>({
     Original.ParseState(Transaction.state);
     // Notify the editor
     if (Original.Editor) Original.Editor.UpdatePreprocessContext();
-    console.log(Original);
+    Log(Original);
     return Original;
   },
 });

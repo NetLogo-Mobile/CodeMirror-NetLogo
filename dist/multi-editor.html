@@ -12,6 +12,7 @@
       var Editor;
       var EmbeddedEditor;
       window.addEventListener('load', function () {
+        GalapagosEditor.DebugEnabled = true;
         Editor = new GalapagosEditor(document.getElementById('Container1'), {
           OnUpdate: (Changed, Update) => {
             if (Changed) console.log(Update);

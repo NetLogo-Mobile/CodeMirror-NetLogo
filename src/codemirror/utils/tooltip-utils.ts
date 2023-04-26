@@ -1,6 +1,5 @@
 import { Breed } from '../../lang/classes';
-import { StateField, EditorState, EditorSelection } from '@codemirror/state';
-import { EditorView } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
 
 /** classifyPrimitive: Identify type of reporter/command for appropriate tooltip. */

@@ -17,6 +17,7 @@ import { getLocalVars } from './linters/utils/check-identifier';
 import { GalapagosEditor } from '../editor';
 import { LintContext } from './classes';
 import { ParseMode } from '../editor-config';
+import { Log } from '../codemirror/utils/debug-utils';
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 /* Possible Types of Autocompletion Tokens:
@@ -82,7 +83,7 @@ export class AutoCompletion {
 
   /** GetParentKeywords: Get keywords of a certain type. */
   private GetParentKeywords(Type: string, State: LintContext): Completion[] {
-    console.log(Type);
+    // console.log(Type);
     let results = this.ParentMaps[Type];
     switch (Type) {
       case 'Extensions':
@@ -177,7 +178,7 @@ export class AutoCompletion {
       parents.push(curr.parent.name);
       curr = curr.parent;
     }
-    console.log(node.name + '/' + parents.join('/'));
+    Log(node.name + '/' + parents.join('/'));
 
     if (
       (parents.includes('OnelineReporter') &&
