@@ -64,6 +64,7 @@ const en_us: Record<string, Function> = {
   'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
     `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
 
+  // Agent types
   Observer: () => 'Observer',
   Turtle: () => 'Turtle',
   Patch: () => 'Patch',

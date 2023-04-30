@@ -65,10 +65,11 @@ const zh_cn: Record<string, Function> = {
   'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
     `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
 
-  Observer: () => 'Observer',
-  Turtle: () => 'Turtle',
-  Patch: () => 'Patch',
-  Link: () => 'Link',
+  // Agent types
+  Observer: () => '观察者',
+  Turtle: () => '海龟',
+  Patch: () => '格子',
+  Link: () => '链接',
 
   // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
