@@ -21040,14 +21040,14 @@ if(!String.prototype.matchAll) {
     selection range that has the same text in front of it.
     */
     function insertCompletionText(state, text, from, to) {
-        let { main } = state.selection, len = to - from;
+        let { main } = state.selection, fromOff = from - main.from, toOff = to - main.from;
         return Object.assign(Object.assign({}, state.changeByRange(range => {
-            if (range != main && len &&
-                state.sliceDoc(range.from - len, range.from + to - main.from) != state.sliceDoc(from, to))
+            if (range != main && from != to &&
+                state.sliceDoc(range.from + fromOff, range.from + toOff) != state.sliceDoc(from, to))
                 return { range };
             return {
-                changes: { from: range.from - len, to: to == main.from ? range.to : range.from + to - main.from, insert: text },
-                range: EditorSelection.cursor(range.from - len + text.length)
+                changes: { from: range.from + fromOff, to: to == main.from ? range.to : range.from + toOff, insert: text },
+                range: EditorSelection.cursor(range.from + fromOff + text.length)
             };
         })), { userEvent: "input.complete" });
     }
@@ -22306,7 +22306,7 @@ if(!String.prototype.matchAll) {
             let spec = {
                 changes: { from, to, insert: Text.of(text) },
                 scrollIntoView: true,
-                annotations: pickedCompletion.of(completion)
+                annotations: completion ? pickedCompletion.of(completion) : undefined
             };
             if (ranges.length)
                 spec.selection = fieldSelection(ranges, 0);
@@ -30745,6 +30745,7 @@ if(!String.prototype.matchAll) {
         'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
         'Unmatched item _': (Current, Expected) => `This "${Current}" needs a matching ${Expected}.`,
         'Invalid context _.': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
+        // Agent types
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
         Patch: () => 'Patch',
@@ -30806,10 +30807,11 @@ if(!String.prototype.matchAll) {
         'Missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
         'Unsupported missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
         'Invalid context _.': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
-        Observer: () => 'Observer',
-        Turtle: () => 'Turtle',
-        Patch: () => 'Patch',
-        Link: () => 'Link',
+        // Agent types
+        Observer: () => '观察者',
+        Turtle: () => '海龟',
+        Patch: () => '格子',
+        Link: () => '链接',
         // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,
