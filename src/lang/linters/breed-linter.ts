@@ -3,9 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import { Breed } from '../lang/classes.ts';
+import { Breed, BreedType } from '../classes';
 import {
   CheckContext,
   checkValidIdentifier,
@@ -66,7 +64,10 @@ const checkValidBreed = function (
   let pluralLink: string[] = [];
   let singularLink: string[] = [];
   for (let b of breeds) {
-    if (b.IsLinkBreed) {
+    if (
+      b.BreedType == BreedType.DirectedLink ||
+      b.BreedType == BreedType.UndirectedLink
+    ) {
       pluralLink.push(b.Plural);
       singularLink.push(b.Singular);
     } else {

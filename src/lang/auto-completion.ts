@@ -15,7 +15,7 @@ import { syntaxTree } from '@codemirror/language';
 import { PrimitiveManager } from './primitives/primitives';
 import { getLocalVars } from './linters/utils/check-identifier';
 import { GalapagosEditor } from '../editor';
-import { LintContext } from './classes';
+import { LintContext, BreedType } from './classes';
 import { ParseMode } from '../editor-config';
 import { Log } from '../codemirror/utils/debug-utils';
 
@@ -113,7 +113,7 @@ export class AutoCompletion {
   private getBreedCommands(state: LintContext): string[] {
     let commands: string[] = [];
     for (let b of state.Breeds.values()) {
-      if (!b.IsLinkBreed) {
+      if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
         commands.push('hatch-' + b.Plural);
         commands.push('sprout-' + b.Plural);
         commands.push('create-' + b.Plural);
@@ -134,7 +134,7 @@ export class AutoCompletion {
   private getBreedReporters(state: LintContext): string[] {
     let reporters: string[] = [];
     for (let b of state.Breeds.values()) {
-      if (!b.IsLinkBreed) {
+      if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
         reporters.push(b.Plural + '-at');
         reporters.push(b.Plural + '-here');
         reporters.push(b.Plural + '-on');

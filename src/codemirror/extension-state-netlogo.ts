@@ -8,6 +8,7 @@ import {
   CodeBlock,
   AgentContexts,
   ContextError,
+  BreedType,
 } from '../lang/classes';
 import { combineContexts, noContext } from './utils/context-utils';
 import { getBreedName } from './utils/breed-utils';
@@ -66,9 +67,18 @@ export class StateNetLogo {
     this.Extensions = [];
     this.Globals = [];
     this.ContextErrors = [];
-    this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], false));
-    this.Breeds.set('patch', new Breed('patch', 'patches', [], false));
-    this.Breeds.set('link', new Breed('link', 'links', [], true));
+    this.Breeds.set(
+      'turtle',
+      new Breed('turtle', 'turtles', [], BreedType.Turtle)
+    );
+    this.Breeds.set(
+      'patch',
+      new Breed('patch', 'patches', [], BreedType.Patch)
+    );
+    this.Breeds.set(
+      'link',
+      new Breed('link', 'links', [], BreedType.UndirectedLink)
+    );
     let tempBreedVars: Map<string, string[]> = new Map<string, string[]>();
     this.IsDirty = false;
     if (!Cursor.firstChild()) return this;
@@ -93,14 +103,22 @@ export class StateNetLogo {
         const Plural = Cursor.node.getChildren('BreedPlural');
         const Singular = Cursor.node.getChildren('BreedSingular');
         let isLinkBreed = false;
+        let breedType = BreedType.Turtle;
         Cursor.node.getChildren('BreedDeclarative').map((node) => {
           isLinkBreed = node.getChildren('BreedStr').length == 1;
+          let name = this.getText(State, node);
+          if (name.toLowerCase() == 'undirected-link-breed') {
+            breedType = BreedType.UndirectedLink;
+          } else if (name.toLowerCase() == 'directed-link-breed') {
+            breedType = BreedType.DirectedLink;
+          }
         });
+
         if (Plural.length == 1 && Singular.length == 1) {
           let singular = this.getText(State, Singular[0]);
           let plural = this.getText(State, Plural[0]);
           let vars = tempBreedVars.get(plural) ?? [];
-          let breed = new Breed(singular, plural, vars, isLinkBreed);
+          let breed = new Breed(singular, plural, vars, breedType);
           this.Breeds.set(singular, breed);
         }
       }
@@ -218,13 +236,14 @@ export class StateNetLogo {
             } else if (n) {
               for (let breed of this.Breeds.values()) {
                 if (breed.Variables.includes(name)) {
-                  if (breed.IsLinkBreed) {
-                    c = new AgentContexts('---L');
-                  } else if (breed.Singular == 'patch') {
-                    c = new AgentContexts('-TP-');
-                  } else {
-                    c = new AgentContexts('-T--');
-                  }
+                  c = this.getBreedContext(breed);
+                  // if (breed.IsLinkBreed) {
+                  //   c = new AgentContexts('---L');
+                  // } else if (breed.Singular == 'patch') {
+                  //   c = new AgentContexts('-TP-');
+                  // } else {
+                  //   c = new AgentContexts('-T--');
+                  // }
                 }
               }
             }
@@ -359,13 +378,14 @@ export class StateNetLogo {
           }
         }
         if (breed) {
-          if (breed.IsLinkBreed) {
-            prim.context = new AgentContexts('---L');
-          } else if (breed.Singular == 'patch') {
-            prim.context = new AgentContexts('-TP-');
-          } else {
-            prim.context = new AgentContexts('-T--');
-          }
+          prim.context = this.getBreedContext(breed);
+          // if (breed.IsLinkBreed) {
+          //   prim.context = new AgentContexts('---L');
+          // } else if (breed.Singular == 'patch') {
+          //   prim.context = new AgentContexts('-TP-');
+          // } else {
+          //   prim.context = new AgentContexts('-T--');
+          // }
         }
       }
     } else {
@@ -377,6 +397,19 @@ export class StateNetLogo {
       Log('No available context: ' + prim);
     }
     return prim;
+  }
+
+  private getBreedContext(breed: Breed) {
+    if (
+      breed.BreedType == BreedType.DirectedLink ||
+      breed.BreedType == BreedType.UndirectedLink
+    ) {
+      return new AgentContexts('---L');
+    } else if (breed.Singular == 'patch') {
+      return new AgentContexts('-TP-');
+    } else {
+      return new AgentContexts('-T--');
+    }
   }
 
   /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */

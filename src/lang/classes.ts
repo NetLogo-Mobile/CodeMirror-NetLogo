@@ -111,7 +111,9 @@ export class Breed {
   /** Variables: Variables defined for the breed. */
   public Variables: string[];
   /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
-  public IsLinkBreed: boolean;
+  // public IsLinkBreed: boolean;
+  /** BreedType: type of the breed. */
+  public BreedType: BreedType;
   /** EditorId: which editor created the breed (for LinkContext). */
   public EditorId?: number;
   /** Build a breed. */
@@ -119,13 +121,23 @@ export class Breed {
     Singular: string,
     Plural: string,
     Variables: string[],
-    IsLinkBreed: boolean
+    // IsLinkBreed: boolean,
+    BreedType: BreedType
   ) {
     this.Singular = Singular;
     this.Plural = Plural;
     this.Variables = Variables;
-    this.IsLinkBreed = IsLinkBreed;
+    // this.IsLinkBreed = IsLinkBreed;
+    this.BreedType = BreedType;
   }
+}
+
+/** BreedType: type of the breed. */
+export enum BreedType {
+  Turtle,
+  DirectedLink,
+  UndirectedLink,
+  Patch,
 }
 
 /** Procedure: Dynamic metadata of a procedure. */

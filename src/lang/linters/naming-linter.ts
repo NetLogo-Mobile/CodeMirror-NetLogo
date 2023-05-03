@@ -2,7 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
-import { LintContext } from '../classes';
+import { LintContext, BreedType } from '../classes';
 import { getLocalVars } from './utils/check-identifier';
 
 // NamingLinter: Ensures no duplicate breed names
@@ -165,7 +165,10 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
 const getBreedType = (breedName: string, lintContext: LintContext) => {
   for (var [name, breed] of lintContext.Breeds) {
     if (breed.Plural.toLowerCase() == breedName.toLowerCase()) {
-      return breed.IsLinkBreed;
+      return (
+        breed.BreedType == BreedType.DirectedLink ||
+        breed.BreedType == BreedType.UndirectedLink
+      );
     }
   }
   return null;
