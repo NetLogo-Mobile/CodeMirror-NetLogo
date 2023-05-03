@@ -8532,15 +8532,34 @@ if(!String.prototype.matchAll) {
         */
         height, 
         /**
-        The type of element this is. When querying lines, this may be
-        an array of all the blocks that make up the line.
+        @internal
         */
-        type) {
+        children, 
+        /**
+        @internal
+        */
+        deco) {
             this.from = from;
             this.length = length;
             this.top = top;
             this.height = height;
-            this.type = type;
+            this.children = children;
+            this.deco = deco;
+        }
+        /**
+        The type of element this is. When querying lines, this may be
+        an array of all the blocks that make up the line.
+        */
+        get type() {
+            var _a, _b, _c;
+            return (_c = (_a = this.children) !== null && _a !== void 0 ? _a : (_b = this.deco) === null || _b === void 0 ? void 0 : _b.type) !== null && _c !== void 0 ? _c : BlockType.Text;
+        }
+        /**
+        If this is a widget block, this will return the widget
+        associated with it.
+        */
+        get widget() {
+            return this.deco && this.deco.widget;
         }
         /**
         The end of the element as a document position.
@@ -8554,9 +8573,8 @@ if(!String.prototype.matchAll) {
         @internal
         */
         join(other) {
-            let detail = (Array.isArray(this.type) ? this.type : [this])
-                .concat(Array.isArray(other.type) ? other.type : [other]);
-            return new BlockInfo(this.from, this.length + other.length, this.top, this.height + other.height, detail);
+            let children = (this.children || [this]).concat(other.children || [other]);
+            return new BlockInfo(this.from, this.length + other.length, this.top, this.height + other.height, children, null);
         }
     }
     var QueryType$1 = /*@__PURE__*/(function (QueryType) {
@@ -8671,12 +8689,12 @@ if(!String.prototype.matchAll) {
     }
     HeightMap.prototype.size = 1;
     class HeightMapBlock extends HeightMap {
-        constructor(length, height, type) {
+        constructor(length, height, deco) {
             super(length, height);
-            this.type = type;
+            this.deco = deco;
         }
         blockAt(_height, _oracle, top, offset) {
-            return new BlockInfo(offset, this.length, top, this.height, this.type);
+            return new BlockInfo(offset, this.length, top, this.height, null, this.deco);
         }
         lineAt(_value, _type, oracle, top, offset) {
             return this.blockAt(0, oracle, top, offset);
@@ -8695,7 +8713,7 @@ if(!String.prototype.matchAll) {
     }
     class HeightMapText extends HeightMapBlock {
         constructor(length, height) {
-            super(length, height, BlockType.Text);
+            super(length, height, null);
             this.collapsed = 0; // Amount of collapsed content in the line
             this.widgetHeight = 0; // Maximum inline widget height
         }
@@ -8750,12 +8768,12 @@ if(!String.prototype.matchAll) {
                 let guess = offset + Math.round(Math.max(0, Math.min(1, (height - top) / this.height)) * this.length);
                 let line = oracle.doc.lineAt(guess), lineHeight = perLine + line.length * perChar;
                 let lineTop = Math.max(top, height - lineHeight / 2);
-                return new BlockInfo(line.from, line.length, lineTop, lineHeight, BlockType.Text);
+                return new BlockInfo(line.from, line.length, lineTop, lineHeight, null, null);
             }
             else {
                 let line = Math.max(0, Math.min(lastLine - firstLine, Math.floor((height - top) / perLine)));
                 let { from, length } = oracle.doc.line(firstLine + line);
-                return new BlockInfo(from, length, top + perLine * line, perLine, BlockType.Text);
+                return new BlockInfo(from, length, top + perLine * line, perLine, null, null);
             }
         }
         lineAt(value, type, oracle, top, offset) {
@@ -8763,13 +8781,13 @@ if(!String.prototype.matchAll) {
                 return this.blockAt(value, oracle, top, offset);
             if (type == QueryType$1.ByPosNoHeight) {
                 let { from, to } = oracle.doc.lineAt(value);
-                return new BlockInfo(from, to - from, 0, 0, BlockType.Text);
+                return new BlockInfo(from, to - from, 0, 0, null, null);
             }
             let { firstLine, perLine, perChar } = this.heightMetrics(oracle, offset);
             let line = oracle.doc.lineAt(value), lineHeight = perLine + line.length * perChar;
             let linesAbove = line.number - firstLine;
             let lineTop = top + perLine * linesAbove + perChar * (line.from - offset - linesAbove);
-            return new BlockInfo(line.from, line.length, Math.max(top, Math.min(lineTop, top + this.height - lineHeight)), lineHeight, BlockType.Text);
+            return new BlockInfo(line.from, line.length, Math.max(top, Math.min(lineTop, top + this.height - lineHeight)), lineHeight, null, null);
         }
         forEachLine(from, to, oracle, top, offset, f) {
             from = Math.max(from, offset);
@@ -8782,7 +8800,7 @@ if(!String.prototype.matchAll) {
                     lineTop += perLine * linesAbove + perChar * (from - offset - linesAbove);
                 }
                 let lineHeight = perLine + perChar * line.length;
-                f(new BlockInfo(line.from, line.length, lineTop, lineHeight, BlockType.Text));
+                f(new BlockInfo(line.from, line.length, lineTop, lineHeight, null, null));
                 lineTop += lineHeight;
                 pos = line.to + 1;
             }
@@ -9012,7 +9030,7 @@ if(!String.prototype.matchAll) {
                     height = this.oracle.lineHeight;
                 let len = to - from;
                 if (deco.block) {
-                    this.addBlock(new HeightMapBlock(len, height, deco.type));
+                    this.addBlock(new HeightMapBlock(len, height, deco));
                 }
                 else if (len || height >= relevantWidgetHeight) {
                     this.addLineDeco(height, len);
@@ -9055,12 +9073,14 @@ if(!String.prototype.matchAll) {
             return line;
         }
         addBlock(block) {
+            var _a;
             this.enterLine();
-            if (block.type == BlockType.WidgetAfter && !this.isCovered)
+            let type = (_a = block.deco) === null || _a === void 0 ? void 0 : _a.type;
+            if (type == BlockType.WidgetAfter && !this.isCovered)
                 this.ensureLine();
             this.nodes.push(block);
             this.writtenTo = this.pos = this.pos + block.length;
-            if (block.type != BlockType.WidgetBefore)
+            if (type != BlockType.WidgetBefore)
                 this.covering = block;
         }
         addLineDeco(height, length) {
@@ -9663,7 +9683,7 @@ if(!String.prototype.matchAll) {
         if (scaler.scale == 1)
             return block;
         let bTop = scaler.toDOM(block.top), bBottom = scaler.toDOM(block.bottom);
-        return new BlockInfo(block.from, block.length, bTop, bBottom - bTop, Array.isArray(block.type) ? block.type.map(b => scaleBlock(b, scaler)) : block.type);
+        return new BlockInfo(block.from, block.length, bTop, bBottom - bTop, block.children && block.children.map(b => scaleBlock(b, scaler)), block.deco);
     }
 
     const theme = /*@__PURE__*/Facet.define({ combine: strs => strs.join(" ") });
@@ -13391,6 +13411,7 @@ if(!String.prototype.matchAll) {
         elementStyle: "",
         markers: () => RangeSet.empty,
         lineMarker: () => null,
+        widgetMarker: () => null,
         lineMarkerChange: null,
         initialSpacer: null,
         updateSpacer: null,
@@ -13471,24 +13492,28 @@ if(!String.prototype.matchAll) {
             let classSet = [];
             let contexts = this.gutters.map(gutter => new UpdateContext(gutter, this.view.viewport, -this.view.documentPadding.top));
             for (let line of this.view.viewportLineBlocks) {
-                let text;
-                if (Array.isArray(line.type)) {
-                    for (let b of line.type)
-                        if (b.type == BlockType.Text) {
-                            text = b;
-                            break;
-                        }
-                }
-                else {
-                    text = line.type == BlockType.Text ? line : undefined;
-                }
-                if (!text)
-                    continue;
                 if (classSet.length)
                     classSet = [];
-                advanceCursor(lineClasses, classSet, line.from);
-                for (let cx of contexts)
-                    cx.line(this.view, text, classSet);
+                if (Array.isArray(line.type)) {
+                    let first = true;
+                    for (let b of line.type) {
+                        if (b.type == BlockType.Text && first) {
+                            advanceCursor(lineClasses, classSet, b.from);
+                            for (let cx of contexts)
+                                cx.line(this.view, b, classSet);
+                            first = false;
+                        }
+                        else if (b.widget) {
+                            for (let cx of contexts)
+                                cx.widget(this.view, b);
+                        }
+                    }
+                }
+                else if (line.type == BlockType.Text) {
+                    advanceCursor(lineClasses, classSet, line.from);
+                    for (let cx of contexts)
+                        cx.line(this.view, line, classSet);
+                }
             }
             for (let cx of contexts)
                 cx.finish();
@@ -13556,6 +13581,19 @@ if(!String.prototype.matchAll) {
             this.i = 0;
             this.cursor = RangeSet.iter(gutter.markers, viewport.from);
         }
+        addElement(view, block, markers) {
+            let { gutter } = this, above = block.top - this.height;
+            if (this.i == gutter.elements.length) {
+                let newElt = new GutterElement(view, block.height, above, markers);
+                gutter.elements.push(newElt);
+                gutter.dom.appendChild(newElt.dom);
+            }
+            else {
+                gutter.elements[this.i].update(view, block.height, above, markers);
+            }
+            this.height = block.bottom;
+            this.i++;
+        }
         line(view, line, extraMarkers) {
             let localMarkers = [];
             advanceCursor(this.cursor, localMarkers, line.from);
@@ -13567,17 +13605,12 @@ if(!String.prototype.matchAll) {
             let gutter = this.gutter;
             if (localMarkers.length == 0 && !gutter.config.renderEmptyElements)
                 return;
-            let above = line.top - this.height;
-            if (this.i == gutter.elements.length) {
-                let newElt = new GutterElement(view, line.height, above, localMarkers);
-                gutter.elements.push(newElt);
-                gutter.dom.appendChild(newElt.dom);
-            }
-            else {
-                gutter.elements[this.i].update(view, line.height, above, localMarkers);
-            }
-            this.height = line.bottom;
-            this.i++;
+            this.addElement(view, line, localMarkers);
+        }
+        widget(view, block) {
+            let marker = this.gutter.config.widgetMarker(view, block.widget, block);
+            if (marker)
+                this.addElement(view, block, [marker]);
         }
         finish() {
             let gutter = this.gutter;
@@ -13745,6 +13778,7 @@ if(!String.prototype.matchAll) {
                 return null;
             return new NumberMarker(formatNumber(view, view.state.doc.lineAt(line.from).number));
         },
+        widgetMarker: () => null,
         lineMarkerChange: update => update.startState.facet(lineNumberConfig) != update.state.facet(lineNumberConfig),
         initialSpacer(view) {
             return new NumberMarker(formatNumber(view, maxLineNumber(view.state.doc.lines)));
@@ -21051,14 +21085,6 @@ if(!String.prototype.matchAll) {
             };
         })), { userEvent: "input.complete" });
     }
-    function applyCompletion(view, option) {
-        const apply = option.completion.apply || option.completion.label;
-        let result = option.source;
-        if (typeof apply == "string")
-            view.dispatch(Object.assign(Object.assign({}, insertCompletionText(view.state, apply, result.from, result.to)), { annotations: pickedCompletion.of(option.completion) }));
-        else
-            apply(view, option.completion, result.from, result.to);
-    }
     const SourceCache = /*@__PURE__*/new WeakMap();
     function asSource(source) {
         if (!Array.isArray(source))
@@ -21260,6 +21286,232 @@ if(!String.prototype.matchAll) {
             style: `${side}: ${offset}px; max-width: ${maxWidth}px`,
             class: "cm-completionInfo-" + (narrow ? (rtl ? "left-narrow" : "right-narrow") : left ? "left" : "right")
         };
+    }
+
+    /**
+    Returns a command that moves the completion selection forward or
+    backward by the given amount.
+    */
+    function moveCompletionSelection(forward, by = "option") {
+        return (view) => {
+            let cState = view.state.field(completionState, false);
+            if (!cState || !cState.open || cState.open.disabled ||
+                Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
+                return false;
+            let step = 1, tooltip;
+            if (by == "page" && (tooltip = getTooltip$1(view, cState.open.tooltip)))
+                step = Math.max(2, Math.floor(tooltip.dom.offsetHeight /
+                    tooltip.dom.querySelector("li").offsetHeight) - 1);
+            let { length } = cState.open.options;
+            let selected = cState.open.selected > -1 ? cState.open.selected + step * (forward ? 1 : -1) : forward ? 0 : length - 1;
+            if (selected < 0)
+                selected = by == "page" ? 0 : length - 1;
+            else if (selected >= length)
+                selected = by == "page" ? length - 1 : 0;
+            view.dispatch({ effects: setSelectedEffect.of(selected) });
+            return true;
+        };
+    }
+    /**
+    Accept the current completion.
+    */
+    const acceptCompletion = (view) => {
+        let cState = view.state.field(completionState, false);
+        if (view.state.readOnly || !cState || !cState.open || cState.open.selected < 0 ||
+            Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
+            return false;
+        if (!cState.open.disabled)
+            return applyCompletion(view, cState.open.options[cState.open.selected]);
+        return true;
+    };
+    /**
+    Explicitly start autocompletion.
+    */
+    const startCompletion = (view) => {
+        let cState = view.state.field(completionState, false);
+        if (!cState)
+            return false;
+        view.dispatch({ effects: startCompletionEffect.of(true) });
+        return true;
+    };
+    /**
+    Close the currently active completion.
+    */
+    const closeCompletion = (view) => {
+        let cState = view.state.field(completionState, false);
+        if (!cState || !cState.active.some(a => a.state != 0 /* State.Inactive */))
+            return false;
+        view.dispatch({ effects: closeCompletionEffect.of(null) });
+        return true;
+    };
+    class RunningQuery {
+        constructor(active, context) {
+            this.active = active;
+            this.context = context;
+            this.time = Date.now();
+            this.updates = [];
+            // Note that 'undefined' means 'not done yet', whereas 'null' means
+            // 'query returned null'.
+            this.done = undefined;
+        }
+    }
+    const DebounceTime = 50, MaxUpdateCount = 50, MinAbortTime = 1000;
+    const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
+        constructor(view) {
+            this.view = view;
+            this.debounceUpdate = -1;
+            this.running = [];
+            this.debounceAccept = -1;
+            this.composing = 0 /* CompositionState.None */;
+            for (let active of view.state.field(completionState).active)
+                if (active.state == 1 /* State.Pending */)
+                    this.startQuery(active);
+        }
+        update(update) {
+            let cState = update.state.field(completionState);
+            if (!update.selectionSet && !update.docChanged && update.startState.field(completionState) == cState)
+                return;
+            let doesReset = update.transactions.some(tr => {
+                return (tr.selection || tr.docChanged) && !getUserEvent(tr);
+            });
+            for (let i = 0; i < this.running.length; i++) {
+                let query = this.running[i];
+                if (doesReset ||
+                    query.updates.length + update.transactions.length > MaxUpdateCount && Date.now() - query.time > MinAbortTime) {
+                    for (let handler of query.context.abortListeners) {
+                        try {
+                            handler();
+                        }
+                        catch (e) {
+                            logException(this.view.state, e);
+                        }
+                    }
+                    query.context.abortListeners = null;
+                    this.running.splice(i--, 1);
+                }
+                else {
+                    query.updates.push(...update.transactions);
+                }
+            }
+            if (this.debounceUpdate > -1)
+                clearTimeout(this.debounceUpdate);
+            this.debounceUpdate = cState.active.some(a => a.state == 1 /* State.Pending */ && !this.running.some(q => q.active.source == a.source))
+                ? setTimeout(() => this.startUpdate(), DebounceTime) : -1;
+            if (this.composing != 0 /* CompositionState.None */)
+                for (let tr of update.transactions) {
+                    if (getUserEvent(tr) == "input")
+                        this.composing = 2 /* CompositionState.Changed */;
+                    else if (this.composing == 2 /* CompositionState.Changed */ && tr.selection)
+                        this.composing = 3 /* CompositionState.ChangedAndMoved */;
+                }
+        }
+        startUpdate() {
+            this.debounceUpdate = -1;
+            let { state } = this.view, cState = state.field(completionState);
+            for (let active of cState.active) {
+                if (active.state == 1 /* State.Pending */ && !this.running.some(r => r.active.source == active.source))
+                    this.startQuery(active);
+            }
+        }
+        startQuery(active) {
+            let { state } = this.view, pos = cur(state);
+            let context = new CompletionContext(state, pos, active.explicitPos == pos);
+            let pending = new RunningQuery(active, context);
+            this.running.push(pending);
+            Promise.resolve(active.source(context)).then(result => {
+                if (!pending.context.aborted) {
+                    pending.done = result || null;
+                    this.scheduleAccept();
+                }
+            }, err => {
+                this.view.dispatch({ effects: closeCompletionEffect.of(null) });
+                logException(this.view.state, err);
+            });
+        }
+        scheduleAccept() {
+            if (this.running.every(q => q.done !== undefined))
+                this.accept();
+            else if (this.debounceAccept < 0)
+                this.debounceAccept = setTimeout(() => this.accept(), DebounceTime);
+        }
+        // For each finished query in this.running, try to create a result
+        // or, if appropriate, restart the query.
+        accept() {
+            var _a;
+            if (this.debounceAccept > -1)
+                clearTimeout(this.debounceAccept);
+            this.debounceAccept = -1;
+            let updated = [];
+            let conf = this.view.state.facet(completionConfig);
+            for (let i = 0; i < this.running.length; i++) {
+                let query = this.running[i];
+                if (query.done === undefined)
+                    continue;
+                this.running.splice(i--, 1);
+                if (query.done) {
+                    let active = new ActiveResult(query.active.source, query.active.explicitPos, query.done, query.done.from, (_a = query.done.to) !== null && _a !== void 0 ? _a : cur(query.updates.length ? query.updates[0].startState : this.view.state));
+                    // Replay the transactions that happened since the start of
+                    // the request and see if that preserves the result
+                    for (let tr of query.updates)
+                        active = active.update(tr, conf);
+                    if (active.hasResult()) {
+                        updated.push(active);
+                        continue;
+                    }
+                }
+                let current = this.view.state.field(completionState).active.find(a => a.source == query.active.source);
+                if (current && current.state == 1 /* State.Pending */) {
+                    if (query.done == null) {
+                        // Explicitly failed. Should clear the pending status if it
+                        // hasn't been re-set in the meantime.
+                        let active = new ActiveSource(query.active.source, 0 /* State.Inactive */);
+                        for (let tr of query.updates)
+                            active = active.update(tr, conf);
+                        if (active.state != 1 /* State.Pending */)
+                            updated.push(active);
+                    }
+                    else {
+                        // Cleared by subsequent transactions. Restart.
+                        this.startQuery(current);
+                    }
+                }
+            }
+            if (updated.length)
+                this.view.dispatch({ effects: setActiveEffect.of(updated) });
+        }
+    }, {
+        eventHandlers: {
+            blur(event) {
+                let state = this.view.state.field(completionState, false);
+                if (state && state.tooltip && this.view.state.facet(completionConfig).closeOnBlur) {
+                    let dialog = state.open && getTooltip$1(this.view, state.open.tooltip);
+                    if (!dialog || !dialog.dom.contains(event.relatedTarget))
+                        this.view.dispatch({ effects: closeCompletionEffect.of(null) });
+                }
+            },
+            compositionstart() {
+                this.composing = 1 /* CompositionState.Started */;
+            },
+            compositionend() {
+                if (this.composing == 3 /* CompositionState.ChangedAndMoved */) {
+                    // Safari fires compositionend events synchronously, possibly
+                    // from inside an update, so dispatch asynchronously to avoid reentrancy
+                    setTimeout(() => this.view.dispatch({ effects: startCompletionEffect.of(false) }), 20);
+                }
+                this.composing = 0 /* CompositionState.None */;
+            }
+        }
+    });
+    function applyCompletion(view, option) {
+        const apply = option.completion.apply || option.completion.label;
+        let result = view.state.field(completionState).active.find(a => a.source == option.source);
+        if (!(result instanceof ActiveResult))
+            return false;
+        if (typeof apply == "string")
+            view.dispatch(Object.assign(Object.assign({}, insertCompletionText(view.state, apply, result.from, result.to)), { annotations: pickedCompletion.of(option.completion) }));
+        else
+            apply(view, option.completion, result.from, result.to);
+        return true;
     }
 
     function optionContent(config) {
@@ -21567,14 +21819,14 @@ if(!String.prototype.matchAll) {
                         if (getMatch)
                             for (let n of getMatch(option))
                                 match.push(n);
-                        addOption(new Option(option, a, match, match[0]));
+                        addOption(new Option(option, a.source, match, match[0]));
                     }
                 }
                 else {
                     let matcher = new FuzzyMatcher(state.sliceDoc(a.from, a.to)), match;
                     for (let option of a.result.options)
                         if (match = matcher.match(option.label)) {
-                            addOption(new Option(option, a, match, match[0] + (option.boost || 0)));
+                            addOption(new Option(option, a.source, match, match[0] + (option.boost || 0)));
                         }
                 }
             }
@@ -21798,221 +22050,6 @@ if(!String.prototype.matchAll) {
             showTooltip.from(f, val => val.tooltip),
             EditorView.contentAttributes.from(f, state => state.attrs)
         ]
-    });
-
-    /**
-    Returns a command that moves the completion selection forward or
-    backward by the given amount.
-    */
-    function moveCompletionSelection(forward, by = "option") {
-        return (view) => {
-            let cState = view.state.field(completionState, false);
-            if (!cState || !cState.open || cState.open.disabled ||
-                Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
-                return false;
-            let step = 1, tooltip;
-            if (by == "page" && (tooltip = getTooltip$1(view, cState.open.tooltip)))
-                step = Math.max(2, Math.floor(tooltip.dom.offsetHeight /
-                    tooltip.dom.querySelector("li").offsetHeight) - 1);
-            let { length } = cState.open.options;
-            let selected = cState.open.selected > -1 ? cState.open.selected + step * (forward ? 1 : -1) : forward ? 0 : length - 1;
-            if (selected < 0)
-                selected = by == "page" ? 0 : length - 1;
-            else if (selected >= length)
-                selected = by == "page" ? length - 1 : 0;
-            view.dispatch({ effects: setSelectedEffect.of(selected) });
-            return true;
-        };
-    }
-    /**
-    Accept the current completion.
-    */
-    const acceptCompletion = (view) => {
-        let cState = view.state.field(completionState, false);
-        if (view.state.readOnly || !cState || !cState.open || cState.open.selected < 0 ||
-            Date.now() - cState.open.timestamp < view.state.facet(completionConfig).interactionDelay)
-            return false;
-        if (!cState.open.disabled)
-            applyCompletion(view, cState.open.options[cState.open.selected]);
-        return true;
-    };
-    /**
-    Explicitly start autocompletion.
-    */
-    const startCompletion = (view) => {
-        let cState = view.state.field(completionState, false);
-        if (!cState)
-            return false;
-        view.dispatch({ effects: startCompletionEffect.of(true) });
-        return true;
-    };
-    /**
-    Close the currently active completion.
-    */
-    const closeCompletion = (view) => {
-        let cState = view.state.field(completionState, false);
-        if (!cState || !cState.active.some(a => a.state != 0 /* State.Inactive */))
-            return false;
-        view.dispatch({ effects: closeCompletionEffect.of(null) });
-        return true;
-    };
-    class RunningQuery {
-        constructor(active, context) {
-            this.active = active;
-            this.context = context;
-            this.time = Date.now();
-            this.updates = [];
-            // Note that 'undefined' means 'not done yet', whereas 'null' means
-            // 'query returned null'.
-            this.done = undefined;
-        }
-    }
-    const DebounceTime = 50, MaxUpdateCount = 50, MinAbortTime = 1000;
-    const completionPlugin = /*@__PURE__*/ViewPlugin.fromClass(class {
-        constructor(view) {
-            this.view = view;
-            this.debounceUpdate = -1;
-            this.running = [];
-            this.debounceAccept = -1;
-            this.composing = 0 /* CompositionState.None */;
-            for (let active of view.state.field(completionState).active)
-                if (active.state == 1 /* State.Pending */)
-                    this.startQuery(active);
-        }
-        update(update) {
-            let cState = update.state.field(completionState);
-            if (!update.selectionSet && !update.docChanged && update.startState.field(completionState) == cState)
-                return;
-            let doesReset = update.transactions.some(tr => {
-                return (tr.selection || tr.docChanged) && !getUserEvent(tr);
-            });
-            for (let i = 0; i < this.running.length; i++) {
-                let query = this.running[i];
-                if (doesReset ||
-                    query.updates.length + update.transactions.length > MaxUpdateCount && Date.now() - query.time > MinAbortTime) {
-                    for (let handler of query.context.abortListeners) {
-                        try {
-                            handler();
-                        }
-                        catch (e) {
-                            logException(this.view.state, e);
-                        }
-                    }
-                    query.context.abortListeners = null;
-                    this.running.splice(i--, 1);
-                }
-                else {
-                    query.updates.push(...update.transactions);
-                }
-            }
-            if (this.debounceUpdate > -1)
-                clearTimeout(this.debounceUpdate);
-            this.debounceUpdate = cState.active.some(a => a.state == 1 /* State.Pending */ && !this.running.some(q => q.active.source == a.source))
-                ? setTimeout(() => this.startUpdate(), DebounceTime) : -1;
-            if (this.composing != 0 /* CompositionState.None */)
-                for (let tr of update.transactions) {
-                    if (getUserEvent(tr) == "input")
-                        this.composing = 2 /* CompositionState.Changed */;
-                    else if (this.composing == 2 /* CompositionState.Changed */ && tr.selection)
-                        this.composing = 3 /* CompositionState.ChangedAndMoved */;
-                }
-        }
-        startUpdate() {
-            this.debounceUpdate = -1;
-            let { state } = this.view, cState = state.field(completionState);
-            for (let active of cState.active) {
-                if (active.state == 1 /* State.Pending */ && !this.running.some(r => r.active.source == active.source))
-                    this.startQuery(active);
-            }
-        }
-        startQuery(active) {
-            let { state } = this.view, pos = cur(state);
-            let context = new CompletionContext(state, pos, active.explicitPos == pos);
-            let pending = new RunningQuery(active, context);
-            this.running.push(pending);
-            Promise.resolve(active.source(context)).then(result => {
-                if (!pending.context.aborted) {
-                    pending.done = result || null;
-                    this.scheduleAccept();
-                }
-            }, err => {
-                this.view.dispatch({ effects: closeCompletionEffect.of(null) });
-                logException(this.view.state, err);
-            });
-        }
-        scheduleAccept() {
-            if (this.running.every(q => q.done !== undefined))
-                this.accept();
-            else if (this.debounceAccept < 0)
-                this.debounceAccept = setTimeout(() => this.accept(), DebounceTime);
-        }
-        // For each finished query in this.running, try to create a result
-        // or, if appropriate, restart the query.
-        accept() {
-            var _a;
-            if (this.debounceAccept > -1)
-                clearTimeout(this.debounceAccept);
-            this.debounceAccept = -1;
-            let updated = [];
-            let conf = this.view.state.facet(completionConfig);
-            for (let i = 0; i < this.running.length; i++) {
-                let query = this.running[i];
-                if (query.done === undefined)
-                    continue;
-                this.running.splice(i--, 1);
-                if (query.done) {
-                    let active = new ActiveResult(query.active.source, query.active.explicitPos, query.done, query.done.from, (_a = query.done.to) !== null && _a !== void 0 ? _a : cur(query.updates.length ? query.updates[0].startState : this.view.state));
-                    // Replay the transactions that happened since the start of
-                    // the request and see if that preserves the result
-                    for (let tr of query.updates)
-                        active = active.update(tr, conf);
-                    if (active.hasResult()) {
-                        updated.push(active);
-                        continue;
-                    }
-                }
-                let current = this.view.state.field(completionState).active.find(a => a.source == query.active.source);
-                if (current && current.state == 1 /* State.Pending */) {
-                    if (query.done == null) {
-                        // Explicitly failed. Should clear the pending status if it
-                        // hasn't been re-set in the meantime.
-                        let active = new ActiveSource(query.active.source, 0 /* State.Inactive */);
-                        for (let tr of query.updates)
-                            active = active.update(tr, conf);
-                        if (active.state != 1 /* State.Pending */)
-                            updated.push(active);
-                    }
-                    else {
-                        // Cleared by subsequent transactions. Restart.
-                        this.startQuery(current);
-                    }
-                }
-            }
-            if (updated.length)
-                this.view.dispatch({ effects: setActiveEffect.of(updated) });
-        }
-    }, {
-        eventHandlers: {
-            blur(event) {
-                let state = this.view.state.field(completionState, false);
-                if (state && state.tooltip && this.view.state.facet(completionConfig).closeOnBlur) {
-                    let dialog = state.open && getTooltip$1(this.view, state.open.tooltip);
-                    if (!dialog || !dialog.dom.contains(event.relatedTarget))
-                        this.view.dispatch({ effects: closeCompletionEffect.of(null) });
-                }
-            },
-            compositionstart() {
-                this.composing = 1 /* CompositionState.Started */;
-            },
-            compositionend() {
-                if (this.composing == 3 /* CompositionState.ChangedAndMoved */) {
-                    // Safari fires compositionend events synchronously, possibly
-                    // from inside an update, so dispatch asynchronously to avoid reentrancy
-                    setTimeout(() => this.view.dispatch({ effects: startCompletionEffect.of(false) }), 20);
-                }
-                this.composing = 0 /* CompositionState.None */;
-            }
-        }
     });
 
     const baseTheme$1 = /*@__PURE__*/EditorView.baseTheme({
@@ -30815,7 +30852,7 @@ if(!String.prototype.matchAll) {
         // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,
-        '~Arguments/Identifier': (Name) => `过程或函数定义的参数名称。`,
+        '~Arguments': (Name) => `过程或函数定义的参数名称。`,
         '~PatchVar': (Name) => `格子的内置变量。`,
         '~TurtleVar': (Name) => `海龟的内置变量。`,
         '~LinkVar': (Name) => `链接的内置变量。`,
