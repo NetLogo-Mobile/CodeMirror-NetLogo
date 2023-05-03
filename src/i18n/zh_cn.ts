@@ -74,7 +74,7 @@ const zh_cn: Record<string, Function> = {
   // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
   '~ProcedureName': (Name: string) => `过程或函数的名称。`,
-  '~Arguments/Identifier': (Name: string) => `过程或函数定义的参数名称。`,
+  '~Arguments': (Name: string) => `过程或函数定义的参数名称。`,
   '~PatchVar': (Name: string) => `格子的内置变量。`,
   '~TurtleVar': (Name: string) => `海龟的内置变量。`,
   '~LinkVar': (Name: string) => `链接的内置变量。`,
