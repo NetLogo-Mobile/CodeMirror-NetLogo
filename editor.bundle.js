@@ -27527,11 +27527,12 @@ if(!String.prototype.matchAll) {
                 if (closestTerm == '~BreedSingular' ||
                     closestTerm == '~Arguments' ||
                     closestTerm == '~ProcedureName') ;
-                else if (Dictionary.Check(`~${name}`) || Localized.Get(`~${name}`)) {
+                else if (Dictionary.Check(`~${name}`) ||
+                    Localized.Get(`~${name}`) != `~${name}`) {
                     closestTerm = `~${name}`;
                 }
                 else if (Dictionary.Check(`~${parentName}/${name}`) ||
-                    Localized.Get(`~${parentName}/${name}`))
+                    Localized.Get(`~${parentName}/${name}`) != `~${parentName}/${name}`)
                     closestTerm = `~${parentName}/${name}`;
                 parentName = name;
             },
