@@ -1,7 +1,9 @@
 import * as File from 'fs';
 import path from 'path';
-import { Log } from '../../codemirror/utils/debug-utils';
 // Thanks to the stupidity of TypeScript
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { Log } from '../../codemirror/utils/debug-utils.ts';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { Primitive, NetLogoType, AgentContexts, Argument } from '../classes.ts';
