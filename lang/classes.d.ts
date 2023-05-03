@@ -91,11 +91,19 @@ export declare class Breed {
     /** Variables: Variables defined for the breed. */
     Variables: string[];
     /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
-    IsLinkBreed: boolean;
+    /** BreedType: type of the breed. */
+    BreedType: BreedType;
     /** EditorId: which editor created the breed (for LinkContext). */
     EditorId?: number;
     /** Build a breed. */
-    constructor(Singular: string, Plural: string, Variables: string[], IsLinkBreed: boolean);
+    constructor(Singular: string, Plural: string, Variables: string[], BreedType: BreedType);
+}
+/** BreedType: type of the breed. */
+export declare enum BreedType {
+    Turtle = 0,
+    DirectedLink = 1,
+    UndirectedLink = 2,
+    Patch = 3
 }
 /** Procedure: Dynamic metadata of a procedure. */
 export declare class Procedure {

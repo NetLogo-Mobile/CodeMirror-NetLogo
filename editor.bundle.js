@@ -25318,13 +25318,24 @@ if(!String.prototype.matchAll) {
     /** Breed: Dynamic metadata of a single breed. */
     class Breed {
         /** Build a breed. */
-        constructor(Singular, Plural, Variables, IsLinkBreed) {
+        constructor(Singular, Plural, Variables, 
+        // IsLinkBreed: boolean,
+        BreedType) {
             this.Singular = Singular;
             this.Plural = Plural;
             this.Variables = Variables;
-            this.IsLinkBreed = IsLinkBreed;
+            // this.IsLinkBreed = IsLinkBreed;
+            this.BreedType = BreedType;
         }
     }
+    /** BreedType: type of the breed. */
+    var BreedType;
+    (function (BreedType) {
+        BreedType[BreedType["Turtle"] = 0] = "Turtle";
+        BreedType[BreedType["DirectedLink"] = 1] = "DirectedLink";
+        BreedType[BreedType["UndirectedLink"] = 2] = "UndirectedLink";
+        BreedType[BreedType["Patch"] = 3] = "Patch";
+    })(BreedType || (BreedType = {}));
     /** Procedure: Dynamic metadata of a procedure. */
     class Procedure {
         constructor() {
@@ -26373,7 +26384,7 @@ if(!String.prototype.matchAll) {
         getBreedCommands(state) {
             let commands = [];
             for (let b of state.Breeds.values()) {
-                if (!b.IsLinkBreed) {
+                if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
                     commands.push('hatch-' + b.Plural);
                     commands.push('sprout-' + b.Plural);
                     commands.push('create-' + b.Plural);
@@ -26394,7 +26405,7 @@ if(!String.prototype.matchAll) {
         getBreedReporters(state) {
             let reporters = [];
             for (let b of state.Breeds.values()) {
-                if (!b.IsLinkBreed) {
+                if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
                     reporters.push(b.Plural + '-at');
                     reporters.push(b.Plural + '-here');
                     reporters.push(b.Plural + '-on');
@@ -26949,9 +26960,9 @@ if(!String.prototype.matchAll) {
             this.Extensions = [];
             this.Globals = [];
             this.ContextErrors = [];
-            this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], false));
-            this.Breeds.set('patch', new Breed('patch', 'patches', [], false));
-            this.Breeds.set('link', new Breed('link', 'links', [], true));
+            this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], BreedType.Turtle));
+            this.Breeds.set('patch', new Breed('patch', 'patches', [], BreedType.Patch));
+            this.Breeds.set('link', new Breed('link', 'links', [], BreedType.UndirectedLink));
             let tempBreedVars = new Map();
             this.IsDirty = false;
             if (!Cursor.firstChild())
@@ -26977,15 +26988,22 @@ if(!String.prototype.matchAll) {
                 else if (Cursor.node.name == 'Breed') {
                     const Plural = Cursor.node.getChildren('BreedPlural');
                     const Singular = Cursor.node.getChildren('BreedSingular');
-                    let isLinkBreed = false;
+                    let breedType = BreedType.Turtle;
                     Cursor.node.getChildren('BreedDeclarative').map((node) => {
-                        isLinkBreed = node.getChildren('BreedStr').length == 1;
+                        node.getChildren('BreedStr').length == 1;
+                        let name = this.getText(State, node);
+                        if (name.toLowerCase() == 'undirected-link-breed') {
+                            breedType = BreedType.UndirectedLink;
+                        }
+                        else if (name.toLowerCase() == 'directed-link-breed') {
+                            breedType = BreedType.DirectedLink;
+                        }
                     });
                     if (Plural.length == 1 && Singular.length == 1) {
                         let singular = this.getText(State, Singular[0]);
                         let plural = this.getText(State, Plural[0]);
                         let vars = (_a = tempBreedVars.get(plural)) !== null && _a !== void 0 ? _a : [];
-                        let breed = new Breed(singular, plural, vars, isLinkBreed);
+                        let breed = new Breed(singular, plural, vars, breedType);
                         this.Breeds.set(singular, breed);
                     }
                 }
@@ -27086,15 +27104,14 @@ if(!String.prototype.matchAll) {
                             else if (n) {
                                 for (let breed of this.Breeds.values()) {
                                     if (breed.Variables.includes(name)) {
-                                        if (breed.IsLinkBreed) {
-                                            c = new AgentContexts('---L');
-                                        }
-                                        else if (breed.Singular == 'patch') {
-                                            c = new AgentContexts('-TP-');
-                                        }
-                                        else {
-                                            c = new AgentContexts('-T--');
-                                        }
+                                        c = this.getBreedContext(breed);
+                                        // if (breed.IsLinkBreed) {
+                                        //   c = new AgentContexts('---L');
+                                        // } else if (breed.Singular == 'patch') {
+                                        //   c = new AgentContexts('-TP-');
+                                        // } else {
+                                        //   c = new AgentContexts('-T--');
+                                        // }
                                     }
                                 }
                             }
@@ -27193,15 +27210,14 @@ if(!String.prototype.matchAll) {
                         }
                     }
                     if (breed) {
-                        if (breed.IsLinkBreed) {
-                            prim.context = new AgentContexts('---L');
-                        }
-                        else if (breed.Singular == 'patch') {
-                            prim.context = new AgentContexts('-TP-');
-                        }
-                        else {
-                            prim.context = new AgentContexts('-T--');
-                        }
+                        prim.context = this.getBreedContext(breed);
+                        // if (breed.IsLinkBreed) {
+                        //   prim.context = new AgentContexts('---L');
+                        // } else if (breed.Singular == 'patch') {
+                        //   prim.context = new AgentContexts('-TP-');
+                        // } else {
+                        //   prim.context = new AgentContexts('-T--');
+                        // }
                     }
                 }
             }
@@ -27214,6 +27230,18 @@ if(!String.prototype.matchAll) {
                 Log('No available context: ' + prim);
             }
             return prim;
+        }
+        getBreedContext(breed) {
+            if (breed.BreedType == BreedType.DirectedLink ||
+                breed.BreedType == BreedType.UndirectedLink) {
+                return new AgentContexts('---L');
+            }
+            else if (breed.Singular == 'patch') {
+                return new AgentContexts('-TP-');
+            }
+            else {
+                return new AgentContexts('-T--');
+            }
         }
         /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */
         searchAnonProcedure(node, State, procedure) {
@@ -29719,7 +29747,8 @@ if(!String.prototype.matchAll) {
         let pluralLink = [];
         let singularLink = [];
         for (let b of breeds) {
-            if (b.IsLinkBreed) {
+            if (b.BreedType == BreedType.DirectedLink ||
+                b.BreedType == BreedType.UndirectedLink) {
                 pluralLink.push(b.Plural);
                 singularLink.push(b.Singular);
             }
@@ -30558,7 +30587,8 @@ if(!String.prototype.matchAll) {
     const getBreedType = (breedName, lintContext) => {
         for (var [name, breed] of lintContext.Breeds) {
             if (breed.Plural.toLowerCase() == breedName.toLowerCase()) {
-                return breed.IsLinkBreed;
+                return (breed.BreedType == BreedType.DirectedLink ||
+                    breed.BreedType == BreedType.UndirectedLink);
             }
         }
         return null;
