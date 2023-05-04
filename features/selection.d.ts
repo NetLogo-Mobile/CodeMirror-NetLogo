@@ -27,3 +27,4 @@ export declare class SelectionFeatures {
     /** RefreshCursor: Refresh the cursor position. */
     RefreshCursor(): void;
 }
+//# sourceMappingURL=selection.d.ts.map

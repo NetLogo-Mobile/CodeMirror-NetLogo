@@ -59,3 +59,4 @@ export declare class StateNetLogo {
 /** StateExtension: Extension for managing the editor state.  */
 declare const stateExtension: StateField<StateNetLogo>;
 export { stateExtension };
+//# sourceMappingURL=extension-state-netlogo.d.ts.map

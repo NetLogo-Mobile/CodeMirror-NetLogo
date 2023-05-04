@@ -90,7 +90,6 @@ export declare class Breed {
     Plural: string;
     /** Variables: Variables defined for the breed. */
     Variables: string[];
-    /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
     /** BreedType: type of the breed. */
     BreedType: BreedType;
     /** EditorID: which editor created the breed (for LinkContext). */
@@ -98,7 +97,7 @@ export declare class Breed {
     /** Build a breed. */
     constructor(Singular: string, Plural: string, Variables: string[], BreedType: BreedType);
 }
-/** BreedType: type of the breed. */
+/** BreedType: Type of the breed. */
 export declare enum BreedType {
     Turtle = 0,
     Patch = 1,
@@ -239,3 +238,4 @@ export declare class ContextError {
     Primitive: string;
     constructor(From: number, To: number, PriorContext: AgentContexts, ConflictingContext: AgentContexts, Primitive: string);
 }
+//# sourceMappingURL=classes.d.ts.map

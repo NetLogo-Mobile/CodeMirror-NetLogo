@@ -44,3 +44,4 @@ export declare enum ParseMode {
     /** Generative: Generative mode, a special Normal mode that does not provide context to its parent but instead take it back. */
     Generative = "Generative"
 }
+//# sourceMappingURL=editor-config.d.ts.map

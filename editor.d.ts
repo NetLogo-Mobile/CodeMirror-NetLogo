@@ -107,3 +107,4 @@ export declare class GalapagosEditor {
 /** Export classes globally. */
 declare const Localized: LocalizationManager;
 export { Localized };
+//# sourceMappingURL=editor.d.ts.map

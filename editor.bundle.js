@@ -25325,7 +25325,7 @@ if(!String.prototype.matchAll) {
             this.BreedType = BreedType;
         }
     }
-    /** BreedType: type of the breed. */
+    /** BreedType: Type of the breed. */
     var BreedType;
     (function (BreedType) {
         BreedType[BreedType["Turtle"] = 0] = "Turtle";

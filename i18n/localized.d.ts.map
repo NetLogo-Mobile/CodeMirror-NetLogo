@@ -1,0 +1,1 @@
+{"version":3,"file":"localized.d.ts","sourceRoot":"","sources":["../../../src/i18n/localized.ts"],"names":[],"mappings":"AAGA,uDAAuD;AACvD,cAAM,mBAAmB;IACvB,OAAO,CAAC,OAAO,CAAmC;IAClD,gCAAgC;IACzB,GAAG,CAAC,GAAG,EAAE,MAAM,EAAE,GAAG,IAAI,EAAE,MAAM,EAAE;IAUzC,0CAA0C;IACnC,MAAM,CAAC,MAAM,EAAE,MAAM;CAW7B;AAED,OAAO,EAAE,mBAAmB,EAAE,CAAC"}

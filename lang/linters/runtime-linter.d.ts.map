@@ -1,0 +1,1 @@
+{"version":3,"file":"runtime-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/runtime-linter.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,UAAU,EAAE,MAAM,kBAAkB,CAAC;AAK9C,eAAO,MAAM,cAAc,EAAE,UAU5B,CAAC;AAGF,eAAO,MAAM,aAAa,EAAE,UAU3B,CAAC;AAGF,MAAM,WAAW,YAAY;IAC3B,OAAO,EAAE,MAAM,CAAC;IAChB,KAAK,EAAE,MAAM,CAAC;IACd,GAAG,EAAE,MAAM,CAAC;CACb"}

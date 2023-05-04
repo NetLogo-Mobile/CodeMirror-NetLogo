@@ -31,3 +31,4 @@ export declare class StatePreprocess {
 /** StateExtension: Extension for managing the editor state.  */
 declare const preprocessStateExtension: StateField<StatePreprocess>;
 export { preprocessStateExtension };
+//# sourceMappingURL=extension-state-preprocess.d.ts.map

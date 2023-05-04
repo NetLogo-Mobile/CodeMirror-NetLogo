@@ -15,3 +15,4 @@ export declare const getCheckContext: (view: EditorView, lintContext: LintContex
 export declare const acceptableIdentifiers: string[];
 export declare const checkValidIdentifier: (Node: SyntaxNode, value: string, context: CheckContext) => boolean;
 export declare const getLocalVars: (Node: SyntaxNode, state: EditorState, parseState: LintContext | StateNetLogo) => string[];
+//# sourceMappingURL=check-identifier.d.ts.map

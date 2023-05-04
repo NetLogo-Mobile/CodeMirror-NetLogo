@@ -11,3 +11,4 @@ declare class DictionaryManager {
 /** Singleton */
 declare const Dictionary: DictionaryManager;
 export { Dictionary };
+//# sourceMappingURL=dictionary.d.ts.map

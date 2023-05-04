@@ -29,3 +29,4 @@ export declare class Primitives {
 }
 /** PrimitiveManager: The Singleton Instance. */
 export declare const PrimitiveManager: Primitives;
+//# sourceMappingURL=primitives.d.ts.map

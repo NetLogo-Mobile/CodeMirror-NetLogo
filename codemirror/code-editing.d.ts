@@ -8,3 +8,4 @@ export declare class GalapagosEditing {
     ReplaceProcedure(view: EditorView, name: string, content: string): void;
     AddTermToBracket(view: EditorView, content: string, node: SyntaxNode): void;
 }
+//# sourceMappingURL=code-editing.d.ts.map

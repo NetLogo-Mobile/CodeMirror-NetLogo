@@ -7,3 +7,4 @@ export declare const NetLogoLanguage: LRLanguage;
 export declare function NetLogo(Editor: GalapagosEditor): LanguageSupport;
 /** GetContext: Get the preprocess context from the parsing context. */
 export declare function GetContext(): PreprocessContext;
+//# sourceMappingURL=netlogo.d.ts.map

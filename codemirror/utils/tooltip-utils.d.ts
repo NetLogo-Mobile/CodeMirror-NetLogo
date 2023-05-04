@@ -10,3 +10,4 @@ export declare const getLink: (nodeName: string, childName: string, term: string
     from: number;
     hasLink: boolean;
 };
+//# sourceMappingURL=tooltip-utils.d.ts.map

@@ -6,3 +6,4 @@ export interface RuntimeError {
     start: number;
     end: number;
 }
+//# sourceMappingURL=runtime-linter.d.ts.map

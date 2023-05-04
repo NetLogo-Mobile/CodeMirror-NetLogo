@@ -15,3 +15,4 @@ export declare const checkValidNumArgs: (state: EditorState, args: {
     func: SyntaxNode | null;
     hasParentheses: boolean;
 }, preprocessContext: PreprocessContext) => (string | number | boolean | null)[];
+//# sourceMappingURL=argument-linter.d.ts.map

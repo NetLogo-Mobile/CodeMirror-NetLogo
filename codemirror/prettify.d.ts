@@ -3,3 +3,4 @@ import { EditorView } from 'codemirror';
 export declare const prettify: (view: EditorView, from?: number | null, to?: number | null) => number;
 /** prettifyAll: Make whole code file follow formatting standards. */
 export declare const prettifyAll: (view: EditorView) => void;
+//# sourceMappingURL=prettify.d.ts.map

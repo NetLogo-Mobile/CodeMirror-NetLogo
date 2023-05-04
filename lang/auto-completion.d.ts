@@ -31,3 +31,4 @@ export declare class AutoCompletion {
     /** GetCompletionSource: Get the completion source for a NetLogo model. */
     GetCompletionSource(): CompletionSource;
 }
+//# sourceMappingURL=auto-completion.d.ts.map

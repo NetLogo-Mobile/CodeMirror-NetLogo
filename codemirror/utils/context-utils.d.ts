@@ -3,3 +3,4 @@ import { AgentContexts } from '../../lang/classes';
 export declare const combineContexts: (c1: AgentContexts, c2: AgentContexts) => AgentContexts;
 /** noContext: Identify if there is no valid context. */
 export declare const noContext: (context: AgentContexts) => boolean;
+//# sourceMappingURL=context-utils.d.ts.map

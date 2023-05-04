@@ -9,3 +9,4 @@ type Linter = (view: EditorView, preprocessContext: PreprocessContext, lintConte
 /** buildLinter: Builds a linter extension from a linter function. */
 declare const buildLinter: (Source: Linter, Editor: GalapagosEditor) => Extension;
 export { buildLinter, Linter };
+//# sourceMappingURL=linter-builder.d.ts.map

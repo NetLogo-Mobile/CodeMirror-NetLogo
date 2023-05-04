@@ -33,3 +33,4 @@ export declare class SemanticFeatures {
     /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
     ForEachDiagnostic(Callback: (d: Diagnostic, from: number, to: number) => void): void;
 }
+//# sourceMappingURL=semantics.d.ts.map

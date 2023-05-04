@@ -37,3 +37,4 @@ export declare class EditingFeatures {
     /** ShowProcedures: Show a list of procedures for the user to jump to. */
     ShowProcedures(): void;
 }
+//# sourceMappingURL=editing.d.ts.map

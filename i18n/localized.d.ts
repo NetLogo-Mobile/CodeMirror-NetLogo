@@ -7,3 +7,4 @@ declare class LocalizationManager {
     Switch(Locale: string): void;
 }
 export { LocalizationManager };
+//# sourceMappingURL=localized.d.ts.map

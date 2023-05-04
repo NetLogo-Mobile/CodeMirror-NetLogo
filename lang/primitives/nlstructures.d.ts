@@ -29,3 +29,4 @@ export interface NLPrimitive {
         canBeConcise: boolean;
     };
 }
+//# sourceMappingURL=nlstructures.d.ts.map

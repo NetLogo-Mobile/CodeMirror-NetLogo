@@ -4,3 +4,4 @@ export declare const getBreedName: (value: string) => string;
 /** checkBreedLike: Identify if an identifier looks like a breed procedure,
  and where the breed name is inside that identifier **/
 export declare const checkBreedLike: (str: string) => (boolean | BreedLocation)[];
+//# sourceMappingURL=breed-utils.d.ts.map
