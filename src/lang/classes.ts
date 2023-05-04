@@ -110,8 +110,6 @@ export class Breed {
   public Plural: string;
   /** Variables: Variables defined for the breed. */
   public Variables: string[];
-  /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
-  // public IsLinkBreed: boolean;
   /** BreedType: type of the breed. */
   public BreedType: BreedType;
   /** EditorID: which editor created the breed (for LinkContext). */
@@ -130,7 +128,7 @@ export class Breed {
   }
 }
 
-/** BreedType: type of the breed. */
+/** BreedType: Type of the breed. */
 export enum BreedType {
   Turtle = 0,
   Patch = 1,
