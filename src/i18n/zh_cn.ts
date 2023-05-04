@@ -68,8 +68,11 @@ const zh_cn: Record<string, Function> = {
   // Agent types
   Observer: () => '观察者',
   Turtle: () => '海龟',
+  Turtles: () => '海龟们',
   Patch: () => '格子',
+  Patches: () => '格子们',
   Link: () => '链接',
+  Links: () => '链接们',
 
   // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
@@ -106,6 +109,8 @@ const zh_cn: Record<string, Function> = {
   Reconnect: () => `重新连接`,
   'Connection to server failed _': (Error: string) =>
     `抱歉，和服务器的连接中断了。代码 ${Error}。`,
+  'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,
+  'Summary of request': () => `简单总结我的请求的要点：`,
 };
 
 export { zh_cn };

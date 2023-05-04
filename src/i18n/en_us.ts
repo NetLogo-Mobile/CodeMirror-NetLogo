@@ -67,8 +67,11 @@ const en_us: Record<string, Function> = {
   // Agent types
   Observer: () => 'Observer',
   Turtle: () => 'Turtle',
+  Turtles: () => 'Turtles',
   Patch: () => 'Patch',
+  Patches: () => 'Patches',
   Link: () => 'Link',
+  Links: () => 'Links',
 
   // Help messages
   '~VariableName': (Name: string) => `A (unknown) variable. `,
@@ -108,6 +111,8 @@ const en_us: Record<string, Function> = {
   Reconnect: () => `Reconnect`,
   'Connection to server failed _': (Error: string) =>
     `Sorry, the connection to our server failed. Code ${Error}.`,
+  'Expand messages _': (Number: number) => `Expand ${Number} messages`,
+  'Summary of request': () => `Below is a summary of my request: `,
 };
 
 export { en_us };

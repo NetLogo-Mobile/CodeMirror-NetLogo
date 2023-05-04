@@ -32,9 +32,9 @@ import { LocalizationManager } from './i18n/localized.js';
 import { buildLinter } from './lang/linters/linter-builder.js';
 import { PreprocessContext, LintContext } from './lang/classes.js';
 import { indentWithTab } from '@codemirror/commands';
-import { EditingFeatures } from './ui/editing.js';
-import { SelectionFeatures } from './ui/selection.js';
-import { SemanticFeatures } from './ui/semantics.js';
+import { EditingFeatures } from './features/editing.js';
+import { SelectionFeatures } from './features/selection.js';
+import { SemanticFeatures } from './features/semantics.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
