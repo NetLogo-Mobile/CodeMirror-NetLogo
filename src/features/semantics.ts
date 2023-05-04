@@ -2,9 +2,10 @@ import { EditorView } from '@codemirror/view';
 import { GalapagosEditor } from '../editor';
 import { highlightTree } from '@lezer/highlight';
 import { highlightStyle } from '../codemirror/style-highlight';
-import { Tree } from '@lezer/common';
+import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { prettify, prettifyAll } from '../codemirror/prettify';
 import { forEachDiagnostic, Diagnostic } from '@codemirror/lint';
+import { syntaxTree } from '@codemirror/language';
 
 /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
 export class SemanticFeatures {
@@ -19,13 +20,32 @@ export class SemanticFeatures {
   }
 
   // #region "Highlighting"
+  /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
+  GetSyntaxTree(): Tree {
+    return syntaxTree(this.CodeMirror.state);
+  }
+  /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
+  SyntaxNodesAt(Position: number, Callback: (Node: SyntaxNodeRef) => void) {
+    this.GetSyntaxTree().cursorAt(Position).iterate(Callback);
+  }
+  /** GetRecognizedMode: Get the recognized program mode. */
+  GetRecognizedMode(): string {
+    var Name = this.GetSyntaxTree().topNode?.firstChild?.name;
+    switch (Name) {
+      case 'Embedded':
+        return 'Command';
+      case 'OnelineReporter':
+        return 'Reporter';
+      case 'Normal':
+        return 'Model';
+      default:
+        return 'Unknown';
+    }
+  }
   /** Highlight: Export the code in the editor into highlighted HTML. */
   Highlight(): HTMLElement {
     this.Galapagos.ForceParse();
-    return this.HighlightTree(
-      this.Galapagos.GetSyntaxTree(),
-      this.Galapagos.GetCode()
-    );
+    return this.HighlightTree(this.GetSyntaxTree(), this.Galapagos.GetCode());
   }
   /** HighlightContent: Highlight a given snippet of code. */
   HighlightContent(Content: string): HTMLElement {
@@ -80,6 +100,13 @@ export class SemanticFeatures {
   PrettifyAll() {
     this.Galapagos.ForceParse();
     prettifyAll(this.CodeMirror);
+  }
+  /** PrettifyOrAll: Prettify the selected code. If no code is selected, prettify all. */
+  PrettifyOrAll() {
+    var Ranges = this.CodeMirror.state.selection.ranges;
+    if (Ranges.length == 0 || Ranges[0].from == Ranges[0].to)
+      this.PrettifyAll();
+    else this.Prettify();
   }
   // #endregion
 

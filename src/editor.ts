@@ -1,10 +1,6 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { closeCompletion, acceptCompletion } from '@codemirror/autocomplete';
-import {
-  forceParsing,
-  LanguageSupport,
-  syntaxTree,
-} from '@codemirror/language';
+import { forceParsing, LanguageSupport } from '@codemirror/language';
 import { Prec, Compartment, EditorState, Extension } from '@codemirror/state';
 import { ViewUpdate, keymap } from '@codemirror/view';
 import { NetLogo } from './lang/netlogo.js';
@@ -31,9 +27,8 @@ import {
   RuntimeLinter,
 } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
-import { forEachDiagnostic, Diagnostic, linter } from '@codemirror/lint';
+import { Diagnostic, linter } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
-import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { buildLinter } from './lang/linters/linter-builder.js';
 import { PreprocessContext, LintContext } from './lang/classes.js';
 import { indentWithTab } from '@codemirror/commands';
@@ -162,28 +157,6 @@ export class GalapagosEditor {
   /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
   GetPreprocessState(): StatePreprocess {
     return this.CodeMirror.state.field(preprocessStateExtension);
-  }
-  /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
-  GetSyntaxTree(): Tree {
-    return syntaxTree(this.CodeMirror.state);
-  }
-  /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
-  SyntaxNodesAt(Position: number, Callback: (Node: SyntaxNodeRef) => void) {
-    this.GetSyntaxTree().cursorAt(Position).iterate(Callback);
-  }
-  /** GetRecognizedMode: Get the recognized program mode. */
-  GetRecognizedMode(): string {
-    var Name = this.GetSyntaxTree().topNode?.firstChild?.name;
-    switch (Name) {
-      case 'Embedded':
-        return 'Command';
-      case 'OnelineReporter':
-        return 'Reporter';
-      case 'Normal':
-        return 'Model';
-      default:
-        return 'Unknown';
-    }
   }
   // #endregion
 
