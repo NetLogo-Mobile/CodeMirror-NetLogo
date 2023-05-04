@@ -1,27 +1,15 @@
 import { EditorView, basicSetup } from 'codemirror';
-import { undo, redo, selectAll, indentWithTab } from '@codemirror/commands';
 import { closeCompletion, acceptCompletion } from '@codemirror/autocomplete';
 import {
   forceParsing,
   LanguageSupport,
   syntaxTree,
 } from '@codemirror/language';
-import {
-  replaceAll,
-  selectMatches,
-  SearchQuery,
-  findNext,
-  gotoLine,
-  replaceNext,
-  setSearchQuery,
-  openSearchPanel,
-  closeSearchPanel,
-} from '@codemirror/search';
 import { Prec, Compartment, EditorState, Extension } from '@codemirror/state';
 import { ViewUpdate, keymap } from '@codemirror/view';
 import { NetLogo } from './lang/netlogo.js';
 import { EditorConfig, EditorLanguage, ParseMode } from './editor-config';
-import { highlight, highlightStyle } from './codemirror/style-highlight';
+import { highlight } from './codemirror/style-highlight';
 import { updateExtension } from './codemirror/extension-update';
 import {
   stateExtension,
@@ -33,7 +21,6 @@ import {
 } from './codemirror/extension-state-preprocess.js';
 import { buildToolTips } from './codemirror/extension-tooltip';
 import { lightTheme } from './codemirror/theme-light';
-import { highlightTree } from '@lezer/highlight';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
@@ -44,12 +31,15 @@ import {
   RuntimeLinter,
 } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
-import { prettify, prettifyAll } from './codemirror/prettify.js';
 import { forEachDiagnostic, Diagnostic, linter } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
 import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { buildLinter } from './lang/linters/linter-builder.js';
 import { PreprocessContext, LintContext } from './lang/classes.js';
+import { indentWithTab } from '@codemirror/commands';
+import { EditingFeatures } from './ui/editing.js';
+import { SelectionFeatures } from './ui/selection.js';
+import { SemanticFeatures } from './ui/semantics.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -65,6 +55,12 @@ export class GalapagosEditor {
   public readonly Parent: HTMLElement;
   /** Linters: The linters used in this instance. */
   public readonly Linters: Extension[] = [];
+  /** Editing: The editing features of this editor. */
+  public readonly Editing: EditingFeatures;
+  /** Selection: The selection features of this editor. */
+  public readonly Selection: SelectionFeatures;
+  /** Semantics: The semantics features of this editor. */
+  public readonly Semantics: SemanticFeatures;
   /** DebugEnabled: Whether the debug output is enabled. */
   public static DebugEnabled: boolean;
 
@@ -73,7 +69,6 @@ export class GalapagosEditor {
     this.Editable = new Compartment();
     this.Parent = Parent;
     this.Options = Options;
-
     // Extensions
     const Extensions = [
       // Editor
@@ -87,7 +82,6 @@ export class GalapagosEditor {
       // indentExtension
       keymap.of([indentWithTab]),
     ];
-
     // Language-specific
     switch (Options.Language) {
       case EditorLanguage.Javascript:
@@ -123,7 +117,6 @@ export class GalapagosEditor {
         Extensions.push(linter(RuntimeLinter));
     }
     Extensions.push(this.Language);
-
     // DOM handlers
     Extensions.push(
       EditorView.domEventHandlers({
@@ -131,7 +124,6 @@ export class GalapagosEditor {
         keyup: Options.OnKeyUp,
       })
     );
-
     // One-line mode
     if (this.Options.OneLine) {
       Extensions.push(
@@ -140,12 +132,10 @@ export class GalapagosEditor {
         )
       );
     }
-
     // Wrapping mode
     if (this.Options.Wrapping) {
       Extensions.push(EditorView.lineWrapping);
     }
-
     // Build the editor
     this.CodeMirror = new EditorView({
       extensions: Extensions,
@@ -154,58 +144,14 @@ export class GalapagosEditor {
     this.GetPreprocessState().Context = this.PreprocessContext;
     this.GetPreprocessState().SetEditor(this);
     this.GetState().Mode = this.Options.ParseMode ?? ParseMode.Normal;
-
+    // Create features
+    this.Editing = new EditingFeatures(this);
+    this.Selection = new SelectionFeatures(this);
+    this.Semantics = new SemanticFeatures(this);
     // Disable Grammarly
     const el = this.Parent.getElementsByClassName('cm-content')[0];
     el.setAttribute('data-enable-grammarly', 'false');
   }
-
-  // #region "Highlighting & Linting"
-  /** Highlight: Highlight a given snippet of code. */
-  Highlight(Content: string): HTMLElement {
-    var LastPosition = 0;
-    const Container = document.createElement('span');
-    this.highlightInternal(Content, (Text, Style, From, To) => {
-      if (Style == '') {
-        var Lines = Text.split('\n');
-        for (var I = 0; I < Lines.length; I++) {
-          var Line = Lines[I];
-          var Span = document.createElement('span');
-          Span.innerText = Line;
-          Span.innerHTML = Span.innerHTML.replace(/ /g, '&nbsp;');
-          Container.appendChild(Span);
-          if (I != Lines.length - 1)
-            Container.appendChild(document.createElement('br'));
-        }
-      } else {
-        const Node = document.createElement('span');
-        Node.innerText = Text;
-        Node.innerHTML = Node.innerHTML.replace(' ', '&nbsp;');
-        Node.className = Style;
-        Container.appendChild(Node);
-      }
-      LastPosition = To;
-    });
-    return Container;
-  }
-
-  // The internal method for highlighting.
-  private highlightInternal(
-    Content: string,
-    callback: (text: string, style: string, from: number, to: number) => void,
-    options?: Record<string, any>
-  ) {
-    const tree = this.Language.language.parser.parse(Content);
-    let pos = 0;
-    highlightTree(tree, highlightStyle, (from, to, classes) => {
-      from > pos && callback(Content.slice(pos, from), '', pos, from);
-      callback(Content.slice(from, to), classes, from, to);
-      pos = to;
-    });
-    pos != tree.length &&
-      callback(Content.slice(pos, tree.length), '', pos, tree.length);
-  }
-  // #endregion
 
   // #region "Editor Statuses"
   /** GetState: Get the current parser state of the NetLogo code. */
@@ -213,22 +159,18 @@ export class GalapagosEditor {
     if (Refresh) this.UpdateContext();
     return this.CodeMirror.state.field(stateExtension);
   }
-
   /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
   GetPreprocessState(): StatePreprocess {
     return this.CodeMirror.state.field(preprocessStateExtension);
   }
-
   /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
   GetSyntaxTree(): Tree {
     return syntaxTree(this.CodeMirror.state);
   }
-
   /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
   SyntaxNodesAt(Position: number, Callback: (Node: SyntaxNodeRef) => void) {
     this.GetSyntaxTree().cursorAt(Position).iterate(Callback);
   }
-
   /** GetRecognizedMode: Get the recognized program mode. */
   GetRecognizedMode(): string {
     var Name = this.GetSyntaxTree().topNode?.firstChild?.name;
@@ -252,19 +194,20 @@ export class GalapagosEditor {
       changes: { from: 0, to: this.CodeMirror.state.doc.length, insert: code },
     });
   }
-
   /** GetCode: Get the code from the editor. */
   GetCode(): string {
     return this.CodeMirror.state.doc.toString();
   }
-
+  /** GetCodeSlice: Returns a slice of code from the editor. */
+  GetCodeSlice(Start: number, End: number) {
+    return this.CodeMirror.state.sliceDoc(Start, End);
+  }
   /** SetReadOnly: Set the readonly status for the editor. */
   SetReadOnly(status: boolean) {
     this.CodeMirror.dispatch({
       effects: this.Editable.reconfigure(EditorView.editable.of(!status)),
     });
   }
-
   /** AddChild: Add a child editor. */
   AddChild(child: GalapagosEditor) {
     if (child.Children.length > 0)
@@ -278,56 +221,18 @@ export class GalapagosEditor {
     child.LintContext = this.LintContext;
     child.GetPreprocessState().Context = this.PreprocessContext;
   }
-
-  /** GetCursorPosition: Set the cursor position of the editor. */
-  GetCursorPosition(): number {
-    return this.CodeMirror.state.selection.ranges[0]?.from ?? 0;
-  }
-
-  /** SetCursorPosition: Set the cursor position of the editor. */
-  SetCursorPosition(position: number) {
-    this.CodeMirror.dispatch({
-      selection: { anchor: position },
-      scrollIntoView: true,
-    });
-  }
-
-  /** GetSelections: Get the selections of the editor. */
-  GetSelections() {
-    return this.CodeMirror.state.selection.ranges;
-  }
-
-  /** RefreshCursor: Refresh the cursor position. */
-  RefreshCursor() {
-    this.SetCursorPosition(this.GetCursorPosition());
-  }
-
   /** Blur: Make the editor lose the focus (if any). */
   Blur() {
     this.CodeMirror.contentDOM.blur();
   }
-
   /** Focus: Make the editor gain the focus (if possible). */
   Focus() {
     this.CodeMirror.focus();
   }
-
-  /** Prettify: Prettify the selection ofNetLogo code. */
-  Prettify() {
-    prettify(this.CodeMirror);
-  }
-
-  /** PrettifyAll: Prettify all the NetLogo code. */
-  PrettifyAll() {
-    this.ForceParse();
-    prettifyAll(this.CodeMirror);
-  }
-
   /** CloseCompletion: Forcible close the auto completion. */
   CloseCompletion() {
     closeCompletion(this.CodeMirror);
   }
-
   /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
   SetWidgetVariables(Variables: string[], ForceLint?: boolean) {
     if (this.ParentEditor != null)
@@ -350,7 +255,6 @@ export class GalapagosEditor {
       if (ForceLint) this.ForceLint();
     }
   }
-
   /** SetMode: Set the parsing mode of the editor. */
   SetMode(Mode: ParseMode, ForceLint?: boolean) {
     var State = this.GetState();
@@ -361,7 +265,6 @@ export class GalapagosEditor {
       if (ForceLint) this.ForceLint();
     }
   }
-
   /** SetCompilerErrors: Sync the compiler errors and present it on the editor. */
   // TODO: Some errors come with start 2147483647, which needs to be rendered as a tip without position.
   SetCompilerErrors(Errors: RuntimeError[]) {
@@ -376,7 +279,6 @@ export class GalapagosEditor {
     State.RuntimeErrors = [];
     this.ForceLint();
   }
-
   /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
   SetRuntimeErrors(Errors: RuntimeError[]) {
     var State = this.GetState();
@@ -386,7 +288,7 @@ export class GalapagosEditor {
   }
   // #endregion
 
-  // #region " Share Context "
+  // #region "Context Sharing"
   /** ID: ID of the editor. */
   private ID: number = 0;
   /** Children: The connected editors. */
@@ -409,10 +311,20 @@ export class GalapagosEditor {
   public GetVersion(): number {
     return this.Version;
   }
+  /** SetVisible: Set the visibility status of the editor. */
   public SetVisible(status: boolean) {
     if (this.IsVisible == status) return;
     this.IsVisible = status;
     if (this.IsVisible) this.ForceLint();
+  }
+  /** GetChildren: Get the logical children of the editor. */
+  private GetChildren(): GalapagosEditor[] {
+    // For the generative mode, it takes the context from its parent but does not contribute to it
+    if (this.Options.ParseMode == ParseMode.Generative)
+      return [this.ParentEditor!, this];
+    if (this.Options.ParseMode == ParseMode.Normal)
+      return [...this.Children, this];
+    return [];
   }
   /** UpdateContext: Try to update the context of this editor. */
   public UpdateContext(): boolean {
@@ -423,7 +335,7 @@ export class GalapagosEditor {
     this.Version += 1;
     State.ParseState(this.CodeMirror.state);
     // Update the shared editor, if needed
-    if (!this.ParentEditor) {
+    if (!this.ParentEditor || this.Options.ParseMode == ParseMode.Generative) {
       this.UpdateSharedContext();
     } else if (
       this.ParentEditor &&
@@ -436,31 +348,21 @@ export class GalapagosEditor {
   /** UpdateSharedContext: Update the shared context of the editor. */
   private UpdateSharedContext() {
     var mainLint = this.LintContext.Clear();
-    for (var child of [...this.Children, this]) {
+    for (var child of this.GetChildren()) {
       if (child.Options.ParseMode == ParseMode.Normal || child == this) {
-        let statenetlogo = child.CodeMirror.state.field(stateExtension);
-        for (var p of statenetlogo.Extensions) {
-          mainLint.Extensions.set(p, child.ID);
+        let state = child.CodeMirror.state.field(stateExtension);
+        for (var name of state.Extensions)
+          mainLint.Extensions.set(name, child.ID);
+        for (var name of state.Globals) mainLint.Globals.set(name, child.ID);
+        for (var name of state.WidgetGlobals)
+          mainLint.WidgetGlobals.set(name, child.ID);
+        for (var [name, procedure] of state.Procedures) {
+          procedure.EditorID = child.ID;
+          mainLint.Procedures.set(name, procedure);
         }
-        for (var p of statenetlogo.Globals) {
-          mainLint.Globals.set(p, child.ID);
-        }
-        for (var p of statenetlogo.WidgetGlobals) {
-          mainLint.WidgetGlobals.set(p, child.ID);
-        }
-        for (var p of statenetlogo.Procedures.keys()) {
-          let copy = statenetlogo.Procedures.get(p);
-          if (copy) {
-            copy.EditorId = child.ID;
-            mainLint.Procedures.set(p, copy);
-          }
-        }
-        for (var p of statenetlogo.Breeds.keys()) {
-          let copy = statenetlogo.Breeds.get(p);
-          if (copy) {
-            copy.EditorId = child.ID;
-            mainLint.Breeds.set(p, copy);
-          }
+        for (var [name, breed] of state.Breeds) {
+          breed.EditorID = child.ID;
+          mainLint.Breeds.set(name, breed);
         }
       }
     }
@@ -479,11 +381,10 @@ export class GalapagosEditor {
   }
   /** UpdatePreprocessContext: Try to update the context of this editor. */
   public UpdatePreprocessContext(): boolean {
-    const State = this.CodeMirror.state.field(preprocessStateExtension);
     // Force the parsing
     this.Version += 1;
     // Update the shared editor, if needed
-    if (!this.ParentEditor) {
+    if (!this.ParentEditor || this.Options.ParseMode == ParseMode.Generative) {
       this.UpdateSharedPreprocess();
     } else if (
       this.ParentEditor &&
@@ -496,18 +397,15 @@ export class GalapagosEditor {
   /** UpdateSharedPreprocess: Update the shared preprocess context of the editor. */
   private UpdateSharedPreprocess() {
     var mainPreprocess = this.PreprocessContext.Clear();
-    for (var child of [...this.Children, this]) {
+    for (var child of this.GetChildren()) {
       if (child.Options.ParseMode == ParseMode.Normal || child == this) {
         let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
-        for (var p of preprocess.PluralBreeds) {
+        for (var p of preprocess.PluralBreeds)
           mainPreprocess.PluralBreeds.set(p, child.ID);
-        }
-        for (var p of preprocess.SingularBreeds) {
+        for (var p of preprocess.SingularBreeds)
           mainPreprocess.SingularBreeds.set(p, child.ID);
-        }
-        for (var p of preprocess.BreedVars) {
+        for (var p of preprocess.BreedVars)
           mainPreprocess.BreedVars.set(p, child.ID);
-        }
         for (var [p, num_args] of preprocess.Commands) {
           mainPreprocess.Commands.set(p, num_args);
           mainPreprocess.CommandsOrigin.set(p, child.ID);
@@ -521,14 +419,7 @@ export class GalapagosEditor {
   }
   // #endregion
 
-  // #region "Diagnostics"
-  /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
-  ForEachDiagnostic(
-    Callback: (d: Diagnostic, from: number, to: number) => void
-  ) {
-    forEachDiagnostic(this.CodeMirror.state, Callback);
-  }
-
+  // #region "Linting and Parsing"
   /** ForceLintAsync: Force the editor to lint without rendering. */
   async ForceLintAsync(): Promise<Diagnostic[]> {
     var Diagnostics = [];
@@ -540,13 +431,11 @@ export class GalapagosEditor {
     }
     return Diagnostics;
   }
-
   /** ForceParse: Force the editor to finish any parsing. */
   ForceParse(SetDirty: boolean = true) {
     forceParsing(this.CodeMirror, this.CodeMirror.state.doc.length, 100000);
     if (SetDirty) this.CodeMirror.state.field(stateExtension).SetDirty();
   }
-
   /** ForceLint: Force the editor to do another round of linting. */
   ForceLint() {
     // Note that there are 2 linters that are not in this.Linters: runtime/compile
@@ -558,245 +447,6 @@ export class GalapagosEditor {
         break;
       }
     }
-  }
-  // #endregion
-
-  // #region "Editor Features"
-  /** Undo: Make the editor undo. Returns false if no group was available. */
-  Undo() {
-    undo(this.CodeMirror);
-  }
-
-  /** Redo: Make the editor Redo. Returns false if no group was available. */
-  Redo() {
-    redo(this.CodeMirror);
-  }
-
-  /** ClearHistory: Clear the change history. */
-  ClearHistory() {
-    // Stub!
-  }
-
-  /** Find: Find a keyword in the editor and loop over all matches. */
-  Find(Keyword: string) {
-    openSearchPanel(this.CodeMirror);
-    let prevValue = (<HTMLInputElement>(
-      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
-    ))?.value;
-    this.CodeMirror.dispatch({
-      effects: setSearchQuery.of(
-        new SearchQuery({
-          search: Keyword,
-        })
-      ),
-    });
-    findNext(this.CodeMirror);
-    if (!prevValue) prevValue = '';
-    this.CodeMirror.dispatch({
-      effects: setSearchQuery.of(
-        new SearchQuery({
-          search: prevValue,
-        })
-      ),
-    });
-    closeSearchPanel(this.CodeMirror);
-  }
-
-  /** Replace: Loop through the matches and replace one at a time. */
-  Replace(Source: string, Target: string) {
-    openSearchPanel(this.CodeMirror);
-    let prevFind = (<HTMLInputElement>(
-      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
-    ))?.value;
-    let prevReplace = (<HTMLInputElement>(
-      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]')
-    ))?.value;
-    this.CodeMirror.dispatch({
-      effects: setSearchQuery.of(
-        new SearchQuery({
-          search: Source,
-          replace: Target,
-        })
-      ),
-    });
-    replaceNext(this.CodeMirror);
-    if (!prevFind) prevFind = '';
-    if (!prevReplace) prevReplace = '';
-    findNext(this.CodeMirror);
-    this.CodeMirror.dispatch({
-      effects: setSearchQuery.of(
-        new SearchQuery({
-          search: prevFind,
-          replace: prevReplace,
-        })
-      ),
-    });
-    closeSearchPanel(this.CodeMirror);
-  }
-
-  /** FindAll: Find all the matching words in the editor. */
-  FindAll(Source: string) {
-    openSearchPanel(this.CodeMirror);
-    let prevValue = (<HTMLInputElement>(
-      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
-    ))?.value;
-    this.CodeMirror.dispatch({
-      effects: setSearchQuery.of(
-        new SearchQuery({
-          search: Source,
-        })
-      ),
-    });
-    selectMatches(this.CodeMirror);
-    if (!prevValue) prevValue = '';
-    this.CodeMirror.dispatch({
-      effects: setSearchQuery.of(
-        new SearchQuery({
-          search: prevValue,
-        })
-      ),
-    });
-    closeSearchPanel(this.CodeMirror);
-  }
-
-  /** ReplaceAll: Replace the all the matching words in the editor. */
-  ReplaceAll(Source: string, Target: string) {
-    openSearchPanel(this.CodeMirror);
-    let prevFind = (<HTMLInputElement>(
-      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
-    ))?.value;
-    let prevReplace = (<HTMLInputElement>(
-      this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]')
-    ))?.value;
-    this.CodeMirror.dispatch({
-      effects: setSearchQuery.of(
-        new SearchQuery({
-          search: Source,
-          replace: Target,
-        })
-      ),
-    });
-    replaceAll(this.CodeMirror);
-    if (!prevFind) prevFind = '';
-    if (!prevReplace) prevReplace = '';
-    this.CodeMirror.dispatch({
-      effects: setSearchQuery.of(
-        new SearchQuery({
-          search: prevFind,
-          replace: prevReplace,
-        })
-      ),
-    });
-    closeSearchPanel(this.CodeMirror);
-  }
-
-  /** JumpTo: Jump to a certain line. */
-  JumpTo(Line: number) {
-    const { state } = this.CodeMirror;
-    const docLine = state.doc.line(
-      Math.max(1, Math.min(state.doc.lines, Line))
-    );
-    this.CodeMirror.dispatch({
-      selection: { anchor: docLine.from },
-      scrollIntoView: true,
-    });
-  }
-
-  /** SelectAll: Select all text in the editor. */
-  SelectAll() {
-    selectAll(this.CodeMirror);
-  }
-
-  /** Select: Select and scroll to a given range in the editor. */
-  Select(Start: number, End: number) {
-    if (End > this.CodeMirror.state.doc.length || Start < 0 || Start > End) {
-      return;
-    }
-    this.CodeMirror.dispatch({
-      selection: { anchor: Start, head: End },
-      scrollIntoView: true,
-    });
-  }
-
-  /** GetSelection: Returns an object of the start and end of
-   *  a selection in the editor. */
-  GetSelection() {
-    return {
-      from: this.CodeMirror.state.selection.main.from,
-      to: this.CodeMirror.state.selection.main.to,
-    };
-  }
-
-  /** GetSelectionCode: Returns the selected code in the editor. */
-  GetSelectionCode() {
-    return this.CodeMirror.state.sliceDoc(
-      this.CodeMirror.state.selection.main.from,
-      this.CodeMirror.state.selection.main.to
-    );
-  }
-  // #endregion
-
-  // #region "Editor Interfaces"
-  /** ShowFind: Show the finding interface. */
-  ShowFind() {
-    this.HideAllInterfaces();
-    openSearchPanel(this.CodeMirror);
-    // hide inputs related to replace for find interface
-    const input = this.Parent.querySelector<HTMLElement>(
-      '.cm-textfield[name="replace"]'
-    );
-    if (input) input.style.display = 'none';
-    const button1 = this.Parent.querySelector<HTMLElement>(
-      '.cm-button[name="replace"]'
-    );
-    if (button1) button1.style.display = 'none';
-    const button2 = this.Parent.querySelector<HTMLElement>(
-      '.cm-button[name="replaceAll"]'
-    );
-    if (button2) button2.style.display = 'none';
-  }
-
-  /** ShowReplace: Show the replace interface. */
-  ShowReplace() {
-    this.HideAllInterfaces();
-    openSearchPanel(this.CodeMirror);
-    // show inputs related to replace
-    const input = this.Parent.querySelector<HTMLElement>(
-      '.cm-textfield[name="replace"]'
-    );
-    if (input) input.style.display = 'inline-block';
-    const button1 = this.Parent.querySelector<HTMLElement>(
-      '.cm-button[name="replace"]'
-    );
-    if (button1) button1.style.display = 'inline-block';
-    const button2 = this.Parent.querySelector<HTMLElement>(
-      '.cm-button[name="replaceAll"]'
-    );
-    if (button2) button2.style.display = 'inline-block';
-  }
-
-  /** ShowJumpTo: Show the jump-to-line interface. */
-  ShowJumpTo() {
-    closeSearchPanel(this.CodeMirror);
-    const jumpElm = this.Parent.querySelector<HTMLElement>('.cm-gotoLine');
-    jumpElm ? (jumpElm.style.display = 'flex') : gotoLine(this.CodeMirror);
-  }
-
-  /** HideJumpTo: Hide line interface. */
-  HideJumpTo() {
-    const jumpElm = this.Parent.querySelector<HTMLElement>('.cm-gotoLine');
-    if (jumpElm) jumpElm.style.display = 'none';
-  }
-
-  /** HideAllInterfaces: Hide all interfaces available. */
-  HideAllInterfaces() {
-    closeSearchPanel(this.CodeMirror);
-    this.HideJumpTo();
-  }
-
-  /** ShowProcedures: Show a list of procedures for the user to jump to. */
-  ShowProcedures() {
-    // Stub!
   }
   // #endregion
 

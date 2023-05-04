@@ -114,30 +114,28 @@ export class Breed {
   // public IsLinkBreed: boolean;
   /** BreedType: type of the breed. */
   public BreedType: BreedType;
-  /** EditorId: which editor created the breed (for LinkContext). */
-  public EditorId?: number;
+  /** EditorID: which editor created the breed (for LinkContext). */
+  public EditorID?: number;
   /** Build a breed. */
   public constructor(
     Singular: string,
     Plural: string,
     Variables: string[],
-    // IsLinkBreed: boolean,
     BreedType: BreedType
   ) {
     this.Singular = Singular;
     this.Plural = Plural;
     this.Variables = Variables;
-    // this.IsLinkBreed = IsLinkBreed;
     this.BreedType = BreedType;
   }
 }
 
 /** BreedType: type of the breed. */
 export enum BreedType {
-  Turtle,
-  DirectedLink,
-  UndirectedLink,
-  Patch,
+  Turtle = 0,
+  Patch = 1,
+  UndirectedLink = 2,
+  DirectedLink = 3,
 }
 
 /** Procedure: Dynamic metadata of a procedure. */
@@ -162,8 +160,8 @@ export class Procedure {
   public Context: AgentContexts = new AgentContexts();
   /** CodeBlocks: Code blocks within the procedure. */
   public CodeBlocks: CodeBlock[] = [];
-  /** EditorId: which editor created the procedure (for LinkContext). */
-  public EditorId?: number;
+  /** EditorID: which editor created the procedure (for LinkContext). */
+  public EditorID?: number;
   /** isProcedure: used for linting; whether is a procedure or codeblock. */
   public isProcedure: boolean = true;
 }

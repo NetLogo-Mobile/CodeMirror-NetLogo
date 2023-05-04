@@ -60,11 +60,9 @@ export const keyword = new ExternalTokenizer((input, stack) => {
   // Find if the token belongs to any category
   // When these were under the regular tokenizer, they matched to word parts rather than whole words
   if (stack.context) {
-    // console.log('TRUE', token);
     input.acceptToken(Identifier);
     return;
   }
-  // else{console.log('FALSE', token)}
 
   if (token == 'set') {
     input.acceptToken(Set);

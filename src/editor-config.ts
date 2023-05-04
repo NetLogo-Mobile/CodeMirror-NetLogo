@@ -37,10 +37,16 @@ export enum EditorLanguage {
 
 /** ParseMode: The parsing mode. */
 export enum ParseMode {
+  /** Normal: Normal mode, where the code is supposed to be an entire model. */
   Normal = 'Normal',
+  /** Oneline: Oneline mode, where the code is supposed to be a single line of command statement. */
   Oneline = 'Oneline',
+  /** OnelineReporter: Oneline reporter mode, where the code is supposed to be a single line of reporter statment. */
   OnelineReporter = 'OnelineReporter',
+  /** Embedded: Embedded mode, where the code is supposed to be multiple lines of command statements. */
   Embedded = 'Embedded',
+  /** Generative: Generative mode, a special Normal mode that does not provide context to its parent but instead take it back. */
+  Generative = 'Generative',
 }
 
 /** Export classes globally. */
