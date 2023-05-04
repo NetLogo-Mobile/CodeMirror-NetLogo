@@ -9,6 +9,9 @@ import { Diagnostic } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
 import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { PreprocessContext, LintContext } from './lang/classes.js';
+import { EditingFeatures } from './ui/editing.js';
+import { SelectionFeatures } from './ui/selection.js';
+import { SemanticFeatures } from './ui/semantics.js';
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export declare class GalapagosEditor {
     /** CodeMirror: The CodeMirror 6 component. */
@@ -23,13 +26,16 @@ export declare class GalapagosEditor {
     readonly Parent: HTMLElement;
     /** Linters: The linters used in this instance. */
     readonly Linters: Extension[];
+    /** Editing: The editing features of this editor. */
+    readonly Editing: EditingFeatures;
+    /** Selection: The selection features of this editor. */
+    readonly Selection: SelectionFeatures;
+    /** Semantics: The semantics features of this editor. */
+    readonly Semantics: SemanticFeatures;
     /** DebugEnabled: Whether the debug output is enabled. */
     static DebugEnabled: boolean;
     /** Constructor: Create an editor instance. */
     constructor(Parent: HTMLElement, Options: EditorConfig);
-    /** Highlight: Highlight a given snippet of code. */
-    Highlight(Content: string): HTMLElement;
-    private highlightInternal;
     /** GetState: Get the current parser state of the NetLogo code. */
     GetState(Refresh?: boolean): StateNetLogo;
     /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
@@ -44,26 +50,16 @@ export declare class GalapagosEditor {
     SetCode(code: string): void;
     /** GetCode: Get the code from the editor. */
     GetCode(): string;
+    /** GetCodeSlice: Returns a slice of code from the editor. */
+    GetCodeSlice(Start: number, End: number): string;
     /** SetReadOnly: Set the readonly status for the editor. */
     SetReadOnly(status: boolean): void;
     /** AddChild: Add a child editor. */
     AddChild(child: GalapagosEditor): void;
-    /** GetCursorPosition: Set the cursor position of the editor. */
-    GetCursorPosition(): number;
-    /** SetCursorPosition: Set the cursor position of the editor. */
-    SetCursorPosition(position: number): void;
-    /** GetSelections: Get the selections of the editor. */
-    GetSelections(): readonly import("@codemirror/state").SelectionRange[];
-    /** RefreshCursor: Refresh the cursor position. */
-    RefreshCursor(): void;
     /** Blur: Make the editor lose the focus (if any). */
     Blur(): void;
     /** Focus: Make the editor gain the focus (if possible). */
     Focus(): void;
-    /** Prettify: Prettify the selection ofNetLogo code. */
-    Prettify(): void;
-    /** PrettifyAll: Prettify all the NetLogo code. */
-    PrettifyAll(): void;
     /** CloseCompletion: Forcible close the auto completion. */
     CloseCompletion(): void;
     /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
@@ -92,7 +88,10 @@ export declare class GalapagosEditor {
     GetID(): number;
     /** GetVersion: Get version of the state. */
     GetVersion(): number;
+    /** SetVisible: Set the visibility status of the editor. */
     SetVisible(status: boolean): void;
+    /** GetChildren: Get the logical children of the editor. */
+    private GetChildren;
     /** UpdateContext: Try to update the context of this editor. */
     UpdateContext(): boolean;
     /** UpdateSharedContext: Update the shared context of the editor. */
@@ -103,54 +102,12 @@ export declare class GalapagosEditor {
     UpdatePreprocessContext(): boolean;
     /** UpdateSharedPreprocess: Update the shared preprocess context of the editor. */
     private UpdateSharedPreprocess;
-    /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
-    ForEachDiagnostic(Callback: (d: Diagnostic, from: number, to: number) => void): void;
     /** ForceLintAsync: Force the editor to lint without rendering. */
     ForceLintAsync(): Promise<Diagnostic[]>;
     /** ForceParse: Force the editor to finish any parsing. */
     ForceParse(SetDirty?: boolean): void;
     /** ForceLint: Force the editor to do another round of linting. */
     ForceLint(): void;
-    /** Undo: Make the editor undo. Returns false if no group was available. */
-    Undo(): void;
-    /** Redo: Make the editor Redo. Returns false if no group was available. */
-    Redo(): void;
-    /** ClearHistory: Clear the change history. */
-    ClearHistory(): void;
-    /** Find: Find a keyword in the editor and loop over all matches. */
-    Find(Keyword: string): void;
-    /** Replace: Loop through the matches and replace one at a time. */
-    Replace(Source: string, Target: string): void;
-    /** FindAll: Find all the matching words in the editor. */
-    FindAll(Source: string): void;
-    /** ReplaceAll: Replace the all the matching words in the editor. */
-    ReplaceAll(Source: string, Target: string): void;
-    /** JumpTo: Jump to a certain line. */
-    JumpTo(Line: number): void;
-    /** SelectAll: Select all text in the editor. */
-    SelectAll(): void;
-    /** Select: Select and scroll to a given range in the editor. */
-    Select(Start: number, End: number): void;
-    /** GetSelection: Returns an object of the start and end of
-     *  a selection in the editor. */
-    GetSelection(): {
-        from: number;
-        to: number;
-    };
-    /** GetSelectionCode: Returns the selected code in the editor. */
-    GetSelectionCode(): string;
-    /** ShowFind: Show the finding interface. */
-    ShowFind(): void;
-    /** ShowReplace: Show the replace interface. */
-    ShowReplace(): void;
-    /** ShowJumpTo: Show the jump-to-line interface. */
-    ShowJumpTo(): void;
-    /** HideJumpTo: Hide line interface. */
-    HideJumpTo(): void;
-    /** HideAllInterfaces: Hide all interfaces available. */
-    HideAllInterfaces(): void;
-    /** ShowProcedures: Show a list of procedures for the user to jump to. */
-    ShowProcedures(): void;
     /** onUpdate: Handle the Update event. */
     private onUpdate;
 }

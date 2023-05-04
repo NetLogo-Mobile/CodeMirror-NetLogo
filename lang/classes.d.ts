@@ -93,17 +93,17 @@ export declare class Breed {
     /** isLinkBreed: Whether the breed is a link breed (the alternative being a turtle breed). */
     /** BreedType: type of the breed. */
     BreedType: BreedType;
-    /** EditorId: which editor created the breed (for LinkContext). */
-    EditorId?: number;
+    /** EditorID: which editor created the breed (for LinkContext). */
+    EditorID?: number;
     /** Build a breed. */
     constructor(Singular: string, Plural: string, Variables: string[], BreedType: BreedType);
 }
 /** BreedType: type of the breed. */
 export declare enum BreedType {
     Turtle = 0,
-    DirectedLink = 1,
+    Patch = 1,
     UndirectedLink = 2,
-    Patch = 3
+    DirectedLink = 3
 }
 /** Procedure: Dynamic metadata of a procedure. */
 export declare class Procedure {
@@ -127,8 +127,8 @@ export declare class Procedure {
     Context: AgentContexts;
     /** CodeBlocks: Code blocks within the procedure. */
     CodeBlocks: CodeBlock[];
-    /** EditorId: which editor created the procedure (for LinkContext). */
-    EditorId?: number;
+    /** EditorID: which editor created the procedure (for LinkContext). */
+    EditorID?: number;
     /** isProcedure: used for linting; whether is a procedure or codeblock. */
     isProcedure: boolean;
 }

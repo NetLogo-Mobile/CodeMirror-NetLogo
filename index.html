@@ -8,10 +8,12 @@
     <button name="NextTest" onclick="RunNextTest();">Test</button>
     <button name="Test" onclick="RunTests();">Test All</button>
     <!-- <button name="Errors" onclick="Editor.CountErrors();">Count errors</button> -->
-    <button name="Pretty" onclick="Editor.Prettify();">Pretty</button>
-    <button name="PrettyAll" onclick="Editor.PrettifyAll();">Pretty All</button>
-    <button name="Undo" onclick="Editor.Undo();">Undo</button>
-    <button name="Redo" onclick="Editor.Redo();">Redo</button>
+    <button name="Pretty" onclick="Editor.Semantics.Prettify();">Pretty</button>
+    <button name="PrettyAll" onclick="Editor.Semantics.PrettifyAll();"
+      >Pretty All</button
+    >
+    <button name="Undo" onclick="Editor.Editing.Undo();">Undo</button>
+    <button name="Redo" onclick="Editor.Editing.Redo();">Redo</button>
     <button name="set read only" onclick="Editor.SetReadOnly(true);">
       Set ReadOnly
     </button>
@@ -32,13 +34,15 @@
       Go to line 80
     </button>
     <button name="select all" onclick="Editor.SelectAll();">Select All</button>-->
-    <button name="replace interface" onclick="Editor.ShowReplace();">
+    <button name="replace interface" onclick="Editor.Editing.ShowReplace();">
       Replace
     </button>
-    <button name="go to line interface" onclick="Editor.ShowJumpTo();">
+    <button name="go to line interface" onclick="Editor.Editing.ShowJumpTo();">
       Go to line
     </button>
-    <button name="Find interface" onclick="Editor.ShowFind();"> Find </button>
+    <button name="Find interface" onclick="Editor.Editing.ShowFind();">
+      Find
+    </button>
     <!--<button name="Select" onclick="Editor.Select(40,60);">
       Select character 40 to 60
     </button>
@@ -50,7 +54,7 @@
       onclick="console.log(Editor.GetSelectionCode());">
       Get Selection Code
     </button>-->
-    <button name="Hide All Interfaces" onclick="Editor.HideAllInterfaces();">
+    <button name="Hide All Interfaces" onclick="Editor.Editing.HideAll();">
       Hide Interfaces
     </button>
     <!--<button

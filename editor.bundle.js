@@ -25318,13 +25318,10 @@ if(!String.prototype.matchAll) {
     /** Breed: Dynamic metadata of a single breed. */
     class Breed {
         /** Build a breed. */
-        constructor(Singular, Plural, Variables, 
-        // IsLinkBreed: boolean,
-        BreedType) {
+        constructor(Singular, Plural, Variables, BreedType) {
             this.Singular = Singular;
             this.Plural = Plural;
             this.Variables = Variables;
-            // this.IsLinkBreed = IsLinkBreed;
             this.BreedType = BreedType;
         }
     }
@@ -25332,9 +25329,9 @@ if(!String.prototype.matchAll) {
     var BreedType;
     (function (BreedType) {
         BreedType[BreedType["Turtle"] = 0] = "Turtle";
-        BreedType[BreedType["DirectedLink"] = 1] = "DirectedLink";
+        BreedType[BreedType["Patch"] = 1] = "Patch";
         BreedType[BreedType["UndirectedLink"] = 2] = "UndirectedLink";
-        BreedType[BreedType["Patch"] = 3] = "Patch";
+        BreedType[BreedType["DirectedLink"] = 3] = "DirectedLink";
     })(BreedType || (BreedType = {}));
     /** Procedure: Dynamic metadata of a procedure. */
     class Procedure {
@@ -25638,11 +25635,9 @@ if(!String.prototype.matchAll) {
         // Find if the token belongs to any category
         // When these were under the regular tokenizer, they matched to word parts rather than whole words
         if (stack.context) {
-            // console.log('TRUE', token);
             input.acceptToken(Identifier$1);
             return;
         }
-        // else{console.log('FALSE', token)}
         if (token == 'set') {
             input.acceptToken(Set$1);
         }
@@ -26299,10 +26294,16 @@ if(!String.prototype.matchAll) {
     /** ParseMode: The parsing mode. */
     var ParseMode;
     (function (ParseMode) {
+        /** Normal: Normal mode, where the code is supposed to be an entire model. */
         ParseMode["Normal"] = "Normal";
+        /** Oneline: Oneline mode, where the code is supposed to be a single line of command statement. */
         ParseMode["Oneline"] = "Oneline";
+        /** OnelineReporter: Oneline reporter mode, where the code is supposed to be a single line of reporter statment. */
         ParseMode["OnelineReporter"] = "OnelineReporter";
+        /** Embedded: Embedded mode, where the code is supposed to be multiple lines of command statements. */
         ParseMode["Embedded"] = "Embedded";
+        /** Generative: Generative mode, a special Normal mode that does not provide context to its parent but instead take it back. */
+        ParseMode["Generative"] = "Generative";
     })(ParseMode || (ParseMode = {}));
     /** Export classes globally. */
     try {
@@ -30960,6 +30961,279 @@ if(!String.prototype.matchAll) {
         return Extension;
     };
 
+    /** EditingFeatures: The editing features of the editor. */
+    class EditingFeatures {
+        /** Constructor: Initialize the editing features. */
+        constructor(Galapagos) {
+            this.Galapagos = Galapagos;
+            this.CodeMirror = Galapagos.CodeMirror;
+            this.Parent = Galapagos.Parent;
+        }
+        // #region "Find and Replace"
+        /** Undo: Make the editor undo. Returns false if no group was available. */
+        Undo() {
+            return undo(this.CodeMirror);
+        }
+        /** Redo: Make the editor Redo. Returns false if no group was available. */
+        Redo() {
+            return redo(this.CodeMirror);
+        }
+        /** Find: Find a keyword in the editor and loop over all matches. */
+        Find(Keyword) {
+            var _a, _b;
+            openSearchPanel(this.CodeMirror);
+            let prevValue = (_b = (_a = ((this.Parent.querySelector('.cm-textfield[name="search"]')))) === null || _a === void 0 ? void 0 : _a.value) !== null && _b !== void 0 ? _b : '';
+            this.CodeMirror.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({ search: Keyword })),
+            });
+            findNext(this.CodeMirror);
+            this.CodeMirror.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({ search: prevValue })),
+            });
+            closeSearchPanel(this.CodeMirror);
+        }
+        /** Replace: Loop through the matches and replace one at a time. */
+        Replace(Source, Target) {
+            var _a, _b, _c, _d;
+            openSearchPanel(this.CodeMirror);
+            let prevFind = (_b = (_a = ((this.Parent.querySelector('.cm-textfield[name="search"]')))) === null || _a === void 0 ? void 0 : _a.value) !== null && _b !== void 0 ? _b : '';
+            let prevReplace = (_d = (_c = ((this.Parent.querySelector('.cm-textfield[name="replace"]')))) === null || _c === void 0 ? void 0 : _c.value) !== null && _d !== void 0 ? _d : '';
+            this.CodeMirror.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({
+                    search: Source,
+                    replace: Target,
+                })),
+            });
+            replaceNext(this.CodeMirror);
+            findNext(this.CodeMirror);
+            this.CodeMirror.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({
+                    search: prevFind,
+                    replace: prevReplace,
+                })),
+            });
+            closeSearchPanel(this.CodeMirror);
+        }
+        /** FindAll: Find all the matching words in the editor. */
+        FindAll(Source) {
+            var _a, _b;
+            openSearchPanel(this.CodeMirror);
+            let prevValue = (_b = (_a = ((this.Parent.querySelector('.cm-textfield[name="search"]')))) === null || _a === void 0 ? void 0 : _a.value) !== null && _b !== void 0 ? _b : '';
+            this.CodeMirror.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({ search: Source })),
+            });
+            selectMatches(this.CodeMirror);
+            this.CodeMirror.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({ search: prevValue })),
+            });
+            closeSearchPanel(this.CodeMirror);
+        }
+        /** ReplaceAll: Replace the all the matching words in the editor. */
+        ReplaceAll(Source, Target) {
+            var _a, _b, _c, _d;
+            openSearchPanel(this.CodeMirror);
+            let prevFind = (_b = (_a = ((this.Parent.querySelector('.cm-textfield[name="search"]')))) === null || _a === void 0 ? void 0 : _a.value) !== null && _b !== void 0 ? _b : '';
+            let prevReplace = (_d = (_c = ((this.Parent.querySelector('.cm-textfield[name="replace"]')))) === null || _c === void 0 ? void 0 : _c.value) !== null && _d !== void 0 ? _d : '';
+            this.CodeMirror.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({
+                    search: Source,
+                    replace: Target,
+                })),
+            });
+            replaceAll(this.CodeMirror);
+            this.CodeMirror.dispatch({
+                effects: setSearchQuery.of(new SearchQuery({
+                    search: prevFind,
+                    replace: prevReplace,
+                })),
+            });
+            closeSearchPanel(this.CodeMirror);
+        }
+        /** JumpTo: Jump to a certain line. */
+        JumpTo(Line) {
+            const { state } = this.CodeMirror;
+            const docLine = state.doc.line(Math.max(1, Math.min(state.doc.lines, Line)));
+            this.CodeMirror.dispatch({
+                selection: { anchor: docLine.from },
+                scrollIntoView: true,
+            });
+        }
+        // #endregion
+        // #region "Editor Interfaces"
+        /** ShowFind: Show the finding interface. */
+        ShowFind() {
+            this.HideAll();
+            openSearchPanel(this.CodeMirror);
+            // hide inputs related to replace for find interface
+            const input = this.Parent.querySelector('.cm-textfield[name="replace"]');
+            if (input)
+                input.style.display = 'none';
+            const button1 = this.Parent.querySelector('.cm-button[name="replace"]');
+            if (button1)
+                button1.style.display = 'none';
+            const button2 = this.Parent.querySelector('.cm-button[name="replaceAll"]');
+            if (button2)
+                button2.style.display = 'none';
+        }
+        /** ShowReplace: Show the replace interface. */
+        ShowReplace() {
+            this.HideAll();
+            openSearchPanel(this.CodeMirror);
+            // show inputs related to replace
+            const input = this.Parent.querySelector('.cm-textfield[name="replace"]');
+            if (input)
+                input.style.display = 'inline-block';
+            const button1 = this.Parent.querySelector('.cm-button[name="replace"]');
+            if (button1)
+                button1.style.display = 'inline-block';
+            const button2 = this.Parent.querySelector('.cm-button[name="replaceAll"]');
+            if (button2)
+                button2.style.display = 'inline-block';
+        }
+        /** ShowJumpTo: Show the jump-to-line interface. */
+        ShowJumpTo() {
+            this.HideAll();
+            closeSearchPanel(this.CodeMirror);
+            const jumpElm = this.Parent.querySelector('.cm-gotoLine');
+            jumpElm ? (jumpElm.style.display = 'flex') : gotoLine(this.CodeMirror);
+        }
+        /** HideJumpTo: Hide line interface. */
+        HideJumpTo() {
+            const jumpElm = this.Parent.querySelector('.cm-gotoLine');
+            if (jumpElm)
+                jumpElm.style.display = 'none';
+        }
+        /** HideAllInterfaces: Hide all interfaces available. */
+        HideAll() {
+            closeSearchPanel(this.CodeMirror);
+            this.HideJumpTo();
+        }
+        /** ShowProcedures: Show a list of procedures for the user to jump to. */
+        ShowProcedures() {
+            // Stub!
+        }
+    }
+
+    /** SelectionFeatures: The selection and cursor features of the editor. */
+    class SelectionFeatures {
+        /** Constructor: Initialize the editing features. */
+        constructor(Galapagos) {
+            this.Galapagos = Galapagos;
+            this.CodeMirror = Galapagos.CodeMirror;
+        }
+        // #region "Selection and Cursor"
+        /** SelectAll: Select all text in the editor. */
+        SelectAll() {
+            selectAll(this.CodeMirror);
+        }
+        /** Select: Select and scroll to a given range in the editor. */
+        Select(Start, End) {
+            if (End > this.CodeMirror.state.doc.length || Start < 0 || Start > End) {
+                return;
+            }
+            this.CodeMirror.dispatch({
+                selection: { anchor: Start, head: End },
+                scrollIntoView: true,
+            });
+        }
+        /** GetSelection: Returns an object of the start and end of
+         *  a selection in the editor. */
+        GetSelection() {
+            return {
+                from: this.CodeMirror.state.selection.main.from,
+                to: this.CodeMirror.state.selection.main.to,
+            };
+        }
+        /** GetSelections: Get the selections of the editor. */
+        GetSelections() {
+            return this.CodeMirror.state.selection.ranges;
+        }
+        /** GetCursorPosition: Set the cursor position of the editor. */
+        GetCursorPosition() {
+            var _a, _b;
+            return (_b = (_a = this.CodeMirror.state.selection.ranges[0]) === null || _a === void 0 ? void 0 : _a.from) !== null && _b !== void 0 ? _b : 0;
+        }
+        /** SetCursorPosition: Set the cursor position of the editor. */
+        SetCursorPosition(position) {
+            this.CodeMirror.dispatch({
+                selection: { anchor: position },
+                scrollIntoView: true,
+            });
+        }
+        /** RefreshCursor: Refresh the cursor position. */
+        RefreshCursor() {
+            this.SetCursorPosition(this.GetCursorPosition());
+        }
+    }
+
+    /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
+    class SemanticFeatures {
+        /** Constructor: Initialize the editing features. */
+        constructor(Galapagos) {
+            this.Galapagos = Galapagos;
+            this.CodeMirror = Galapagos.CodeMirror;
+        }
+        // #region "Highlighting"
+        /** Highlight: Export the code in the editor into highlighted HTML. */
+        Highlight() {
+            this.Galapagos.ForceParse();
+            return this.HighlightTree(this.Galapagos.GetSyntaxTree(), this.Galapagos.GetCode());
+        }
+        /** HighlightContent: Highlight a given snippet of code. */
+        HighlightContent(Content) {
+            return this.HighlightTree(this.Galapagos.Language.language.parser.parse(Content), Content);
+        }
+        /** HighlightTree: Highlight a parsed syntax tree and a snippet of code. */
+        HighlightTree(Tree, Content) {
+            const Container = document.createElement('span');
+            this.TraverseNodes(Tree, Content, (Text, Style, From, To) => {
+                var Lines = Text.split('\n');
+                for (var I = 0; I < Lines.length; I++) {
+                    var Line = Lines[I];
+                    var Span = document.createElement('span');
+                    Span.innerText = Line;
+                    Span.innerHTML = Span.innerHTML.replace(' ', '&nbsp;');
+                    if (Style != '')
+                        Span.className = Style;
+                    Container.appendChild(Span);
+                    if (I != Lines.length - 1)
+                        Container.appendChild(document.createElement('br'));
+                }
+            });
+            return Container;
+        }
+        /** TraverseNodes: Parse a snippet of code and traverse its syntax nodes. */
+        TraverseNodes(Tree, Content, Callback) {
+            let pos = 0;
+            // Iterate over the syntax tree and call the callback for each node.
+            highlightTree(Tree, highlightStyle, (from, to, classes) => {
+                from > pos && Callback(Content.slice(pos, from), '', pos, from);
+                Callback(Content.slice(from, to), classes, from, to);
+                pos = to;
+            });
+            // If the last node doesn't end at the end of the content, add it.
+            pos != Tree.length &&
+                Callback(Content.slice(pos, Tree.length), '', pos, Tree.length);
+        }
+        // #endregion
+        // #region "Formatting"
+        /** Prettify: Prettify the selection ofNetLogo code. */
+        Prettify() {
+            prettify(this.CodeMirror);
+        }
+        /** PrettifyAll: Prettify all the NetLogo code. */
+        PrettifyAll() {
+            this.Galapagos.ForceParse();
+            prettifyAll(this.CodeMirror);
+        }
+        // #endregion
+        // #region "Linting"
+        /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
+        ForEachDiagnostic(Callback) {
+            forEachDiagnostic(this.CodeMirror.state, Callback);
+        }
+    }
+
     /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
     class GalapagosEditor {
         /** Constructor: Create an editor instance. */
@@ -30968,7 +31242,7 @@ if(!String.prototype.matchAll) {
             /** Linters: The linters used in this instance. */
             this.Linters = [];
             // #endregion
-            // #region " Share Context "
+            // #region "Context Sharing"
             /** ID: ID of the editor. */
             this.ID = 0;
             /** Children: The connected editors. */
@@ -31050,50 +31324,14 @@ if(!String.prototype.matchAll) {
             this.GetPreprocessState().Context = this.PreprocessContext;
             this.GetPreprocessState().SetEditor(this);
             this.GetState().Mode = (_a = this.Options.ParseMode) !== null && _a !== void 0 ? _a : ParseMode.Normal;
+            // Create features
+            this.Editing = new EditingFeatures(this);
+            this.Selection = new SelectionFeatures(this);
+            this.Semantics = new SemanticFeatures(this);
             // Disable Grammarly
             const el = this.Parent.getElementsByClassName('cm-content')[0];
             el.setAttribute('data-enable-grammarly', 'false');
         }
-        // #region "Highlighting & Linting"
-        /** Highlight: Highlight a given snippet of code. */
-        Highlight(Content) {
-            const Container = document.createElement('span');
-            this.highlightInternal(Content, (Text, Style, From, To) => {
-                if (Style == '') {
-                    var Lines = Text.split('\n');
-                    for (var I = 0; I < Lines.length; I++) {
-                        var Line = Lines[I];
-                        var Span = document.createElement('span');
-                        Span.innerText = Line;
-                        Span.innerHTML = Span.innerHTML.replace(/ /g, '&nbsp;');
-                        Container.appendChild(Span);
-                        if (I != Lines.length - 1)
-                            Container.appendChild(document.createElement('br'));
-                    }
-                }
-                else {
-                    const Node = document.createElement('span');
-                    Node.innerText = Text;
-                    Node.innerHTML = Node.innerHTML.replace(' ', '&nbsp;');
-                    Node.className = Style;
-                    Container.appendChild(Node);
-                }
-            });
-            return Container;
-        }
-        // The internal method for highlighting.
-        highlightInternal(Content, callback, options) {
-            const tree = this.Language.language.parser.parse(Content);
-            let pos = 0;
-            highlightTree(tree, highlightStyle, (from, to, classes) => {
-                from > pos && callback(Content.slice(pos, from), '', pos, from);
-                callback(Content.slice(from, to), classes, from, to);
-                pos = to;
-            });
-            pos != tree.length &&
-                callback(Content.slice(pos, tree.length), '', pos, tree.length);
-        }
-        // #endregion
         // #region "Editor Statuses"
         /** GetState: Get the current parser state of the NetLogo code. */
         GetState(Refresh) {
@@ -31140,6 +31378,10 @@ if(!String.prototype.matchAll) {
         GetCode() {
             return this.CodeMirror.state.doc.toString();
         }
+        /** GetCodeSlice: Returns a slice of code from the editor. */
+        GetCodeSlice(Start, End) {
+            return this.CodeMirror.state.sliceDoc(Start, End);
+        }
         /** SetReadOnly: Set the readonly status for the editor. */
         SetReadOnly(status) {
             this.CodeMirror.dispatch({
@@ -31157,26 +31399,6 @@ if(!String.prototype.matchAll) {
             child.LintContext = this.LintContext;
             child.GetPreprocessState().Context = this.PreprocessContext;
         }
-        /** GetCursorPosition: Set the cursor position of the editor. */
-        GetCursorPosition() {
-            var _a, _b;
-            return (_b = (_a = this.CodeMirror.state.selection.ranges[0]) === null || _a === void 0 ? void 0 : _a.from) !== null && _b !== void 0 ? _b : 0;
-        }
-        /** SetCursorPosition: Set the cursor position of the editor. */
-        SetCursorPosition(position) {
-            this.CodeMirror.dispatch({
-                selection: { anchor: position },
-                scrollIntoView: true,
-            });
-        }
-        /** GetSelections: Get the selections of the editor. */
-        GetSelections() {
-            return this.CodeMirror.state.selection.ranges;
-        }
-        /** RefreshCursor: Refresh the cursor position. */
-        RefreshCursor() {
-            this.SetCursorPosition(this.GetCursorPosition());
-        }
         /** Blur: Make the editor lose the focus (if any). */
         Blur() {
             this.CodeMirror.contentDOM.blur();
@@ -31184,15 +31406,6 @@ if(!String.prototype.matchAll) {
         /** Focus: Make the editor gain the focus (if possible). */
         Focus() {
             this.CodeMirror.focus();
-        }
-        /** Prettify: Prettify the selection ofNetLogo code. */
-        Prettify() {
-            prettify(this.CodeMirror);
-        }
-        /** PrettifyAll: Prettify all the NetLogo code. */
-        PrettifyAll() {
-            this.ForceParse();
-            prettifyAll(this.CodeMirror);
         }
         /** CloseCompletion: Forcible close the auto completion. */
         CloseCompletion() {
@@ -31260,12 +31473,22 @@ if(!String.prototype.matchAll) {
         GetVersion() {
             return this.Version;
         }
+        /** SetVisible: Set the visibility status of the editor. */
         SetVisible(status) {
             if (this.IsVisible == status)
                 return;
             this.IsVisible = status;
             if (this.IsVisible)
                 this.ForceLint();
+        }
+        /** GetChildren: Get the logical children of the editor. */
+        GetChildren() {
+            // For the generative mode, it takes the context from its parent but does not contribute to it
+            if (this.Options.ParseMode == ParseMode.Generative)
+                return [this.ParentEditor, this];
+            if (this.Options.ParseMode == ParseMode.Normal)
+                return [...this.Children, this];
+            return [];
         }
         /** UpdateContext: Try to update the context of this editor. */
         UpdateContext() {
@@ -31277,7 +31500,7 @@ if(!String.prototype.matchAll) {
             this.Version += 1;
             State.ParseState(this.CodeMirror.state);
             // Update the shared editor, if needed
-            if (!this.ParentEditor) {
+            if (!this.ParentEditor || this.Options.ParseMode == ParseMode.Generative) {
                 this.UpdateSharedContext();
             }
             else if (this.ParentEditor &&
@@ -31289,31 +31512,22 @@ if(!String.prototype.matchAll) {
         /** UpdateSharedContext: Update the shared context of the editor. */
         UpdateSharedContext() {
             var mainLint = this.LintContext.Clear();
-            for (var child of [...this.Children, this]) {
+            for (var child of this.GetChildren()) {
                 if (child.Options.ParseMode == ParseMode.Normal || child == this) {
-                    let statenetlogo = child.CodeMirror.state.field(stateExtension);
-                    for (var p of statenetlogo.Extensions) {
-                        mainLint.Extensions.set(p, child.ID);
+                    let state = child.CodeMirror.state.field(stateExtension);
+                    for (var name of state.Extensions)
+                        mainLint.Extensions.set(name, child.ID);
+                    for (var name of state.Globals)
+                        mainLint.Globals.set(name, child.ID);
+                    for (var name of state.WidgetGlobals)
+                        mainLint.WidgetGlobals.set(name, child.ID);
+                    for (var [name, procedure] of state.Procedures) {
+                        procedure.EditorID = child.ID;
+                        mainLint.Procedures.set(name, procedure);
                     }
-                    for (var p of statenetlogo.Globals) {
-                        mainLint.Globals.set(p, child.ID);
-                    }
-                    for (var p of statenetlogo.WidgetGlobals) {
-                        mainLint.WidgetGlobals.set(p, child.ID);
-                    }
-                    for (var p of statenetlogo.Procedures.keys()) {
-                        let copy = statenetlogo.Procedures.get(p);
-                        if (copy) {
-                            copy.EditorId = child.ID;
-                            mainLint.Procedures.set(p, copy);
-                        }
-                    }
-                    for (var p of statenetlogo.Breeds.keys()) {
-                        let copy = statenetlogo.Breeds.get(p);
-                        if (copy) {
-                            copy.EditorId = child.ID;
-                            mainLint.Breeds.set(p, copy);
-                        }
+                    for (var [name, breed] of state.Breeds) {
+                        breed.EditorID = child.ID;
+                        mainLint.Breeds.set(name, breed);
                     }
                 }
             }
@@ -31332,11 +31546,10 @@ if(!String.prototype.matchAll) {
         }
         /** UpdatePreprocessContext: Try to update the context of this editor. */
         UpdatePreprocessContext() {
-            this.CodeMirror.state.field(preprocessStateExtension);
             // Force the parsing
             this.Version += 1;
             // Update the shared editor, if needed
-            if (!this.ParentEditor) {
+            if (!this.ParentEditor || this.Options.ParseMode == ParseMode.Generative) {
                 this.UpdateSharedPreprocess();
             }
             else if (this.ParentEditor &&
@@ -31348,18 +31561,15 @@ if(!String.prototype.matchAll) {
         /** UpdateSharedPreprocess: Update the shared preprocess context of the editor. */
         UpdateSharedPreprocess() {
             var mainPreprocess = this.PreprocessContext.Clear();
-            for (var child of [...this.Children, this]) {
+            for (var child of this.GetChildren()) {
                 if (child.Options.ParseMode == ParseMode.Normal || child == this) {
                     let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
-                    for (var p of preprocess.PluralBreeds) {
+                    for (var p of preprocess.PluralBreeds)
                         mainPreprocess.PluralBreeds.set(p, child.ID);
-                    }
-                    for (var p of preprocess.SingularBreeds) {
+                    for (var p of preprocess.SingularBreeds)
                         mainPreprocess.SingularBreeds.set(p, child.ID);
-                    }
-                    for (var p of preprocess.BreedVars) {
+                    for (var p of preprocess.BreedVars)
                         mainPreprocess.BreedVars.set(p, child.ID);
-                    }
                     for (var [p, num_args] of preprocess.Commands) {
                         mainPreprocess.Commands.set(p, num_args);
                         mainPreprocess.CommandsOrigin.set(p, child.ID);
@@ -31372,11 +31582,7 @@ if(!String.prototype.matchAll) {
             }
         }
         // #endregion
-        // #region "Diagnostics"
-        /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
-        ForEachDiagnostic(Callback) {
-            forEachDiagnostic(this.CodeMirror.state, Callback);
-        }
+        // #region "Linting and Parsing"
         /** ForceLintAsync: Force the editor to lint without rendering. */
         ForceLintAsync() {
             return __awaiter(this, void 0, void 0, function* () {
@@ -31405,199 +31611,6 @@ if(!String.prototype.matchAll) {
                     break;
                 }
             }
-        }
-        // #endregion
-        // #region "Editor Features"
-        /** Undo: Make the editor undo. Returns false if no group was available. */
-        Undo() {
-            undo(this.CodeMirror);
-        }
-        /** Redo: Make the editor Redo. Returns false if no group was available. */
-        Redo() {
-            redo(this.CodeMirror);
-        }
-        /** ClearHistory: Clear the change history. */
-        ClearHistory() {
-            // Stub!
-        }
-        /** Find: Find a keyword in the editor and loop over all matches. */
-        Find(Keyword) {
-            var _a;
-            openSearchPanel(this.CodeMirror);
-            let prevValue = (_a = ((this.Parent.querySelector('.cm-textfield[name="search"]')))) === null || _a === void 0 ? void 0 : _a.value;
-            this.CodeMirror.dispatch({
-                effects: setSearchQuery.of(new SearchQuery({
-                    search: Keyword,
-                })),
-            });
-            findNext(this.CodeMirror);
-            if (!prevValue)
-                prevValue = '';
-            this.CodeMirror.dispatch({
-                effects: setSearchQuery.of(new SearchQuery({
-                    search: prevValue,
-                })),
-            });
-            closeSearchPanel(this.CodeMirror);
-        }
-        /** Replace: Loop through the matches and replace one at a time. */
-        Replace(Source, Target) {
-            var _a, _b;
-            openSearchPanel(this.CodeMirror);
-            let prevFind = (_a = ((this.Parent.querySelector('.cm-textfield[name="search"]')))) === null || _a === void 0 ? void 0 : _a.value;
-            let prevReplace = (_b = ((this.Parent.querySelector('.cm-textfield[name="replace"]')))) === null || _b === void 0 ? void 0 : _b.value;
-            this.CodeMirror.dispatch({
-                effects: setSearchQuery.of(new SearchQuery({
-                    search: Source,
-                    replace: Target,
-                })),
-            });
-            replaceNext(this.CodeMirror);
-            if (!prevFind)
-                prevFind = '';
-            if (!prevReplace)
-                prevReplace = '';
-            findNext(this.CodeMirror);
-            this.CodeMirror.dispatch({
-                effects: setSearchQuery.of(new SearchQuery({
-                    search: prevFind,
-                    replace: prevReplace,
-                })),
-            });
-            closeSearchPanel(this.CodeMirror);
-        }
-        /** FindAll: Find all the matching words in the editor. */
-        FindAll(Source) {
-            var _a;
-            openSearchPanel(this.CodeMirror);
-            let prevValue = (_a = ((this.Parent.querySelector('.cm-textfield[name="search"]')))) === null || _a === void 0 ? void 0 : _a.value;
-            this.CodeMirror.dispatch({
-                effects: setSearchQuery.of(new SearchQuery({
-                    search: Source,
-                })),
-            });
-            selectMatches(this.CodeMirror);
-            if (!prevValue)
-                prevValue = '';
-            this.CodeMirror.dispatch({
-                effects: setSearchQuery.of(new SearchQuery({
-                    search: prevValue,
-                })),
-            });
-            closeSearchPanel(this.CodeMirror);
-        }
-        /** ReplaceAll: Replace the all the matching words in the editor. */
-        ReplaceAll(Source, Target) {
-            var _a, _b;
-            openSearchPanel(this.CodeMirror);
-            let prevFind = (_a = ((this.Parent.querySelector('.cm-textfield[name="search"]')))) === null || _a === void 0 ? void 0 : _a.value;
-            let prevReplace = (_b = ((this.Parent.querySelector('.cm-textfield[name="replace"]')))) === null || _b === void 0 ? void 0 : _b.value;
-            this.CodeMirror.dispatch({
-                effects: setSearchQuery.of(new SearchQuery({
-                    search: Source,
-                    replace: Target,
-                })),
-            });
-            replaceAll(this.CodeMirror);
-            if (!prevFind)
-                prevFind = '';
-            if (!prevReplace)
-                prevReplace = '';
-            this.CodeMirror.dispatch({
-                effects: setSearchQuery.of(new SearchQuery({
-                    search: prevFind,
-                    replace: prevReplace,
-                })),
-            });
-            closeSearchPanel(this.CodeMirror);
-        }
-        /** JumpTo: Jump to a certain line. */
-        JumpTo(Line) {
-            const { state } = this.CodeMirror;
-            const docLine = state.doc.line(Math.max(1, Math.min(state.doc.lines, Line)));
-            this.CodeMirror.dispatch({
-                selection: { anchor: docLine.from },
-                scrollIntoView: true,
-            });
-        }
-        /** SelectAll: Select all text in the editor. */
-        SelectAll() {
-            selectAll(this.CodeMirror);
-        }
-        /** Select: Select and scroll to a given range in the editor. */
-        Select(Start, End) {
-            if (End > this.CodeMirror.state.doc.length || Start < 0 || Start > End) {
-                return;
-            }
-            this.CodeMirror.dispatch({
-                selection: { anchor: Start, head: End },
-                scrollIntoView: true,
-            });
-        }
-        /** GetSelection: Returns an object of the start and end of
-         *  a selection in the editor. */
-        GetSelection() {
-            return {
-                from: this.CodeMirror.state.selection.main.from,
-                to: this.CodeMirror.state.selection.main.to,
-            };
-        }
-        /** GetSelectionCode: Returns the selected code in the editor. */
-        GetSelectionCode() {
-            return this.CodeMirror.state.sliceDoc(this.CodeMirror.state.selection.main.from, this.CodeMirror.state.selection.main.to);
-        }
-        // #endregion
-        // #region "Editor Interfaces"
-        /** ShowFind: Show the finding interface. */
-        ShowFind() {
-            this.HideAllInterfaces();
-            openSearchPanel(this.CodeMirror);
-            // hide inputs related to replace for find interface
-            const input = this.Parent.querySelector('.cm-textfield[name="replace"]');
-            if (input)
-                input.style.display = 'none';
-            const button1 = this.Parent.querySelector('.cm-button[name="replace"]');
-            if (button1)
-                button1.style.display = 'none';
-            const button2 = this.Parent.querySelector('.cm-button[name="replaceAll"]');
-            if (button2)
-                button2.style.display = 'none';
-        }
-        /** ShowReplace: Show the replace interface. */
-        ShowReplace() {
-            this.HideAllInterfaces();
-            openSearchPanel(this.CodeMirror);
-            // show inputs related to replace
-            const input = this.Parent.querySelector('.cm-textfield[name="replace"]');
-            if (input)
-                input.style.display = 'inline-block';
-            const button1 = this.Parent.querySelector('.cm-button[name="replace"]');
-            if (button1)
-                button1.style.display = 'inline-block';
-            const button2 = this.Parent.querySelector('.cm-button[name="replaceAll"]');
-            if (button2)
-                button2.style.display = 'inline-block';
-        }
-        /** ShowJumpTo: Show the jump-to-line interface. */
-        ShowJumpTo() {
-            closeSearchPanel(this.CodeMirror);
-            const jumpElm = this.Parent.querySelector('.cm-gotoLine');
-            jumpElm ? (jumpElm.style.display = 'flex') : gotoLine(this.CodeMirror);
-        }
-        /** HideJumpTo: Hide line interface. */
-        HideJumpTo() {
-            const jumpElm = this.Parent.querySelector('.cm-gotoLine');
-            if (jumpElm)
-                jumpElm.style.display = 'none';
-        }
-        /** HideAllInterfaces: Hide all interfaces available. */
-        HideAllInterfaces() {
-            closeSearchPanel(this.CodeMirror);
-            this.HideJumpTo();
-        }
-        /** ShowProcedures: Show a list of procedures for the user to jump to. */
-        ShowProcedures() {
-            // Stub!
         }
         // #endregion
         // #region "Event Handling"
