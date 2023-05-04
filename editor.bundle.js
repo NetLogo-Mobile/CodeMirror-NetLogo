@@ -30817,8 +30817,11 @@ if(!String.prototype.matchAll) {
         // Agent types
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
+        Turtles: () => 'Turtles',
         Patch: () => 'Patch',
+        Patches: () => 'Patches',
         Link: () => 'Link',
+        Links: () => 'Links',
         // Help messages
         '~VariableName': (Name) => `A (unknown) variable. `,
         '~ProcedureName': (Name) => `The name of a procedure. `,
@@ -30847,6 +30850,8 @@ if(!String.prototype.matchAll) {
         // Chat and AI assistant
         Reconnect: () => `Reconnect`,
         'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
+        'Expand messages _': (Number) => `Expand ${Number} messages`,
+        'Summary of request': () => `Below is a summary of my request: `,
     };
 
     const zh_cn = {
@@ -30879,8 +30884,11 @@ if(!String.prototype.matchAll) {
         // Agent types
         Observer: () => '观察者',
         Turtle: () => '海龟',
+        Turtles: () => '海龟们',
         Patch: () => '格子',
+        Patches: () => '格子们',
         Link: () => '链接',
+        Links: () => '链接们',
         // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,
@@ -30909,6 +30917,8 @@ if(!String.prototype.matchAll) {
         // Chat and AI assistant
         Reconnect: () => `重新连接`,
         'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
+        'Expand messages _': (Number) => `展开 ${Number} 条消息`,
+        'Summary of request': () => `简单总结我的请求的要点：`,
     };
 
     /** LocalizationManager: Manage all localized texts. */
@@ -31174,10 +31184,33 @@ if(!String.prototype.matchAll) {
             this.CodeMirror = Galapagos.CodeMirror;
         }
         // #region "Highlighting"
+        /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
+        GetSyntaxTree() {
+            return syntaxTree(this.CodeMirror.state);
+        }
+        /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
+        SyntaxNodesAt(Position, Callback) {
+            this.GetSyntaxTree().cursorAt(Position).iterate(Callback);
+        }
+        /** GetRecognizedMode: Get the recognized program mode. */
+        GetRecognizedMode() {
+            var _a, _b;
+            var Name = (_b = (_a = this.GetSyntaxTree().topNode) === null || _a === void 0 ? void 0 : _a.firstChild) === null || _b === void 0 ? void 0 : _b.name;
+            switch (Name) {
+                case 'Embedded':
+                    return 'Command';
+                case 'OnelineReporter':
+                    return 'Reporter';
+                case 'Normal':
+                    return 'Model';
+                default:
+                    return 'Unknown';
+            }
+        }
         /** Highlight: Export the code in the editor into highlighted HTML. */
         Highlight() {
             this.Galapagos.ForceParse();
-            return this.HighlightTree(this.Galapagos.GetSyntaxTree(), this.Galapagos.GetCode());
+            return this.HighlightTree(this.GetSyntaxTree(), this.Galapagos.GetCode());
         }
         /** HighlightContent: Highlight a given snippet of code. */
         HighlightContent(Content) {
@@ -31225,6 +31258,14 @@ if(!String.prototype.matchAll) {
         PrettifyAll() {
             this.Galapagos.ForceParse();
             prettifyAll(this.CodeMirror);
+        }
+        /** PrettifyOrAll: Prettify the selected code. If no code is selected, prettify all. */
+        PrettifyOrAll() {
+            var Ranges = this.CodeMirror.state.selection.ranges;
+            if (Ranges.length == 0 || Ranges[0].from == Ranges[0].to)
+                this.PrettifyAll();
+            else
+                this.Prettify();
         }
         // #endregion
         // #region "Linting"
@@ -31342,29 +31383,6 @@ if(!String.prototype.matchAll) {
         /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
         GetPreprocessState() {
             return this.CodeMirror.state.field(preprocessStateExtension);
-        }
-        /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
-        GetSyntaxTree() {
-            return syntaxTree(this.CodeMirror.state);
-        }
-        /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
-        SyntaxNodesAt(Position, Callback) {
-            this.GetSyntaxTree().cursorAt(Position).iterate(Callback);
-        }
-        /** GetRecognizedMode: Get the recognized program mode. */
-        GetRecognizedMode() {
-            var _a, _b;
-            var Name = (_b = (_a = this.GetSyntaxTree().topNode) === null || _a === void 0 ? void 0 : _a.firstChild) === null || _b === void 0 ? void 0 : _b.name;
-            switch (Name) {
-                case 'Embedded':
-                    return 'Command';
-                case 'OnelineReporter':
-                    return 'Reporter';
-                case 'Normal':
-                    return 'Model';
-                default:
-                    return 'Unknown';
-            }
         }
         // #endregion
         // #region "Editor API"

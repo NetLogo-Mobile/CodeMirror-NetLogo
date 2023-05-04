@@ -7,11 +7,10 @@ import { StatePreprocess } from './codemirror/extension-state-preprocess.js';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Diagnostic } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
-import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { PreprocessContext, LintContext } from './lang/classes.js';
-import { EditingFeatures } from './ui/editing.js';
-import { SelectionFeatures } from './ui/selection.js';
-import { SemanticFeatures } from './ui/semantics.js';
+import { EditingFeatures } from './features/editing.js';
+import { SelectionFeatures } from './features/selection.js';
+import { SemanticFeatures } from './features/semantics.js';
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export declare class GalapagosEditor {
     /** CodeMirror: The CodeMirror 6 component. */
@@ -40,12 +39,6 @@ export declare class GalapagosEditor {
     GetState(Refresh?: boolean): StateNetLogo;
     /** GetPreprocessState: Get the preprocess parser state of the NetLogo code. */
     GetPreprocessState(): StatePreprocess;
-    /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
-    GetSyntaxTree(): Tree;
-    /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
-    SyntaxNodesAt(Position: number, Callback: (Node: SyntaxNodeRef) => void): void;
-    /** GetRecognizedMode: Get the recognized program mode. */
-    GetRecognizedMode(): string;
     /** SetCode: Set the code of the editor. */
     SetCode(code: string): void;
     /** GetCode: Get the code from the editor. */

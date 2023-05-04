@@ -1,6 +1,6 @@
 import { EditorView } from '@codemirror/view';
 import { GalapagosEditor } from '../editor';
-import { Tree } from '@lezer/common';
+import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { Diagnostic } from '@codemirror/lint';
 /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
 export declare class SemanticFeatures {
@@ -10,6 +10,12 @@ export declare class SemanticFeatures {
     Galapagos: GalapagosEditor;
     /** Constructor: Initialize the editing features. */
     constructor(Galapagos: GalapagosEditor);
+    /** GetSyntaxTree: Get the syntax tree of the NetLogo code. */
+    GetSyntaxTree(): Tree;
+    /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
+    SyntaxNodesAt(Position: number, Callback: (Node: SyntaxNodeRef) => void): void;
+    /** GetRecognizedMode: Get the recognized program mode. */
+    GetRecognizedMode(): string;
     /** Highlight: Export the code in the editor into highlighted HTML. */
     Highlight(): HTMLElement;
     /** HighlightContent: Highlight a given snippet of code. */
@@ -22,6 +28,8 @@ export declare class SemanticFeatures {
     Prettify(): void;
     /** PrettifyAll: Prettify all the NetLogo code. */
     PrettifyAll(): void;
+    /** PrettifyOrAll: Prettify the selected code. If no code is selected, prettify all. */
+    PrettifyOrAll(): void;
     /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
     ForEachDiagnostic(Callback: (d: Diagnostic, from: number, to: number) => void): void;
 }
