@@ -1,1 +1,1 @@
-{"version":3,"file":"breed-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/breed-linter.ts"],"names":[],"mappings":"AAIA,OAAO,EAAE,MAAM,EAAE,MAAM,kBAAkB,CAAC;AAS1C,eAAO,MAAM,WAAW,EAAE,MAmCzB,CAAC"}
+{"version":3,"file":"breed-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/breed-linter.ts"],"names":[],"mappings":"AAIA,OAAO,EAAE,MAAM,EAAE,MAAM,kBAAkB,CAAC;AAiB1C,eAAO,MAAM,WAAW,EAAE,MAoDzB,CAAC"}

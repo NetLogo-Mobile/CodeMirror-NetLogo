@@ -97,6 +97,11 @@ export declare class Breed {
     /** Build a breed. */
     constructor(Singular: string, Plural: string, Variables: string[], BreedType: BreedType);
 }
+export declare class Range {
+    Start: number;
+    End: number;
+    constructor(Start: number, End: number);
+}
 /** BreedType: Type of the breed. */
 export declare enum BreedType {
     Turtle = 0,
@@ -213,6 +218,8 @@ export declare class LintContext {
     Clear(): LintContext;
     /** GetBreedNames: Get names related to breeds. */
     GetBreedNames(): string[];
+    /** GetPluralBreedNames: Get plural names related to breeds. */
+    GetPluralBreedNames(): string[];
     /** GetBreedVariables: Get variable names related to breeds. */
     GetBreedVariables(): string[];
     /** GetBreeds: Get list of breeds. */

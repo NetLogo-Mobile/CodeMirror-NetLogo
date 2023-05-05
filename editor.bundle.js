@@ -25458,6 +25458,14 @@ if(!String.prototype.matchAll) {
             }
             return breedNames;
         }
+        /** GetPluralBreedNames: Get plural names related to breeds. */
+        GetPluralBreedNames() {
+            var breedNames = [];
+            for (let breed of this.Breeds.values()) {
+                breedNames.push(breed.Plural);
+            }
+            return breedNames;
+        }
         /** GetBreedVariables: Get variable names related to breeds. */
         GetBreedVariables() {
             var breedNames = [];
@@ -26820,94 +26828,156 @@ if(!String.prototype.matchAll) {
     const getBreedName = function (value) {
         let result = checkBreedLike(value);
         let str = '';
-        if (result[0]) {
+        if (result.found) {
             //pull out name of possible intended breed
             let split = value.split('-');
-            if (result[1] == BreedLocation.Third) {
+            if (result.location == BreedLocation.Third) {
                 str = split.slice(2).join('-');
             }
-            else if (result[1] == BreedLocation.Second) {
+            else if (result.location == BreedLocation.Second) {
                 str = split.slice(1).join('-');
             }
-            else if (result[1] == BreedLocation.First) {
+            else if (result.location == BreedLocation.First) {
                 str = split.slice(0, split.length - 1).join('-');
             }
-            else if (result[1] == BreedLocation.Middle) {
+            else if (result.location == BreedLocation.Middle) {
                 str = split.slice(1, split.length - 1).join('-');
             }
-            else if (result[1] == BreedLocation.Question) {
+            else if (result.location == BreedLocation.Question) {
                 str = split.slice(1).join('-');
                 str = str.substring(0, str.length - 1);
             }
         }
-        return str;
+        return {
+            breed: str,
+            isPlural: result.isPlural,
+            isLink: result.isLink,
+        };
     };
     /** checkBreedLike: Identify if an identifier looks like a breed procedure,
      and where the breed name is inside that identifier **/
     const checkBreedLike = function (str) {
-        let result = false;
-        let location = BreedLocation.Null;
+        let result = {
+            found: false,
+            location: BreedLocation.Null,
+            isPlural: false,
+            isLink: false,
+        };
         if (str.match(/^in-[^\s]+-from$/)) {
-            result = true;
-            location = BreedLocation.Middle;
+            result.found = true;
+            result.location = BreedLocation.Middle;
+            result.isPlural = false;
+            result.isLink = true;
         }
         else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-            result = true;
-            location = BreedLocation.Middle;
+            result.found = true;
+            result.location = BreedLocation.Middle;
+            result.isPlural = false;
+            result.isLink = true;
         }
         else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-            result = true;
-            location = BreedLocation.Middle;
+            result.found = true;
+            result.location = BreedLocation.Middle;
+            result.isPlural = false;
+            result.isLink = true;
         }
         else if (str.match(/^out-[^\s]+-to$/)) {
-            result = true;
-            location = BreedLocation.Middle;
+            result.found = true;
+            result.location = BreedLocation.Middle;
+            result.isPlural = false;
+            result.isLink = true;
         }
         else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
-            result = true;
-            location = BreedLocation.Middle;
+            result.found = true;
+            result.location = BreedLocation.Middle;
+            result.isPlural = false;
+            result.isLink = true;
         }
         else if (str.match(/^create-ordered-[^\s]+/)) {
-            result = true;
-            location = BreedLocation.Third;
+            result.found = true;
+            result.location = BreedLocation.Third;
+            result.isPlural = true;
+            result.isLink = false;
         }
         else if (str.match(/^(hatch|sprout|create)-[^\s]+/)) {
-            result = true;
-            location = BreedLocation.Second;
+            result.found = true;
+            result.location = BreedLocation.Second;
+            result.isPlural = true;
+            result.isLink = false;
         }
         else if (str.match(/[^\s]+-(at)/)) {
-            result = true;
-            location = BreedLocation.First;
+            result.found = true;
+            result.location = BreedLocation.First;
+            result.isPlural = true;
+            result.isLink = false;
         }
         else if (str.match(/[^\s]+-here/)) {
-            result = true;
-            location = BreedLocation.First;
+            result.found = true;
+            result.location = BreedLocation.First;
+            result.isPlural = true;
+            result.isLink = false;
         }
         else if (str.match(/[^\s]+-neighbors/)) {
-            result = true;
-            location = BreedLocation.First;
+            result.found = true;
+            result.location = BreedLocation.First;
+            result.isPlural = false;
+            result.isLink = true;
         }
         else if (str.match(/[^\s]+-on/)) {
-            result = true;
-            location = BreedLocation.First;
+            result.found = true;
+            result.location = BreedLocation.First;
+            result.isPlural = true;
+            result.isLink = false;
         }
         else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
-            result = true;
-            location = BreedLocation.First;
+            result.found = true;
+            result.location = BreedLocation.First;
+            result.isPlural = false;
+            result.isLink = true;
         }
         else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
-            result = true;
-            location = BreedLocation.Third;
+            result.found = true;
+            result.location = BreedLocation.Third;
+            result.isPlural = true;
+            result.isLink = true;
         }
         else if (str.match(/^(my)-[^\s]+/)) {
-            result = true;
-            location = BreedLocation.Second;
+            result.found = true;
+            result.location = BreedLocation.Second;
+            result.isPlural = true;
+            result.isLink = true;
         }
         else if (str.match(/^is-[^\s]+\\?$/)) {
-            result = true;
-            location = BreedLocation.Question;
+            result.found = true;
+            result.location = BreedLocation.Question;
+            result.isPlural = false;
+            result.isLink = false;
         }
-        return [result, location];
+        else if (str.match(/[^\s]+-own$/)) {
+            result.found = true;
+            result.location = BreedLocation.Question;
+            result.isPlural = true;
+            result.isLink = false;
+        }
+        return result;
+    };
+    const otherBreedName = function (breed, isPlural) {
+        if (isPlural) {
+            if (breed[breed.length - 1] == 's') {
+                return breed.substring(0, breed.length - 1);
+            }
+            else {
+                return 'a-' + breed;
+            }
+        }
+        else {
+            if (breed[breed.length - 1] == 's') {
+                return breed + 'es';
+            }
+            else {
+                return breed + 's';
+            }
+        }
     };
 
     let primitives$2 = PrimitiveManager;
@@ -27186,21 +27256,33 @@ if(!String.prototype.matchAll) {
                 inheritParentContext: false,
             };
             let cursor = (_b = node.parent) === null || _b === void 0 ? void 0 : _b.cursor();
+            let ask = false;
             if (cursor === null || cursor === void 0 ? void 0 : cursor.firstChild()) {
                 if (!['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(cursor.node.name)) {
-                    prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
+                    prim.name = state
+                        .sliceDoc(cursor.node.from, cursor.node.to)
+                        .toLowerCase();
                     prim.type = cursor.node.name;
+                    if (prim.name == 'ask') {
+                        ask = true;
+                    }
                 }
                 while (cursor.nextSibling() && prim.name == '') {
                     if (!['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(cursor.node.name)) {
                         prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
                         prim.type = cursor.node.name;
                     }
+                    else if (cursor.node.name == 'Arg' && ask) {
+                        prim.breed = state.sliceDoc(cursor.node.from, cursor.node.to);
+                        ask = false;
+                    }
                 }
             }
             if (prim.type.includes('Special')) {
                 prim.isSpecial = true;
-                prim.breed = (_c = getBreedName(prim.name)) !== null && _c !== void 0 ? _c : '';
+                prim.breed = (_c = getBreedName(prim.name).breed) !== null && _c !== void 0 ? _c : '';
+            }
+            if (prim.breed != '') {
                 prim.context = new AgentContexts('null');
                 if (prim.breed != '') {
                     let breed = null;
@@ -29627,6 +29709,110 @@ if(!String.prototype.matchAll) {
         return true;
     });
 
+    /** GalapagosEditing: Functions for editing code. */
+    // TODO: Return the changed range; Extract a common function for creating new statements if it does not exist.
+    class GalapagosEditing {
+        AppendGlobal(view, content, statement_type) {
+            let cursor = syntaxTree(view.state).cursor();
+            let found = false;
+            if (cursor.firstChild() && cursor.firstChild()) {
+                cursor.node.getChildren(statement_type).map((child) => {
+                    found = true;
+                    this.AddTermToBracket(view, content, cursor.node);
+                });
+                if (!found) {
+                    view.dispatch({
+                        changes: {
+                            from: 0,
+                            to: 0,
+                            insert: 'globals [ ' + content + ' ]\n',
+                        },
+                    });
+                }
+            }
+        }
+        AddBreed(view, breed, plural, singular) {
+            view.dispatch({
+                changes: {
+                    from: 0,
+                    to: 0,
+                    insert: breed + ' [ ' + plural + ' ' + singular + ' ]\n',
+                },
+            });
+        }
+        AddBreedVariable(view, breed, varName) {
+            let cursor = syntaxTree(view.state).cursor();
+            let found = false;
+            if (cursor.firstChild() && cursor.firstChild()) {
+                if (cursor.node.name == 'BreedsOwn') {
+                    cursor.node.getChildren('Own').map((child) => {
+                        if (view.state.sliceDoc(child.from, child.to) == breed + '-own') {
+                            this.AddTermToBracket(view, varName, child);
+                            found = true;
+                        }
+                    });
+                }
+                while (cursor.nextSibling() &&
+                    !found &&
+                    cursor.node.name != 'Procedure') {
+                    if (cursor.node.name == 'BreedsOwn') {
+                        cursor.node.getChildren('Own').map((child) => {
+                            if (view.state.sliceDoc(child.from, child.to) == breed + '-own') {
+                                this.AddTermToBracket(view, varName, cursor.node);
+                                found = true;
+                            }
+                        });
+                    }
+                }
+                if (!found) {
+                    view.dispatch({
+                        changes: {
+                            from: cursor.node.to,
+                            to: cursor.node.to,
+                            insert: '\n' + breed + '-own [ ' + varName + ' ]\n',
+                        },
+                    });
+                }
+            }
+        }
+        ReplaceProcedure(view, name, content) {
+            syntaxTree(view.state)
+                .cursor()
+                .iterate((node) => {
+                if (node.name == 'Procedure' &&
+                    view.state.sliceDoc(node.from, node.to) == name) {
+                    node.from + content.length;
+                    view.dispatch({
+                        changes: {
+                            from: node.from,
+                            to: node.to,
+                            insert: content,
+                        },
+                    });
+                }
+            });
+        }
+        AddTermToBracket(view, content, node) {
+            let sep = view.state.sliceDoc(node.from, node.to).includes('\n')
+                ? '\n'
+                : ' ';
+            node.node.getChildren('CloseBracket').map((child) => {
+                const from = child.from;
+                view.dispatch({
+                    changes: {
+                        from: from,
+                        to: from,
+                        insert: sep + content,
+                    },
+                });
+                view.dispatch({
+                    changes: indentRange(view.state, from, from + 1 + content.length),
+                });
+            });
+        }
+    }
+
+    let Editing$1 = new GalapagosEditing();
     // IdentifierLinter: Checks anything labelled 'Identifier'
     const IdentifierLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
@@ -29641,7 +29827,7 @@ if(!String.prototype.matchAll) {
                 if (!checkValidIdentifier(Node, value, context)) {
                     //check if the identifier looks like a breed procedure (e.g. "create-___")
                     let result = checkBreedLike(value);
-                    if (!result[0]) {
+                    if (!result.found) {
                         //console.log(value, noderef.name, noderef.node.parent?.name);
                         diagnostics.push({
                             from: noderef.from,
@@ -29652,20 +29838,69 @@ if(!String.prototype.matchAll) {
                     }
                     else {
                         //pull out name of possible intended breed
-                        let str = getBreedName(value);
-                        if (!context.breedNames.includes(str)) {
+                        let breedinfo = getBreedName(value);
+                        Log(breedinfo);
+                        if (!context.breedNames.includes(breedinfo.breed)) {
+                            let actions = [];
+                            let plural = '';
+                            let singular = '';
+                            if (breedinfo.isPlural) {
+                                plural = breedinfo.breed;
+                                singular = otherBreedName(breedinfo.breed, true);
+                            }
+                            else {
+                                singular = breedinfo.breed;
+                                plural = otherBreedName(breedinfo.breed, false);
+                            }
+                            let breed_type = breedinfo.isLink
+                                ? 'undirected-link-breed'
+                                : 'breed';
+                            actions.push(getAction$1(Node, value, breed_type, plural, singular));
                             diagnostics.push({
                                 from: noderef.from,
                                 to: noderef.to,
                                 severity: 'error',
-                                message: Localized.Get('Invalid breed procedure _', str),
+                                message: Localized.Get('Unrecognized breed name _', breedinfo.breed),
+                                actions: actions,
                             });
                         }
                     }
                 }
             }
+            // else if (
+            //   noderef.name == 'Arg' &&
+            //   noderef.node.prevSibling &&
+            //   view.state
+            //     .sliceDoc(noderef.node.prevSibling.from, noderef.node.prevSibling.to)
+            //     .toLowerCase() == 'ask'
+            // ) {
+            //   let value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+            //   if (!lintContext.GetPluralBreedNames().includes(value)) {
+            //     let plural = value;
+            //     let singular = otherBreedName(value, true);
+            //     let breed_type = 'breed';
+            //     diagnostics.push({
+            //       from: noderef.from,
+            //       to: noderef.to,
+            //       severity: 'error',
+            //       message: Localized.Get('Unrecognized breed name _', value),
+            //       actions: [
+            //         getAction(noderef.node, value, breed_type, plural, singular),
+            //       ],
+            //     });
+            //   }
+            //   return false;
+            // }
         });
         return diagnostics;
+    };
+    const getAction$1 = function (node, value, breed_type, plural, singular) {
+        return {
+            name: Localized.Get('Add'),
+            apply(view, from, to) {
+                Editing$1.AddBreed(view, breed_type, plural, singular);
+            },
+        };
     };
 
     // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
@@ -29702,6 +29937,7 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     };
 
+    let Editing = new GalapagosEditing();
     // BreedLinter: To check breed commands/reporters for valid breed names
     const BreedLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
@@ -29725,22 +29961,54 @@ if(!String.prototype.matchAll) {
                 const value = view.state
                     .sliceDoc(noderef.from, noderef.to)
                     .toLowerCase();
-                if (!checkValidBreed(Node, value, context, breeds)) {
+                let result = checkValidBreed(Node, value, context, breeds);
+                if (!result.isValid) {
+                    let breed_result = getBreedName(value);
+                    let actions = [];
+                    if (result.make_new_breed) {
+                        let plural = '';
+                        let singular = '';
+                        if (result.isPlural) {
+                            plural = breed_result.breed;
+                            singular = otherBreedName(breed_result.breed, true);
+                        }
+                        else {
+                            singular = breed_result.breed;
+                            plural = otherBreedName(breed_result.breed, false);
+                        }
+                        let breed_type = result.isLink ? 'undirected-link-breed' : 'breed';
+                        actions.push(getAction(Node, value, breed_type, plural, singular));
+                    }
                     diagnostics.push({
                         from: noderef.from,
                         to: noderef.to,
                         severity: 'error',
                         message: Localized.Get('Unrecognized breed name _', value),
+                        actions: actions,
                     });
                 }
             }
         });
         return diagnostics;
     };
+    const getAction = function (node, value, breed_type, plural, singular) {
+        return {
+            name: Localized.Get('Add'),
+            apply(view, from, to) {
+                Editing.AddBreed(view, breed_type, plural, singular);
+            },
+        };
+    };
     // checkValidBreed: Checks if the term in the structure of a breed command/reporter
     // is the name of an actual breed, and in the correct singular/plural form
     const checkValidBreed = function (node, value, context, breeds) {
-        let isValid = true;
+        //let isValid = true;
+        let result = {
+            isValid: true,
+            isPlural: false,
+            isLink: false,
+            make_new_breed: true,
+        };
         //console.log(breeds)
         //collect possible breed names in the correct categories
         let pluralTurtle = [];
@@ -29761,39 +30029,54 @@ if(!String.prototype.matchAll) {
         //console.log(pluralTurtle,singularTurtle,pluralLink,singularLink)
         //check for correct breed name (depending on function type)
         if (node.name == 'SpecialCommandCreateLink') {
-            isValid = listItemInString(value, singularLink.concat(pluralLink));
+            result.isValid = listItemInString(value, singularLink.concat(pluralLink));
+            result.isLink = true;
+            result.isPlural = false;
         }
         else if (node.name == 'SpecialReporter0ArgsLink' ||
             node.name == 'SpecialReporter1ArgsLink') {
-            isValid = listItemInString(value, singularLink);
+            result.isValid = listItemInString(value, singularLink);
+            result.isLink = true;
+            result.isPlural = false;
         }
         else if (node.name == 'SpecialReporter1ArgsBoth') {
-            isValid = listItemInString(value, singularLink.concat(singularTurtle));
+            result.isValid = listItemInString(value, singularLink.concat(singularTurtle));
+            result.isLink = false;
+            result.isPlural = false;
         }
-        else if (node.name == 'Own') {
-            isValid = listItemInString(value, pluralLink.concat(pluralTurtle));
+        else if (node.name == 'Own' || node.name == 'Arg') {
+            result.isValid = listItemInString(value, pluralLink.concat(pluralTurtle));
+            result.isLink = false;
+            result.isPlural = true;
         }
         else if (node.name == 'SpecialCommandCreateTurtle' ||
             node.name == 'SpecialReporter2ArgsTurtle' ||
             node.name == 'SpecialReporter1ArgsTurtle' ||
             node.name == 'SpecialReporter0ArgsTurtle') {
-            isValid = listItemInString(value, pluralTurtle);
+            result.isValid = listItemInString(value, pluralTurtle);
+            result.isLink = false;
+            result.isPlural = true;
         }
         else if (node.name == 'SpecialReporter0ArgsLinkP') {
-            isValid = listItemInString(value, pluralLink);
+            result.isValid = listItemInString(value, pluralLink);
+            result.isLink = true;
+            result.isPlural = true;
+        }
+        else {
+            result.make_new_breed = false;
         }
         // some procedure names I've come across accidentally use the structure of a
         // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
         // before declaring it invalid
-        if (!isValid && context.parseState.Procedures.get(value)) {
-            isValid = true;
+        if (!result.isValid && context.parseState.Procedures.get(value)) {
+            result.isValid = true;
         }
-        if (!isValid && node.name != 'Own') {
+        if (!result.isValid && node.name != 'Own') {
             // Why do we need this one?
             //We need it to check if it is actually a valid identifier, e.g. a variable name
-            isValid = checkValidIdentifier(node, value, context);
+            result.isValid = checkValidIdentifier(node, value, context);
         }
-        return isValid;
+        return result;
     };
     //listItemInString: checks if any member of a list is in a string
     const listItemInString = function (str, lst) {
@@ -29823,7 +30106,8 @@ if(!String.prototype.matchAll) {
                 }
                 const value = view.state.sliceDoc(node.from, node.to);
                 Log(value, node.name, parents);
-                if (!['[', ']', ')', '(', '"'].includes(value)) {
+                if (!['[', ']', ')', '(', '"'].includes(value) &&
+                    !checkBreedLike(value).found) {
                     if (((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Normal') {
                         diagnostics.push({
                             from: node.from,
