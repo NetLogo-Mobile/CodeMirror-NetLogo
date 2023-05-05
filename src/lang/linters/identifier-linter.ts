@@ -10,6 +10,13 @@ import {
   checkValidIdentifier,
   getCheckContext,
 } from './utils/check-identifier';
+import { GalapagosEditing } from '../../codemirror/code-editing';
+import { otherBreedName } from '../../codemirror/utils/breed-utils';
+import { EditorView } from 'codemirror';
+import { SyntaxNode } from '@lezer/common';
+import { Log } from '../../codemirror/utils/debug-utils';
+
+let Editing = new GalapagosEditing();
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter: Linter = (
@@ -25,11 +32,12 @@ export const IdentifierLinter: Linter = (
       if (noderef.name == 'Identifier') {
         const Node = noderef.node;
         const value = view.state.sliceDoc(noderef.from, noderef.to);
+
         //check if it meets some initial criteria for validity
         if (!checkValidIdentifier(Node, value, context)) {
           //check if the identifier looks like a breed procedure (e.g. "create-___")
           let result = checkBreedLike(value);
-          if (!result[0]) {
+          if (!result.found) {
             //console.log(value, noderef.name, noderef.node.parent?.name);
             diagnostics.push({
               from: noderef.from,
@@ -39,18 +47,77 @@ export const IdentifierLinter: Linter = (
             });
           } else {
             //pull out name of possible intended breed
-            let str = getBreedName(value);
-            if (!context.breedNames.includes(str)) {
+            let breedinfo = getBreedName(value);
+            Log(breedinfo);
+            if (!context.breedNames.includes(breedinfo.breed)) {
+              let actions: any[] = [];
+              let plural = '';
+              let singular = '';
+              if (breedinfo.isPlural) {
+                plural = breedinfo.breed;
+                singular = otherBreedName(breedinfo.breed, true);
+              } else {
+                singular = breedinfo.breed;
+                plural = otherBreedName(breedinfo.breed, false);
+              }
+              let breed_type = breedinfo.isLink
+                ? 'undirected-link-breed'
+                : 'breed';
+              actions.push(
+                getAction(Node, value, breed_type, plural, singular)
+              );
               diagnostics.push({
                 from: noderef.from,
                 to: noderef.to,
                 severity: 'error',
-                message: Localized.Get('Invalid breed procedure _', str),
+                message: Localized.Get(
+                  'Unrecognized breed name _',
+                  breedinfo.breed
+                ),
+                actions: actions,
               });
             }
           }
         }
+      } else if (
+        noderef.name == 'Arg' &&
+        noderef.node.prevSibling &&
+        view.state
+          .sliceDoc(noderef.node.prevSibling.from, noderef.node.prevSibling.to)
+          .toLowerCase() == 'ask'
+      ) {
+        let value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+        if (!lintContext.GetPluralBreedNames().includes(value)) {
+          let plural = value;
+          let singular = otherBreedName(value, true);
+          let breed_type = 'breed';
+          diagnostics.push({
+            from: noderef.from,
+            to: noderef.to,
+            severity: 'error',
+            message: Localized.Get('Unrecognized breed name _', value),
+            actions: [
+              getAction(noderef.node, value, breed_type, plural, singular),
+            ],
+          });
+        }
+        return false;
       }
     });
   return diagnostics;
+};
+
+const getAction = function (
+  node: SyntaxNode,
+  value: string,
+  breed_type: string,
+  plural: string,
+  singular: string
+) {
+  return {
+    name: Localized.Get('Add'),
+    apply(view: EditorView, from: number, to: number) {
+      Editing.AddBreed(view, breed_type, plural, singular);
+    },
+  };
 };

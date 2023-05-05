@@ -8,15 +8,25 @@ export class GalapagosEditing {
   public AppendGlobal(
     view: EditorView,
     content: string,
-    statement_type: String
+    statement_type: string
   ) {
-    syntaxTree(view.state)
-      .cursor()
-      .iterate((node) => {
-        if (node.name == statement_type) {
-          this.AddTermToBracket(view, content, node.node);
-        }
+    let cursor = syntaxTree(view.state).cursor();
+    let found = false;
+    if (cursor.firstChild() && cursor.firstChild()) {
+      cursor.node.getChildren(statement_type).map((child) => {
+        found = true;
+        this.AddTermToBracket(view, content, cursor.node);
       });
+      if (!found) {
+        view.dispatch({
+          changes: {
+            from: 0,
+            to: 0,
+            insert: 'globals [ ' + content + ' ]\n',
+          },
+        });
+      }
+    }
   }
 
   public AddBreed(
@@ -29,7 +39,7 @@ export class GalapagosEditing {
       changes: {
         from: 0,
         to: 0,
-        insert: breed + '[ ' + plural + ' ' + singular + ' ]\n',
+        insert: breed + ' [ ' + plural + ' ' + singular + ' ]\n',
       },
     });
   }
@@ -37,7 +47,7 @@ export class GalapagosEditing {
   public AddBreedVariable(view: EditorView, breed: string, varName: string) {
     let cursor = syntaxTree(view.state).cursor();
     let found = false;
-    if (cursor.firstChild()) {
+    if (cursor.firstChild() && cursor.firstChild()) {
       if (cursor.node.name == 'BreedsOwn') {
         cursor.node.getChildren('Own').map((child) => {
           if (view.state.sliceDoc(child.from, child.to) == breed + '-own') {

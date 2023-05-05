@@ -9,6 +9,14 @@ import {
   checkValidIdentifier,
   getCheckContext,
 } from './utils/check-identifier';
+import { GalapagosEditing } from '../../codemirror/code-editing';
+import {
+  getBreedName,
+  otherBreedName,
+} from '../../codemirror/utils/breed-utils';
+import { EditorView } from 'codemirror';
+
+let Editing = new GalapagosEditing();
 
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -35,17 +43,49 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
-        if (!checkValidBreed(Node, value, context, breeds)) {
+        let result = checkValidBreed(Node, value, context, breeds);
+        if (!result.isValid) {
+          let breed_result = getBreedName(value);
+          let actions: any[] = [];
+          if (result.make_new_breed) {
+            let plural = '';
+            let singular = '';
+            if (result.isPlural) {
+              plural = breed_result.breed;
+              singular = otherBreedName(breed_result.breed, true);
+            } else {
+              singular = breed_result.breed;
+              plural = otherBreedName(breed_result.breed, false);
+            }
+            let breed_type = result.isLink ? 'undirected-link-breed' : 'breed';
+            actions.push(getAction(Node, value, breed_type, plural, singular));
+          }
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
             severity: 'error',
             message: Localized.Get('Unrecognized breed name _', value),
+            actions: actions,
           });
         }
       }
     });
   return diagnostics;
+};
+
+const getAction = function (
+  node: SyntaxNode,
+  value: string,
+  breed_type: string,
+  plural: string,
+  singular: string
+) {
+  return {
+    name: Localized.Get('Add'),
+    apply(view: EditorView, from: number, to: number) {
+      Editing.AddBreed(view, breed_type, plural, singular);
+    },
+  };
 };
 
 // checkValidBreed: Checks if the term in the structure of a breed command/reporter
@@ -56,7 +96,13 @@ const checkValidBreed = function (
   context: CheckContext,
   breeds: Breed[]
 ) {
-  let isValid = true;
+  //let isValid = true;
+  let result = {
+    isValid: true,
+    isPlural: false,
+    isLink: false,
+    make_new_breed: true,
+  };
   //console.log(breeds)
   //collect possible breed names in the correct categories
   let pluralTurtle: string[] = [];
@@ -78,38 +124,55 @@ const checkValidBreed = function (
   //console.log(pluralTurtle,singularTurtle,pluralLink,singularLink)
   //check for correct breed name (depending on function type)
   if (node.name == 'SpecialCommandCreateLink') {
-    isValid = listItemInString(value, singularLink.concat(pluralLink));
+    result.isValid = listItemInString(value, singularLink.concat(pluralLink));
+    result.isLink = true;
+    result.isPlural = false;
   } else if (
     node.name == 'SpecialReporter0ArgsLink' ||
     node.name == 'SpecialReporter1ArgsLink'
   ) {
-    isValid = listItemInString(value, singularLink);
+    result.isValid = listItemInString(value, singularLink);
+    result.isLink = true;
+    result.isPlural = false;
   } else if (node.name == 'SpecialReporter1ArgsBoth') {
-    isValid = listItemInString(value, singularLink.concat(singularTurtle));
-  } else if (node.name == 'Own') {
-    isValid = listItemInString(value, pluralLink.concat(pluralTurtle));
+    result.isValid = listItemInString(
+      value,
+      singularLink.concat(singularTurtle)
+    );
+    result.isLink = false;
+    result.isPlural = false;
+  } else if (node.name == 'Own' || node.name == 'Arg') {
+    result.isValid = listItemInString(value, pluralLink.concat(pluralTurtle));
+    result.isLink = false;
+    result.isPlural = true;
   } else if (
     node.name == 'SpecialCommandCreateTurtle' ||
     node.name == 'SpecialReporter2ArgsTurtle' ||
     node.name == 'SpecialReporter1ArgsTurtle' ||
     node.name == 'SpecialReporter0ArgsTurtle'
   ) {
-    isValid = listItemInString(value, pluralTurtle);
+    result.isValid = listItemInString(value, pluralTurtle);
+    result.isLink = false;
+    result.isPlural = true;
   } else if (node.name == 'SpecialReporter0ArgsLinkP') {
-    isValid = listItemInString(value, pluralLink);
+    result.isValid = listItemInString(value, pluralLink);
+    result.isLink = true;
+    result.isPlural = true;
+  } else {
+    result.make_new_breed = false;
   }
   // some procedure names I've come across accidentally use the structure of a
   // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name
   // before declaring it invalid
-  if (!isValid && context.parseState.Procedures.get(value)) {
-    isValid = true;
+  if (!result.isValid && context.parseState.Procedures.get(value)) {
+    result.isValid = true;
   }
-  if (!isValid && node.name != 'Own') {
+  if (!result.isValid && node.name != 'Own') {
     // Why do we need this one?
     //We need it to check if it is actually a valid identifier, e.g. a variable name
-    isValid = checkValidIdentifier(node, value, context);
+    result.isValid = checkValidIdentifier(node, value, context);
   }
-  return isValid;
+  return result;
 };
 
 //listItemInString: checks if any member of a list is in a string

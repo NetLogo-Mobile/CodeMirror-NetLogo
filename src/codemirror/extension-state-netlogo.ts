@@ -343,14 +343,20 @@ export class StateNetLogo {
       inheritParentContext: false,
     };
     let cursor = node.parent?.cursor();
+    let ask = false;
     if (cursor?.firstChild()) {
       if (
         !['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(
           cursor.node.name
         )
       ) {
-        prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
+        prim.name = state
+          .sliceDoc(cursor.node.from, cursor.node.to)
+          .toLowerCase();
         prim.type = cursor.node.name;
+        if (prim.name == 'ask') {
+          ask = true;
+        }
       }
       while (cursor.nextSibling() && prim.name == '') {
         if (
@@ -360,12 +366,17 @@ export class StateNetLogo {
         ) {
           prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
           prim.type = cursor.node.name;
+        } else if (cursor.node.name == 'Arg' && ask) {
+          prim.breed = state.sliceDoc(cursor.node.from, cursor.node.to);
+          ask = false;
         }
       }
     }
     if (prim.type.includes('Special')) {
       prim.isSpecial = true;
-      prim.breed = getBreedName(prim.name) ?? '';
+      prim.breed = getBreedName(prim.name).breed ?? '';
+    }
+    if (prim.breed != '') {
       prim.context = new AgentContexts('null');
       if (prim.breed != '') {
         let breed = null;

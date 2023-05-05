@@ -4,75 +4,134 @@ import { BreedLocation } from '../../lang/classes';
 export const getBreedName = function (value: string) {
   let result = checkBreedLike(value);
   let str = '';
-  if (result[0]) {
+  if (result.found) {
     //pull out name of possible intended breed
     let split = value.split('-');
-    if (result[1] == BreedLocation.Third) {
+    if (result.location == BreedLocation.Third) {
       str = split.slice(2).join('-');
-    } else if (result[1] == BreedLocation.Second) {
+    } else if (result.location == BreedLocation.Second) {
       str = split.slice(1).join('-');
-    } else if (result[1] == BreedLocation.First) {
+    } else if (result.location == BreedLocation.First) {
       str = split.slice(0, split.length - 1).join('-');
-    } else if (result[1] == BreedLocation.Middle) {
+    } else if (result.location == BreedLocation.Middle) {
       str = split.slice(1, split.length - 1).join('-');
-    } else if (result[1] == BreedLocation.Question) {
+    } else if (result.location == BreedLocation.Question) {
       str = split.slice(1).join('-');
       str = str.substring(0, str.length - 1);
     }
   }
-  return str;
+  return {
+    breed: str,
+    isPlural: result.isPlural,
+    isLink: result.isLink,
+  };
 };
 
 /** checkBreedLike: Identify if an identifier looks like a breed procedure,
  and where the breed name is inside that identifier **/
 export const checkBreedLike = function (str: string) {
-  let result = false;
-  let location = BreedLocation.Null;
+  let result = {
+    found: false,
+    location: BreedLocation.Null,
+    isPlural: false,
+    isLink: false,
+  };
   if (str.match(/^in-[^\s]+-from$/)) {
-    result = true;
-    location = BreedLocation.Middle;
+    result.found = true;
+    result.location = BreedLocation.Middle;
+    result.isPlural = false;
+    result.isLink = true;
   } else if (str.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-    result = true;
-    location = BreedLocation.Middle;
+    result.found = true;
+    result.location = BreedLocation.Middle;
+    result.isPlural = false;
+    result.isLink = true;
   } else if (str.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-    result = true;
-    location = BreedLocation.Middle;
+    result.found = true;
+    result.location = BreedLocation.Middle;
+    result.isPlural = false;
+    result.isLink = true;
   } else if (str.match(/^out-[^\s]+-to$/)) {
-    result = true;
-    location = BreedLocation.Middle;
+    result.found = true;
+    result.location = BreedLocation.Middle;
+    result.isPlural = false;
+    result.isLink = true;
   } else if (str.match(/^create-[^\s]+-(to|from|with)$/)) {
-    result = true;
-    location = BreedLocation.Middle;
+    result.found = true;
+    result.location = BreedLocation.Middle;
+    result.isPlural = false;
+    result.isLink = true;
   } else if (str.match(/^create-ordered-[^\s]+/)) {
-    result = true;
-    location = BreedLocation.Third;
+    result.found = true;
+    result.location = BreedLocation.Third;
+    result.isPlural = true;
+    result.isLink = false;
   } else if (str.match(/^(hatch|sprout|create)-[^\s]+/)) {
-    result = true;
-    location = BreedLocation.Second;
+    result.found = true;
+    result.location = BreedLocation.Second;
+    result.isPlural = true;
+    result.isLink = false;
   } else if (str.match(/[^\s]+-(at)/)) {
-    result = true;
-    location = BreedLocation.First;
+    result.found = true;
+    result.location = BreedLocation.First;
+    result.isPlural = true;
+    result.isLink = false;
   } else if (str.match(/[^\s]+-here/)) {
-    result = true;
-    location = BreedLocation.First;
+    result.found = true;
+    result.location = BreedLocation.First;
+    result.isPlural = true;
+    result.isLink = false;
   } else if (str.match(/[^\s]+-neighbors/)) {
-    result = true;
-    location = BreedLocation.First;
+    result.found = true;
+    result.location = BreedLocation.First;
+    result.isPlural = false;
+    result.isLink = true;
   } else if (str.match(/[^\s]+-on/)) {
-    result = true;
-    location = BreedLocation.First;
+    result.found = true;
+    result.location = BreedLocation.First;
+    result.isPlural = true;
+    result.isLink = false;
   } else if (str.match(/[^\s]+-(with|neighbor\\?)/)) {
-    result = true;
-    location = BreedLocation.First;
+    result.found = true;
+    result.location = BreedLocation.First;
+    result.isPlural = false;
+    result.isLink = true;
   } else if (str.match(/^(my-in|my-out)-[^\s]+/)) {
-    result = true;
-    location = BreedLocation.Third;
+    result.found = true;
+    result.location = BreedLocation.Third;
+    result.isPlural = true;
+    result.isLink = true;
   } else if (str.match(/^(my)-[^\s]+/)) {
-    result = true;
-    location = BreedLocation.Second;
+    result.found = true;
+    result.location = BreedLocation.Second;
+    result.isPlural = true;
+    result.isLink = true;
   } else if (str.match(/^is-[^\s]+\\?$/)) {
-    result = true;
-    location = BreedLocation.Question;
+    result.found = true;
+    result.location = BreedLocation.Question;
+    result.isPlural = false;
+    result.isLink = false;
+  } else if (str.match(/[^\s]+-own$/)) {
+    result.found = true;
+    result.location = BreedLocation.Question;
+    result.isPlural = true;
+    result.isLink = false;
   }
-  return [result, location];
+  return result;
+};
+
+export const otherBreedName = function (breed: string, isPlural: boolean) {
+  if (isPlural) {
+    if (breed[breed.length - 1] == 's') {
+      return breed.substring(0, breed.length - 1);
+    } else {
+      return 'a-' + breed;
+    }
+  } else {
+    if (breed[breed.length - 1] == 's') {
+      return breed + 'es';
+    } else {
+      return breed + 's';
+    }
+  }
 };

@@ -3,6 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Log } from '../../codemirror/utils/debug-utils';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
+import { checkBreedLike } from '../../codemirror/utils/breed-utils';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
 export const UnrecognizedLinter: Linter = (
@@ -24,7 +25,10 @@ export const UnrecognizedLinter: Linter = (
 
         const value = view.state.sliceDoc(node.from, node.to);
         Log(value, node.name, parents);
-        if (!['[', ']', ')', '(', '"'].includes(value)) {
+        if (
+          !['[', ']', ')', '(', '"'].includes(value) &&
+          !checkBreedLike(value).found
+        ) {
           if (node.node.parent?.name == 'Normal') {
             diagnostics.push({
               from: node.from,

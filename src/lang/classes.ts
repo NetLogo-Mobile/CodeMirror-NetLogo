@@ -130,6 +130,15 @@ export class Breed {
   }
 }
 
+export class Range {
+  public Start: number;
+  public End: number;
+  public constructor(Start: number, End: number) {
+    this.Start = Start;
+    this.End = End;
+  }
+}
+
 /** BreedType: type of the breed. */
 export enum BreedType {
   Turtle = 0,
@@ -275,6 +284,15 @@ export class LintContext {
     var breedNames: string[] = [];
     for (let breed of this.Breeds.values()) {
       breedNames.push(breed.Singular);
+      breedNames.push(breed.Plural);
+    }
+    return breedNames;
+  }
+
+  /** GetPluralBreedNames: Get plural names related to breeds. */
+  public GetPluralBreedNames(): string[] {
+    var breedNames: string[] = [];
+    for (let breed of this.Breeds.values()) {
       breedNames.push(breed.Plural);
     }
     return breedNames;
