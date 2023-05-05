@@ -10,3 +10,8 @@ src/.DS_Store
 /dist/*/*.d.ts
 /dist/*/*/*.d.ts
 /dist/*/*/*/*.d.ts
+/dist/*/*/*/*/*.d.ts
+/.rollup.cache
+/dist/codemirror
+*.map
+/tsconfig.tsbuildinfo
