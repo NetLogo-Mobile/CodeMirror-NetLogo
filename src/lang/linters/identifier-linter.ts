@@ -79,30 +79,31 @@ export const IdentifierLinter: Linter = (
             }
           }
         }
-      } else if (
-        noderef.name == 'Arg' &&
-        noderef.node.prevSibling &&
-        view.state
-          .sliceDoc(noderef.node.prevSibling.from, noderef.node.prevSibling.to)
-          .toLowerCase() == 'ask'
-      ) {
-        let value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
-        if (!lintContext.GetPluralBreedNames().includes(value)) {
-          let plural = value;
-          let singular = otherBreedName(value, true);
-          let breed_type = 'breed';
-          diagnostics.push({
-            from: noderef.from,
-            to: noderef.to,
-            severity: 'error',
-            message: Localized.Get('Unrecognized breed name _', value),
-            actions: [
-              getAction(noderef.node, value, breed_type, plural, singular),
-            ],
-          });
-        }
-        return false;
       }
+      // else if (
+      //   noderef.name == 'Arg' &&
+      //   noderef.node.prevSibling &&
+      //   view.state
+      //     .sliceDoc(noderef.node.prevSibling.from, noderef.node.prevSibling.to)
+      //     .toLowerCase() == 'ask'
+      // ) {
+      //   let value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+      //   if (!lintContext.GetPluralBreedNames().includes(value)) {
+      //     let plural = value;
+      //     let singular = otherBreedName(value, true);
+      //     let breed_type = 'breed';
+      //     diagnostics.push({
+      //       from: noderef.from,
+      //       to: noderef.to,
+      //       severity: 'error',
+      //       message: Localized.Get('Unrecognized breed name _', value),
+      //       actions: [
+      //         getAction(noderef.node, value, breed_type, plural, singular),
+      //       ],
+      //     });
+      //   }
+      //   return false;
+      // }
     });
   return diagnostics;
 };
