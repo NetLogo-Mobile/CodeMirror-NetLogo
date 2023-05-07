@@ -30959,7 +30959,7 @@ if(!String.prototype.matchAll) {
             node.getChildren('Globals').length > 0 ||
             node.getChildren('Breed').length > 0 ||
             node.getChildren('BreedsOwn').length > 0) {
-            if (mode != 'Normal') {
+            if (mode != ParseMode.Normal && mode != ParseMode.Generative) {
                 for (let name of [
                     'Unrecognized',
                     'Procedure',
@@ -30993,7 +30993,9 @@ if(!String.prototype.matchAll) {
             return null;
         if (Expected == Mode)
             return null;
-        if (Expected == 'Oneline' &&
+        if (Expected == ParseMode.Generative && Mode == 'Normal')
+            return null;
+        if (Expected == ParseMode.Oneline &&
             (Mode == 'OnelineReporter' || Mode == 'Embedded'))
             return null;
         return Current;
@@ -31509,7 +31511,7 @@ if(!String.prototype.matchAll) {
                     var Line = Lines[I];
                     var Span = document.createElement('span');
                     Span.innerText = Line;
-                    Span.innerHTML = Span.innerHTML.replace(' ', '&nbsp;');
+                    Span.innerHTML = Line.replace(/\s/g, '&nbsp;');
                     if (Style != '')
                         Span.className = Style;
                     Container.appendChild(Span);
@@ -31534,7 +31536,7 @@ if(!String.prototype.matchAll) {
         }
         // #endregion
         // #region "Formatting"
-        /** Prettify: Prettify the selection ofNetLogo code. */
+        /** Prettify: Prettify the selection of NetLogo code. */
         Prettify() {
             prettify(this.CodeMirror);
         }
@@ -31648,7 +31650,8 @@ if(!String.prototype.matchAll) {
             });
             this.GetPreprocessState().Context = this.PreprocessContext;
             this.GetPreprocessState().SetEditor(this);
-            this.GetState().Mode = (_a = this.Options.ParseMode) !== null && _a !== void 0 ? _a : ParseMode.Normal;
+            this.Options.ParseMode = (_a = this.Options.ParseMode) !== null && _a !== void 0 ? _a : ParseMode.Normal;
+            this.GetState().Mode = this.Options.ParseMode;
             // Create features
             this.Editing = new EditingFeatures(this);
             this.Selection = new SelectionFeatures(this);

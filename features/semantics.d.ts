@@ -24,7 +24,7 @@ export declare class SemanticFeatures {
     HighlightTree(Tree: Tree, Content: string): HTMLElement;
     /** TraverseNodes: Parse a snippet of code and traverse its syntax nodes. */
     private TraverseNodes;
-    /** Prettify: Prettify the selection ofNetLogo code. */
+    /** Prettify: Prettify the selection of NetLogo code. */
     Prettify(): void;
     /** PrettifyAll: Prettify all the NetLogo code. */
     PrettifyAll(): void;
