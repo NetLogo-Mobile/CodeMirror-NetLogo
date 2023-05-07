@@ -40,7 +40,7 @@ export const ModeLinter: Linter = (
     node.getChildren('Breed').length > 0 ||
     node.getChildren('BreedsOwn').length > 0
   ) {
-    if (mode! != 'Normal') {
+    if (mode != ParseMode.Normal && mode != ParseMode.Generative) {
       for (let name of [
         'Unrecognized',
         'Procedure',
@@ -78,8 +78,9 @@ const CheckMode = function (
   var Current = GetMode(Node, Mode);
   if (Current == null) return null;
   if (Expected == Mode) return null;
+  if (Expected == ParseMode.Generative && Mode == 'Normal') return null;
   if (
-    Expected == 'Oneline' &&
+    Expected == ParseMode.Oneline &&
     (Mode == 'OnelineReporter' || Mode == 'Embedded')
   )
     return null;

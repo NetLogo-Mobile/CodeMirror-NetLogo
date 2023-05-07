@@ -63,7 +63,7 @@ export class SemanticFeatures {
         var Line = Lines[I];
         var Span = document.createElement('span');
         Span.innerText = Line;
-        Span.innerHTML = Span.innerHTML.replace(' ', '&nbsp;');
+        Span.innerHTML = Line.replace(/\s/g, '&nbsp;');
         if (Style != '') Span.className = Style;
         Container.appendChild(Span);
         if (I != Lines.length - 1)
@@ -92,7 +92,7 @@ export class SemanticFeatures {
   // #endregion
 
   // #region "Formatting"
-  /** Prettify: Prettify the selection ofNetLogo code. */
+  /** Prettify: Prettify the selection of NetLogo code. */
   Prettify() {
     prettify(this.CodeMirror);
   }

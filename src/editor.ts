@@ -138,7 +138,8 @@ export class GalapagosEditor {
     });
     this.GetPreprocessState().Context = this.PreprocessContext;
     this.GetPreprocessState().SetEditor(this);
-    this.GetState().Mode = this.Options.ParseMode ?? ParseMode.Normal;
+    this.Options.ParseMode = this.Options.ParseMode ?? ParseMode.Normal;
+    this.GetState().Mode = this.Options.ParseMode;
     // Create features
     this.Editing = new EditingFeatures(this);
     this.Selection = new SelectionFeatures(this);
