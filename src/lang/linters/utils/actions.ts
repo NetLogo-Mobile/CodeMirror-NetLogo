@@ -19,7 +19,7 @@ export const AddBreedAction = function (
 
 /** AddGlobalsAction: Return an add a global action. */
 export const AddGlobalsAction = function (
-  type: 'global' | 'extension',
+  type: 'Globals' | 'Extensions',
   items: string[]
 ) {
   return {

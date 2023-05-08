@@ -17,6 +17,7 @@ import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
 import { ParseMode } from '../editor-config';
 import { Log } from './utils/debug-utils';
+import { GetCursorUntilMode } from '../lang/linters/utils/cursors';
 
 let primitives = PrimitiveManager;
 
@@ -63,7 +64,6 @@ export class StateNetLogo {
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StateNetLogo {
     if (!this.IsDirty) return this;
-    const Cursor = syntaxTree(State).cursor();
     // Clear some global states to avoid contamination
     this.Breeds = new Map<string, Breed>();
     this.Procedures = new Map<string, Procedure>();
@@ -84,9 +84,9 @@ export class StateNetLogo {
     );
     let tempBreedVars: Map<string, string[]> = new Map<string, string[]>();
     this.IsDirty = false;
-    // Skip comments
-    if (!Cursor.firstChild()) return this;
-    while (Cursor.node.name == 'LineComment') Cursor.nextSibling();
+    // Get the cursor
+    const Cursor = GetCursorUntilMode(State);
+    if (!Cursor) return this;
     // Recognize the mode
     switch (Cursor.node.name) {
       case 'Embedded':

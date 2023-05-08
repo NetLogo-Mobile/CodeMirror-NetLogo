@@ -71,7 +71,7 @@ export const ExtensionLinter: Linter = (
           message: !noderef.name.includes('Unsupported')
             ? Localized.Get('Missing extension _.', vals[0])
             : Localized.Get('Unsupported missing extension _.', vals[0]),
-          actions: [AddGlobalsAction('extension', [vals[0]])],
+          actions: [AddGlobalsAction('Extensions', [vals[0]])],
         });
       }
     });

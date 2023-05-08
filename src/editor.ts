@@ -35,6 +35,7 @@ import { indentWithTab } from '@codemirror/commands';
 import { EditingFeatures } from './features/editing.js';
 import { SelectionFeatures } from './features/selection.js';
 import { SemanticFeatures } from './features/semantics.js';
+import { CodeEditing } from './lang/services/code-editing.js';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -56,6 +57,8 @@ export class GalapagosEditor {
   public readonly Selection: SelectionFeatures;
   /** Semantics: The semantics features of this editor. */
   public readonly Semantics: SemanticFeatures;
+  /** Operations: The code editing features of this editor. */
+  public readonly Operations: CodeEditing;
   /** DebugEnabled: Whether the debug output is enabled. */
   public static DebugEnabled: boolean;
 
@@ -144,6 +147,7 @@ export class GalapagosEditor {
     this.Editing = new EditingFeatures(this);
     this.Selection = new SelectionFeatures(this);
     this.Semantics = new SemanticFeatures(this);
+    this.Operations = new CodeEditing(this.CodeMirror);
     // Disable Grammarly
     const el = this.Parent.getElementsByClassName('cm-content')[0];
     el.setAttribute('data-enable-grammarly', 'false');

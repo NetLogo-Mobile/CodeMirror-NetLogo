@@ -3,15 +3,24 @@ import { EditorView } from '@codemirror/view';
 import { ChangeSpec } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
 import { BreedType } from '../classes/structures';
+import {
+  GetCursorInsideMode,
+  GetCursorUntilMode,
+} from '../linters/utils/cursors';
+import { GalapagosEditor } from '../../editor';
+import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 
 /** CodeEditing: Functions for editing code. */
 export class CodeEditing {
   // #region "Common Functions"
   /** View: The editor view. */
   public View: EditorView;
+  /** Galapagos: The editor instance. */
+  public Galapagos: GalapagosEditor;
   /** Constructor: Create a new code editing service. */
   public constructor(View: EditorView) {
     this.View = View;
+    this.Galapagos = View.state.field(preprocessStateExtension).Editor!;
   }
   /** InsertCode: Insert code snippets into the editor. */
   public InsertCode(Changes: ChangeSpec) {
@@ -21,8 +30,8 @@ export class CodeEditing {
   private GetSlice(From: number, To: number) {
     return this.View.state.sliceDoc(From, To);
   }
-  /** FindFirstNode: Find the first node that matches a condition. */
-  private FindFirstNode(
+  /** FindFirstChild: Find the first child that matches a condition. */
+  private FindFirstChild(
     Parent: SyntaxNode,
     Field: string,
     Condition?: (Node: SyntaxNode) => boolean
@@ -33,47 +42,77 @@ export class CodeEditing {
     return null;
   }
   /** AddTermToBracket: Add a term to a bracket. */
-  private AddTermToBracket(Contents: string[], Node: SyntaxNode) {
-    let Existing = this.View.state.sliceDoc(Node.from, Node.to);
-    console.log(Existing);
-    let Seperator = Existing.includes('\n') ? '\n' : ' ';
-    Node.node.getChildren('CloseBracket').map((Child) => {
-      const From = Child.from;
-      for (let Content of Contents) {
-        this.InsertCode([
-          {
-            from: From,
-            to: From,
-            insert: Seperator + Content,
-          },
-          indentRange(this.View.state, From, From + 1 + Content.length),
-        ]);
-      }
-    });
+  private AddTermToBracket(Contents: string[], Node: SyntaxNode): boolean {
+    // De-duplicate the contents
+    var Identifiers = Node.node
+      .getChildren('Identifier')
+      .map((Child) => this.GetSlice(Child.from, Child.to).trim());
+    Contents = [
+      ...new Set(
+        Contents.filter((Content) => Identifiers.indexOf(Content) == -1)
+      ),
+    ];
+    if (Contents.length == 0) return false;
+    // Find the spaces between the brackets
+    let Seperator = this.View.state.sliceDoc(Node.from, Node.to).includes('\n')
+      ? '\n'
+      : ' ';
+    var From = this.FindFirstChild(Node, 'CloseBracket')!.from;
+    // Insert the contents
+    for (let Content of Contents.reverse()) {
+      this.InsertCode({
+        from: From,
+        to: From,
+        insert: Content + Seperator,
+      });
+      this.InsertCode(
+        indentRange(this.View.state, From, From + 1 + Content.length)
+      );
+    }
+    return true;
   }
   // #endregion
 
   // #region "Global Statements"
   /** AppendGlobals: Append items of a global statement to the editor. */
-  public AppendGlobals(Field: 'global' | 'extension', Items: string[]) {
-    let cursor = syntaxTree(this.View.state).cursor();
+  public AppendGlobals(
+    Field: 'Globals' | 'Extensions',
+    Items: string[]
+  ): boolean {
+    Items = [...new Set(Items)];
+    // Find the cursor
+    let Cursor = GetCursorUntilMode(this.View.state);
     // Find the first global statement
-    if (cursor.firstChild() && cursor.firstChild()) {
-      var Statement = this.FindFirstNode(cursor.node, Field);
-      if (Statement) {
-        this.AddTermToBracket(Items, Statement);
-        return;
-      }
+    if (Cursor) {
+      var Statement = this.FindFirstChild(Cursor.node, Field);
+      if (Statement) return this.AddTermToBracket(Items, Statement);
     }
     // If not found, append a new global statement
     this.InsertCode({
       from: 0,
       to: 0,
-      insert: `${Field} [ ${Items.join(' ')} ]\n`,
+      insert: `${Field.toLowerCase()} [ ${Items.join(' ')} ]\n`,
     });
+    return true;
   }
   /** AppendBreed: Append a breed to the editor. */
-  public AppendBreed(Type: BreedType, Plural: string, Singular: string) {
+  public AppendBreed(
+    Type: BreedType,
+    Plural: string,
+    Singular: string
+  ): boolean {
+    // Check if the breed already exists
+    for (let [Sin, Breed] of this.Galapagos.LintContext.Breeds) {
+      if (
+        Breed.Plural == Plural ||
+        Breed.Singular == Singular ||
+        Breed.Singular == Plural ||
+        Breed.Plural == Singular
+      )
+        return false;
+    }
+    // TODO: Find the most appropriate place to insert the breed
+    // Add the breed
     var Name = 'breed';
     if (Type == BreedType.DirectedLink) Name = 'directed-link-breed';
     if (Type == BreedType.UndirectedLink) Name = 'undirected-link-breed';
@@ -82,50 +121,34 @@ export class CodeEditing {
       to: 0,
       insert: `${Name} [ ${Plural} ${Singular} ]\n`,
     });
+    return true;
   }
-  /** AddBreedVariables: Add variables to a breed. */
-  public AddBreedVariables(Breed: string, Variables: string[]) {
-    let cursor = syntaxTree(this.View.state).cursor();
-    let found = false;
-    if (cursor.firstChild() && cursor.firstChild()) {
-      if (cursor.node.name == 'BreedsOwn') {
-        cursor.node.getChildren('Own').map((child) => {
-          if (
-            this.View.state.sliceDoc(child.from, child.to) ==
-            Breed + '-own'
-          ) {
-            this.AddTermToBracket(Variables, child);
-            found = true;
+  /** AppendBreedVariables: Add variables to a breed. */
+  public AppendBreedVariables(Plural: string, Variables: string[]): boolean {
+    if (Variables.length == 0) return false;
+    let Cursor = GetCursorInsideMode(this.View.state);
+    // Find the first existing statement
+    if (Cursor) {
+      while (true) {
+        if (Cursor.node.name == 'BreedsOwn') {
+          var Own = this.FindFirstChild(Cursor.node, 'Own')!;
+          var Name = this.GetSlice(Own.from, Own.to).trim().toLowerCase();
+          if (Name === Plural.toLowerCase() + '-own') {
+            this.AddTermToBracket(Variables, Cursor.node);
+            return true;
           }
-        });
-      }
-      while (
-        cursor.nextSibling() &&
-        !found &&
-        cursor.node.name != 'Procedure'
-      ) {
-        if (cursor.node.name == 'BreedsOwn') {
-          cursor.node.getChildren('Own').map((child) => {
-            if (
-              this.View.state.sliceDoc(child.from, child.to) ==
-              Breed + '-own'
-            ) {
-              this.AddTermToBracket(Variables, cursor.node);
-              found = true;
-            }
-          });
         }
-      }
-      if (!found) {
-        this.View.dispatch({
-          changes: {
-            from: cursor.node.to,
-            to: cursor.node.to,
-            insert: '\n' + Breed + '-own [ ' + Variables + ' ]\n',
-          },
-        });
+        if (!Cursor.nextSibling() || Cursor.node.name === 'Procedure') break;
       }
     }
+    // TODO: Find the most appropriate place to insert the breed
+    // If not found, append a new statement
+    this.InsertCode({
+      from: 0,
+      to: 0,
+      insert: `${Plural.toLowerCase()}-own [ ${Variables.join(' ')} ]\n`,
+    });
+    return true;
   }
   // #endregion
 
