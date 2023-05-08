@@ -2,6 +2,7 @@ import { EditorView } from '@codemirror/view';
 import { GalapagosEditor } from '../editor';
 import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { Diagnostic } from '@codemirror/lint';
+import { CodeSnapshot } from '../lang/services/code-snapshot';
 /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
 export declare class SemanticFeatures {
     /** CodeMirror: The CodeMirror EditorView. */
@@ -30,6 +31,12 @@ export declare class SemanticFeatures {
     PrettifyAll(): void;
     /** PrettifyOrAll: Prettify the selected code. If no code is selected, prettify all. */
     PrettifyOrAll(): void;
+    /** BuildSnapshot: Build a snapshot of the code. */
+    BuildSnapshot(): CodeSnapshot;
+    /** IntegrateSnapshot: Integrate a snapshot of the code. */
+    IntegrateSnapshot(Snapshot: CodeSnapshot): void;
+    /** FixGeneratedCode: Try to fix and prettify a piece of generated code. */
+    FixGeneratedCode(Source: string, Parent?: CodeSnapshot): string;
     /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
     ForEachDiagnostic(Callback: (d: Diagnostic, from: number, to: number) => void): void;
 }

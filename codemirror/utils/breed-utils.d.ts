@@ -13,5 +13,8 @@ export declare const checkBreedLike: (str: string) => {
     isPlural: boolean;
     isLink: boolean;
 };
-export declare const otherBreedName: (breed: string, isPlural: boolean) => string;
+/** getPluralName: Get the plural name of a breed. */
+export declare const getPluralName: (singular: string) => string;
+/** getSingularName: Get the singular name of a breed. */
+export declare const getSingularName: (plural: string) => string;
 //# sourceMappingURL=breed-utils.d.ts.map

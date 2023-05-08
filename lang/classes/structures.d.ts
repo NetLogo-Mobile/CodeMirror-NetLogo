@@ -90,9 +90,9 @@ export declare class Breed {
     Plural: string;
     /** Variables: Variables defined for the breed. */
     Variables: string[];
-    /** BreedType: type of the breed. */
+    /** BreedType: Type of the breed. */
     BreedType: BreedType;
-    /** EditorID: which editor created the breed (for LinkContext). */
+    /** EditorID: Which editor created the breed (for LinkContext). */
     EditorID?: number;
     /** Build a breed. */
     constructor(Singular: string, Plural: string, Variables: string[], BreedType: BreedType);
@@ -128,8 +128,6 @@ export declare class Procedure {
     CodeBlocks: CodeBlock[];
     /** EditorID: which editor created the procedure (for LinkContext). */
     EditorID?: number;
-    /** isProcedure: used for linting; whether is a procedure or codeblock. */
-    isProcedure: boolean;
 }
 /** CodeBlock: Dynamic metadata of a code block. */
 export declare class CodeBlock {
@@ -147,8 +145,6 @@ export declare class CodeBlock {
     Arguments: string[];
     /** AnonymousProcedures: Anonymous procedures defined within the code block. */
     AnonymousProcedures: Procedure[];
-    /** isProcedure: used for linting; whether is a procedure or codeblock. */
-    isProcedure: boolean;
     /** Primitive: the primitive that created the codeblock. */
     Primitive: string;
     /** Breed: the breed in the primitive that created the codeblock (if present). */

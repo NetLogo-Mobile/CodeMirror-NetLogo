@@ -17,4 +17,6 @@ export interface CodeSnapshot {
 export declare function GetProcedureCode(Snapshot: CodeSnapshot, Procedure: Procedure): string;
 /** BuildSnapshot: Build a snapshot of the code. */
 export declare function BuildSnapshot(Galapagos: GalapagosEditor): CodeSnapshot;
+/** IntegrateSnapshot: Integrate a snapshot into the code. */
+export declare function IntegrateSnapshot(Galapagos: GalapagosEditor, Snapshot: CodeSnapshot): void;
 //# sourceMappingURL=code-snapshot.d.ts.map
