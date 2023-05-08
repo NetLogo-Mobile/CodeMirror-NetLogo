@@ -2,7 +2,7 @@ import { EditorView } from '@codemirror/view';
 import { StateNetLogo } from '../../../codemirror/extension-state-netlogo';
 import { EditorState } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
-import { LintContext, PreprocessContext } from '../../classes/structures';
+import { LintContext, PreprocessContext } from '../../classes/contexts';
 /** CheckContext: The context of the current check. */
 export interface CheckContext {
     state: EditorState;
