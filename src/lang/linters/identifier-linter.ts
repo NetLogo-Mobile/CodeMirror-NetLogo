@@ -10,7 +10,7 @@ import {
   checkValidIdentifier,
   getCheckContext,
 } from './utils/check-identifier';
-import { GalapagosEditing } from '../../codemirror/code-editing';
+import { GalapagosEditing } from '../services/code-editing';
 import { otherBreedName } from '../../codemirror/utils/breed-utils';
 import { EditorView } from 'codemirror';
 import { SyntaxNode } from '@lezer/common';

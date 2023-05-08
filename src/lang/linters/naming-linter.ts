@@ -2,7 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
-import { LintContext, BreedType } from '../classes';
+import { LintContext, BreedType } from '../classes/structures';
 import { getLocalVars } from './utils/check-identifier';
 
 // NamingLinter: Ensures no duplicate breed names

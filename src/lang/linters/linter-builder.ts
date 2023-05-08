@@ -5,7 +5,7 @@ import {
   stateExtension,
   StateNetLogo,
 } from '../../codemirror/extension-state-netlogo';
-import { LintContext, PreprocessContext } from '../classes';
+import { LintContext, PreprocessContext } from '../classes/structures';
 import { GalapagosEditor, Localized } from '../../editor';
 import { SyntaxNode } from '@lezer/common';
 

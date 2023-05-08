@@ -1,4 +1,4 @@
-import { BreedLocation } from '../../lang/classes';
+import { BreedLocation } from '../../lang/classes/structures';
 
 /** getBreedName: Parse the breed primitive for breed name. */
 export const getBreedName = function (value: string) {

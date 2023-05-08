@@ -7,7 +7,7 @@ import {
   LintContext,
   PreprocessContext,
   Procedure,
-} from '../../classes';
+} from '../../classes/structures';
 
 /** CheckContext: The context of the current check. */
 export interface CheckContext {

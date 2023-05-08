@@ -3,10 +3,10 @@ import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { PrimitiveManager } from '../primitives/primitives';
-import { NetLogoType } from '../classes';
+import { NetLogoType } from '../classes/structures';
 import { Linter } from './linter-builder';
 import { Localized } from '../../editor';
-import { PreprocessContext } from '../classes';
+import { PreprocessContext } from '../classes/structures';
 import { Log } from '../../codemirror/utils/debug-utils';
 
 let primitives = PrimitiveManager;

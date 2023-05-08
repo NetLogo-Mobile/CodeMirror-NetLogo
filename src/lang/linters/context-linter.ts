@@ -1,7 +1,12 @@
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
-import { Procedure, CodeBlock, LintContext, AgentContexts } from '../classes';
+import {
+  Procedure,
+  CodeBlock,
+  LintContext,
+  AgentContexts,
+} from '../classes/structures';
 import {
   combineContexts,
   noContext,

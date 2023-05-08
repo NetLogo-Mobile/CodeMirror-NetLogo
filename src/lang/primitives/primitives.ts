@@ -1,4 +1,4 @@
-import { NetLogoType, Primitive } from '../classes';
+import { NetLogoType, Primitive } from '../classes/structures';
 import { Dataset } from './dataset';
 import { Completion } from '@codemirror/autocomplete';
 

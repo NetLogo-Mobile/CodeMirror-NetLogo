@@ -14,11 +14,11 @@ import {
 } from '@codemirror/language';
 import { styleTags, tags as t } from '@lezer/highlight';
 import { closeBrackets } from '@codemirror/autocomplete';
-import { AutoCompletion } from './auto-completion';
+import { AutoCompletion } from './services/auto-completion.js';
 import { SyntaxNode } from '@lezer/common';
 import { GalapagosEditor } from '../editor';
 import { preprocessStateExtension } from '../codemirror/extension-state-preprocess.js';
-import { PreprocessContext } from './classes.js';
+import { PreprocessContext } from './classes/contexts.js';
 
 /** NetLogoLanguage: The NetLogo language. */
 export const NetLogoLanguage = LRLanguage.define({

@@ -1,4 +1,4 @@
-import { Breed } from '../../lang/classes';
+import { Breed } from '../../lang/classes/structures';
 import { EditorState } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
 

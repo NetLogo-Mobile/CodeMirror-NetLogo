@@ -30,7 +30,7 @@ import { Dictionary } from './i18n/dictionary.js';
 import { Diagnostic, linter } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
 import { buildLinter } from './lang/linters/linter-builder.js';
-import { PreprocessContext, LintContext } from './lang/classes.js';
+import { PreprocessContext, LintContext } from './lang/classes/contexts.js';
 import { indentWithTab } from '@codemirror/commands';
 import { EditingFeatures } from './features/editing.js';
 import { SelectionFeatures } from './features/selection.js';

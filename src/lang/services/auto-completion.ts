@@ -4,7 +4,7 @@ import {
   patchVars,
   linkVars,
   constants,
-} from './keywords';
+} from '../keywords';
 import {
   Completion,
   CompletionSource,
@@ -12,12 +12,13 @@ import {
   CompletionResult,
 } from '@codemirror/autocomplete';
 import { syntaxTree } from '@codemirror/language';
-import { PrimitiveManager } from './primitives/primitives';
-import { getLocalVars } from './linters/utils/check-identifier';
-import { GalapagosEditor } from '../editor';
-import { LintContext, BreedType } from './classes';
-import { ParseMode } from '../editor-config';
-import { Log } from '../codemirror/utils/debug-utils';
+import { PrimitiveManager } from '../primitives/primitives';
+import { getLocalVars } from '../linters/utils/check-identifier';
+import { GalapagosEditor } from '../../editor';
+import { BreedType } from '../classes/structures';
+import { ParseMode } from '../../editor-config';
+import { Log } from '../../codemirror/utils/debug-utils';
+import { LintContext } from '../classes/contexts';
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 /* Possible Types of Autocompletion Tokens:

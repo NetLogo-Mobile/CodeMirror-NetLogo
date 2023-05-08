@@ -6,7 +6,12 @@ import path from 'path';
 import { Log } from '../../codemirror/utils/debug-utils.ts';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { Primitive, NetLogoType, AgentContexts, Argument } from '../classes.ts';
+import {
+  Primitive,
+  NetLogoType,
+  AgentContexts,
+  Argument,
+} from '../classes/structures.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { Commands } from './core/commands.ts';

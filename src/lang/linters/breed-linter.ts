@@ -3,13 +3,13 @@ import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
-import { Breed, BreedType } from '../classes';
+import { Breed, BreedType } from '../classes/structures';
 import {
   CheckContext,
   checkValidIdentifier,
   getCheckContext,
 } from './utils/check-identifier';
-import { GalapagosEditing } from '../../codemirror/code-editing';
+import { GalapagosEditing } from '../services/code-editing';
 import {
   getBreedName,
   otherBreedName,

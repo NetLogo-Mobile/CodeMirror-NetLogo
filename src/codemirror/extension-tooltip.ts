@@ -9,7 +9,7 @@ import {
   getLink,
 } from './utils/tooltip-utils';
 import { GalapagosEditor, Localized } from '../editor';
-import { LintContext } from '../lang/classes';
+import { LintContext } from '../lang/classes/structures';
 import { Log } from './utils/debug-utils';
 
 /** buildToolTips: Extension for displaying language-specific tooltips. */

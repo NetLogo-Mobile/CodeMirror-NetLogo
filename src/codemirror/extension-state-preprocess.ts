@@ -1,5 +1,5 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
-import { PreprocessContext } from '../lang/classes';
+import { PreprocessContext } from '../lang/classes/structures';
 import { GalapagosEditor, Localized } from '../editor';
 import { Log } from './utils/debug-utils';
 

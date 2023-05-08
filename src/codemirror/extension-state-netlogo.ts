@@ -9,7 +9,7 @@ import {
   AgentContexts,
   ContextError,
   BreedType,
-} from '../lang/classes';
+} from '../lang/classes/structures';
 import { combineContexts, noContext } from './utils/context-utils';
 import { getBreedName } from './utils/breed-utils';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
