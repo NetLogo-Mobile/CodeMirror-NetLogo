@@ -13,7 +13,7 @@
 
 @top Program { 
   Normal {
-    (globalStatement | Procedure)*
+    (globalStatement ~statement| Procedure)*
   } |
   OnelineReporter {
     ReporterStatement | Value
@@ -120,7 +120,8 @@ Arguments {
 
 ProcedureContent {
   CommandStatement |
-  OpenParen CommandStatement CloseParen
+  OpenParen CommandStatement CloseParen |
+  Error {globalStatement} ~statement
 }
 
 ReporterContent {
@@ -162,7 +163,7 @@ VariableName {
   TurtleVar | 
   LinkVar |
   BreedToken |
-  UnsupportedPrim
+  UnsupportedPrim ~statement
 }
 
 Value {
@@ -201,22 +202,23 @@ Property {
 ReporterStatement { 
   OpenParen ReporterStatement !close CloseParen |
   OpenParen ReporterLeft1ArgsOpt !lastArgs Arg CloseParen |
-  Arg !leftArgs (ReporterLeft1Args | ReporterLeft1ArgsOpt) !lastArgs Arg+ |
-  Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg+ |
-  (SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP | UnsupportedPrim) !lastArgs Arg* ~statement |
-  (SpecialReporter1Args | SpecialReporter1ArgsTurtle | SpecialReporter1ArgsLink | SpecialReporter1ArgsBoth) !lastArgs Arg+ |
-  (SpecialReporter2Args | SpecialReporter2ArgsTurtle) Arg !lastArgs Arg+ |
-  SpecialReporter3Args Arg Arg !lastArgs Arg+ |
-  SpecialReporter4Args Arg Arg Arg !lastArgs Arg+ |
-  SpecialReporter5Args Arg Arg Arg Arg !lastArgs Arg+ |
-  SpecialReporter6Args Arg Arg Arg Arg Arg !lastArgs Arg+ |
-  (Reporter0Args | Reporter0ArgsVar) !lastArgs Arg* ~statement |
-  (Reporter1Args | Reporter1ArgsVar | Reporter1ArgsVar0) !lastArgs Arg+ |
-  (Reporter2Args | Reporter2ArgsVar | Reporter2ArgsVar0) Arg !lastArgs Arg+ |
-  (Reporter3Args | Reporter3ArgsVar) Arg Arg !lastArgs Arg+ |
-  (Reporter4Args | Reporter4ArgsVar) Arg Arg Arg !lastArgs Arg+ |
-  (Reporter5Args | Reporter5ArgsVar) Arg Arg Arg Arg !lastArgs Arg+ |
-  (Reporter6Args | Reporter6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg+ |
+  Arg !leftArgs (ReporterLeft1Args | ReporterLeft1ArgsOpt) !lastArgs Arg |
+  Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg |
+  SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP | UnsupportedPrim|
+  (Reporter1Args | SpecialReporter1Args | SpecialReporter1ArgsTurtle | SpecialReporter1ArgsLink | SpecialReporter1ArgsBoth) !lastArgs Arg |
+  (Reporter2Args | SpecialReporter2Args | SpecialReporter2ArgsTurtle) Arg !lastArgs Arg |
+  (Reporter3Args | SpecialReporter3Args) Arg Arg !lastArgs Arg |
+  (Reporter4Args | SpecialReporter4Args) Arg Arg Arg !lastArgs Arg |
+  (Reporter5Args |  SpecialReporter5Args) Arg Arg Arg Arg !lastArgs Arg |
+  (Reporter6Args | SpecialReporter6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
+  Reporter0Args |
+  (Reporter0ArgsVar) !lastArgs Arg* ~statement |
+  (Reporter1ArgsVar | Reporter1ArgsVar0) !lastArgs Arg+ |
+  (Reporter2ArgsVar | Reporter2ArgsVar0) Arg !lastArgs Arg+ |
+  Reporter3ArgsVar Arg Arg !lastArgs Arg+ |
+  Reporter4ArgsVar Arg Arg Arg !lastArgs Arg+ |
+  Reporter5ArgsVar Arg Arg Arg Arg !lastArgs Arg+ |
+  Reporter6ArgsVar Arg Arg Arg Arg Arg !lastArgs Arg+ |
   Arg !comparative AndOr Arg |
   APReporter Reporters !lastArgs Arg |
   APReporterFlip Arg !lastArgs Reporters |
@@ -224,24 +226,23 @@ ReporterStatement {
 }
 
 CommandStatement {
-  (SpecialCommand0Args | UnsupportedPrim) !lastArgs Arg* ~statement |
-  SpecialCommand1Args !lastArgs Arg+ |
-  SpecialCommand2Args Arg !lastArgs Arg+ |
-  SpecialCommand3Args Arg Arg !lastArgs Arg+ |
-  SpecialCommand4Args Arg Arg Arg !lastArgs Arg+ |
-  SpecialCommand5Args Arg Arg Arg Arg !lastArgs Arg+ |
-  SpecialCommand6Args Arg Arg Arg Arg Arg !lastArgs Arg+ |
-  SpecialCommandCreateTurtle !lastArgs Arg+ |
-  SpecialCommandCreateTurtle Arg !lastArgs Arg+ |
-  SpecialCommandCreateLink !lastArgs Arg+ |
-  SpecialCommandCreateLink Arg !lastArgs Arg+ |
-  (Command0Args | Command0ArgsVar) !lastArgs Arg* ~statement |
-  (Command1Args | Command1ArgsVar) !lastArgs Arg+ |
-  (Command2Args | Command2ArgsVar) Arg !lastArgs Arg+ |
-  (Command3Args | Command3ArgsVar | Command3ArgsVar2) Arg Arg !lastArgs Arg+ |
-  (Command4Args | Command4ArgsVar) Arg Arg Arg !lastArgs Arg+ |
-  (Command5Args | Command5ArgsVar) Arg Arg Arg Arg !lastArgs Arg+ |
-  (Command6Args | Command6ArgsVar) Arg Arg Arg Arg Arg !lastArgs Arg+ |
+  SpecialCommand0Args | Command0Args |
+  UnsupportedPrim ~statement |
+  (Command1Args | SpecialCommand1Args) !lastArgs Arg |
+  (Command2Args | SpecialCommand2Args) Arg !lastArgs Arg |
+  (Command3Args | SpecialCommand3Args) Arg Arg !lastArgs Arg |
+  (Command4Args | SpecialCommand4Args) Arg Arg Arg !lastArgs Arg |
+  (Command5Args | SpecialCommand5Args) Arg Arg Arg Arg !lastArgs Arg |
+  (Command6Args | SpecialCommand6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
+  SpecialCommandCreateTurtle Arg? !lastArgs Arg |
+  SpecialCommandCreateLink Arg? !lastArgs Arg |
+  Command0ArgsVar !lastArgs Arg* ~statement |
+  Command1ArgsVar !lastArgs Arg+ |
+  Command2ArgsVar Arg !lastArgs Arg+ |
+  (Command3ArgsVar | Command3ArgsVar2) Arg Arg !lastArgs Arg+ |
+  Command4ArgsVar Arg Arg Arg !lastArgs Arg+ |
+  Command5ArgsVar Arg Arg Arg Arg !lastArgs Arg+ |
+  Command6ArgsVar Arg Arg Arg Arg Arg !lastArgs Arg+ |
   VariableDeclaration |
   Unsupported |
   APCommand !leftArgs Arg+ !lastArgs Commands

@@ -171,8 +171,14 @@ export class StateNetLogo {
     let procedure = new Procedure();
     procedure.PositionStart = node.from;
     procedure.PositionEnd = node.to;
-    procedure.IsCommand =
-      this.getText(State, node.getChildren('To')[0].node).toLowerCase() == 'to';
+
+    procedure.IsCommand = true;
+    if (node.getChild('To')) {
+      procedure.IsCommand =
+        this.getText(State, node.getChildren('To')[0].node).toLowerCase() ==
+        'to';
+    }
+
     node.getChildren('ProcedureName').map((node) => {
       procedure.Name = this.getText(State, node);
     });

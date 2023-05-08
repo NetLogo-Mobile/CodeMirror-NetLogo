@@ -6,7 +6,7 @@ import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes/structures';
 import { Linter } from './linter-builder';
 import { Localized } from '../../editor';
-import { PreprocessContext } from '../classes/structures';
+import { PreprocessContext } from '../classes/contexts';
 import { Log } from '../../codemirror/utils/debug-utils';
 
 let primitives = PrimitiveManager;
@@ -75,6 +75,40 @@ export const ArgumentLinter: Linter = (
           });
         }
         let args = getArgs(Node);
+        // Log(args.rightArgs.map((node)=>view.state.sliceDoc(node.from, node.to)))
+        // Log(args.rightArgs.map((node)=>node.name))
+        // Log(args.rightArgs.map((node)=>{
+        //   let cursor = node.cursor()
+        //   let children = []
+        //   if (cursor.firstChild()){
+        //     children.push(cursor.node)
+        //     while(cursor.nextSibling()){
+        //       children.push(cursor.node)
+        //     }
+        //   }
+        //   return children.map((node1)=>{
+        //     let cursor = node1.cursor()
+        //     let children = []
+        //     if (cursor.firstChild()){
+        //       children.push(cursor.node)
+        //       while(cursor.nextSibling()){
+        //         children.push(cursor.node)
+        //       }
+        //     }
+        //     return children.map((node2)=>{
+        //       let cursor = node2.cursor()
+        //       let children = []
+        //       if (cursor.firstChild()){
+        //         children.push(cursor.node)
+        //         while(cursor.nextSibling()){
+        //           children.push(cursor.node)
+        //         }
+        //       }
+        //       return children.map((node)=>node.name+' '+view.state.sliceDoc(node.from, node.to))
+        //     })
+        //     node.name+' '+view.state.sliceDoc(node.from, node.to)
+        //   })
+        // }))
         //ensures there is a primitive to check
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
           //identify the errors and terms to be conveyed in error message

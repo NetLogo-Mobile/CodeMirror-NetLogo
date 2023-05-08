@@ -1,5 +1,5 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
-import { PreprocessContext } from '../lang/classes/structures';
+import { PreprocessContext } from '../lang/classes/contexts';
 import { GalapagosEditor, Localized } from '../editor';
 import { Log } from './utils/debug-utils';
 
@@ -34,7 +34,7 @@ export class StatePreprocess {
     let breedVars = doc.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
     this.BreedVars = this.processBreedVars(breedVars);
     // Commands
-    let commands = doc.matchAll(/(^|\n)\s*to\s+([^\s\[]+)(\s*\[([^\]]*)\])?/g);
+    let commands = doc.matchAll(/(^|\n)\s*to\s+([^\s\[;]+)(\s*\[([^\]]*)\])?/g);
     this.Commands = this.processProcedures(commands);
     // Reporters
     let reporters = doc.matchAll(

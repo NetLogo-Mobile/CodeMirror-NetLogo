@@ -2,12 +2,8 @@ import { EditorView } from '@codemirror/view';
 import { StateNetLogo } from '../../../codemirror/extension-state-netlogo';
 import { EditorState } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
-import {
-  CodeBlock,
-  LintContext,
-  PreprocessContext,
-  Procedure,
-} from '../../classes/structures';
+import { CodeBlock, Procedure } from '../../classes/structures';
+import { LintContext, PreprocessContext } from '../../classes/contexts';
 
 /** CheckContext: The context of the current check. */
 export interface CheckContext {

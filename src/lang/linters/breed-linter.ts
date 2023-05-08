@@ -21,7 +21,7 @@ let Editing = new GalapagosEditing();
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  const breeds = Array.from(lintContext.Breeds.values());
+  const breeds: Breed[] = Array.from(lintContext.Breeds.values());
   const context = getCheckContext(view, lintContext, preprocessContext);
   syntaxTree(view.state)
     .cursor()

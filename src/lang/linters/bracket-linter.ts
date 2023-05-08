@@ -42,8 +42,8 @@ export const BracketLinter: Linter = (view, preprocessContext, lintContext) => {
       }
       // ) need (
       if (
-        node.name == 'OpenParen' &&
-        node.node.parent?.getChildren('CloseParen').length != 1
+        node.name == 'CloseParen' &&
+        node.node.parent?.getChildren('OpenParen').length != 1
       ) {
         current = ')';
         expected = '(';
