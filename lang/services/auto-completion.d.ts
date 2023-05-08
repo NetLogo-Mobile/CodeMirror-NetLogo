@@ -1,5 +1,5 @@
 import { CompletionSource, CompletionContext, CompletionResult } from '@codemirror/autocomplete';
-import { GalapagosEditor } from '../editor';
+import { GalapagosEditor } from '../../editor';
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 export declare class AutoCompletion {
     /** Editor: The editor instance. */

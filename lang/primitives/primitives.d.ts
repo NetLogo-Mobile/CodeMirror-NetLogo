@@ -1,4 +1,4 @@
-import { Primitive } from '../classes';
+import { Primitive } from '../classes/structures';
 import { Completion } from '@codemirror/autocomplete';
 /** Primitives: Managing all primitives.  */
 export declare class Primitives {

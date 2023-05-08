@@ -7,7 +7,7 @@ import { StatePreprocess } from './codemirror/extension-state-preprocess.js';
 import { RuntimeError } from './lang/linters/runtime-linter.js';
 import { Diagnostic } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
-import { PreprocessContext, LintContext } from './lang/classes.js';
+import { PreprocessContext, LintContext } from './lang/classes/contexts.js';
 import { EditingFeatures } from './features/editing.js';
 import { SelectionFeatures } from './features/selection.js';
 import { SemanticFeatures } from './features/semantics.js';

@@ -1,5 +1,5 @@
 import { StateField, EditorState } from '@codemirror/state';
-import { PreprocessContext } from '../lang/classes';
+import { PreprocessContext } from '../lang/classes/structures';
 import { GalapagosEditor } from '../editor';
 /** StatePreprocess: The first-pass state for the NetLogo Language. */
 export declare class StatePreprocess {

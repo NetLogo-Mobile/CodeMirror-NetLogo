@@ -1,6 +1,6 @@
 import { LRLanguage, LanguageSupport } from '@codemirror/language';
 import { GalapagosEditor } from '../editor';
-import { PreprocessContext } from './classes.js';
+import { PreprocessContext } from './classes/contexts.js';
 /** NetLogoLanguage: The NetLogo language. */
 export declare const NetLogoLanguage: LRLanguage;
 /** NetLogo: The NetLogo language support. */

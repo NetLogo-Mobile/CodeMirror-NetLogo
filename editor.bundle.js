@@ -25396,140 +25396,9 @@ if(!String.prototype.matchAll) {
             this.CreationPos = CreationPos;
         }
     }
-    /** PreprocessContext: master context from preprocessing */
-    class PreprocessContext {
-        constructor() {
-            /** PluralBreeds: Breeds in the model. */
-            this.PluralBreeds = new Map();
-            /** SingularBreeds: Singular breeds in the model. */
-            this.SingularBreeds = new Map();
-            /** BreedVars: Breed variables in the model. */
-            this.BreedVars = new Map();
-            /** Commands: Commands in the model with number of arguments. */
-            this.Commands = new Map();
-            /** Reporters: Reporters in the model with number of arguments. */
-            this.Reporters = new Map();
-            /** CommandsOrigin: Commands in the model with editor ID. */
-            this.CommandsOrigin = new Map();
-            /** ReportersOrigin: Reporters in the model with editor ID. */
-            this.ReportersOrigin = new Map();
-        }
-        /** Clear: Clear the context. */
-        Clear() {
-            this.PluralBreeds.clear();
-            this.SingularBreeds.clear();
-            this.BreedVars.clear();
-            this.Commands.clear();
-            this.Reporters.clear();
-            this.CommandsOrigin.clear();
-            this.ReportersOrigin.clear();
-            return this;
-        }
-    }
-    /** LintPreprocessContext: master context from statenetlogo */
-    class LintContext {
-        constructor() {
-            /** Extensions: Extensions in the code. */
-            this.Extensions = new Map();
-            /** Globals: Globals in the code. */
-            this.Globals = new Map();
-            /** WidgetGlobals: Globals from the widgets. */
-            this.WidgetGlobals = new Map();
-            /** Breeds: Breeds in the code. */
-            this.Breeds = new Map();
-            /** Procedures: Procedures in the code. */
-            this.Procedures = new Map();
-        }
-        /** Clear: Clear the context. */
-        Clear() {
-            this.Extensions.clear();
-            this.Globals.clear();
-            this.WidgetGlobals.clear();
-            this.Breeds.clear();
-            this.Procedures.clear();
-            return this;
-        }
-        /** GetBreedNames: Get names related to breeds. */
-        GetBreedNames() {
-            var breedNames = [];
-            for (let breed of this.Breeds.values()) {
-                breedNames.push(breed.Singular);
-                breedNames.push(breed.Plural);
-            }
-            return breedNames;
-        }
-        /** GetPluralBreedNames: Get plural names related to breeds. */
-        GetPluralBreedNames() {
-            var breedNames = [];
-            for (let breed of this.Breeds.values()) {
-                breedNames.push(breed.Plural);
-            }
-            return breedNames;
-        }
-        /** GetBreedVariables: Get variable names related to breeds. */
-        GetBreedVariables() {
-            var breedNames = [];
-            for (let breed of this.Breeds.values()) {
-                breedNames = breedNames.concat(breed.Variables);
-            }
-            return breedNames;
-        }
-        /** GetBreeds: Get list of breeds. */
-        GetBreeds() {
-            var breedList = [];
-            for (let breed of this.Breeds.values()) {
-                breedList.push(breed);
-            }
-            return breedList;
-        }
-        /** GetBreedFromVariable: Find the breed which defines a certain variable. */
-        GetBreedFromVariable(varName) {
-            for (let breed of this.Breeds.values()) {
-                if (breed.Variables.includes(varName))
-                    return breed.Plural;
-            }
-            return null;
-        }
-        /** GetBreedFromProcedure: Get breed name from breed procedure. */
-        GetBreedFromProcedure(term) {
-            let breed = '';
-            for (let b of this.GetBreedNames()) {
-                if (term.includes(b) && b.length > breed.length) {
-                    breed = b;
-                }
-            }
-            return breed;
-        }
-        /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
-        GetProcedureFromVariable(varName, from, to) {
-            for (let proc of this.Procedures.values()) {
-                if (proc.PositionEnd < from || proc.PositionStart > to)
-                    continue;
-                // Check the argument list in a procedure
-                if (proc.Arguments.includes(varName))
-                    return proc.Name;
-                // Check the local variable list in a procedure
-                for (let localVar of proc.Variables) {
-                    if (localVar.Name == varName && localVar.CreationPos <= to)
-                        return proc.Name;
-                }
-                // Check the anonymous arguments in a procedure
-                for (let anonProc of proc.AnonymousProcedures) {
-                    if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
-                        continue;
-                    if (anonProc.Arguments.includes(varName))
-                        return '{anonymous},' + proc.Name;
-                    for (let localVar of anonProc.Variables) {
-                        if (localVar.Name == varName && localVar.CreationPos <= to)
-                            return '{anonymous},' + proc.Name;
-                    }
-                }
-            }
-            return null;
-        }
-    }
-    /** LocalVariable: metadata for local variables */
+    /** ContextError: Error caused by context conflict. */
     class ContextError {
+        /** Constructor: Build a context error. */
         constructor(From, To, PriorContext, ConflictingContext, Primitive) {
             this.From = From;
             this.To = To;
@@ -26623,6 +26492,139 @@ if(!String.prototype.matchAll) {
             return Original;
         },
     });
+
+    /** PreprocessContext: master context from preprocessing */
+    class PreprocessContext {
+        constructor() {
+            /** PluralBreeds: Breeds in the model. */
+            this.PluralBreeds = new Map();
+            /** SingularBreeds: Singular breeds in the model. */
+            this.SingularBreeds = new Map();
+            /** BreedVars: Breed variables in the model. */
+            this.BreedVars = new Map();
+            /** Commands: Commands in the model with number of arguments. */
+            this.Commands = new Map();
+            /** Reporters: Reporters in the model with number of arguments. */
+            this.Reporters = new Map();
+            /** CommandsOrigin: Commands in the model with editor ID. */
+            this.CommandsOrigin = new Map();
+            /** ReportersOrigin: Reporters in the model with editor ID. */
+            this.ReportersOrigin = new Map();
+        }
+        /** Clear: Clear the context. */
+        Clear() {
+            this.PluralBreeds.clear();
+            this.SingularBreeds.clear();
+            this.BreedVars.clear();
+            this.Commands.clear();
+            this.Reporters.clear();
+            this.CommandsOrigin.clear();
+            this.ReportersOrigin.clear();
+            return this;
+        }
+    }
+    /** LintPreprocessContext: master context from statenetlogo */
+    class LintContext {
+        constructor() {
+            /** Extensions: Extensions in the code. */
+            this.Extensions = new Map();
+            /** Globals: Globals in the code. */
+            this.Globals = new Map();
+            /** WidgetGlobals: Globals from the widgets. */
+            this.WidgetGlobals = new Map();
+            /** Breeds: Breeds in the code. */
+            this.Breeds = new Map();
+            /** Procedures: Procedures in the code. */
+            this.Procedures = new Map();
+        }
+        /** Clear: Clear the context. */
+        Clear() {
+            this.Extensions.clear();
+            this.Globals.clear();
+            this.WidgetGlobals.clear();
+            this.Breeds.clear();
+            this.Procedures.clear();
+            return this;
+        }
+        /** GetBreedNames: Get names related to breeds. */
+        GetBreedNames() {
+            var breedNames = [];
+            for (let breed of this.Breeds.values()) {
+                breedNames.push(breed.Singular);
+                breedNames.push(breed.Plural);
+            }
+            return breedNames;
+        }
+        /** GetPluralBreedNames: Get plural names related to breeds. */
+        GetPluralBreedNames() {
+            var breedNames = [];
+            for (let breed of this.Breeds.values()) {
+                breedNames.push(breed.Plural);
+            }
+            return breedNames;
+        }
+        /** GetBreedVariables: Get variable names related to breeds. */
+        GetBreedVariables() {
+            var breedNames = [];
+            for (let breed of this.Breeds.values()) {
+                breedNames = breedNames.concat(breed.Variables);
+            }
+            return breedNames;
+        }
+        /** GetBreeds: Get list of breeds. */
+        GetBreeds() {
+            var breedList = [];
+            for (let breed of this.Breeds.values()) {
+                breedList.push(breed);
+            }
+            return breedList;
+        }
+        /** GetBreedFromVariable: Find the breed which defines a certain variable. */
+        GetBreedFromVariable(varName) {
+            for (let breed of this.Breeds.values()) {
+                if (breed.Variables.includes(varName))
+                    return breed.Plural;
+            }
+            return null;
+        }
+        /** GetBreedFromProcedure: Get breed name from breed procedure. */
+        GetBreedFromProcedure(term) {
+            let breed = '';
+            for (let b of this.GetBreedNames()) {
+                if (term.includes(b) && b.length > breed.length) {
+                    breed = b;
+                }
+            }
+            return breed;
+        }
+        /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
+        GetProcedureFromVariable(varName, from, to) {
+            for (let proc of this.Procedures.values()) {
+                if (proc.PositionEnd < from || proc.PositionStart > to)
+                    continue;
+                // Check the argument list in a procedure
+                if (proc.Arguments.includes(varName))
+                    return proc.Name;
+                // Check the local variable list in a procedure
+                for (let localVar of proc.Variables) {
+                    if (localVar.Name == varName && localVar.CreationPos <= to)
+                        return proc.Name;
+                }
+                // Check the anonymous arguments in a procedure
+                for (let anonProc of proc.AnonymousProcedures) {
+                    if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
+                        continue;
+                    if (anonProc.Arguments.includes(varName))
+                        return '{anonymous},' + proc.Name;
+                    for (let localVar of anonProc.Variables) {
+                        if (localVar.Name == varName && localVar.CreationPos <= to)
+                            return '{anonymous},' + proc.Name;
+                    }
+                }
+            }
+            return null;
+        }
+    }
 
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     /** NetLogoLanguage: The NetLogo language. */

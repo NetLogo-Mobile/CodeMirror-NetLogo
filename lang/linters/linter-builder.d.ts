@@ -2,7 +2,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
 import { Extension } from '@codemirror/state';
 import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
-import { LintContext, PreprocessContext } from '../classes';
+import { LintContext, PreprocessContext } from '../classes/structures';
 import { GalapagosEditor } from '../../editor';
 /** Linter: A function that takes a view and parse state and returns a list of diagnostics. */
 type Linter = (view: EditorView, preprocessContext: PreprocessContext, lintContext: LintContext, parseState?: StateNetLogo) => Diagnostic[];

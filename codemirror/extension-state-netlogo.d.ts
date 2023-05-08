@@ -1,5 +1,5 @@
 import { StateField, EditorState } from '@codemirror/state';
-import { Breed, Procedure, ContextError } from '../lang/classes';
+import { Breed, Procedure, ContextError } from '../lang/classes/structures';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { ParseMode } from '../editor-config';
 /** StateNetLogo: The second-pass editor state for the NetLogo Language. */
