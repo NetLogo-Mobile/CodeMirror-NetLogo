@@ -27003,6 +27003,8 @@ if(!String.prototype.matchAll) {
             this.IsDirty = true;
             /** Mode: The editor's parsing mode. */
             this.Mode = ParseMode.Normal;
+            /** RecognizedMode: The editor's recognized mode. */
+            this.RecognizedMode = 'Unknown';
             /** ContextErrors: Context errors detected during processing. */
             this.ContextErrors = [];
             // #endregion
@@ -27036,10 +27038,25 @@ if(!String.prototype.matchAll) {
             this.Breeds.set('link', new Breed('link', 'links', [], BreedType.UndirectedLink));
             let tempBreedVars = new Map();
             this.IsDirty = false;
+            // Skip comments
             if (!Cursor.firstChild())
                 return this;
-            while (Cursor.node.name == 'LineComment') {
+            while (Cursor.node.name == 'LineComment')
                 Cursor.nextSibling();
+            // Recognize the mode
+            switch (Cursor.node.name) {
+                case 'Embedded':
+                    this.RecognizedMode = 'Command';
+                    break;
+                case 'OnelineReporter':
+                    this.RecognizedMode = 'Reporter';
+                    break;
+                case 'Normal':
+                    this.RecognizedMode = 'Model';
+                    break;
+                default:
+                    this.RecognizedMode = 'Unknown';
+                    break;
             }
             if (!Cursor.firstChild())
                 return this;
@@ -27057,11 +27074,9 @@ if(!String.prototype.matchAll) {
                 }
                 // get breeds
                 else if (Cursor.node.name == 'Breed') {
-                    const Plural = Cursor.node.getChildren('BreedPlural');
-                    const Singular = Cursor.node.getChildren('BreedSingular');
+                    // get breed type
                     let breedType = BreedType.Turtle;
                     Cursor.node.getChildren('BreedDeclarative').map((node) => {
-                        node.getChildren('BreedStr').length == 1;
                         let name = this.getText(State, node);
                         if (name.toLowerCase() == 'undirected-link-breed') {
                             breedType = BreedType.UndirectedLink;
@@ -27070,6 +27085,9 @@ if(!String.prototype.matchAll) {
                             breedType = BreedType.DirectedLink;
                         }
                     });
+                    // get breed names
+                    const Plural = Cursor.node.getChildren('BreedPlural');
+                    const Singular = Cursor.node.getChildren('BreedSingular');
                     if (Plural.length == 1 && Singular.length == 1) {
                         let singular = this.getText(State, Singular[0]);
                         let plural = this.getText(State, Plural[0]);
@@ -31482,18 +31500,7 @@ if(!String.prototype.matchAll) {
         }
         /** GetRecognizedMode: Get the recognized program mode. */
         GetRecognizedMode() {
-            var _a, _b;
-            var Name = (_b = (_a = this.GetSyntaxTree().topNode) === null || _a === void 0 ? void 0 : _a.firstChild) === null || _b === void 0 ? void 0 : _b.name;
-            switch (Name) {
-                case 'Embedded':
-                    return 'Command';
-                case 'OnelineReporter':
-                    return 'Reporter';
-                case 'Normal':
-                    return 'Model';
-                default:
-                    return 'Unknown';
-            }
+            return this.Galapagos.GetState().RecognizedMode;
         }
         /** Highlight: Export the code in the editor into highlighted HTML. */
         Highlight() {

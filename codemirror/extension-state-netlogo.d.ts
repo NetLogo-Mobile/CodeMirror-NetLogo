@@ -22,6 +22,8 @@ export declare class StateNetLogo {
     private IsDirty;
     /** Mode: The editor's parsing mode. */
     Mode: ParseMode;
+    /** RecognizedMode: The editor's recognized mode. */
+    RecognizedMode: 'Unknown' | 'Model' | 'Command' | 'Reporter';
     /** ContextErrors: Context errors detected during processing. */
     ContextErrors: ContextError[];
     /** SetDirty: Make the state dirty. */
