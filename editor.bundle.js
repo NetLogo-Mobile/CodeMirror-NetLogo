@@ -31674,19 +31674,24 @@ if(!String.prototype.matchAll) {
                 else if (LastIsComment)
                     NewLines.pop();
             }
-            else if (Line.startsWith('breed [')) {
+            else if (Line.startsWith('breed [') ||
+                Line.startsWith('directed-link-breed [') ||
+                Line.startsWith('undirected-link-breed [')) {
                 // If the line is a breed declaration, try to get the name and fix the singular issue
-                var Match = Line.matchAll(/breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g).next()
-                    .value;
+                var Match = Line.matchAll(/([^\s]*)breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g).next().value;
                 if (Match) {
-                    var Plural = Match[1];
-                    var Singular = Match[2];
+                    var Plural = Match[2];
+                    var Singular = Match[3];
                     if (Plural == Singular)
                         Singular = getSingularName(Plural);
+                    var Statement = `${Match[1]}breed [ ${Plural} ${Singular} ]`;
                     if (!InProcedure)
-                        NewLines.push(`breed [ ${Plural} ${Singular}] `);
-                    else if (LastIsComment)
-                        NewLines.pop();
+                        NewLines.push(Statement);
+                    else {
+                        NewLines.unshift(Statement);
+                        if (LastIsComment)
+                            NewLines.unshift(NewLines.pop());
+                    }
                 }
                 else if (LastIsComment)
                     NewLines.pop();
