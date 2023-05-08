@@ -25998,6 +25998,12 @@ if(!String.prototype.matchAll) {
         token = token.toLowerCase();
         let parseContext = GetContext();
         let commands = parseContext.Commands;
+        if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
+            return SpecialCommandCreateLink;
+        }
+        else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+            return SpecialCommandCreateTurtle;
+        }
         if (commands.has(token)) {
             let args = commands.get(token);
             if (args == 0) {
@@ -26024,12 +26030,6 @@ if(!String.prototype.matchAll) {
             else {
                 return -1;
             }
-        }
-        if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
-            return SpecialCommandCreateLink;
-        }
-        else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
-            return SpecialCommandCreateTurtle;
         }
         else {
             return -1;
@@ -30806,6 +30806,39 @@ if(!String.prototype.matchAll) {
     const NamingLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
         let all = [];
+        for (let b of lintContext.Breeds.values()) {
+            if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+                all.push('hatch-' + b.Plural);
+                all.push('sprout-' + b.Plural);
+                all.push('create-' + b.Plural);
+                all.push('create-ordered-' + b.Plural);
+                all.push(b.Plural + '-at');
+                all.push(b.Plural + '-here');
+                all.push(b.Plural + '-on');
+                all.push('is-' + b.Singular + '?');
+            }
+            else {
+                all.push('create-' + b.Plural + '-to');
+                all.push('create-' + b.Singular + '-to');
+                all.push('create-' + b.Plural + '-from');
+                all.push('create-' + b.Singular + '-from');
+                all.push('create-' + b.Plural + '-with');
+                all.push('create-' + b.Singular + '-with');
+                all.push('out-' + b.Singular + '-to');
+                all.push('out-' + b.Singular + '-neighbors');
+                all.push('out-' + b.Singular + '-neighbor?');
+                all.push('in-' + b.Singular + '-from');
+                all.push('in-' + b.Singular + '-neighbors');
+                all.push('in-' + b.Singular + '-neighbor?');
+                all.push('my-' + b.Plural);
+                all.push('my-in-' + b.Plural);
+                all.push('my-out-' + b.Plural);
+                all.push(b.Singular + '-neighbor?');
+                all.push(b.Singular + '-neighbors');
+                all.push(b.Singular + '-with');
+                all.push('is-' + b.Singular + '?');
+            }
+        }
         let seen = [];
         let link_vars = [];
         let turtle_vars = [];
