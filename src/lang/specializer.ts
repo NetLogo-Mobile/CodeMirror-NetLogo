@@ -249,6 +249,12 @@ const specializeSpecialCommand = function (token: string) {
   token = token.toLowerCase();
   let parseContext = GetContext();
   let commands = parseContext.Commands;
+
+  if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
+    return SpecialCommandCreateLink;
+  } else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
+    return SpecialCommandCreateTurtle;
+  }
   if (commands.has(token)) {
     let args = commands.get(token);
     if (args == 0) {
@@ -268,12 +274,6 @@ const specializeSpecialCommand = function (token: string) {
     } else {
       return -1;
     }
-  }
-
-  if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
-    return SpecialCommandCreateLink;
-  } else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
-    return SpecialCommandCreateTurtle;
   } else {
     return -1;
   }

@@ -10,6 +10,38 @@ import { getLocalVars } from './utils/check-identifier';
 export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
   let all: string[] = [];
+  for (let b of lintContext.Breeds.values()) {
+    if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+      all.push('hatch-' + b.Plural);
+      all.push('sprout-' + b.Plural);
+      all.push('create-' + b.Plural);
+      all.push('create-ordered-' + b.Plural);
+      all.push(b.Plural + '-at');
+      all.push(b.Plural + '-here');
+      all.push(b.Plural + '-on');
+      all.push('is-' + b.Singular + '?');
+    } else {
+      all.push('create-' + b.Plural + '-to');
+      all.push('create-' + b.Singular + '-to');
+      all.push('create-' + b.Plural + '-from');
+      all.push('create-' + b.Singular + '-from');
+      all.push('create-' + b.Plural + '-with');
+      all.push('create-' + b.Singular + '-with');
+      all.push('out-' + b.Singular + '-to');
+      all.push('out-' + b.Singular + '-neighbors');
+      all.push('out-' + b.Singular + '-neighbor?');
+      all.push('in-' + b.Singular + '-from');
+      all.push('in-' + b.Singular + '-neighbors');
+      all.push('in-' + b.Singular + '-neighbor?');
+      all.push('my-' + b.Plural);
+      all.push('my-in-' + b.Plural);
+      all.push('my-out-' + b.Plural);
+      all.push(b.Singular + '-neighbor?');
+      all.push(b.Singular + '-neighbors');
+      all.push(b.Singular + '-with');
+      all.push('is-' + b.Singular + '?');
+    }
+  }
   let seen: string[] = [];
   let link_vars: string[] = [];
   let turtle_vars: string[] = [];
