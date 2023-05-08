@@ -113,7 +113,10 @@ export class StateNetLogo {
       }
       // get global variables
       else if (Cursor.node.name == 'Globals') {
-        this.Globals = this.getVariables(Cursor.node, State);
+        this.Globals = [
+          ...this.Globals,
+          ...this.getVariables(Cursor.node, State),
+        ];
       }
       // get breeds
       else if (Cursor.node.name == 'Breed') {
