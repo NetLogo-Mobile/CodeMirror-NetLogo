@@ -11,6 +11,7 @@ import { PreprocessContext, LintContext } from './lang/classes/contexts.js';
 import { EditingFeatures } from './features/editing.js';
 import { SelectionFeatures } from './features/selection.js';
 import { SemanticFeatures } from './features/semantics.js';
+import { CodeEditing } from './lang/services/code-editing.js';
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export declare class GalapagosEditor {
     /** CodeMirror: The CodeMirror 6 component. */
@@ -31,6 +32,8 @@ export declare class GalapagosEditor {
     readonly Selection: SelectionFeatures;
     /** Semantics: The semantics features of this editor. */
     readonly Semantics: SemanticFeatures;
+    /** Operations: The code editing features of this editor. */
+    readonly Operations: CodeEditing;
     /** DebugEnabled: Whether the debug output is enabled. */
     static DebugEnabled: boolean;
     /** Constructor: Create an editor instance. */

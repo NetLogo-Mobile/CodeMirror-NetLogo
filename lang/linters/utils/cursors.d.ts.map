@@ -1,0 +1,1 @@
+{"version":3,"file":"cursors.d.ts","sourceRoot":"","sources":["../../../../../src/lang/linters/utils/cursors.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,WAAW,EAAE,MAAM,mBAAmB,CAAC;AAChD,OAAO,EAAE,UAAU,EAAE,MAAM,eAAe,CAAC;AAE3C,gEAAgE;AAChE,wBAAgB,kBAAkB,CAAC,KAAK,EAAE,WAAW,GAAG,UAAU,GAAG,IAAI,CAKxE;AAED,wEAAwE;AACxE,wBAAgB,mBAAmB,CAAC,KAAK,EAAE,WAAW,GAAG,UAAU,GAAG,IAAI,CAIzE"}

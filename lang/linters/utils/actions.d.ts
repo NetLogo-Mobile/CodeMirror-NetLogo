@@ -6,7 +6,7 @@ export declare const AddBreedAction: (type: BreedType, plural: string, singular:
     apply(view: EditorView, from: number, to: number): void;
 };
 /** AddGlobalsAction: Return an add a global action. */
-export declare const AddGlobalsAction: (type: 'global' | 'extension', items: string[]) => {
+export declare const AddGlobalsAction: (type: 'Globals' | 'Extensions', items: string[]) => {
     name: any;
     apply(view: EditorView, from: number, to: number): void;
 };

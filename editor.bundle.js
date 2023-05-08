@@ -26982,6 +26982,23 @@ if(!String.prototype.matchAll) {
         }
     };
 
+    /** GetCursorUntilMode: Get the cursor until the "mode" node. */
+    function GetCursorUntilMode(State) {
+        const Cursor = syntaxTree(State).cursor();
+        if (!Cursor.firstChild())
+            return null;
+        while (Cursor.node.name == 'LineComment')
+            Cursor.nextSibling();
+        return Cursor;
+    }
+    /** GetCursorInsideMode: Get the cursor until inside the "node" part. */
+    function GetCursorInsideMode(State) {
+        const Cursor = GetCursorUntilMode(State);
+        if (!(Cursor === null || Cursor === void 0 ? void 0 : Cursor.firstChild()))
+            return null;
+        return Cursor;
+    }
+
     let primitives$2 = PrimitiveManager;
     /** StateNetLogo: The second-pass editor state for the NetLogo Language. */
     class StateNetLogo {
@@ -27028,7 +27045,6 @@ if(!String.prototype.matchAll) {
             var _a;
             if (!this.IsDirty)
                 return this;
-            const Cursor = syntaxTree(State).cursor();
             // Clear some global states to avoid contamination
             this.Breeds = new Map();
             this.Procedures = new Map();
@@ -27040,11 +27056,10 @@ if(!String.prototype.matchAll) {
             this.Breeds.set('link', new Breed('link', 'links', [], BreedType.UndirectedLink));
             let tempBreedVars = new Map();
             this.IsDirty = false;
-            // Skip comments
-            if (!Cursor.firstChild())
+            // Get the cursor
+            const Cursor = GetCursorUntilMode(State);
+            if (!Cursor)
                 return this;
-            while (Cursor.node.name == 'LineComment')
-                Cursor.nextSibling();
             // Recognize the mode
             switch (Cursor.node.name) {
                 case 'Embedded':
@@ -29738,6 +29753,7 @@ if(!String.prototype.matchAll) {
         /** Constructor: Create a new code editing service. */
         constructor(View) {
             this.View = View;
+            this.Galapagos = View.state.field(preprocessStateExtension).Editor;
         }
         /** InsertCode: Insert code snippets into the editor. */
         InsertCode(Changes) {
@@ -29747,8 +29763,8 @@ if(!String.prototype.matchAll) {
         GetSlice(From, To) {
             return this.View.state.sliceDoc(From, To);
         }
-        /** FindFirstNode: Find the first node that matches a condition. */
-        FindFirstNode(Parent, Field, Condition) {
+        /** FindFirstChild: Find the first child that matches a condition. */
+        FindFirstChild(Parent, Field, Condition) {
             var _a;
             for (let Child of Parent.getChildren(Field)) {
                 if ((_a = Condition === null || Condition === void 0 ? void 0 : Condition(Child)) !== null && _a !== void 0 ? _a : true)
@@ -29758,45 +29774,64 @@ if(!String.prototype.matchAll) {
         }
         /** AddTermToBracket: Add a term to a bracket. */
         AddTermToBracket(Contents, Node) {
-            let Existing = this.View.state.sliceDoc(Node.from, Node.to);
-            console.log(Existing);
-            let Seperator = Existing.includes('\n') ? '\n' : ' ';
-            Node.node.getChildren('CloseBracket').map((Child) => {
-                const From = Child.from;
-                for (let Content of Contents) {
-                    this.InsertCode([
-                        {
-                            from: From,
-                            to: From,
-                            insert: Seperator + Content,
-                        },
-                        indentRange(this.View.state, From, From + 1 + Content.length),
-                    ]);
-                }
-            });
+            // De-duplicate the contents
+            var Identifiers = Node.node
+                .getChildren('Identifier')
+                .map((Child) => this.GetSlice(Child.from, Child.to).trim());
+            Contents = [
+                ...new Set(Contents.filter((Content) => Identifiers.indexOf(Content) == -1)),
+            ];
+            if (Contents.length == 0)
+                return false;
+            // Find the spaces between the brackets
+            let Seperator = this.View.state.sliceDoc(Node.from, Node.to).includes('\n')
+                ? '\n'
+                : ' ';
+            var From = this.FindFirstChild(Node, 'CloseBracket').from;
+            // Insert the contents
+            for (let Content of Contents.reverse()) {
+                this.InsertCode({
+                    from: From,
+                    to: From,
+                    insert: Content + Seperator,
+                });
+                this.InsertCode(indentRange(this.View.state, From, From + 1 + Content.length));
+            }
+            return true;
         }
         // #endregion
         // #region "Global Statements"
         /** AppendGlobals: Append items of a global statement to the editor. */
         AppendGlobals(Field, Items) {
-            let cursor = syntaxTree(this.View.state).cursor();
+            Items = [...new Set(Items)];
+            // Find the cursor
+            let Cursor = GetCursorUntilMode(this.View.state);
             // Find the first global statement
-            if (cursor.firstChild() && cursor.firstChild()) {
-                var Statement = this.FindFirstNode(cursor.node, Field);
-                if (Statement) {
-                    this.AddTermToBracket(Items, Statement);
-                    return;
-                }
+            if (Cursor) {
+                var Statement = this.FindFirstChild(Cursor.node, Field);
+                if (Statement)
+                    return this.AddTermToBracket(Items, Statement);
             }
             // If not found, append a new global statement
             this.InsertCode({
                 from: 0,
                 to: 0,
-                insert: `${Field} [ ${Items.join(' ')} ]\n`,
+                insert: `${Field.toLowerCase()} [ ${Items.join(' ')} ]\n`,
             });
+            return true;
         }
         /** AppendBreed: Append a breed to the editor. */
         AppendBreed(Type, Plural, Singular) {
+            // Check if the breed already exists
+            for (let [Sin, Breed] of this.Galapagos.LintContext.Breeds) {
+                if (Breed.Plural == Plural ||
+                    Breed.Singular == Singular ||
+                    Breed.Singular == Plural ||
+                    Breed.Plural == Singular)
+                    return false;
+            }
+            // TODO: Find the most appropriate place to insert the breed
+            // Add the breed
             var Name = 'breed';
             if (Type == BreedType.DirectedLink)
                 Name = 'directed-link-breed';
@@ -29807,44 +29842,36 @@ if(!String.prototype.matchAll) {
                 to: 0,
                 insert: `${Name} [ ${Plural} ${Singular} ]\n`,
             });
+            return true;
         }
-        /** AddBreedVariables: Add variables to a breed. */
-        AddBreedVariables(Breed, Variables) {
-            let cursor = syntaxTree(this.View.state).cursor();
-            let found = false;
-            if (cursor.firstChild() && cursor.firstChild()) {
-                if (cursor.node.name == 'BreedsOwn') {
-                    cursor.node.getChildren('Own').map((child) => {
-                        if (this.View.state.sliceDoc(child.from, child.to) ==
-                            Breed + '-own') {
-                            this.AddTermToBracket(Variables, child);
-                            found = true;
+        /** AppendBreedVariables: Add variables to a breed. */
+        AppendBreedVariables(Plural, Variables) {
+            if (Variables.length == 0)
+                return false;
+            let Cursor = GetCursorInsideMode(this.View.state);
+            // Find the first existing statement
+            if (Cursor) {
+                while (true) {
+                    if (Cursor.node.name == 'BreedsOwn') {
+                        var Own = this.FindFirstChild(Cursor.node, 'Own');
+                        var Name = this.GetSlice(Own.from, Own.to).trim().toLowerCase();
+                        if (Name === Plural.toLowerCase() + '-own') {
+                            this.AddTermToBracket(Variables, Cursor.node);
+                            return true;
                         }
-                    });
-                }
-                while (cursor.nextSibling() &&
-                    !found &&
-                    cursor.node.name != 'Procedure') {
-                    if (cursor.node.name == 'BreedsOwn') {
-                        cursor.node.getChildren('Own').map((child) => {
-                            if (this.View.state.sliceDoc(child.from, child.to) ==
-                                Breed + '-own') {
-                                this.AddTermToBracket(Variables, cursor.node);
-                                found = true;
-                            }
-                        });
                     }
-                }
-                if (!found) {
-                    this.View.dispatch({
-                        changes: {
-                            from: cursor.node.to,
-                            to: cursor.node.to,
-                            insert: '\n' + Breed + '-own [ ' + Variables + ' ]\n',
-                        },
-                    });
+                    if (!Cursor.nextSibling() || Cursor.node.name === 'Procedure')
+                        break;
                 }
             }
+            // TODO: Find the most appropriate place to insert the breed
+            // If not found, append a new statement
+            this.InsertCode({
+                from: 0,
+                to: 0,
+                insert: `${Plural.toLowerCase()}-own [ ${Variables.join(' ')} ]\n`,
+            });
+            return true;
         }
         // #endregion
         ReplaceProcedure(view, name, content) {
@@ -30581,7 +30608,7 @@ if(!String.prototype.matchAll) {
                     message: !noderef.name.includes('Unsupported')
                         ? Localized.Get('Missing extension _.', vals[0])
                         : Localized.Get('Unsupported missing extension _.', vals[0]),
-                    actions: [AddGlobalsAction('extension', [vals[0]])],
+                    actions: [AddGlobalsAction('Extensions', [vals[0]])],
                 });
             }
         });
@@ -31708,6 +31735,7 @@ if(!String.prototype.matchAll) {
             this.Editing = new EditingFeatures(this);
             this.Selection = new SelectionFeatures(this);
             this.Semantics = new SemanticFeatures(this);
+            this.Operations = new CodeEditing(this.CodeMirror);
             // Disable Grammarly
             const el = this.Parent.getElementsByClassName('cm-content')[0];
             el.setAttribute('data-enable-grammarly', 'false');
