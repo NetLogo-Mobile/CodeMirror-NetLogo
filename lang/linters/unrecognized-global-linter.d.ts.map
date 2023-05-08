@@ -1,1 +1,1 @@
-{"version":3,"file":"unrecognized-global-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/unrecognized-global-linter.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,MAAM,EAAE,MAAM,kBAAkB,CAAC;AAG1C,eAAO,MAAM,wBAAwB,EAAE,MAmCtC,CAAC"}
+{"version":3,"file":"unrecognized-global-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/unrecognized-global-linter.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,MAAM,EAAE,MAAM,kBAAkB,CAAC;AAG1C,eAAO,MAAM,wBAAwB,EAAE,MAqDtC,CAAC"}
