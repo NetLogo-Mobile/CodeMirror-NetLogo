@@ -41,6 +41,9 @@ export class StateNetLogo {
   private IsDirty: boolean = true;
   /** Mode: The editor's parsing mode. */
   public Mode: ParseMode = ParseMode.Normal;
+  /** RecognizedMode: The editor's recognized mode. */
+  public RecognizedMode: 'Unknown' | 'Model' | 'Command' | 'Reporter' =
+    'Unknown';
   /** ContextErrors: Context errors detected during processing. */
   public ContextErrors: ContextError[] = [];
   // #endregion
@@ -81,9 +84,23 @@ export class StateNetLogo {
     );
     let tempBreedVars: Map<string, string[]> = new Map<string, string[]>();
     this.IsDirty = false;
+    // Skip comments
     if (!Cursor.firstChild()) return this;
-    while (Cursor.node.name == 'LineComment') {
-      Cursor.nextSibling();
+    while (Cursor.node.name == 'LineComment') Cursor.nextSibling();
+    // Recognize the mode
+    switch (Cursor.node.name) {
+      case 'Embedded':
+        this.RecognizedMode = 'Command';
+        break;
+      case 'OnelineReporter':
+        this.RecognizedMode = 'Reporter';
+        break;
+      case 'Normal':
+        this.RecognizedMode = 'Model';
+        break;
+      default:
+        this.RecognizedMode = 'Unknown';
+        break;
     }
     if (!Cursor.firstChild()) return this;
     // Start parsing
@@ -100,12 +117,9 @@ export class StateNetLogo {
       }
       // get breeds
       else if (Cursor.node.name == 'Breed') {
-        const Plural = Cursor.node.getChildren('BreedPlural');
-        const Singular = Cursor.node.getChildren('BreedSingular');
-        let isLinkBreed = false;
+        // get breed type
         let breedType = BreedType.Turtle;
         Cursor.node.getChildren('BreedDeclarative').map((node) => {
-          isLinkBreed = node.getChildren('BreedStr').length == 1;
           let name = this.getText(State, node);
           if (name.toLowerCase() == 'undirected-link-breed') {
             breedType = BreedType.UndirectedLink;
@@ -113,7 +127,9 @@ export class StateNetLogo {
             breedType = BreedType.DirectedLink;
           }
         });
-
+        // get breed names
+        const Plural = Cursor.node.getChildren('BreedPlural');
+        const Singular = Cursor.node.getChildren('BreedSingular');
         if (Plural.length == 1 && Singular.length == 1) {
           let singular = this.getText(State, Singular[0]);
           let plural = this.getText(State, Plural[0]);

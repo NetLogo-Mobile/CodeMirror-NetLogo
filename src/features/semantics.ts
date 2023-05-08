@@ -30,17 +30,7 @@ export class SemanticFeatures {
   }
   /** GetRecognizedMode: Get the recognized program mode. */
   GetRecognizedMode(): string {
-    var Name = this.GetSyntaxTree().topNode?.firstChild?.name;
-    switch (Name) {
-      case 'Embedded':
-        return 'Command';
-      case 'OnelineReporter':
-        return 'Reporter';
-      case 'Normal':
-        return 'Model';
-      default:
-        return 'Unknown';
-    }
+    return this.Galapagos.GetState().RecognizedMode;
   }
   /** Highlight: Export the code in the editor into highlighted HTML. */
   Highlight(): HTMLElement {
