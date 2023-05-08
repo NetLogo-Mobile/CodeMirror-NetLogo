@@ -63,9 +63,9 @@ const zh_cn: Record<string, Function> = {
   'Unsupported missing extension _.': (Name: string) =>
     `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
   'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
-    `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
+    `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
   'Duplicate global statement _': (Name: string) =>
-    `The global "${Name}" statement is already defined. Do you want to consolidate?`,
+    `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
 
   // Agent types
   Observer: () => '观察者',
