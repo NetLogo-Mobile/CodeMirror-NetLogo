@@ -30090,6 +30090,35 @@ if(!String.prototype.matchAll) {
         return found;
     };
 
+    /** buildLinter: Builds a linter extension from a linter function. */
+    const buildLinter = function (Source, Editor) {
+        var LastVersion = -1;
+        var Cached = [];
+        var BuiltSource = (view) => {
+            if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
+                var state = view.state.field(stateExtension);
+                Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
+                LastVersion = Editor.GetVersion();
+            }
+            return Cached;
+        };
+        var Extension = linter(BuiltSource);
+        Extension.Source = BuiltSource;
+        return Extension;
+    };
+    const getDiagnostic = function (view, node, message, severity = 'error') {
+        var value = view.state.sliceDoc(node.from, node.to);
+        // Cut short the value if it's too long
+        if (value.length >= 20)
+            value = value.substring(0, 17) + '...';
+        return {
+            from: node.from,
+            to: node.to,
+            severity: severity,
+            message: Localized.Get(message, value),
+        };
+    };
+
     // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
     const UnrecognizedLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
@@ -30109,20 +30138,10 @@ if(!String.prototype.matchAll) {
                 if (!['[', ']', ')', '(', '"'].includes(value) &&
                     !checkBreedLike(value).found) {
                     if (((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Normal') {
-                        diagnostics.push({
-                            from: node.from,
-                            to: node.to,
-                            severity: 'error',
-                            message: Localized.Get('Unrecognized global statement _', value),
-                        });
+                        diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));
                     }
                     else {
-                        diagnostics.push({
-                            from: node.from,
-                            to: node.to,
-                            severity: 'error',
-                            message: Localized.Get('Unrecognized statement _', value),
-                        });
+                        diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
                     }
                 }
             }
@@ -30927,32 +30946,6 @@ if(!String.prototype.matchAll) {
                 });
         });
         return diagnostics;
-    };
-
-    /** buildLinter: Builds a linter extension from a linter function. */
-    const buildLinter = function (Source, Editor) {
-        var LastVersion = -1;
-        var Cached = [];
-        var BuiltSource = (view) => {
-            if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
-                var state = view.state.field(stateExtension);
-                Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
-                LastVersion = Editor.GetVersion();
-            }
-            return Cached;
-        };
-        var Extension = linter(BuiltSource);
-        Extension.Source = BuiltSource;
-        return Extension;
-    };
-    const getDiagnostic = function (view, node, message, severity = 'error') {
-        var value = view.state.sliceDoc(node.from, node.to);
-        return {
-            from: node.from,
-            to: node.to,
-            severity: 'error',
-            message: Localized.Get(message, value),
-        };
     };
 
     /** ModeLinter: Checks if mode matches grammar. */
