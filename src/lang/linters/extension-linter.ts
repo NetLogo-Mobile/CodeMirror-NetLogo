@@ -8,9 +8,8 @@ import {
   checkValidIdentifier,
   getCheckContext,
 } from './utils/check-identifier';
-import { prettify } from '../../codemirror/prettify';
 import { SyntaxNode } from '@lezer/common';
-import { EditorView } from 'codemirror';
+import { AddGlobalsAction } from './utils/actions';
 
 let primitives = PrimitiveManager;
 
@@ -72,89 +71,9 @@ export const ExtensionLinter: Linter = (
           message: !noderef.name.includes('Unsupported')
             ? Localized.Get('Missing extension _.', vals[0])
             : Localized.Get('Unsupported missing extension _.', vals[0]),
-          actions: [
-            {
-              name: Localized.Get('Add'),
-              apply(view, from, to) {
-                addExtension(
-                  view,
-                  extension_index,
-                  vals[0],
-                  extension_node,
-                  true
-                );
-              },
-            },
-          ],
+          actions: [AddGlobalsAction('extension', [vals[0]])],
         });
       }
     });
   return diagnostics;
-};
-
-export const addExtension = (
-  view: EditorView,
-  index: number,
-  extension: string,
-  extension_node: null | SyntaxNode,
-  make_pretty: boolean
-) => {
-  if (!make_pretty) {
-    view.dispatch({
-      changes: {
-        from: index,
-        to: index,
-        insert: extension_node
-          ? extension + ' '
-          : 'extensions [' + extension + ']\n',
-      },
-    });
-  } else {
-    let anchor = view.state.selection.main.anchor;
-    let head = view.state.selection.main.head;
-    let end = extension_node ? extension_node.to : 0;
-    if (extension_node) {
-      view.dispatch({
-        changes: {
-          from: index,
-          to: index,
-          insert: extension + ' ',
-        },
-        selection: EditorSelection.create(
-          [
-            EditorSelection.range(
-              extension_node.from,
-              extension_node.to + (extension + ' ').length
-            ),
-          ],
-          0
-        ),
-      });
-    } else {
-      view.dispatch({
-        changes: {
-          from: index,
-          to: index,
-          insert: 'extensions [' + extension + ']\n',
-        },
-        selection: EditorSelection.create(
-          [
-            EditorSelection.range(
-              0,
-              ('extensions [' + extension + ']\n').length
-            ),
-          ],
-          0
-        ),
-      });
-    }
-    let offset = prettify(view) - end;
-    if (anchor < index) {
-      view.dispatch({ selection: { anchor: anchor, head: head } });
-    } else {
-      view.dispatch({
-        selection: { anchor: anchor + offset, head: head + offset },
-      });
-    }
-  }
 };

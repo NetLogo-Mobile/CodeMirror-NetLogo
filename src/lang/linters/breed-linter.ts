@@ -9,14 +9,11 @@ import {
   checkValidIdentifier,
   getCheckContext,
 } from './utils/check-identifier';
-import { GalapagosEditing } from '../services/code-editing';
 import {
   getBreedName,
   otherBreedName,
 } from '../../codemirror/utils/breed-utils';
-import { EditorView } from 'codemirror';
-
-let Editing = new GalapagosEditing();
+import { AddBreedAction } from './utils/actions';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -57,8 +54,13 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
               singular = breed_result.breed;
               plural = otherBreedName(breed_result.breed, false);
             }
-            let breed_type = result.isLink ? 'undirected-link-breed' : 'breed';
-            actions.push(getAction(Node, value, breed_type, plural, singular));
+            actions.push(
+              AddBreedAction(
+                result.isLink ? BreedType.UndirectedLink : BreedType.Turtle,
+                plural,
+                singular
+              )
+            );
           }
           diagnostics.push({
             from: noderef.from,
@@ -71,21 +73,6 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
       }
     });
   return diagnostics;
-};
-
-const getAction = function (
-  node: SyntaxNode,
-  value: string,
-  breed_type: string,
-  plural: string,
-  singular: string
-) {
-  return {
-    name: Localized.Get('Add'),
-    apply(view: EditorView, from: number, to: number) {
-      Editing.AddBreed(view, breed_type, plural, singular);
-    },
-  };
 };
 
 // checkValidBreed: Checks if the term in the structure of a breed command/reporter

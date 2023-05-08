@@ -1,17 +1,48 @@
 import { Breed, Procedure } from '../classes/structures';
+import { GalapagosEditor } from '../../editor';
 
 /** CodeSnapshot: A snapshot of the code with grammatical structures. */
 export interface CodeSnapshot {
   /** Code: The code of the snapshot. */
   Code: string;
   /** Extensions: Extensions in the code. */
-  Extensions: Map<string, number>;
+  Extensions: string[];
   /** Globals: Globals in the code. */
-  Globals: Map<string, number>;
-  /** WidgetGlobals: Globals from the widgets. */
-  WidgetGlobals: Map<string, number>;
+  Globals: string[];
   /** Breeds: Breeds in the code. */
   Breeds: Map<string, Breed>;
   /** Procedures: Procedures in the code. */
   Procedures: Map<string, Procedure>;
+}
+
+/** GetProcedureCode: Get the code of a procedure. */
+export function GetProcedureCode(
+  Snapshot: CodeSnapshot,
+  Procedure: Procedure
+): string {
+  return Snapshot.Code.substring(
+    Procedure.PositionStart,
+    Procedure.PositionEnd
+  );
+}
+
+/** BuildSnapshot: Build a snapshot of the code. */
+export function BuildSnapshot(Galapagos: GalapagosEditor): CodeSnapshot {
+  var State = Galapagos.GetState();
+  // Get the components
+  var Code = Galapagos.GetCode();
+  var Extensions: string[] = State.Extensions;
+  var Globals: string[] = State.Globals;
+  // Get the breeds
+  var Breeds = new Map<string, Breed>();
+  for (var [Singular, Breed] of State.Breeds) {
+    Breeds.set(Singular, Breed);
+  }
+  // Get the procedures
+  var Procedures = new Map<string, Procedure>();
+  for (var [Name, Procedure] of State.Procedures) {
+    Procedures.set(Name, Procedure);
+  }
+  // Return the snapshot
+  return { Code, Extensions, Globals, Breeds, Procedures };
 }

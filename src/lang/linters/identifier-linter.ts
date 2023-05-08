@@ -10,13 +10,13 @@ import {
   checkValidIdentifier,
   getCheckContext,
 } from './utils/check-identifier';
-import { GalapagosEditing } from '../services/code-editing';
+import { CodeEditing } from '../services/code-editing';
 import { otherBreedName } from '../../codemirror/utils/breed-utils';
 import { EditorView } from 'codemirror';
 import { SyntaxNode } from '@lezer/common';
 import { Log } from '../../codemirror/utils/debug-utils';
-
-let Editing = new GalapagosEditing();
+import { AddBreedAction } from './utils/actions';
+import { BreedType } from '../classes/structures';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter: Linter = (
@@ -60,11 +60,14 @@ export const IdentifierLinter: Linter = (
                 singular = breedinfo.breed;
                 plural = otherBreedName(breedinfo.breed, false);
               }
-              let breed_type = breedinfo.isLink
-                ? 'undirected-link-breed'
-                : 'breed';
               actions.push(
-                getAction(Node, value, breed_type, plural, singular)
+                AddBreedAction(
+                  breedinfo.isLink
+                    ? BreedType.UndirectedLink
+                    : BreedType.Turtle,
+                  plural,
+                  singular
+                )
               );
               diagnostics.push({
                 from: noderef.from,
@@ -106,19 +109,4 @@ export const IdentifierLinter: Linter = (
       // }
     });
   return diagnostics;
-};
-
-const getAction = function (
-  node: SyntaxNode,
-  value: string,
-  breed_type: string,
-  plural: string,
-  singular: string
-) {
-  return {
-    name: Localized.Get('Add'),
-    apply(view: EditorView, from: number, to: number) {
-      Editing.AddBreed(view, breed_type, plural, singular);
-    },
-  };
 };
