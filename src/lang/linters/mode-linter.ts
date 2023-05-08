@@ -1,7 +1,7 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { Linter } from './linter-builder';
+import { getDiagnostic, Linter } from './linter-builder';
 import { SyntaxNode } from '@lezer/common';
 import { ParseMode } from '../../editor-config';
 
@@ -12,53 +12,40 @@ export const ModeLinter: Linter = (
   lintContext,
   state
 ) => {
+  var mode = state!.Mode;
   const diagnostics: Diagnostic[] = [];
-  if (view.state.doc.length == 0) return diagnostics;
+  // Check if the document is empty
+  if (view.state.doc.length == 0 || mode == ParseMode.Generative)
+    return diagnostics;
+  // Get the root node
   var node = syntaxTree(view.state).cursor().node;
   if (node.name != 'Program') return diagnostics;
-  var mode = state!.Mode;
-  // Check the oneline/embedded modes
-  var Unexpected = CheckMode(node, 'OnelineReporter', mode);
-  Unexpected = Unexpected ?? CheckMode(node, 'Embedded', mode);
-  Unexpected = Unexpected ?? CheckMode(node, 'Normal', mode);
-  if (Unexpected != null) {
-    let value = view.state.sliceDoc(Unexpected.from, Unexpected.to);
-    diagnostics.push({
-      from: node.from,
-      to: node.to,
-      severity: 'error',
-      message: Localized.Get(`Invalid for ${mode} mode _`, value),
-    });
+  // Check if the recognized mode matches the expected one
+  var unexpected: SyntaxNode | null = null;
+  unexpected = unexpected ?? CheckMode(node, 'OnelineReporter', mode);
+  unexpected = unexpected ?? CheckMode(node, 'Embedded', mode);
+  unexpected = unexpected ?? CheckMode(node, 'Normal', mode);
+  if (unexpected != null) {
+    diagnostics.push(
+      getDiagnostic(view, unexpected, `Invalid for ${mode} mode _`)
+    );
     return diagnostics;
   }
-  // Check the normal mode
-  if (
-    node.getChildren('Unrecognized').length > 0 ||
-    node.getChildren('Procedure').length > 0 ||
-    node.getChildren('Extensions').length > 0 ||
-    node.getChildren('Globals').length > 0 ||
-    node.getChildren('Breed').length > 0 ||
-    node.getChildren('BreedsOwn').length > 0
-  ) {
-    if (mode != ParseMode.Normal && mode != ParseMode.Generative) {
-      for (let name of [
-        'Unrecognized',
-        'Procedure',
-        'Extensions',
-        'Globals',
-        'Breed',
-        'BreedsOwn',
-      ]) {
-        node.getChildren(name).map((child) => {
-          let value = view.state.sliceDoc(child.from, child.to);
-          diagnostics.push({
-            from: node.from,
-            to: node.to,
-            severity: 'error',
-            message: Localized.Get('Unrecognized global statement _', value),
-          });
-        });
-      }
+  // The global statements are not allowed in oneline/embedded modes
+  if (mode != ParseMode.Normal) {
+    for (let name of [
+      'Unrecognized',
+      'Procedure',
+      'Extensions',
+      'Globals',
+      'Breed',
+      'BreedsOwn',
+    ]) {
+      node.getChildren(name).map((child) => {
+        diagnostics.push(
+          getDiagnostic(view, child, `Invalid for ${mode} mode _`)
+        );
+      });
     }
   }
   return diagnostics;
@@ -78,7 +65,6 @@ const CheckMode = function (
   var Current = GetMode(Node, Mode);
   if (Current == null) return null;
   if (Expected == Mode) return null;
-  if (Expected == ParseMode.Generative && Mode == 'Normal') return null;
   if (
     Expected == ParseMode.Oneline &&
     (Mode == 'OnelineReporter' || Mode == 'Embedded')

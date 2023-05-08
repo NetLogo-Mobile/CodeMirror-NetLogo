@@ -65,7 +65,7 @@ export class SemanticFeatures {
         Span.innerText = Line;
         Span.innerHTML = Line.replace(/\s/g, '&nbsp;');
         if (Style != '') Span.className = Style;
-        Container.appendChild(Span);
+        if (Span.innerHTML != '') Container.appendChild(Span);
         if (I != Lines.length - 1)
           Container.appendChild(document.createElement('br'));
       }

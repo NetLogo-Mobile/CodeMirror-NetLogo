@@ -6,7 +6,8 @@ import {
   StateNetLogo,
 } from '../../codemirror/extension-state-netlogo';
 import { LintContext, PreprocessContext } from '../classes';
-import { GalapagosEditor } from '../../editor';
+import { GalapagosEditor, Localized } from '../../editor';
+import { SyntaxNode } from '@lezer/common';
 
 /** Linter: A function that takes a view and parse state and returns a list of diagnostics. */
 type Linter = (
@@ -39,6 +40,21 @@ const buildLinter = function (
   var Extension = linter(BuiltSource);
   (Extension as any).Source = BuiltSource;
   return Extension;
+};
+
+export const getDiagnostic = function (
+  view: EditorView,
+  node: SyntaxNode,
+  message: string,
+  severity: string = 'error'
+): Diagnostic {
+  var value = view.state.sliceDoc(node.from, node.to);
+  return {
+    from: node.from,
+    to: node.to,
+    severity: 'error',
+    message: Localized.Get(message, value),
+  };
 };
 
 export { buildLinter, Linter };

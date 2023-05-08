@@ -107,10 +107,20 @@ const zh_cn: Record<string, Function> = {
 
   // Chat and AI assistant
   Reconnect: () => `重新连接`,
+  RunCode: () => `运行代码`,
+  'Trying to run the code': () => `尝试运行代码……`,
+  FixCode: () => `修复代码`,
+  AskCode: () => `提问`,
+  AddCode: () => `放入作品`,
+  'Trying to add the code': () => `尝试将代码放入作品……`,
+  PreviousVersion: () => `上一版本`,
+  NextVersion: () => `下一版本`,
   'Connection to server failed _': (Error: string) =>
     `抱歉，和服务器的连接中断了。代码 ${Error}。`,
   'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,
   'Summary of request': () => `简单总结我的请求的要点：`,
+  'We need to fix the following errors _': (Number: number) =>
+    `我们需要先修复代码中的 ${Number} 个错误（用___红色波浪线___标记）。`,
 };
 
 export { zh_cn };

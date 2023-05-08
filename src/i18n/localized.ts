@@ -5,7 +5,7 @@ import { zh_cn } from './zh_cn';
 class LocalizationManager {
   private Current: Record<string, Function> = en_us;
   /** Get: Get a localized key. */
-  public Get(Key: string, ...Args: string[]) {
+  public Get(Key: string, ...Args: any[]) {
     var Bundle = this.Current;
     if (!Bundle.hasOwnProperty(Key)) Bundle = en_us;
     if (!Bundle.hasOwnProperty(Key)) return Key;

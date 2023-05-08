@@ -109,10 +109,20 @@ const en_us: Record<string, Function> = {
 
   // Chat and AI assistant
   Reconnect: () => `Reconnect`,
+  RunCode: () => `Run Code`,
+  'Trying to run the code': () => `Trying to run the code...`,
+  FixCode: () => `Fix Code`,
+  AskCode: () => `Ask a Question`,
+  AddCode: () => `Add to Project`,
+  'Trying to add the code': () => `Trying to add the code to the project...`,
+  PreviousVersion: () => `Previous`,
+  NextVersion: () => `Next`,
   'Connection to server failed _': (Error: string) =>
     `Sorry, the connection to our server failed. Code ${Error}.`,
   'Expand messages _': (Number: number) => `Expand ${Number} messages`,
   'Summary of request': () => `Below is a summary of my request: `,
+  'We need to fix the following errors _': (Number: number) =>
+    `Sorry, but we need to fix the ${Number} errors in the code (marked with ___red squiggly lines___) before continuing.`,
 };
 
 export { en_us };
