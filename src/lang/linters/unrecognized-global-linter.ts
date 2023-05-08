@@ -37,6 +37,24 @@ export const UnrecognizedGlobalLinter: Linter = (
         });
       }
     });
+
+    for (var key of ['Extensions', 'Globals']) {
+      if (cursor.node.getChildren(key).length > 1) {
+        let first = true;
+        cursor.node.getChildren(key).map((child) => {
+          if (first) {
+            first = false;
+          } else {
+            diagnostics.push({
+              from: child.from,
+              to: child.to,
+              severity: 'error',
+              message: Localized.Get('Duplicate global statement _', key),
+            });
+          }
+        });
+      }
+    }
   }
   return diagnostics;
 };

@@ -64,6 +64,8 @@ const zh_cn: Record<string, Function> = {
     `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
   'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
     `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
+  'Duplicate global statement _': (Name: string) =>
+    `The global "${Name}" statement is already defined. Do you want to consolidate?`,
 
   // Agent types
   Observer: () => '观察者',

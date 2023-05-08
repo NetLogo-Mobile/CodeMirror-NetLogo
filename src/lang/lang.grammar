@@ -19,7 +19,7 @@
     ReporterStatement | Value
   } |
   Embedded {
-    ProcedureContent+
+    (CommandStatement | OpenParen CommandStatement CloseParen)+
   }
 }
 
@@ -183,7 +183,7 @@ Literal {
 }
 
 List {
-  OpenBracket (Literal | List)* ~statement CloseBracket ~statement
+  OpenBracket (Literal | List | Identifier)* ~statement CloseBracket ~statement
 }
 
 CodeBlock {

@@ -63,6 +63,8 @@ const en_us: Record<string, Function> = {
     `This "${Current}" needs a matching ${Expected}.`,
   'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
     `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
+  'Duplicate global statement _': (Name: string) =>
+    `The global "${Name}" statement is already defined. Do you want to consolidate?`,
 
   // Agent types
   Observer: () => 'Observer',
