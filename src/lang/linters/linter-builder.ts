@@ -44,15 +44,17 @@ const buildLinter = function (
 
 export const getDiagnostic = function (
   view: EditorView,
-  node: SyntaxNode,
+  node: { from: number; to: number },
   message: string,
-  severity: string = 'error'
+  severity: 'error' | 'info' | 'warning' = 'error'
 ): Diagnostic {
   var value = view.state.sliceDoc(node.from, node.to);
+  // Cut short the value if it's too long
+  if (value.length >= 20) value = value.substring(0, 17) + '...';
   return {
     from: node.from,
     to: node.to,
-    severity: 'error',
+    severity: severity,
     message: Localized.Get(message, value),
   };
 };

@@ -1,8 +1,7 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Log } from '../../codemirror/utils/debug-utils';
-import { Localized } from '../../editor';
-import { Linter } from './linter-builder';
+import { Linter, getDiagnostic } from './linter-builder';
 import { checkBreedLike } from '../../codemirror/utils/breed-utils';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
@@ -30,19 +29,13 @@ export const UnrecognizedLinter: Linter = (
           !checkBreedLike(value).found
         ) {
           if (node.node.parent?.name == 'Normal') {
-            diagnostics.push({
-              from: node.from,
-              to: node.to,
-              severity: 'error',
-              message: Localized.Get('Unrecognized global statement _', value),
-            });
+            diagnostics.push(
+              getDiagnostic(view, node, 'Unrecognized global statement _')
+            );
           } else {
-            diagnostics.push({
-              from: node.from,
-              to: node.to,
-              severity: 'error',
-              message: Localized.Get('Unrecognized statement _', value),
-            });
+            diagnostics.push(
+              getDiagnostic(view, node, 'Unrecognized statement _')
+            );
           }
         }
       }

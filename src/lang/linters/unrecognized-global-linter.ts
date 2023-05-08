@@ -2,7 +2,6 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
-import { SyntaxNode } from '@lezer/common';
 
 // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
 export const UnrecognizedGlobalLinter: Linter = (
