@@ -20,6 +20,7 @@ export function FixGeneratedCode(
   Editor.SetCode(Source);
   Editor.Semantics.PrettifyAll();
   // Second pass: clean up global statements
+  // TODO: Now I am using a rudimentry method to scan by lines, but it would be better to deal at a grammar level.
   var Snapshot = BuildSnapshot(Editor);
   var Lines = Editor.GetCode().split('\n');
   var LastIsComment: boolean = false;
@@ -43,18 +44,23 @@ export function FixGeneratedCode(
     } else if (Line == 'end') {
       InProcedure = false;
       NewLines.push(Line);
-    } else if (Line.startsWith('globals [')) {
+    } else if (Line.startsWith('globals [') && Line.endsWith(']')) {
       // If the line is a globals declaration, keep the position only when it is outside procedures
       if (!InProcedure) NewLines.push('globals []');
-      else if (LastIsComment) NewLines.pop();
-    } else if (Line.startsWith('extensions [')) {
+      else if (LastIsComment) {
+        NewLines.pop();
+      }
+    } else if (Line.startsWith('extensions [') && Line.endsWith(']')) {
       // If the line is a extensions declaration, keep the position only when it is outside procedures
       if (!InProcedure) NewLines.push('extensions []');
-      else if (LastIsComment) NewLines.pop();
+      else if (LastIsComment) {
+        NewLines.pop();
+      }
     } else if (
-      Line.startsWith('breed [') ||
-      Line.startsWith('directed-link-breed [') ||
-      Line.startsWith('undirected-link-breed [')
+      (Line.startsWith('breed [') ||
+        Line.startsWith('directed-link-breed [') ||
+        Line.startsWith('undirected-link-breed [')) &&
+      Line.endsWith(']')
     ) {
       // If the line is a breed declaration, try to get the name and fix the singular issue
       var Match = Line.matchAll(
@@ -77,7 +83,9 @@ export function FixGeneratedCode(
       if (Match) {
         var Name = Match[1];
         if (!InProcedure) NewLines.push(`${Name}-own []`);
-        else if (LastIsComment) NewLines.pop();
+        else {
+          if (LastIsComment) NewLines.pop();
+        }
       } else {
         NewLines.push(Line);
       }
