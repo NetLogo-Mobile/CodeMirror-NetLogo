@@ -128,15 +128,6 @@ export class Breed {
   }
 }
 
-export class Range {
-  public Start: number;
-  public End: number;
-  public constructor(Start: number, End: number) {
-    this.Start = Start;
-    this.End = End;
-  }
-}
-
 /** BreedType: Type of the breed. */
 export enum BreedType {
   Turtle = 0,
