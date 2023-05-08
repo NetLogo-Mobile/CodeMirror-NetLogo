@@ -29733,45 +29733,91 @@ if(!String.prototype.matchAll) {
         return true;
     });
 
-    /** GalapagosEditing: Functions for editing code. */
-    // TODO: Return the changed range; Extract a common function for creating new statements if it does not exist.
-    class GalapagosEditing {
-        AppendGlobal(view, content, statement_type) {
-            let cursor = syntaxTree(view.state).cursor();
-            let found = false;
-            if (cursor.firstChild() && cursor.firstChild()) {
-                cursor.node.getChildren(statement_type).map((child) => {
-                    found = true;
-                    this.AddTermToBracket(view, content, cursor.node);
-                });
-                if (!found) {
-                    view.dispatch({
-                        changes: {
-                            from: 0,
-                            to: 0,
-                            insert: 'globals [ ' + content + ' ]\n',
-                        },
-                    });
-                }
-            }
+    /** CodeEditing: Functions for editing code. */
+    class CodeEditing {
+        /** Constructor: Create a new code editing service. */
+        constructor(View) {
+            this.View = View;
         }
-        AddBreed(view, breed, plural, singular) {
-            view.dispatch({
-                changes: {
-                    from: 0,
-                    to: 0,
-                    insert: breed + ' [ ' + plural + ' ' + singular + ' ]\n',
-                },
+        /** InsertCode: Insert code snippets into the editor. */
+        InsertCode(Changes) {
+            this.View.dispatch({ changes: Changes });
+        }
+        /** GetSlice: Get a slice of the code. */
+        GetSlice(From, To) {
+            return this.View.state.sliceDoc(From, To);
+        }
+        /** FindFirstNode: Find the first node that matches a condition. */
+        FindFirstNode(Parent, Field, Condition) {
+            var _a;
+            for (let Child of Parent.getChildren(Field)) {
+                if ((_a = Condition === null || Condition === void 0 ? void 0 : Condition(Child)) !== null && _a !== void 0 ? _a : true)
+                    return Child;
+            }
+            return null;
+        }
+        /** AddTermToBracket: Add a term to a bracket. */
+        AddTermToBracket(Contents, Node) {
+            let Existing = this.View.state.sliceDoc(Node.from, Node.to);
+            console.log(Existing);
+            let Seperator = Existing.includes('\n') ? '\n' : ' ';
+            Node.node.getChildren('CloseBracket').map((Child) => {
+                const From = Child.from;
+                for (let Content of Contents) {
+                    this.InsertCode([
+                        {
+                            from: From,
+                            to: From,
+                            insert: Seperator + Content,
+                        },
+                        indentRange(this.View.state, From, From + 1 + Content.length),
+                    ]);
+                }
             });
         }
-        AddBreedVariable(view, breed, varName) {
-            let cursor = syntaxTree(view.state).cursor();
+        // #endregion
+        // #region "Global Statements"
+        /** AppendGlobals: Append items of a global statement to the editor. */
+        AppendGlobals(Field, Items) {
+            let cursor = syntaxTree(this.View.state).cursor();
+            // Find the first global statement
+            if (cursor.firstChild() && cursor.firstChild()) {
+                var Statement = this.FindFirstNode(cursor.node, Field);
+                if (Statement) {
+                    this.AddTermToBracket(Items, Statement);
+                    return;
+                }
+            }
+            // If not found, append a new global statement
+            this.InsertCode({
+                from: 0,
+                to: 0,
+                insert: `${Field} [ ${Items.join(' ')} ]\n`,
+            });
+        }
+        /** AppendBreed: Append a breed to the editor. */
+        AppendBreed(Type, Plural, Singular) {
+            var Name = 'breed';
+            if (Type == BreedType.DirectedLink)
+                Name = 'directed-link-breed';
+            if (Type == BreedType.UndirectedLink)
+                Name = 'undirected-link-breed';
+            this.InsertCode({
+                from: 0,
+                to: 0,
+                insert: `${Name} [ ${Plural} ${Singular} ]\n`,
+            });
+        }
+        /** AddBreedVariables: Add variables to a breed. */
+        AddBreedVariables(Breed, Variables) {
+            let cursor = syntaxTree(this.View.state).cursor();
             let found = false;
             if (cursor.firstChild() && cursor.firstChild()) {
                 if (cursor.node.name == 'BreedsOwn') {
                     cursor.node.getChildren('Own').map((child) => {
-                        if (view.state.sliceDoc(child.from, child.to) == breed + '-own') {
-                            this.AddTermToBracket(view, varName, child);
+                        if (this.View.state.sliceDoc(child.from, child.to) ==
+                            Breed + '-own') {
+                            this.AddTermToBracket(Variables, child);
                             found = true;
                         }
                     });
@@ -29781,24 +29827,26 @@ if(!String.prototype.matchAll) {
                     cursor.node.name != 'Procedure') {
                     if (cursor.node.name == 'BreedsOwn') {
                         cursor.node.getChildren('Own').map((child) => {
-                            if (view.state.sliceDoc(child.from, child.to) == breed + '-own') {
-                                this.AddTermToBracket(view, varName, cursor.node);
+                            if (this.View.state.sliceDoc(child.from, child.to) ==
+                                Breed + '-own') {
+                                this.AddTermToBracket(Variables, cursor.node);
                                 found = true;
                             }
                         });
                     }
                 }
                 if (!found) {
-                    view.dispatch({
+                    this.View.dispatch({
                         changes: {
                             from: cursor.node.to,
                             to: cursor.node.to,
-                            insert: '\n' + breed + '-own [ ' + varName + ' ]\n',
+                            insert: '\n' + Breed + '-own [ ' + Variables + ' ]\n',
                         },
                     });
                 }
             }
         }
+        // #endregion
         ReplaceProcedure(view, name, content) {
             syntaxTree(view.state)
                 .cursor()
@@ -29816,27 +29864,27 @@ if(!String.prototype.matchAll) {
                 }
             });
         }
-        AddTermToBracket(view, content, node) {
-            let sep = view.state.sliceDoc(node.from, node.to).includes('\n')
-                ? '\n'
-                : ' ';
-            node.node.getChildren('CloseBracket').map((child) => {
-                const from = child.from;
-                view.dispatch({
-                    changes: {
-                        from: from,
-                        to: from,
-                        insert: sep + content,
-                    },
-                });
-                view.dispatch({
-                    changes: indentRange(view.state, from, from + 1 + content.length),
-                });
-            });
-        }
     }
 
-    let Editing$1 = new GalapagosEditing();
+    /** AddBreedAction: Return an add a breed action. */
+    const AddBreedAction = function (type, plural, singular) {
+        return {
+            name: Localized.Get('Add'),
+            apply(view, from, to) {
+                new CodeEditing(view).AppendBreed(type, plural, singular);
+            },
+        };
+    };
+    /** AddGlobalsAction: Return an add a global action. */
+    const AddGlobalsAction = function (type, items) {
+        return {
+            name: Localized.Get('Add'),
+            apply(view, from, to) {
+                new CodeEditing(view).AppendGlobals(type, items);
+            },
+        };
+    };
+
     // IdentifierLinter: Checks anything labelled 'Identifier'
     const IdentifierLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
@@ -29876,10 +29924,9 @@ if(!String.prototype.matchAll) {
                                 singular = breedinfo.breed;
                                 plural = otherBreedName(breedinfo.breed, false);
                             }
-                            let breed_type = breedinfo.isLink
-                                ? 'undirected-link-breed'
-                                : 'breed';
-                            actions.push(getAction$1(Node, value, breed_type, plural, singular));
+                            actions.push(AddBreedAction(breedinfo.isLink
+                                ? BreedType.UndirectedLink
+                                : BreedType.Turtle, plural, singular));
                             diagnostics.push({
                                 from: noderef.from,
                                 to: noderef.to,
@@ -29918,14 +29965,6 @@ if(!String.prototype.matchAll) {
         });
         return diagnostics;
     };
-    const getAction$1 = function (node, value, breed_type, plural, singular) {
-        return {
-            name: Localized.Get('Add'),
-            apply(view, from, to) {
-                Editing$1.AddBreed(view, breed_type, plural, singular);
-            },
-        };
-    };
 
     // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
     const UnrecognizedGlobalLinter = (view, preprocessContext, lintContext) => {
@@ -29961,7 +30000,6 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     };
 
-    let Editing = new GalapagosEditing();
     // BreedLinter: To check breed commands/reporters for valid breed names
     const BreedLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
@@ -30000,8 +30038,7 @@ if(!String.prototype.matchAll) {
                             singular = breed_result.breed;
                             plural = otherBreedName(breed_result.breed, false);
                         }
-                        let breed_type = result.isLink ? 'undirected-link-breed' : 'breed';
-                        actions.push(getAction(Node, value, breed_type, plural, singular));
+                        actions.push(AddBreedAction(result.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular));
                     }
                     diagnostics.push({
                         from: noderef.from,
@@ -30014,14 +30051,6 @@ if(!String.prototype.matchAll) {
             }
         });
         return diagnostics;
-    };
-    const getAction = function (node, value, breed_type, plural, singular) {
-        return {
-            name: Localized.Get('Add'),
-            apply(view, from, to) {
-                Editing.AddBreed(view, breed_type, plural, singular);
-            },
-        };
     };
     // checkValidBreed: Checks if the term in the structure of a breed command/reporter
     // is the name of an actual breed, and in the correct singular/plural form
@@ -30504,196 +30533,11 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     };
 
-    /** prettify: Change selection to fit formatting standards. */
-    const prettify = function (view, from = null, to = null) {
-        if (from && to) {
-            view.dispatch({ selection: { anchor: from, head: to } });
-        }
-        from = view.state.selection.main.from;
-        to = view.state.selection.main.to;
-        let doc = view.state.doc.toString().substring(from, to);
-        // eliminate extra spacing
-        let new_doc = initialSpaceRemoval(doc);
-        view.dispatch(view.state.replaceSelection(new_doc));
-        view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
-        // add in new lines based on grammar
-        view.dispatch({
-            changes: addSpacing(view, view.state.selection.main.from, view.state.selection.main.to),
-        });
-        // ensure spacing is correct
-        from = view.state.selection.main.from;
-        to = view.state.selection.main.to;
-        new_doc = finalSpacing(view.state.doc.toString().substring(from, to));
-        view.dispatch(view.state.replaceSelection(new_doc));
-        view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
-        // add indentation
-        view.dispatch({
-            changes: indentRange(view.state, view.state.selection.main.from, view.state.selection.main.to),
-        });
-        return view.state.selection.main.to;
-    };
-    /** prettifyAll: Make whole code file follow formatting standards. */
-    const prettifyAll = function (view) {
-        let doc = view.state.doc.toString();
-        // eliminate extra spacing
-        let new_doc = initialSpaceRemoval(doc);
-        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
-        // give certain nodes their own lines
-        view.dispatch({
-            changes: addSpacing(view, 0, view.state.doc.toString().length),
-        });
-        // ensure spacing is correct
-        doc = view.state.doc.toString();
-        new_doc = finalSpacing(doc);
-        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
-        // add indentation
-        view.dispatch({
-            changes: indentRange(view.state, 0, view.state.doc.toString().length),
-        });
-    };
-    /** initialSpaceRemoval: Make initial spacing adjustments. */
-    const initialSpaceRemoval = function (doc) {
-        let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
-        new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
-        new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
-        new_doc = new_doc.replace(/\n[ ]+/g, '\n');
-        new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 [');
-        new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
-        new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
-        new_doc = new_doc.replace(/(\n)( +)(to[ -])/g, '$1$3');
-        new_doc = new_doc.replace(/ +/g, ' ');
-        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
-        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
-        return new_doc;
-    };
-    /** finalSpacing: Make final spacing adjustments. */
-    const finalSpacing = function (doc) {
-        let new_doc = doc.replace(/\n[ ]+/g, '\n');
-        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
-        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
-        new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
-        new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
-        return new_doc;
-    };
-    /** addSpacing: Give certain types of nodes their own lines. */
-    const addSpacing = function (view, from, to) {
-        let changes = [];
-        let doc = view.state.doc.toString();
-        syntaxTree(view.state)
-            .cursor()
-            .iterate((node) => {
-            var _a, _b;
-            if (node.from >= from && node.to <= to) {
-                if (((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' &&
-                    node.name != 'LineComment') ||
-                    node.name == 'To' ||
-                    node.name == 'End' ||
-                    (node.name == 'ProcedureContent' &&
-                        ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) != 'CodeBlock')) &&
-                    node.from > 0 &&
-                    doc[node.from - 1] != '\n') {
-                    changes.push({ from: node.from, to: node.from, insert: '\n' });
-                }
-                else if (node.name == 'CodeBlock' &&
-                    checkBlock(node.node, 'ProcedureContent', doc)) {
-                    for (var name of ['ProcedureContent', 'CloseBracket']) {
-                        node.node.getChildren(name).map((child) => {
-                            if (doc[child.from - 1] != '\n') {
-                                changes.push({
-                                    from: child.from,
-                                    to: child.from,
-                                    insert: '\n',
-                                });
-                            }
-                        });
-                    }
-                }
-                else if (node.name == 'ReporterBlock' &&
-                    checkBlock(node.node, 'ReporterContent', doc)) {
-                    for (var name of ['ReporterContent', 'CloseBracket']) {
-                        node.node.getChildren(name).map((child) => {
-                            if (doc[child.from - 1] != '\n') {
-                                changes.push({
-                                    from: child.from,
-                                    to: child.from,
-                                    insert: '\n',
-                                });
-                            }
-                        });
-                    }
-                }
-                else if (node.name == 'AnonymousProcedure' &&
-                    (checkBlock(node.node, 'ReporterContent', doc) ||
-                        checkBlock(node.node, 'ProcedureContent', doc))) {
-                    // console.log(changes.length);
-                    for (var name of [
-                        'ProcedureContent',
-                        'ReporterContent',
-                        'CloseBracket',
-                    ]) {
-                        node.node.getChildren(name).map((child) => {
-                            if (doc[child.from - 1] != '\n') {
-                                changes.push({
-                                    from: child.from,
-                                    to: child.from,
-                                    insert: '\n',
-                                });
-                            }
-                        });
-                    }
-                }
-                if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
-                    if (doc.substring(node.from, node.to).includes('\n')) {
-                        for (var name of ['CloseBracket', 'Extension', 'Identifier']) {
-                            node.node.getChildren(name).map((child) => {
-                                if (doc[child.from - 1] != '\n') {
-                                    changes.push({
-                                        from: child.from,
-                                        to: child.from,
-                                        insert: '\n',
-                                    });
-                                }
-                            });
-                        }
-                    }
-                }
-                if (node.name.includes('Args') && !node.name.includes('Special')) {
-                    let prim = doc.substring(node.from, node.to).toLowerCase();
-                    changes.push({ from: node.from, to: node.to, insert: prim });
-                }
-            }
-        });
-        return changes;
-    };
-    /** checkBlock: checks if code block needs to be multiline. */
-    const checkBlock = function (node, childName, doc) {
-        let count = 0;
-        let multiline = false;
-        let multilineChildren = false;
-        node.node.getChildren(childName).map((child) => {
-            count += 1;
-            multiline = doc.substring(child.from, child.to).includes('\n');
-            child.getChildren('CommandStatement').map((node) => {
-                node.getChildren('Arg').map((subnode) => {
-                    if (subnode.getChildren('CodeBlock').length > 0) {
-                        multilineChildren = true;
-                    }
-                    else if (subnode.getChildren('AnonymousProcedure').length > 0) {
-                        multilineChildren = true;
-                    }
-                });
-            });
-        });
-        return ((multiline || multilineChildren) && count == 1) || count > 1;
-    };
-
     let primitives = PrimitiveManager;
     // ExtensionLinter: Checks if extension primitives are used without declaring
     // the extension, or invalid extensions are declared
     const ExtensionLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
-        let extension_index = 0;
-        let extension_node = null;
         const context = getCheckContext(view, lintContext, preprocessContext);
         syntaxTree(view.state)
             .cursor()
@@ -30712,8 +30556,8 @@ if(!String.prototype.matchAll) {
                     }
                 });
                 noderef.node.getChildren('CloseBracket').map((child) => {
-                    extension_index = child.from;
-                    extension_node = noderef.node;
+                    child.from;
+                    noderef.node;
                 });
             }
             else if ((noderef.name.includes('Args') ||
@@ -30737,69 +30581,11 @@ if(!String.prototype.matchAll) {
                     message: !noderef.name.includes('Unsupported')
                         ? Localized.Get('Missing extension _.', vals[0])
                         : Localized.Get('Unsupported missing extension _.', vals[0]),
-                    actions: [
-                        {
-                            name: Localized.Get('Add'),
-                            apply(view, from, to) {
-                                addExtension(view, extension_index, vals[0], extension_node, true);
-                            },
-                        },
-                    ],
+                    actions: [AddGlobalsAction('extension', [vals[0]])],
                 });
             }
         });
         return diagnostics;
-    };
-    const addExtension = (view, index, extension, extension_node, make_pretty) => {
-        if (!make_pretty) {
-            view.dispatch({
-                changes: {
-                    from: index,
-                    to: index,
-                    insert: extension_node
-                        ? extension + ' '
-                        : 'extensions [' + extension + ']\n',
-                },
-            });
-        }
-        else {
-            let anchor = view.state.selection.main.anchor;
-            let head = view.state.selection.main.head;
-            let end = extension_node ? extension_node.to : 0;
-            if (extension_node) {
-                view.dispatch({
-                    changes: {
-                        from: index,
-                        to: index,
-                        insert: extension + ' ',
-                    },
-                    selection: EditorSelection.create([
-                        EditorSelection.range(extension_node.from, extension_node.to + (extension + ' ').length),
-                    ], 0),
-                });
-            }
-            else {
-                view.dispatch({
-                    changes: {
-                        from: index,
-                        to: index,
-                        insert: 'extensions [' + extension + ']\n',
-                    },
-                    selection: EditorSelection.create([
-                        EditorSelection.range(0, ('extensions [' + extension + ']\n').length),
-                    ], 0),
-                });
-            }
-            let offset = prettify(view) - end;
-            if (anchor < index) {
-                view.dispatch({ selection: { anchor: anchor, head: head } });
-            }
-            else {
-                view.dispatch({
-                    selection: { anchor: anchor + offset, head: head + offset },
-                });
-            }
-        }
     };
 
     // NamingLinter: Ensures no duplicate breed names
@@ -31554,6 +31340,189 @@ if(!String.prototype.matchAll) {
             this.SetCursorPosition(this.GetCursorPosition());
         }
     }
+
+    /** prettify: Change selection to fit formatting standards. */
+    const prettify = function (view, from = null, to = null) {
+        if (from && to) {
+            view.dispatch({ selection: { anchor: from, head: to } });
+        }
+        from = view.state.selection.main.from;
+        to = view.state.selection.main.to;
+        let doc = view.state.doc.toString().substring(from, to);
+        // eliminate extra spacing
+        let new_doc = initialSpaceRemoval(doc);
+        view.dispatch(view.state.replaceSelection(new_doc));
+        view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
+        // add in new lines based on grammar
+        view.dispatch({
+            changes: addSpacing(view, view.state.selection.main.from, view.state.selection.main.to),
+        });
+        // ensure spacing is correct
+        from = view.state.selection.main.from;
+        to = view.state.selection.main.to;
+        new_doc = finalSpacing(view.state.doc.toString().substring(from, to));
+        view.dispatch(view.state.replaceSelection(new_doc));
+        view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
+        // add indentation
+        view.dispatch({
+            changes: indentRange(view.state, view.state.selection.main.from, view.state.selection.main.to),
+        });
+        return view.state.selection.main.to;
+    };
+    /** prettifyAll: Make whole code file follow formatting standards. */
+    const prettifyAll = function (view) {
+        let doc = view.state.doc.toString();
+        // eliminate extra spacing
+        let new_doc = initialSpaceRemoval(doc);
+        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+        // give certain nodes their own lines
+        view.dispatch({
+            changes: addSpacing(view, 0, view.state.doc.toString().length),
+        });
+        // ensure spacing is correct
+        doc = view.state.doc.toString();
+        new_doc = finalSpacing(doc);
+        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+        // add indentation
+        view.dispatch({
+            changes: indentRange(view.state, 0, view.state.doc.toString().length),
+        });
+    };
+    /** initialSpaceRemoval: Make initial spacing adjustments. */
+    const initialSpaceRemoval = function (doc) {
+        let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
+        new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
+        new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
+        new_doc = new_doc.replace(/\n[ ]+/g, '\n');
+        new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 [');
+        new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
+        new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
+        new_doc = new_doc.replace(/(\n)( +)(to[ -])/g, '$1$3');
+        new_doc = new_doc.replace(/ +/g, ' ');
+        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
+        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
+        return new_doc;
+    };
+    /** finalSpacing: Make final spacing adjustments. */
+    const finalSpacing = function (doc) {
+        let new_doc = doc.replace(/\n[ ]+/g, '\n');
+        new_doc = new_doc.replace(/[ ]+\n/g, '\n');
+        new_doc = new_doc.replace(/\n\n+/g, '\n\n');
+        new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
+        new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
+        return new_doc;
+    };
+    /** addSpacing: Give certain types of nodes their own lines. */
+    const addSpacing = function (view, from, to) {
+        let changes = [];
+        let doc = view.state.doc.toString();
+        syntaxTree(view.state)
+            .cursor()
+            .iterate((node) => {
+            var _a, _b;
+            if (node.from >= from && node.to <= to) {
+                if (((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' &&
+                    node.name != 'LineComment') ||
+                    node.name == 'To' ||
+                    node.name == 'End' ||
+                    (node.name == 'ProcedureContent' &&
+                        ((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) != 'CodeBlock')) &&
+                    node.from > 0 &&
+                    doc[node.from - 1] != '\n') {
+                    changes.push({ from: node.from, to: node.from, insert: '\n' });
+                }
+                else if (node.name == 'CodeBlock' &&
+                    checkBlock(node.node, 'ProcedureContent', doc)) {
+                    for (var name of ['ProcedureContent', 'CloseBracket']) {
+                        node.node.getChildren(name).map((child) => {
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
+                        });
+                    }
+                }
+                else if (node.name == 'ReporterBlock' &&
+                    checkBlock(node.node, 'ReporterContent', doc)) {
+                    for (var name of ['ReporterContent', 'CloseBracket']) {
+                        node.node.getChildren(name).map((child) => {
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
+                        });
+                    }
+                }
+                else if (node.name == 'AnonymousProcedure' &&
+                    (checkBlock(node.node, 'ReporterContent', doc) ||
+                        checkBlock(node.node, 'ProcedureContent', doc))) {
+                    // console.log(changes.length);
+                    for (var name of [
+                        'ProcedureContent',
+                        'ReporterContent',
+                        'CloseBracket',
+                    ]) {
+                        node.node.getChildren(name).map((child) => {
+                            if (doc[child.from - 1] != '\n') {
+                                changes.push({
+                                    from: child.from,
+                                    to: child.from,
+                                    insert: '\n',
+                                });
+                            }
+                        });
+                    }
+                }
+                if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
+                    if (doc.substring(node.from, node.to).includes('\n')) {
+                        for (var name of ['CloseBracket', 'Extension', 'Identifier']) {
+                            node.node.getChildren(name).map((child) => {
+                                if (doc[child.from - 1] != '\n') {
+                                    changes.push({
+                                        from: child.from,
+                                        to: child.from,
+                                        insert: '\n',
+                                    });
+                                }
+                            });
+                        }
+                    }
+                }
+                if (node.name.includes('Args') && !node.name.includes('Special')) {
+                    let prim = doc.substring(node.from, node.to).toLowerCase();
+                    changes.push({ from: node.from, to: node.to, insert: prim });
+                }
+            }
+        });
+        return changes;
+    };
+    /** checkBlock: checks if code block needs to be multiline. */
+    const checkBlock = function (node, childName, doc) {
+        let count = 0;
+        let multiline = false;
+        let multilineChildren = false;
+        node.node.getChildren(childName).map((child) => {
+            count += 1;
+            multiline = doc.substring(child.from, child.to).includes('\n');
+            child.getChildren('CommandStatement').map((node) => {
+                node.getChildren('Arg').map((subnode) => {
+                    if (subnode.getChildren('CodeBlock').length > 0) {
+                        multilineChildren = true;
+                    }
+                    else if (subnode.getChildren('AnonymousProcedure').length > 0) {
+                        multilineChildren = true;
+                    }
+                });
+            });
+        });
+        return ((multiline || multilineChildren) && count == 1) || count > 1;
+    };
 
     /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
     class SemanticFeatures {
