@@ -30929,55 +30929,65 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     };
 
+    /** buildLinter: Builds a linter extension from a linter function. */
+    const buildLinter = function (Source, Editor) {
+        var LastVersion = -1;
+        var Cached = [];
+        var BuiltSource = (view) => {
+            if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
+                var state = view.state.field(stateExtension);
+                Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
+                LastVersion = Editor.GetVersion();
+            }
+            return Cached;
+        };
+        var Extension = linter(BuiltSource);
+        Extension.Source = BuiltSource;
+        return Extension;
+    };
+    const getDiagnostic = function (view, node, message, severity = 'error') {
+        var value = view.state.sliceDoc(node.from, node.to);
+        return {
+            from: node.from,
+            to: node.to,
+            severity: 'error',
+            message: Localized.Get(message, value),
+        };
+    };
+
     /** ModeLinter: Checks if mode matches grammar. */
     const ModeLinter = (view, preprocessContext, lintContext, state) => {
+        var mode = state.Mode;
         const diagnostics = [];
-        if (view.state.doc.length == 0)
+        // Check if the document is empty
+        if (view.state.doc.length == 0 || mode == ParseMode.Generative)
             return diagnostics;
+        // Get the root node
         var node = syntaxTree(view.state).cursor().node;
         if (node.name != 'Program')
             return diagnostics;
-        var mode = state.Mode;
-        // Check the oneline/embedded modes
-        var Unexpected = CheckMode(node, 'OnelineReporter', mode);
-        Unexpected = Unexpected !== null && Unexpected !== void 0 ? Unexpected : CheckMode(node, 'Embedded', mode);
-        Unexpected = Unexpected !== null && Unexpected !== void 0 ? Unexpected : CheckMode(node, 'Normal', mode);
-        if (Unexpected != null) {
-            let value = view.state.sliceDoc(Unexpected.from, Unexpected.to);
-            diagnostics.push({
-                from: node.from,
-                to: node.to,
-                severity: 'error',
-                message: Localized.Get(`Invalid for ${mode} mode _`, value),
-            });
+        // Check if the recognized mode matches the expected one
+        var unexpected = null;
+        unexpected = unexpected !== null && unexpected !== void 0 ? unexpected : CheckMode(node, 'OnelineReporter', mode);
+        unexpected = unexpected !== null && unexpected !== void 0 ? unexpected : CheckMode(node, 'Embedded', mode);
+        unexpected = unexpected !== null && unexpected !== void 0 ? unexpected : CheckMode(node, 'Normal', mode);
+        if (unexpected != null) {
+            diagnostics.push(getDiagnostic(view, unexpected, `Invalid for ${mode} mode _`));
             return diagnostics;
         }
-        // Check the normal mode
-        if (node.getChildren('Unrecognized').length > 0 ||
-            node.getChildren('Procedure').length > 0 ||
-            node.getChildren('Extensions').length > 0 ||
-            node.getChildren('Globals').length > 0 ||
-            node.getChildren('Breed').length > 0 ||
-            node.getChildren('BreedsOwn').length > 0) {
-            if (mode != ParseMode.Normal && mode != ParseMode.Generative) {
-                for (let name of [
-                    'Unrecognized',
-                    'Procedure',
-                    'Extensions',
-                    'Globals',
-                    'Breed',
-                    'BreedsOwn',
-                ]) {
-                    node.getChildren(name).map((child) => {
-                        let value = view.state.sliceDoc(child.from, child.to);
-                        diagnostics.push({
-                            from: node.from,
-                            to: node.to,
-                            severity: 'error',
-                            message: Localized.Get('Unrecognized global statement _', value),
-                        });
-                    });
-                }
+        // The global statements are not allowed in oneline/embedded modes
+        if (mode != ParseMode.Normal) {
+            for (let name of [
+                'Unrecognized',
+                'Procedure',
+                'Extensions',
+                'Globals',
+                'Breed',
+                'BreedsOwn',
+            ]) {
+                node.getChildren(name).map((child) => {
+                    diagnostics.push(getDiagnostic(view, child, `Invalid for ${mode} mode _`));
+                });
             }
         }
         return diagnostics;
@@ -30992,8 +31002,6 @@ if(!String.prototype.matchAll) {
         if (Current == null)
             return null;
         if (Expected == Mode)
-            return null;
-        if (Expected == ParseMode.Generative && Mode == 'Normal')
             return null;
         if (Expected == ParseMode.Oneline &&
             (Mode == 'OnelineReporter' || Mode == 'Embedded'))
@@ -31135,9 +31143,18 @@ if(!String.prototype.matchAll) {
         '~CustomCommand': (Name) => `A user-defined command. `,
         // Chat and AI assistant
         Reconnect: () => `Reconnect`,
+        RunCode: () => `Run Code`,
+        'Trying to run the code': () => `Trying to run the code...`,
+        FixCode: () => `Fix Code`,
+        AskCode: () => `Ask a Question`,
+        AddCode: () => `Add to Project`,
+        'Trying to add the code': () => `Trying to add the code to the project...`,
+        PreviousVersion: () => `Previous`,
+        NextVersion: () => `Next`,
         'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
         'Expand messages _': (Number) => `Expand ${Number} messages`,
         'Summary of request': () => `Below is a summary of my request: `,
+        'We need to fix the following errors _': (Number) => `Sorry, but we need to fix the ${Number} errors in the code (marked with ___red squiggly lines___) before continuing.`,
     };
 
     const zh_cn = {
@@ -31202,9 +31219,18 @@ if(!String.prototype.matchAll) {
         '~CustomCommand': (Name) => `代码中定义的一个过程。`,
         // Chat and AI assistant
         Reconnect: () => `重新连接`,
+        RunCode: () => `运行代码`,
+        'Trying to run the code': () => `尝试运行代码……`,
+        FixCode: () => `修复代码`,
+        AskCode: () => `提问`,
+        AddCode: () => `放入作品`,
+        'Trying to add the code': () => `尝试将代码放入作品……`,
+        PreviousVersion: () => `上一版本`,
+        NextVersion: () => `下一版本`,
         'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
         'Expand messages _': (Number) => `展开 ${Number} 条消息`,
         'Summary of request': () => `简单总结我的请求的要点：`,
+        'We need to fix the following errors _': (Number) => `我们需要先修复代码中的 ${Number} 个错误（用___红色波浪线___标记）。`,
     };
 
     /** LocalizationManager: Manage all localized texts. */
@@ -31239,23 +31265,6 @@ if(!String.prototype.matchAll) {
             }
         }
     }
-
-    /** buildLinter: Builds a linter extension from a linter function. */
-    const buildLinter = function (Source, Editor) {
-        var LastVersion = -1;
-        var Cached = [];
-        var BuiltSource = (view) => {
-            if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
-                var state = view.state.field(stateExtension);
-                Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
-                LastVersion = Editor.GetVersion();
-            }
-            return Cached;
-        };
-        var Extension = linter(BuiltSource);
-        Extension.Source = BuiltSource;
-        return Extension;
-    };
 
     /** EditingFeatures: The editing features of the editor. */
     class EditingFeatures {
@@ -31514,7 +31523,8 @@ if(!String.prototype.matchAll) {
                     Span.innerHTML = Line.replace(/\s/g, '&nbsp;');
                     if (Style != '')
                         Span.className = Style;
-                    Container.appendChild(Span);
+                    if (Span.innerHTML != '')
+                        Container.appendChild(Span);
                     if (I != Lines.length - 1)
                         Container.appendChild(document.createElement('br'));
                 }
