@@ -5,15 +5,13 @@ import { Linter } from './linter-builder';
 import {
   checkBreedLike,
   getBreedName,
+  getPluralName,
+  getSingularName,
 } from '../../codemirror/utils/breed-utils';
 import {
   checkValidIdentifier,
   getCheckContext,
 } from './utils/check-identifier';
-import { CodeEditing } from '../services/code-editing';
-import { otherBreedName } from '../../codemirror/utils/breed-utils';
-import { EditorView } from 'codemirror';
-import { SyntaxNode } from '@lezer/common';
 import { Log } from '../../codemirror/utils/debug-utils';
 import { AddBreedAction } from './utils/actions';
 import { BreedType } from '../classes/structures';
@@ -55,10 +53,10 @@ export const IdentifierLinter: Linter = (
               let singular = '';
               if (breedinfo.isPlural) {
                 plural = breedinfo.breed;
-                singular = otherBreedName(breedinfo.breed, true);
+                singular = getSingularName(breedinfo.breed);
               } else {
                 singular = breedinfo.breed;
-                plural = otherBreedName(breedinfo.breed, false);
+                plural = getPluralName(breedinfo.breed);
               }
               actions.push(
                 AddBreedAction(

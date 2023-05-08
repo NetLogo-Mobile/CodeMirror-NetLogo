@@ -1,4 +1,4 @@
-import { AgentContexts, Breed, Procedure } from './structures';
+import { Breed, Procedure } from './structures';
 
 /** PreprocessContext: master context from preprocessing */
 export class PreprocessContext {
@@ -59,7 +59,6 @@ export class LintContext {
     }
     return breedNames;
   }
-
   /** GetPluralBreedNames: Get plural names related to breeds. */
   public GetPluralBreedNames(): string[] {
     var breedNames: string[] = [];

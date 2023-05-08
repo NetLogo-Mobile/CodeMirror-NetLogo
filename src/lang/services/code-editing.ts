@@ -9,6 +9,8 @@ import {
 } from '../linters/utils/cursors';
 import { GalapagosEditor } from '../../editor';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
+import { getSingularName } from '../../codemirror/utils/breed-utils';
+import { reserved } from '../keywords';
 
 /** CodeEditing: Functions for editing code. */
 export class CodeEditing {
@@ -47,11 +49,7 @@ export class CodeEditing {
     var Identifiers = Node.node
       .getChildren('Identifier')
       .map((Child) => this.GetSlice(Child.from, Child.to).trim());
-    Contents = [
-      ...new Set(
-        Contents.filter((Content) => Identifiers.indexOf(Content) == -1)
-      ),
-    ];
+    Contents = Contents.filter((Content) => Identifiers.indexOf(Content) == -1);
     if (Contents.length == 0) return false;
     // Find the spaces between the brackets
     let Seperator = this.View.state.sliceDoc(Node.from, Node.to).includes('\n')
@@ -79,7 +77,8 @@ export class CodeEditing {
     Field: 'Globals' | 'Extensions',
     Items: string[]
   ): boolean {
-    Items = [...new Set(Items)];
+    Items = [...new Set(Items.filter((Item) => reserved.indexOf(Item) == -1))];
+    if (Items.length == 0) return false;
     // Find the cursor
     let Cursor = GetCursorUntilMode(this.View.state);
     // Find the first global statement
@@ -102,6 +101,7 @@ export class CodeEditing {
     Singular: string
   ): boolean {
     // Check if the breed already exists
+    if (Plural == Singular) Singular = getSingularName(Plural);
     for (let [Sin, Breed] of this.Galapagos.LintContext.Breeds) {
       if (
         Breed.Plural == Plural ||
@@ -125,6 +125,9 @@ export class CodeEditing {
   }
   /** AppendBreedVariables: Add variables to a breed. */
   public AppendBreedVariables(Plural: string, Variables: string[]): boolean {
+    Variables = [
+      ...new Set(Variables.filter((Item) => reserved.indexOf(Item) == -1)),
+    ];
     if (Variables.length == 0) return false;
     let Cursor = GetCursorInsideMode(this.View.state);
     // Find the first existing statement

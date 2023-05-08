@@ -14,6 +14,11 @@
     >
     <button name="Undo" onclick="Editor.Editing.Undo();">Undo</button>
     <button name="Redo" onclick="Editor.Editing.Redo();">Redo</button>
+    <button
+      name="Fix"
+      onclick="Editor.Semantics.FixGeneratedCode(Editor.GetCode());"
+      >Fix</button
+    >
     <button name="set read only" onclick="Editor.SetReadOnly(true);">
       Set ReadOnly
     </button>

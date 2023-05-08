@@ -120,18 +120,20 @@ export const checkBreedLike = function (str: string) {
   return result;
 };
 
-export const otherBreedName = function (breed: string, isPlural: boolean) {
-  if (isPlural) {
-    if (breed[breed.length - 1] == 's') {
-      return breed.substring(0, breed.length - 1);
-    } else {
-      return 'a-' + breed;
-    }
+/** getPluralName: Get the plural name of a breed. */
+export const getPluralName = function (singular: string) {
+  if (singular[singular.length - 1] == 's') {
+    return singular + 'es';
   } else {
-    if (breed[breed.length - 1] == 's') {
-      return breed + 'es';
-    } else {
-      return breed + 's';
-    }
+    return singular + 's';
+  }
+};
+
+/** getSingularName: Get the singular name of a breed. */
+export const getSingularName = function (plural: string) {
+  if (plural[plural.length - 1] != 's') {
+    return 'a-' + plural;
+  } else {
+    return plural.substring(0, plural.length - 1);
   }
 };

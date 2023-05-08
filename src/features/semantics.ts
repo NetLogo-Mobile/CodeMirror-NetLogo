@@ -6,6 +6,12 @@ import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { prettify, prettifyAll } from '../codemirror/prettify';
 import { forEachDiagnostic, Diagnostic } from '@codemirror/lint';
 import { syntaxTree } from '@codemirror/language';
+import {
+  BuildSnapshot,
+  CodeSnapshot,
+  IntegrateSnapshot,
+} from '../lang/services/code-snapshot';
+import { FixGeneratedCode } from '../codemirror/fix-generated-code';
 
 /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
 export class SemanticFeatures {
@@ -97,6 +103,18 @@ export class SemanticFeatures {
     if (Ranges.length == 0 || Ranges[0].from == Ranges[0].to)
       this.PrettifyAll();
     else this.Prettify();
+  }
+  /** BuildSnapshot: Build a snapshot of the code. */
+  BuildSnapshot() {
+    return BuildSnapshot(this.Galapagos);
+  }
+  /** IntegrateSnapshot: Integrate a snapshot of the code. */
+  IntegrateSnapshot(Snapshot: CodeSnapshot) {
+    return IntegrateSnapshot(this.Galapagos, Snapshot);
+  }
+  /** FixGeneratedCode: Try to fix and prettify a piece of generated code. */
+  FixGeneratedCode(Source: string, Parent?: CodeSnapshot): string {
+    return FixGeneratedCode(this.Galapagos, Source, Parent);
   }
   // #endregion
 

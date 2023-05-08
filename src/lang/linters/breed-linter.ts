@@ -11,7 +11,8 @@ import {
 } from './utils/check-identifier';
 import {
   getBreedName,
-  otherBreedName,
+  getPluralName,
+  getSingularName,
 } from '../../codemirror/utils/breed-utils';
 import { AddBreedAction } from './utils/actions';
 
@@ -49,10 +50,10 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
             let singular = '';
             if (result.isPlural) {
               plural = breed_result.breed;
-              singular = otherBreedName(breed_result.breed, true);
+              singular = getSingularName(breed_result.breed);
             } else {
               singular = breed_result.breed;
-              plural = otherBreedName(breed_result.breed, false);
+              plural = getPluralName(breed_result.breed);
             }
             actions.push(
               AddBreedAction(

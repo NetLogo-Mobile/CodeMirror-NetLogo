@@ -110,9 +110,9 @@ export class Breed {
   public Plural: string;
   /** Variables: Variables defined for the breed. */
   public Variables: string[];
-  /** BreedType: type of the breed. */
+  /** BreedType: Type of the breed. */
   public BreedType: BreedType;
-  /** EditorID: which editor created the breed (for LinkContext). */
+  /** EditorID: Which editor created the breed (for LinkContext). */
   public EditorID?: number;
   /** Build a breed. */
   public constructor(
@@ -160,8 +160,6 @@ export class Procedure {
   public CodeBlocks: CodeBlock[] = [];
   /** EditorID: which editor created the procedure (for LinkContext). */
   public EditorID?: number;
-  /** isProcedure: used for linting; whether is a procedure or codeblock. */
-  public isProcedure: boolean = true;
 }
 
 /** CodeBlock: Dynamic metadata of a code block. */
@@ -180,8 +178,6 @@ export class CodeBlock {
   public Arguments: string[] = [];
   /** AnonymousProcedures: Anonymous procedures defined within the code block. */
   public AnonymousProcedures: Procedure[] = [];
-  /** isProcedure: used for linting; whether is a procedure or codeblock. */
-  public isProcedure: boolean = false;
   /** Primitive: the primitive that created the codeblock. */
   public Primitive: string = '';
   /** Breed: the breed in the primitive that created the codeblock (if present). */

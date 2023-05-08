@@ -118,3 +118,12 @@ export const unsupported = [
   '__hubnet-clear-plot',
   '__hubnet-make-plot-narrowcast',
 ];
+
+export const reserved = [
+  ...directives,
+  ...turtleVars,
+  ...patchVars,
+  ...linkVars,
+  ...constants,
+  ...unsupported,
+];
