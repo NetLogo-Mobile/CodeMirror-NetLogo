@@ -31085,7 +31085,7 @@ if(!String.prototype.matchAll) {
         Add: () => 'Add',
         // Linting messages
         'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
-        'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you spell it correctly?`,
+        'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you forget to define it?`,
         'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
         'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
         'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
@@ -31162,7 +31162,7 @@ if(!String.prototype.matchAll) {
         Add: () => '添加',
         // Linting messages
         'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
-        'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。请检查你的拼写是否正确。`,
+        'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。是否忘记定义它了？`,
         'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
         'Unrecognized statement _': (Name) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
         'Unsupported statement _': (Name) => `此版本 NetLogo 不支持 "${Name}"。`,
@@ -31181,8 +31181,8 @@ if(!String.prototype.matchAll) {
         'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
         'Unmatched item _': (Current, Expected) => `"${Current}" 需要对应的 ${Expected}。`,
         'Unsupported extension _.': (Name) => `这个编辑器不支持扩展 "${Name}"。`,
-        'Missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
-        'Unsupported missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
+        'Missing extension _.': (Name) => `你需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
+        'Unsupported missing extension _.': (Name) => `你需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
         'Invalid context _.': (Prior, New, Primitive) => `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
         'Duplicate global statement _': (Name) => `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
         'Infinite loop _': (Name) => `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
@@ -31830,7 +31830,7 @@ if(!String.prototype.matchAll) {
                     var Line = Lines[I];
                     var Span = document.createElement('span');
                     Span.innerText = Line;
-                    Span.innerHTML = Line.replace(/\s/g, '&nbsp;');
+                    Span.innerHTML = Line.replace(/\s/g, '&#32;');
                     if (Style != '')
                         Span.className = Style;
                     if (Span.innerHTML != '')
