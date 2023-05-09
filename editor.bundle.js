@@ -30291,7 +30291,7 @@ if(!String.prototype.matchAll) {
             .iterate((noderef) => {
             var _a;
             if (
-            //checking let/set statements
+            // Checking let/set statements
             (noderef.name == 'SetVariable' &&
                 (noderef.node.getChildren('VariableName').length != 1 ||
                     noderef.node.getChildren('Value').length +
@@ -30326,7 +30326,7 @@ if(!String.prototype.matchAll) {
                 const value = view.state
                     .sliceDoc(noderef.from, noderef.to)
                     .toLowerCase();
-                //checking if missing command (it shows up as a specific grammatical structure)
+                // Checking if missing command (it shows up as a specific grammatical structure)
                 if (((_a = Node.firstChild) === null || _a === void 0 ? void 0 : _a.name) == '⚠') {
                     diagnostics.push({
                         from: Node.from,
@@ -30335,6 +30335,7 @@ if(!String.prototype.matchAll) {
                         message: Localized.Get('Missing command before _', value),
                     });
                 }
+                // Checking the arguments
                 let args = getArgs(Node);
                 // Log(args.rightArgs.map((node)=>view.state.sliceDoc(node.from, node.to)))
                 // Log(args.rightArgs.map((node)=>node.name))
@@ -30370,16 +30371,16 @@ if(!String.prototype.matchAll) {
                 //     node.name+' '+view.state.sliceDoc(node.from, node.to)
                 //   })
                 // }))
-                //ensures there is a primitive to check
+                // Ensures there is a primitive to check
                 if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
-                    //identify the errors and terms to be conveyed in error message
+                    // identify the errors and terms to be conveyed in error message
                     const result = checkValidNumArgs(view.state, args, preprocessContext);
                     let error_type = result[0];
                     let func = result[1];
                     let expected = result[2];
                     let actual = result[3];
                     if (func == null || expected == null || actual == null) ;
-                    //create error messages
+                    // create error messages
                     else if (error_type == 'no primitive') {
                         diagnostics.push({
                             from: noderef.from,
@@ -30413,31 +30414,31 @@ if(!String.prototype.matchAll) {
                         });
                     }
                 }
+                // Check for infinite loops
                 if (args.func) {
-                    let func_name = view.state
+                    let funcName = view.state
                         .sliceDoc(args.func.from, args.func.to)
                         .toLowerCase();
-                    if (func_name == 'while' && args.rightArgs.length > 1) {
-                        let bool_arg = view.state
-                            .sliceDoc(args.rightArgs[0].from, args.rightArgs[0].to)
-                            .toLowerCase();
-                        if (bool_arg.match(/\[\s*true\s*\]/g) &&
-                            !checkLoopEnd(view, args.rightArgs[1], false)) {
-                            diagnostics.push({
-                                from: Node.from,
-                                to: Node.to,
-                                severity: 'error',
-                                message: Localized.Get('Unending loop'),
-                            });
-                        }
+                    var potentialLoop = false;
+                    // Find potentials
+                    if (funcName == 'while') {
+                        potentialLoop =
+                            args.rightArgs.length > 1 &&
+                                !!view.state
+                                    .sliceDoc(args.rightArgs[0].from, args.rightArgs[0].to)
+                                    .toLowerCase()
+                                    .match(/\[\s*true\s*\]/g);
                     }
-                    else if (func_name == 'loop' &&
-                        !checkLoopEnd(view, args.rightArgs[0], true)) {
+                    else if (funcName == 'loop') {
+                        potentialLoop = true;
+                    }
+                    // Check for loop end
+                    if (potentialLoop && !checkLoopEnd(view, Node)) {
                         diagnostics.push({
                             from: Node.from,
                             to: Node.to,
                             severity: 'error',
-                            message: Localized.Get('Unending loop'),
+                            message: Localized.Get('Infinite loop _', funcName),
                         });
                     }
                 }
@@ -30446,23 +30447,19 @@ if(!String.prototype.matchAll) {
         return diagnostics.filter((d) => d.from >= view.state.selection.ranges[0].to ||
             d.to <= view.state.selection.ranges[0].from);
     };
-    const checkLoopEnd = function (view, node, allowReport) {
+    /** checkLoopEnd: checks if a loop has a stop/die/report statement. */
+    const checkLoopEnd = function (view, node) {
         let found = false;
         node.cursor().iterate((noderef) => {
-            // Log(view.state.sliceDoc(noderef.from,noderef.to))
-            if (['stop', 'die'].includes(view.state.sliceDoc(noderef.from, noderef.to).toLowerCase())) {
-                found = true;
-                return false;
-            }
-            else if (allowReport &&
-                view.state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'report') {
+            var command = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+            if (['stop', 'die', 'report'].includes(command)) {
                 found = true;
                 return false;
             }
         });
         return found;
     };
-    // getArgs: collects everything used as an argument so it can be counted
+    /** getArgs: collects everything used as an argument so it can be counted. */
     const getArgs = function (Node) {
         var _a, _b;
         let cursor = Node.cursor();
@@ -30480,13 +30477,13 @@ if(!String.prototype.matchAll) {
         while (done == false) {
             if (cursor.node.name == 'OpenParen') {
                 args.hasParentheses = true;
-                //collect nodes containing left args
+                // collect nodes containing left args
             }
             else if (!seenFunc && cursor.node.name == 'Arg') {
                 args.leftArgs = cursor.node;
             }
             else if (
-            //collect nodes containing right args ('Commands'/'Reporters' are specifically for map, filter, etc.)
+            // collect nodes containing right args ('Commands'/'Reporters' are specifically for map, filter, etc.)
             seenFunc &&
                 (cursor.node.name == 'Arg' ||
                     cursor.node.name == 'Commands' ||
@@ -30494,7 +30491,7 @@ if(!String.prototype.matchAll) {
                 args.rightArgs.push(cursor.node);
             }
             else if (
-            //identify the node containing primitive
+            // identify the node containing primitive
             (cursor.node.name.includes('Command') &&
                 !cursor.node.name.includes('Commands') &&
                 !cursor.node.name.includes('CommandStatement')) ||
@@ -30510,12 +30507,12 @@ if(!String.prototype.matchAll) {
         }
         return args;
     };
-    // checkValidNumArgs: checks if correct number of arguments are present
+    /** checkValidNumArgs: checks if correct number of arguments are present. */
     const checkValidNumArgs = function (state, args, preprocessContext) {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
-        //get the text/name of the primitive
+        // get the text/name of the primitive
         let func = state.sliceDoc((_a = args.func) === null || _a === void 0 ? void 0 : _a.from, (_b = args.func) === null || _b === void 0 ? void 0 : _b.to).toLowerCase();
-        //checking for "Special" cases (custom and breed procedures)
+        // checking for "Special" cases (custom and breed procedures)
         if ((_c = args.func) === null || _c === void 0 ? void 0 : _c.name.includes('Special')) {
             let numArgs = (_f = (_e = (_d = preprocessContext.Commands.get(func)) !== null && _d !== void 0 ? _d : preprocessContext.Reporters.get(func)) !== null && _e !== void 0 ? _e : getBreedCommandArgs(func)) !== null && _f !== void 0 ? _f : getBreedProcedureArgs(args.func.name);
             return [
@@ -30542,13 +30539,13 @@ if(!String.prototype.matchAll) {
         }
         else {
             let primitive = primitives$1.GetNamedPrimitive(func);
-            //checks for terms used as primitives but don't exist in our dataset
+            // checks for terms used as primitives but don't exist in our dataset
             if (!primitive) {
                 Log('no primitive', (_g = args.func) === null || _g === void 0 ? void 0 : _g.name, func);
                 return ['no primitive', func, 0, 0];
             }
             else if (
-            //checks for incorrect numbers of arguments on the left side
+            // checks for incorrect numbers of arguments on the left side
             (((_h = primitive.LeftArgumentType) === null || _h === void 0 ? void 0 : _h.Types[0]) == NetLogoType.Unit &&
                 args.leftArgs) ||
                 (((_j = primitive.LeftArgumentType) === null || _j === void 0 ? void 0 : _j.Types[0]) != NetLogoType.Unit &&
@@ -30572,7 +30569,7 @@ if(!String.prototype.matchAll) {
                     rightArgMax = Number(name[0]);
                 }
                 else {
-                    //find the minimum and maximum acceptable numbers of right-side arguments
+                    // find the minimum and maximum acceptable numbers of right-side arguments
                     rightArgMin = args.hasParentheses
                         ? (_q = (_p = primitive.MinimumOption) !== null && _p !== void 0 ? _p : primitive.DefaultOption) !== null && _q !== void 0 ? _q : primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
                             .length
@@ -30584,12 +30581,12 @@ if(!String.prototype.matchAll) {
                             ? 100
                             : (_s = primitive.DefaultOption) !== null && _s !== void 0 ? _s : primitive.RightArgumentTypes.length;
                 }
-                //ensure at least minimum # right args present
+                // ensure at least minimum # right args present
                 if (args.rightArgs.length < rightArgMin) {
                     Log(args.rightArgs);
                     Log(func, 'rightargs', rightArgMin, rightArgMax, args.rightArgs.length);
                     return ['rightmin', func, rightArgMin, args.rightArgs.length];
-                    //ensure at most max # right args present
+                    // ensure at most max # right args present
                 }
                 else if (args.rightArgs.length > rightArgMax) {
                     return ['rightmax', func, rightArgMax, args.rightArgs.length];
@@ -31109,8 +31106,8 @@ if(!String.prototype.matchAll) {
         'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
         'Unmatched item _': (Current, Expected) => `This "${Current}" needs a matching ${Expected}.`,
         'Invalid context _.': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
-        'Duplicate global statement _': (Name) => `The global "${Name}" statement is already defined. Do you want to consolidate?`,
-        'Unending loop': (Name) => `This loop will continue forever. Do you want to stop it?`,
+        'Duplicate global statement _': (Name) => `The global "${Name}" statement is already defined. Do you want to combine into one?`,
+        'Infinite loop _': (Name) => `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
         // Agent types
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -31188,7 +31185,7 @@ if(!String.prototype.matchAll) {
         'Unsupported missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
         'Invalid context _.': (Prior, New, Primitive) => `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
         'Duplicate global statement _': (Name) => `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
-        'Unending loop': (Name) => `This loop will continue forever. Do you want to stop it?`,
+        'Infinite loop _': (Name) => `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
         // Agent types
         Observer: () => '观察者',
         Turtle: () => '海龟',
@@ -31717,6 +31714,7 @@ if(!String.prototype.matchAll) {
         let commentsStart = null;
         let commentFrom = null;
         let procedureStart = null;
+        // Go over the syntax tree
         syntaxTree(state)
             .cursor()
             .iterate((noderef) => {
@@ -31724,7 +31722,7 @@ if(!String.prototype.matchAll) {
             Log(noderef.name, comments);
             if (noderef.name == '⚠' && ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Normal') {
                 Log(noderef.name, noderef.from, commentFrom, comments);
-                intoProcedure.push(addComments(state.sliceDoc(noderef.from, noderef.to), comments));
+                intoProcedure.push(AddComments(state.sliceDoc(noderef.from, noderef.to), comments));
                 changes.push({
                     from: commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from,
                     to: noderef.to + 1,
@@ -31732,7 +31730,7 @@ if(!String.prototype.matchAll) {
                 });
                 return false;
             }
-            else if (noderef.name == 'Error') {
+            if (noderef.name == 'Error') {
                 Log(noderef.name, comments);
                 changes.push({
                     from: commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from,
@@ -31742,31 +31740,33 @@ if(!String.prototype.matchAll) {
                 changes.push({
                     from: 0,
                     to: 0,
-                    insert: addComments(state.sliceDoc(noderef.from, noderef.to), comments) +
+                    insert: AddComments(state.sliceDoc(noderef.from, noderef.to), comments) +
                         '\n',
                 });
                 return false;
             }
-            else if (!procedureStart && noderef.name == 'Procedure') {
+            // Record the position of the first procedure
+            if (!procedureStart && noderef.name == 'Procedure')
                 procedureStart = noderef.from;
-            }
+            // Record the position of the comments
             if (noderef.name == 'LineComment') {
                 comments.push(state.sliceDoc(noderef.from, noderef.to));
-                if (!commentsStart) {
-                    commentsStart = noderef.from;
-                }
+                commentsStart = commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from;
             }
             else if (comments.length > 0 && !commentFrom) {
+                // Record the position of the commented statement
                 commentFrom = noderef.from;
             }
             else if (comments.length > 0 &&
                 commentFrom &&
                 noderef.from > commentFrom) {
+                // Discard the comment info when we move on to the next statement
                 comments = [];
                 commentFrom = null;
                 commentsStart = null;
             }
         });
+        // If there are rogue statements, wrap them into a procedure
         if (intoProcedure.length != 0) {
             changes.push({
                 from: procedureStart !== null && procedureStart !== void 0 ? procedureStart : 0,
@@ -31774,7 +31774,8 @@ if(!String.prototype.matchAll) {
                 insert: 'to play\n' + intoProcedure.join('\n') + '\nend\n\n',
             });
         }
-        Editor.CodeMirror.dispatch({ changes: changes });
+        // Send in the changes
+        Editor.Operations.InsertCode(changes);
         // Third pass: re-introduce the snapshot
         IntegrateSnapshot(Editor, Snapshot);
         if (Parent)
@@ -31783,12 +31784,12 @@ if(!String.prototype.matchAll) {
         Editor.Semantics.PrettifyAll();
         return Editor.GetCode().trim();
     }
-    function addComments(str, comments) {
+    /** AddComments: Add comments to the beginning of the string.*/
+    function AddComments(str, comments) {
         if (comments.length == 0)
             return str;
-        else {
+        else
             return comments.join('\n') + '\n' + str;
-        }
     }
 
     /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
