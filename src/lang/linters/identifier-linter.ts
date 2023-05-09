@@ -27,7 +27,7 @@ export const IdentifierLinter: Linter = (
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
-      if (noderef.name == 'Identifier') {
+      if (noderef.name == 'Identifier' && noderef.node.parent?.name != '⚠') {
         const Node = noderef.node;
         const value = view.state.sliceDoc(noderef.from, noderef.to);
 

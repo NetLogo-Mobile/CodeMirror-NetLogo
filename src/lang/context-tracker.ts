@@ -3,11 +3,19 @@ import { isValidKeyword } from './tokenizer';
 
 export const contextTracker = new ContextTracker({
   start: false,
+  // {
+  //   extensionsGlobals:false,
+  //   globalStatement:true
+  // },
   shift: (context, term, stack, input) => {
     let token = '';
     if (input.next == 93) {
       input.advance();
       return false;
+      // return {
+      //   extensionsGlobals:false,
+      //   globalStatement:context.globalStatement
+      // }
     }
     // Find until the token is complete
     while (isValidKeyword(input.next)) {
@@ -22,8 +30,18 @@ export const contextTracker = new ContextTracker({
       }
       if (input.next == 91) {
         return true;
+        // return {
+        //   extensionsGlobals:true,
+        //   globalStatement:context.globalStatement
+        // }
       }
     }
+    // else if (context.globalStatement && (token=='to' || token=='to-report')) {
+    //   return {
+    //     extensionsGlobals:context.extensionsGlobals,
+    //     globalStatement:false
+    //   }
+    // }
     return context;
   },
 });

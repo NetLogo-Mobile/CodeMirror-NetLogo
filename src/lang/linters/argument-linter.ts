@@ -8,6 +8,7 @@ import { Linter } from './linter-builder';
 import { Localized } from '../../editor';
 import { PreprocessContext } from '../classes/contexts';
 import { Log } from '../../codemirror/utils/debug-utils';
+import { EditorView } from 'codemirror';
 
 let primitives = PrimitiveManager;
 
@@ -170,6 +171,37 @@ export const ArgumentLinter: Linter = (
             });
           }
         }
+        if (args.func) {
+          let func_name = view.state
+            .sliceDoc(args.func.from, args.func.to)
+            .toLowerCase();
+          if (func_name == 'while' && args.rightArgs.length > 1) {
+            let bool_arg = view.state
+              .sliceDoc(args.rightArgs[0].from, args.rightArgs[0].to)
+              .toLowerCase();
+            if (
+              bool_arg.match(/\[\s*true\s*\]/g) &&
+              !checkLoopEnd(view, args.rightArgs[1], false)
+            ) {
+              diagnostics.push({
+                from: Node.from,
+                to: Node.to,
+                severity: 'error',
+                message: Localized.Get('Unending loop'),
+              });
+            }
+          } else if (
+            func_name == 'loop' &&
+            !checkLoopEnd(view, args.rightArgs[0], true)
+          ) {
+            diagnostics.push({
+              from: Node.from,
+              to: Node.to,
+              severity: 'error',
+              message: Localized.Get('Unending loop'),
+            });
+          }
+        }
       }
     });
   return diagnostics.filter(
@@ -177,6 +209,32 @@ export const ArgumentLinter: Linter = (
       d.from >= view.state.selection.ranges[0].to ||
       d.to <= view.state.selection.ranges[0].from
   );
+};
+
+const checkLoopEnd = function (
+  view: EditorView,
+  node: SyntaxNode,
+  allowReport: boolean
+) {
+  let found = false;
+  node.cursor().iterate((noderef) => {
+    // Log(view.state.sliceDoc(noderef.from,noderef.to))
+    if (
+      ['stop', 'die'].includes(
+        view.state.sliceDoc(noderef.from, noderef.to).toLowerCase()
+      )
+    ) {
+      found = true;
+      return false;
+    } else if (
+      allowReport &&
+      view.state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'report'
+    ) {
+      found = true;
+      return false;
+    }
+  });
+  return found;
 };
 
 // getArgs: collects everything used as an argument so it can be counted
