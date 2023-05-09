@@ -6,7 +6,7 @@ const zh_cn: Record<string, Function> = {
   'Unrecognized breed name _': (Name: string) =>
     `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
   'Unrecognized identifier _': (Name: string) =>
-    `未能识别 "${Name}"。请检查你的拼写是否正确。`,
+    `未能识别 "${Name}"。是否忘记定义它了？`,
   'Unrecognized global statement _': (Name: string) =>
     `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
   'Unrecognized statement _': (Name: string) =>
@@ -59,9 +59,9 @@ const zh_cn: Record<string, Function> = {
   'Unsupported extension _.': (Name: string) =>
     `这个编辑器不支持扩展 "${Name}"。`,
   'Missing extension _.': (Name: string) =>
-    `你似乎需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
+    `你需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
   'Unsupported missing extension _.': (Name: string) =>
-    `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
+    `你需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
   'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
     `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
   'Duplicate global statement _': (Name: string) =>

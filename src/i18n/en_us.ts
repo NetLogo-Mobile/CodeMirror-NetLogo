@@ -6,7 +6,7 @@ const en_us: Record<string, Function> = {
   'Unrecognized breed name _': (Name: string) =>
     `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
   'Unrecognized identifier _': (Name: string) =>
-    `Nothing called "${Name}" was found. Did you spell it correctly?`,
+    `Nothing called "${Name}" was found. Did you forget to define it?`,
   'Unrecognized global statement _': (Name: string) =>
     `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
   'Unrecognized statement _': (Name: string) =>
