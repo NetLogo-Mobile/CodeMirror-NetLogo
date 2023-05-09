@@ -30258,7 +30258,7 @@ if(!String.prototype.matchAll) {
         syntaxTree(view.state)
             .cursor()
             .iterate((node) => {
-            var _a;
+            var _a, _b;
             if ((node.name == '⚠' || node.name == 'Error') && node.to != node.from) {
                 let curr = node.node;
                 let parents = [];
@@ -30268,9 +30268,20 @@ if(!String.prototype.matchAll) {
                 }
                 const value = view.state.sliceDoc(node.from, node.to);
                 Log(value, node.name, parents);
-                if (!['[', ']', ')', '(', '"'].includes(value) &&
+                if (((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Arguments') {
+                    let child = node.node.firstChild;
+                    if (child &&
+                        (child.name.startsWith('Command') ||
+                            child.name.startsWith('Reporter'))) {
+                        diagnostics.push(getDiagnostic(view, node, 'Argument is primitive _'));
+                    }
+                    else {
+                        diagnostics.push(getDiagnostic(view, node, 'Argument is unrecognized _'));
+                    }
+                }
+                else if (!['[', ']', ')', '(', '"'].includes(value) &&
                     !checkBreedLike(value).found) {
-                    if (((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Normal') {
+                    if (((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) == 'Normal') {
                         diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));
                     }
                     else {
@@ -30445,7 +30456,9 @@ if(!String.prototype.matchAll) {
             }
         });
         return diagnostics.filter((d) => d.from >= view.state.selection.ranges[0].to ||
-            d.to <= view.state.selection.ranges[0].from);
+            d.to <= view.state.selection.ranges[0].from ||
+            d.message == Localized.Get('Infinite loop _', 'loop') ||
+            d.message == Localized.Get('Infinite loop _', 'while'));
     };
     /** checkLoopEnd: checks if a loop has a stop/die/report statement. */
     const checkLoopEnd = function (view, node) {
@@ -31108,6 +31121,8 @@ if(!String.prototype.matchAll) {
         'Invalid context _.': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
         'Duplicate global statement _': (Name) => `The global "${Name}" statement is already defined. Do you want to combine into one?`,
         'Infinite loop _': (Name) => `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
+        'Argument is primitive _': (Name) => `The argument "${Name}" is a built-in primitive. Do you want to replace it?`,
+        'Argument is unrecognized _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
         // Agent types
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -31186,6 +31201,8 @@ if(!String.prototype.matchAll) {
         'Invalid context _.': (Prior, New, Primitive) => `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
         'Duplicate global statement _': (Name) => `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
         'Infinite loop _': (Name) => `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
+        'Argument is primitive _': (Name) => `The argument "${Name}" is a built-in primitive. Do you want to replace it?`,
+        'Argument is unrecognized _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
         // Agent types
         Observer: () => '观察者',
         Turtle: () => '海龟',
@@ -31720,6 +31737,8 @@ if(!String.prototype.matchAll) {
             .iterate((noderef) => {
             var _a;
             Log(noderef.name, comments);
+            //check for misplaced non-global statements at the global level
+            //Collect them into intoProcedure, and remove them from the code
             if (noderef.name == '⚠' && ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Normal') {
                 Log(noderef.name, noderef.from, commentFrom, comments);
                 intoProcedure.push(AddComments(state.sliceDoc(noderef.from, noderef.to), comments));
@@ -31730,6 +31749,8 @@ if(!String.prototype.matchAll) {
                 });
                 return false;
             }
+            //check for misplaced global statements
+            //Move them to the top of the program
             if (noderef.name == 'Error') {
                 Log(noderef.name, comments);
                 changes.push({
@@ -31745,16 +31766,21 @@ if(!String.prototype.matchAll) {
                 });
                 return false;
             }
-            // Record the position of the first procedure
+            // Record the position of the first procedure to know where to add 'play'
             if (!procedureStart && noderef.name == 'Procedure')
                 procedureStart = noderef.from;
             // Record the position of the comments
             if (noderef.name == 'LineComment') {
-                comments.push(state.sliceDoc(noderef.from, noderef.to));
-                commentsStart = commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from;
+                //take only the one preceding comment
+                comments = [state.sliceDoc(noderef.from, noderef.to)];
+                commentsStart = noderef.from;
+                //take all immediately preceding comments
+                // comments.push(state.sliceDoc(noderef.from, noderef.to));
+                // commentsStart = commentsStart ?? noderef.from;
             }
             else if (comments.length > 0 && !commentFrom) {
-                // Record the position of the commented statement
+                // Record the position of what comes immediately after the comments
+                // (this is in case of nesting, so we don't lose the comments)
                 commentFrom = noderef.from;
             }
             else if (comments.length > 0 &&
