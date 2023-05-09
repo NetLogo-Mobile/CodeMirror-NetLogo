@@ -5,9 +5,11 @@ import {
   IntegrateSnapshot,
 } from '../lang/services/code-snapshot';
 import { getSingularName } from './utils/breed-utils';
+import { syntaxTree } from '@codemirror/language';
+import { Log } from './utils/debug-utils';
 
 /** FixGeneratedCode: Try to fix and prettify the generated code. */
-export function FixGeneratedCode(
+export function FixGeneratedCodeRegex(
   Editor: GalapagosEditor,
   Source: string,
   Parent?: CodeSnapshot
@@ -97,4 +99,101 @@ export function FixGeneratedCode(
   // Final pass: prettify the code once again
   Editor.Semantics.PrettifyAll();
   return Editor.GetCode().trim();
+}
+
+export function FixGeneratedCode(
+  Editor: GalapagosEditor,
+  Source: string,
+  Parent?: CodeSnapshot
+): string {
+  Source = Source.trim();
+  if (Source == '') return Source;
+  // Remove the trailing semicolon
+  if (Source.endsWith(';')) Source = Source.slice(0, -1);
+  // First pass: prettify the code
+  Editor.SetCode(Source);
+  Editor.Semantics.PrettifyAll();
+  // Second pass: clean up global statements
+  var Snapshot = BuildSnapshot(Editor);
+  var intoProcedure: string[] = [];
+  let changes: { from: number; insert: string; to?: number }[] = [];
+  let state = Editor.CodeMirror.state;
+  let comments: string[] = [];
+  let commentsStart: null | number = null;
+  let commentFrom: null | number = null;
+  let procedureStart: null | number = null;
+
+  syntaxTree(state)
+    .cursor()
+    .iterate((noderef) => {
+      Log(noderef.name, comments);
+      if (noderef.name == '⚠' && noderef.node.parent?.name == 'Normal') {
+        Log(noderef.name, noderef.from, commentFrom, comments);
+        intoProcedure.push(
+          addComments(state.sliceDoc(noderef.from, noderef.to), comments)
+        );
+        changes.push({
+          from: commentsStart ?? noderef.from,
+          to: noderef.to + 1,
+          insert: '',
+        });
+        return false;
+      } else if (noderef.name == 'Error') {
+        Log(noderef.name, comments);
+        changes.push({
+          from: commentsStart ?? noderef.from,
+          to: noderef.to + 1,
+          insert: '',
+        });
+        changes.push({
+          from: 0,
+          to: 0,
+          insert:
+            addComments(state.sliceDoc(noderef.from, noderef.to), comments) +
+            '\n',
+        });
+        return false;
+      } else if (!procedureStart && noderef.name == 'Procedure') {
+        procedureStart = noderef.from;
+      }
+      if (noderef.name == 'LineComment') {
+        comments.push(state.sliceDoc(noderef.from, noderef.to));
+        if (!commentsStart) {
+          commentsStart = noderef.from;
+        }
+      } else if (comments.length > 0 && !commentFrom) {
+        commentFrom = noderef.from;
+      } else if (
+        comments.length > 0 &&
+        commentFrom &&
+        noderef.from > commentFrom
+      ) {
+        comments = [];
+        commentFrom = null;
+        commentsStart = null;
+      }
+    });
+
+  if (intoProcedure.length != 0) {
+    changes.push({
+      from: procedureStart ?? 0,
+      to: procedureStart ?? 0,
+      insert: 'to play\n' + intoProcedure.join('\n') + '\nend\n\n',
+    });
+  }
+
+  Editor.CodeMirror.dispatch({ changes: changes });
+  // Third pass: re-introduce the snapshot
+  IntegrateSnapshot(Editor, Snapshot);
+  if (Parent) IntegrateSnapshot(Editor, Parent);
+  // Final pass: prettify the code once again
+  Editor.Semantics.PrettifyAll();
+  return Editor.GetCode().trim();
+}
+
+function addComments(str: string, comments: string[]) {
+  if (comments.length == 0) return str;
+  else {
+    return comments.join('\n') + '\n' + str;
+  }
 }

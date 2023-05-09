@@ -9,7 +9,14 @@ import { getLocalVars } from './utils/check-identifier';
 // NamingLinter: Ensures no duplicate breed names
 export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  let all: string[] = [];
+  let all: string[] = [
+    'turtles',
+    'turtle',
+    'patches',
+    'patch',
+    'links',
+    'link',
+  ];
   for (let b of lintContext.Breeds.values()) {
     if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
       all.push('hatch-' + b.Plural);

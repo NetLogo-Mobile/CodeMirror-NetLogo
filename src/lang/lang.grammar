@@ -1,4 +1,5 @@
 @precedence {
+  cut @cut,
   paren @left,
   open @left,
   close @right,
@@ -32,7 +33,7 @@ globalStatement {
 
   Globals { GlobalStr OpenBracket Identifier* CloseBracket  } |
 
-  Breed { BreedDeclarative OpenBracket BreedPlural BreedSingular CloseBracket } |
+  Breed { BreedDeclarative OpenBracket BreedPlural BreedSingular !cut CloseBracket } |
 
   BreedsOwn {
     Own OpenBracket Identifier* CloseBracket

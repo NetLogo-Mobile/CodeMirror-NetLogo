@@ -65,6 +65,8 @@ const en_us: Record<string, Function> = {
     `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
   'Duplicate global statement _': (Name: string) =>
     `The global "${Name}" statement is already defined. Do you want to consolidate?`,
+  'Unending loop': (Name: string) =>
+    `This loop will continue forever. Do you want to stop it?`,
 
   // Agent types
   Observer: () => 'Observer',
