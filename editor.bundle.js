@@ -25756,11 +25756,19 @@ if(!String.prototype.matchAll) {
 
     const contextTracker = new ContextTracker({
         start: false,
+        // {
+        //   extensionsGlobals:false,
+        //   globalStatement:true
+        // },
         shift: (context, term, stack, input) => {
             let token = '';
             if (input.next == 93) {
                 input.advance();
                 return false;
+                // return {
+                //   extensionsGlobals:false,
+                //   globalStatement:context.globalStatement
+                // }
             }
             // Find until the token is complete
             while (isValidKeyword(input.next)) {
@@ -25775,8 +25783,18 @@ if(!String.prototype.matchAll) {
                 }
                 if (input.next == 91) {
                     return true;
+                    // return {
+                    //   extensionsGlobals:true,
+                    //   globalStatement:context.globalStatement
+                    // }
                 }
             }
+            // else if (context.globalStatement && (token=='to' || token=='to-report')) {
+            //   return {
+            //     extensionsGlobals:context.extensionsGlobals,
+            //     globalStatement:false
+            //   }
+            // }
             return context;
         },
     });
@@ -29935,7 +29953,8 @@ if(!String.prototype.matchAll) {
         syntaxTree(view.state)
             .cursor()
             .iterate((noderef) => {
-            if (noderef.name == 'Identifier') {
+            var _a;
+            if (noderef.name == 'Identifier' && ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) != '⚠') {
                 const Node = noderef.node;
                 const value = view.state.sliceDoc(noderef.from, noderef.to);
                 //check if it meets some initial criteria for validity
@@ -30394,10 +30413,54 @@ if(!String.prototype.matchAll) {
                         });
                     }
                 }
+                if (args.func) {
+                    let func_name = view.state
+                        .sliceDoc(args.func.from, args.func.to)
+                        .toLowerCase();
+                    if (func_name == 'while' && args.rightArgs.length > 1) {
+                        let bool_arg = view.state
+                            .sliceDoc(args.rightArgs[0].from, args.rightArgs[0].to)
+                            .toLowerCase();
+                        if (bool_arg.match(/\[\s*true\s*\]/g) &&
+                            !checkLoopEnd(view, args.rightArgs[1], false)) {
+                            diagnostics.push({
+                                from: Node.from,
+                                to: Node.to,
+                                severity: 'error',
+                                message: Localized.Get('Unending loop'),
+                            });
+                        }
+                    }
+                    else if (func_name == 'loop' &&
+                        !checkLoopEnd(view, args.rightArgs[0], true)) {
+                        diagnostics.push({
+                            from: Node.from,
+                            to: Node.to,
+                            severity: 'error',
+                            message: Localized.Get('Unending loop'),
+                        });
+                    }
+                }
             }
         });
         return diagnostics.filter((d) => d.from >= view.state.selection.ranges[0].to ||
             d.to <= view.state.selection.ranges[0].from);
+    };
+    const checkLoopEnd = function (view, node, allowReport) {
+        let found = false;
+        node.cursor().iterate((noderef) => {
+            // Log(view.state.sliceDoc(noderef.from,noderef.to))
+            if (['stop', 'die'].includes(view.state.sliceDoc(noderef.from, noderef.to).toLowerCase())) {
+                found = true;
+                return false;
+            }
+            else if (allowReport &&
+                view.state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'report') {
+                found = true;
+                return false;
+            }
+        });
+        return found;
     };
     // getArgs: collects everything used as an argument so it can be counted
     const getArgs = function (Node) {
@@ -30652,7 +30715,14 @@ if(!String.prototype.matchAll) {
     // NamingLinter: Ensures no duplicate breed names
     const NamingLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
-        let all = [];
+        let all = [
+            'turtles',
+            'turtle',
+            'patches',
+            'patch',
+            'links',
+            'link',
+        ];
         for (let b of lintContext.Breeds.values()) {
             if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
                 all.push('hatch-' + b.Plural);
@@ -31040,6 +31110,7 @@ if(!String.prototype.matchAll) {
         'Unmatched item _': (Current, Expected) => `This "${Current}" needs a matching ${Expected}.`,
         'Invalid context _.': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
         'Duplicate global statement _': (Name) => `The global "${Name}" statement is already defined. Do you want to consolidate?`,
+        'Unending loop': (Name) => `This loop will continue forever. Do you want to stop it?`,
         // Agent types
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -31117,6 +31188,7 @@ if(!String.prototype.matchAll) {
         'Unsupported missing extension _.': (Name) => `你似乎需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
         'Invalid context _.': (Prior, New, Primitive) => `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
         'Duplicate global statement _': (Name) => `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
+        'Unending loop': (Name) => `This loop will continue forever. Do you want to stop it?`,
         // Agent types
         Observer: () => '观察者',
         Turtle: () => '海龟',
@@ -31626,7 +31698,6 @@ if(!String.prototype.matchAll) {
         Galapagos.Operations.AppendGlobals('Globals', Snapshot.Globals);
     }
 
-    /** FixGeneratedCode: Try to fix and prettify the generated code. */
     function FixGeneratedCode(Editor, Source, Parent) {
         Source = Source.trim();
         if (Source == '')
@@ -31638,91 +31709,72 @@ if(!String.prototype.matchAll) {
         Editor.SetCode(Source);
         Editor.Semantics.PrettifyAll();
         // Second pass: clean up global statements
-        // TODO: Now I am using a rudimentry method to scan by lines, but it would be better to deal at a grammar level.
         var Snapshot = BuildSnapshot(Editor);
-        var Lines = Editor.GetCode().split('\n');
-        var LastIsComment = false;
-        var InProcedure = false;
-        var NewLines = [];
-        for (var I = 0; I < Lines.length; I++) {
-            var Line = Lines[I].trim();
-            // If the line is a comment, keep it for now
-            if (Line.startsWith(';')) {
-                LastIsComment = true;
-                NewLines.push(Line);
-                continue;
+        var intoProcedure = [];
+        let changes = [];
+        let state = Editor.CodeMirror.state;
+        let comments = [];
+        let commentsStart = null;
+        let commentFrom = null;
+        let procedureStart = null;
+        syntaxTree(state)
+            .cursor()
+            .iterate((noderef) => {
+            var _a;
+            Log(noderef.name, comments);
+            if (noderef.name == '⚠' && ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Normal') {
+                Log(noderef.name, noderef.from, commentFrom, comments);
+                intoProcedure.push(addComments(state.sliceDoc(noderef.from, noderef.to), comments));
+                changes.push({
+                    from: commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from,
+                    to: noderef.to + 1,
+                    insert: '',
+                });
+                return false;
             }
-            // For other kind of lines
-            if (Line == '') {
-                // If the line is empty, keep it
-                NewLines.push(Line);
+            else if (noderef.name == 'Error') {
+                Log(noderef.name, comments);
+                changes.push({
+                    from: commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from,
+                    to: noderef.to + 1,
+                    insert: '',
+                });
+                changes.push({
+                    from: 0,
+                    to: 0,
+                    insert: addComments(state.sliceDoc(noderef.from, noderef.to), comments) +
+                        '\n',
+                });
+                return false;
             }
-            else if (Line.startsWith('to ' )) {
-                InProcedure = true;
-                NewLines.push(Line);
+            else if (!procedureStart && noderef.name == 'Procedure') {
+                procedureStart = noderef.from;
             }
-            else if (Line == 'end') {
-                InProcedure = false;
-                NewLines.push(Line);
-            }
-            else if (Line.startsWith('globals [') && Line.endsWith(']')) {
-                // If the line is a globals declaration, keep the position only when it is outside procedures
-                if (!InProcedure)
-                    NewLines.push('globals []');
-                else if (LastIsComment) {
-                    NewLines.pop();
+            if (noderef.name == 'LineComment') {
+                comments.push(state.sliceDoc(noderef.from, noderef.to));
+                if (!commentsStart) {
+                    commentsStart = noderef.from;
                 }
             }
-            else if (Line.startsWith('extensions [') && Line.endsWith(']')) {
-                // If the line is a extensions declaration, keep the position only when it is outside procedures
-                if (!InProcedure)
-                    NewLines.push('extensions []');
-                else if (LastIsComment) {
-                    NewLines.pop();
-                }
+            else if (comments.length > 0 && !commentFrom) {
+                commentFrom = noderef.from;
             }
-            else if ((Line.startsWith('breed [') ||
-                Line.startsWith('directed-link-breed [') ||
-                Line.startsWith('undirected-link-breed [')) &&
-                Line.endsWith(']')) {
-                // If the line is a breed declaration, try to get the name and fix the singular issue
-                var Match = Line.matchAll(/([^\s]*)breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g).next().value;
-                if (Match) {
-                    var Plural = Match[2];
-                    var Singular = Match[3];
-                    if (Plural == Singular)
-                        Singular = getSingularName(Plural);
-                    var Statement = `${Match[1]}breed [ ${Plural} ${Singular} ]`;
-                    if (!InProcedure)
-                        NewLines.push(Statement);
-                    else {
-                        NewLines.unshift(Statement);
-                        if (LastIsComment)
-                            NewLines.unshift(NewLines.pop());
-                    }
-                }
-                else if (LastIsComment)
-                    NewLines.pop();
+            else if (comments.length > 0 &&
+                commentFrom &&
+                noderef.from > commentFrom) {
+                comments = [];
+                commentFrom = null;
+                commentsStart = null;
             }
-            else {
-                // If the line is a breeds-own declaration, remove the contents
-                var Match = Line.matchAll(/([^\s]+)-own\s*\[([^\]]+)/g).next().value;
-                if (Match) {
-                    var Name = Match[1];
-                    if (!InProcedure)
-                        NewLines.push(`${Name}-own []`);
-                    else {
-                        if (LastIsComment)
-                            NewLines.pop();
-                    }
-                }
-                else {
-                    NewLines.push(Line);
-                }
-            }
-            LastIsComment = false;
+        });
+        if (intoProcedure.length != 0) {
+            changes.push({
+                from: procedureStart !== null && procedureStart !== void 0 ? procedureStart : 0,
+                to: procedureStart !== null && procedureStart !== void 0 ? procedureStart : 0,
+                insert: 'to play\n' + intoProcedure.join('\n') + '\nend\n\n',
+            });
         }
-        Editor.SetCode(NewLines.join('\n'));
+        Editor.CodeMirror.dispatch({ changes: changes });
         // Third pass: re-introduce the snapshot
         IntegrateSnapshot(Editor, Snapshot);
         if (Parent)
@@ -31730,6 +31782,13 @@ if(!String.prototype.matchAll) {
         // Final pass: prettify the code once again
         Editor.Semantics.PrettifyAll();
         return Editor.GetCode().trim();
+    }
+    function addComments(str, comments) {
+        if (comments.length == 0)
+            return str;
+        else {
+            return comments.join('\n') + '\n' + str;
+        }
     }
 
     /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
