@@ -64,9 +64,9 @@ const en_us: Record<string, Function> = {
   'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
     `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
   'Duplicate global statement _': (Name: string) =>
-    `The global "${Name}" statement is already defined. Do you want to consolidate?`,
-  'Unending loop': (Name: string) =>
-    `This loop will continue forever. Do you want to stop it?`,
+    `The global "${Name}" statement is already defined. Do you want to combine into one?`,
+  'Infinite loop _': (Name: string) =>
+    `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
 
   // Agent types
   Observer: () => 'Observer',

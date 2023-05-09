@@ -23,7 +23,7 @@ export const ArgumentLinter: Linter = (
     .cursor()
     .iterate((noderef) => {
       if (
-        //checking let/set statements
+        // Checking let/set statements
         (noderef.name == 'SetVariable' &&
           (noderef.node.getChildren('VariableName').length != 1 ||
             noderef.node.getChildren('Value').length +
@@ -66,7 +66,7 @@ export const ArgumentLinter: Linter = (
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
-        //checking if missing command (it shows up as a specific grammatical structure)
+        // Checking if missing command (it shows up as a specific grammatical structure)
         if (Node.firstChild?.name == '⚠') {
           diagnostics.push({
             from: Node.from,
@@ -75,6 +75,7 @@ export const ArgumentLinter: Linter = (
             message: Localized.Get('Missing command before _', value),
           });
         }
+        // Checking the arguments
         let args = getArgs(Node);
         // Log(args.rightArgs.map((node)=>view.state.sliceDoc(node.from, node.to)))
         // Log(args.rightArgs.map((node)=>node.name))
@@ -110,9 +111,9 @@ export const ArgumentLinter: Linter = (
         //     node.name+' '+view.state.sliceDoc(node.from, node.to)
         //   })
         // }))
-        //ensures there is a primitive to check
+        // Ensures there is a primitive to check
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
-          //identify the errors and terms to be conveyed in error message
+          // identify the errors and terms to be conveyed in error message
           const result = checkValidNumArgs(view.state, args, preprocessContext);
           let error_type = result[0];
           let func = result[1];
@@ -120,7 +121,7 @@ export const ArgumentLinter: Linter = (
           let actual = result[3];
           if (func == null || expected == null || actual == null) {
           }
-          //create error messages
+          // create error messages
           else if (error_type == 'no primitive') {
             diagnostics.push({
               from: noderef.from,
@@ -171,34 +172,30 @@ export const ArgumentLinter: Linter = (
             });
           }
         }
+        // Check for infinite loops
         if (args.func) {
-          let func_name = view.state
+          let funcName = view.state
             .sliceDoc(args.func.from, args.func.to)
             .toLowerCase();
-          if (func_name == 'while' && args.rightArgs.length > 1) {
-            let bool_arg = view.state
-              .sliceDoc(args.rightArgs[0].from, args.rightArgs[0].to)
-              .toLowerCase();
-            if (
-              bool_arg.match(/\[\s*true\s*\]/g) &&
-              !checkLoopEnd(view, args.rightArgs[1], false)
-            ) {
-              diagnostics.push({
-                from: Node.from,
-                to: Node.to,
-                severity: 'error',
-                message: Localized.Get('Unending loop'),
-              });
-            }
-          } else if (
-            func_name == 'loop' &&
-            !checkLoopEnd(view, args.rightArgs[0], true)
-          ) {
+          var potentialLoop = false;
+          // Find potentials
+          if (funcName == 'while') {
+            potentialLoop =
+              args.rightArgs.length > 1 &&
+              !!view.state
+                .sliceDoc(args.rightArgs[0].from, args.rightArgs[0].to)
+                .toLowerCase()
+                .match(/\[\s*true\s*\]/g);
+          } else if (funcName == 'loop') {
+            potentialLoop = true;
+          }
+          // Check for loop end
+          if (potentialLoop && !checkLoopEnd(view, Node)) {
             diagnostics.push({
               from: Node.from,
               to: Node.to,
               severity: 'error',
-              message: Localized.Get('Unending loop'),
+              message: Localized.Get('Infinite loop _', funcName),
             });
           }
         }
@@ -211,25 +208,12 @@ export const ArgumentLinter: Linter = (
   );
 };
 
-const checkLoopEnd = function (
-  view: EditorView,
-  node: SyntaxNode,
-  allowReport: boolean
-) {
+/** checkLoopEnd: checks if a loop has a stop/die/report statement. */
+const checkLoopEnd = function (view: EditorView, node: SyntaxNode) {
   let found = false;
   node.cursor().iterate((noderef) => {
-    // Log(view.state.sliceDoc(noderef.from,noderef.to))
-    if (
-      ['stop', 'die'].includes(
-        view.state.sliceDoc(noderef.from, noderef.to).toLowerCase()
-      )
-    ) {
-      found = true;
-      return false;
-    } else if (
-      allowReport &&
-      view.state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'report'
-    ) {
+    var command = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+    if (['stop', 'die', 'report'].includes(command)) {
       found = true;
       return false;
     }
@@ -237,7 +221,7 @@ const checkLoopEnd = function (
   return found;
 };
 
-// getArgs: collects everything used as an argument so it can be counted
+/** getArgs: collects everything used as an argument so it can be counted. */
 export const getArgs = function (Node: SyntaxNode) {
   let cursor = Node.cursor();
   let args: {
@@ -260,11 +244,11 @@ export const getArgs = function (Node: SyntaxNode) {
   while (done == false) {
     if (cursor.node.name == 'OpenParen') {
       args.hasParentheses = true;
-      //collect nodes containing left args
+      // collect nodes containing left args
     } else if (!seenFunc && cursor.node.name == 'Arg') {
       args.leftArgs = cursor.node;
     } else if (
-      //collect nodes containing right args ('Commands'/'Reporters' are specifically for map, filter, etc.)
+      // collect nodes containing right args ('Commands'/'Reporters' are specifically for map, filter, etc.)
       seenFunc &&
       (cursor.node.name == 'Arg' ||
         cursor.node.name == 'Commands' ||
@@ -272,7 +256,7 @@ export const getArgs = function (Node: SyntaxNode) {
     ) {
       args.rightArgs.push(cursor.node);
     } else if (
-      //identify the node containing primitive
+      // identify the node containing primitive
       (cursor.node.name.includes('Command') &&
         !cursor.node.name.includes('Commands') &&
         !cursor.node.name.includes('CommandStatement')) ||
@@ -290,7 +274,7 @@ export const getArgs = function (Node: SyntaxNode) {
   return args;
 };
 
-// checkValidNumArgs: checks if correct number of arguments are present
+/** checkValidNumArgs: checks if correct number of arguments are present. */
 export const checkValidNumArgs = function (
   state: EditorState,
   args: {
@@ -301,9 +285,9 @@ export const checkValidNumArgs = function (
   },
   preprocessContext: PreprocessContext
 ) {
-  //get the text/name of the primitive
+  // get the text/name of the primitive
   let func = state.sliceDoc(args.func?.from, args.func?.to).toLowerCase();
-  //checking for "Special" cases (custom and breed procedures)
+  // checking for "Special" cases (custom and breed procedures)
   if (args.func?.name.includes('Special')) {
     let numArgs =
       preprocessContext.Commands.get(func) ??
@@ -330,12 +314,12 @@ export const checkValidNumArgs = function (
     }
   } else {
     let primitive = primitives.GetNamedPrimitive(func);
-    //checks for terms used as primitives but don't exist in our dataset
+    // checks for terms used as primitives but don't exist in our dataset
     if (!primitive) {
       Log('no primitive', args.func?.name, func);
       return ['no primitive', func, 0, 0];
     } else if (
-      //checks for incorrect numbers of arguments on the left side
+      // checks for incorrect numbers of arguments on the left side
       (primitive.LeftArgumentType?.Types[0] == NetLogoType.Unit &&
         args.leftArgs) ||
       (primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit &&
@@ -361,7 +345,7 @@ export const checkValidNumArgs = function (
         rightArgMin = Number(name[0]);
         rightArgMax = Number(name[0]);
       } else {
-        //find the minimum and maximum acceptable numbers of right-side arguments
+        // find the minimum and maximum acceptable numbers of right-side arguments
         rightArgMin = args.hasParentheses
           ? primitive.MinimumOption ??
             primitive.DefaultOption ??
@@ -376,12 +360,12 @@ export const checkValidNumArgs = function (
             ? 100
             : primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
       }
-      //ensure at least minimum # right args present
+      // ensure at least minimum # right args present
       if (args.rightArgs.length < rightArgMin) {
         Log(args.rightArgs);
         Log(func, 'rightargs', rightArgMin, rightArgMax, args.rightArgs.length);
         return ['rightmin', func, rightArgMin, args.rightArgs.length];
-        //ensure at most max # right args present
+        // ensure at most max # right args present
       } else if (args.rightArgs.length > rightArgMax) {
         return ['rightmax', func, rightArgMax, args.rightArgs.length];
       } else {

@@ -122,7 +122,7 @@ export function FixGeneratedCode(
   let commentsStart: null | number = null;
   let commentFrom: null | number = null;
   let procedureStart: null | number = null;
-
+  // Go over the syntax tree
   syntaxTree(state)
     .cursor()
     .iterate((noderef) => {
@@ -130,7 +130,7 @@ export function FixGeneratedCode(
       if (noderef.name == '⚠' && noderef.node.parent?.name == 'Normal') {
         Log(noderef.name, noderef.from, commentFrom, comments);
         intoProcedure.push(
-          addComments(state.sliceDoc(noderef.from, noderef.to), comments)
+          AddComments(state.sliceDoc(noderef.from, noderef.to), comments)
         );
         changes.push({
           from: commentsStart ?? noderef.from,
@@ -138,7 +138,8 @@ export function FixGeneratedCode(
           insert: '',
         });
         return false;
-      } else if (noderef.name == 'Error') {
+      }
+      if (noderef.name == 'Error') {
         Log(noderef.name, comments);
         changes.push({
           from: commentsStart ?? noderef.from,
@@ -149,31 +150,33 @@ export function FixGeneratedCode(
           from: 0,
           to: 0,
           insert:
-            addComments(state.sliceDoc(noderef.from, noderef.to), comments) +
+            AddComments(state.sliceDoc(noderef.from, noderef.to), comments) +
             '\n',
         });
         return false;
-      } else if (!procedureStart && noderef.name == 'Procedure') {
-        procedureStart = noderef.from;
       }
+      // Record the position of the first procedure
+      if (!procedureStart && noderef.name == 'Procedure')
+        procedureStart = noderef.from;
+      // Record the position of the comments
       if (noderef.name == 'LineComment') {
         comments.push(state.sliceDoc(noderef.from, noderef.to));
-        if (!commentsStart) {
-          commentsStart = noderef.from;
-        }
+        commentsStart = commentsStart ?? noderef.from;
       } else if (comments.length > 0 && !commentFrom) {
+        // Record the position of the commented statement
         commentFrom = noderef.from;
       } else if (
         comments.length > 0 &&
         commentFrom &&
         noderef.from > commentFrom
       ) {
+        // Discard the comment info when we move on to the next statement
         comments = [];
         commentFrom = null;
         commentsStart = null;
       }
     });
-
+  // If there are rogue statements, wrap them into a procedure
   if (intoProcedure.length != 0) {
     changes.push({
       from: procedureStart ?? 0,
@@ -181,8 +184,8 @@ export function FixGeneratedCode(
       insert: 'to play\n' + intoProcedure.join('\n') + '\nend\n\n',
     });
   }
-
-  Editor.CodeMirror.dispatch({ changes: changes });
+  // Send in the changes
+  Editor.Operations.InsertCode(changes);
   // Third pass: re-introduce the snapshot
   IntegrateSnapshot(Editor, Snapshot);
   if (Parent) IntegrateSnapshot(Editor, Parent);
@@ -191,9 +194,8 @@ export function FixGeneratedCode(
   return Editor.GetCode().trim();
 }
 
-function addComments(str: string, comments: string[]) {
+/** AddComments: Add comments to the beginning of the string.*/
+function AddComments(str: string, comments: string[]) {
   if (comments.length == 0) return str;
-  else {
-    return comments.join('\n') + '\n' + str;
-  }
+  else return comments.join('\n') + '\n' + str;
 }

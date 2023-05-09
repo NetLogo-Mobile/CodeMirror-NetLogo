@@ -66,8 +66,8 @@ const zh_cn: Record<string, Function> = {
     `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
   'Duplicate global statement _': (Name: string) =>
     `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
-  'Unending loop': (Name: string) =>
-    `This loop will continue forever. Do you want to stop it?`,
+  'Infinite loop _': (Name: string) =>
+    `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
 
   // Agent types
   Observer: () => '观察者',
