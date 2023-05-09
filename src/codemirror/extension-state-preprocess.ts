@@ -34,11 +34,13 @@ export class StatePreprocess {
     let breedVars = doc.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
     this.BreedVars = this.processBreedVars(breedVars);
     // Commands
-    let commands = doc.matchAll(/(^|\n)\s*to\s+([^\s\[;]+)(\s*\[([^\]]*)\])?/g);
+    let commands = doc.matchAll(
+      /(^|\n)([^;\n"]+[ ]+)?to\s+([^\s\[;]+)(\s*\[([^\];]*)\])?/g
+    );
     this.Commands = this.processProcedures(commands);
     // Reporters
     let reporters = doc.matchAll(
-      /(^|\n)\s*to-report\s+([^\s\[]+)(\s*\[([^\]]*)\])?/g
+      /(^|\n)([^;\n"]+[ ]+)?to-report\s+([^\s\[;]+)(\s*\[([^\]']*)\])?/g
     );
     this.Reporters = this.processProcedures(reporters);
     return this;
@@ -70,8 +72,8 @@ export class StatePreprocess {
   ): Map<string, number> {
     let matches: Map<string, number> = new Map<string, number>();
     for (var match of procedures) {
-      const name = match[2].toLowerCase();
-      const args = match[4];
+      const name = match[3].toLowerCase();
+      const args = match[5];
       matches.set(
         name,
         args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length
