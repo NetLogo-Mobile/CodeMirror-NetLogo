@@ -59,7 +59,7 @@ export class SemanticFeatures {
         var Line = Lines[I];
         var Span = document.createElement('span');
         Span.innerText = Line;
-        Span.innerHTML = Line.replace(/\s/g, '&nbsp;');
+        Span.innerHTML = Line.replace(/\s/g, '&#32;');
         if (Style != '') Span.className = Style;
         if (Span.innerHTML != '') Container.appendChild(Span);
         if (I != Lines.length - 1)
