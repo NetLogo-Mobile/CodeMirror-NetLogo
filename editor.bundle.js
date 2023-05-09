@@ -31856,7 +31856,6 @@ if(!String.prototype.matchAll) {
                     var Line = Lines[I];
                     var Span = document.createElement('span');
                     Span.innerText = Line;
-                    Span.innerHTML = Line.replace(/\s/g, '&#32;');
                     if (Style != '')
                         Span.className = Style;
                     if (Span.innerHTML != '')
