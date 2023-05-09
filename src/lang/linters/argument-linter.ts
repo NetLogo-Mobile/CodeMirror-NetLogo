@@ -204,7 +204,9 @@ export const ArgumentLinter: Linter = (
   return diagnostics.filter(
     (d) =>
       d.from >= view.state.selection.ranges[0].to ||
-      d.to <= view.state.selection.ranges[0].from
+      d.to <= view.state.selection.ranges[0].from ||
+      d.message == Localized.Get('Infinite loop _', 'loop') ||
+      d.message == Localized.Get('Infinite loop _', 'while')
   );
 };
 

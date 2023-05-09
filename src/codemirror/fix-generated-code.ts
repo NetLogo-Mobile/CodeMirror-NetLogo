@@ -127,6 +127,8 @@ export function FixGeneratedCode(
     .cursor()
     .iterate((noderef) => {
       Log(noderef.name, comments);
+      //check for misplaced non-global statements at the global level
+      //Collect them into intoProcedure, and remove them from the code
       if (noderef.name == '⚠' && noderef.node.parent?.name == 'Normal') {
         Log(noderef.name, noderef.from, commentFrom, comments);
         intoProcedure.push(
@@ -139,6 +141,8 @@ export function FixGeneratedCode(
         });
         return false;
       }
+      //check for misplaced global statements
+      //Move them to the top of the program
       if (noderef.name == 'Error') {
         Log(noderef.name, comments);
         changes.push({
@@ -155,15 +159,20 @@ export function FixGeneratedCode(
         });
         return false;
       }
-      // Record the position of the first procedure
+      // Record the position of the first procedure to know where to add 'play'
       if (!procedureStart && noderef.name == 'Procedure')
         procedureStart = noderef.from;
       // Record the position of the comments
       if (noderef.name == 'LineComment') {
-        comments.push(state.sliceDoc(noderef.from, noderef.to));
-        commentsStart = commentsStart ?? noderef.from;
+        //take only the one preceding comment
+        comments = [state.sliceDoc(noderef.from, noderef.to)];
+        commentsStart = noderef.from;
+        //take all immediately preceding comments
+        // comments.push(state.sliceDoc(noderef.from, noderef.to));
+        // commentsStart = commentsStart ?? noderef.from;
       } else if (comments.length > 0 && !commentFrom) {
-        // Record the position of the commented statement
+        // Record the position of what comes immediately after the comments
+        // (this is in case of nesting, so we don't lose the comments)
         commentFrom = noderef.from;
       } else if (
         comments.length > 0 &&

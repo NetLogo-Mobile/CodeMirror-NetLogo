@@ -24,7 +24,22 @@ export const UnrecognizedLinter: Linter = (
 
         const value = view.state.sliceDoc(node.from, node.to);
         Log(value, node.name, parents);
-        if (
+        if (node.node.parent?.name == 'Arguments') {
+          let child = node.node.firstChild;
+          if (
+            child &&
+            (child.name.startsWith('Command') ||
+              child.name.startsWith('Reporter'))
+          ) {
+            diagnostics.push(
+              getDiagnostic(view, node, 'Argument is primitive _')
+            );
+          } else {
+            diagnostics.push(
+              getDiagnostic(view, node, 'Argument is unrecognized _')
+            );
+          }
+        } else if (
           !['[', ']', ')', '(', '"'].includes(value) &&
           !checkBreedLike(value).found
         ) {
