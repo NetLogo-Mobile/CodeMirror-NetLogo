@@ -115,8 +115,8 @@ const zh_cn: Record<string, Function> = {
   AskCode: () => `提问`,
   AddCode: () => `放入作品`,
   'Trying to add the code': () => `尝试将代码放入作品……`,
-  PreviousVersion: () => `上一版本`,
-  NextVersion: () => `下一版本`,
+  PreviousVersion: () => `后退`,
+  NextVersion: () => `前进`,
   'Connection to server failed _': (Error: string) =>
     `抱歉，和服务器的连接中断了。代码 ${Error}。`,
   'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,

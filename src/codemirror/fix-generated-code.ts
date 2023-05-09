@@ -14,8 +14,6 @@ export function FixGeneratedCode(
 ): string {
   Source = Source.trim();
   if (Source == '') return Source;
-  // Remove the trailing semicolon
-  if (Source.endsWith(';')) Source = Source.slice(0, -1);
   // First pass: prettify the code
   Editor.SetCode(Source);
   Editor.Semantics.PrettifyAll();

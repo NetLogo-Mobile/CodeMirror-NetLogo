@@ -117,7 +117,7 @@ const en_us: Record<string, Function> = {
   AskCode: () => `Ask a Question`,
   AddCode: () => `Add to Project`,
   'Trying to add the code': () => `Trying to add the code to the project...`,
-  PreviousVersion: () => `Previous`,
+  PreviousVersion: () => `Back`,
   NextVersion: () => `Next`,
   'Connection to server failed _': (Error: string) =>
     `Sorry, the connection to our server failed. Code ${Error}.`,
