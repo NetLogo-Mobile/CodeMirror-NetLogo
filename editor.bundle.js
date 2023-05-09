@@ -7214,15 +7214,17 @@ if(!String.prototype.matchAll) {
         let newFrom = changes.mapPos(from, 1), newTo = Math.max(newFrom, changes.mapPos(to, -1));
         let { state } = view, text = node.nodeType == 3 ? node.nodeValue :
             new DOMReader([], state).readRange(node.firstChild, null).text;
+        if (text.indexOf(LineBreakPlaceholder) > -1)
+            return Decoration.none; // Don't try to preserve multi-line compositions
         if (newTo - newFrom < text.length) {
-            if (state.doc.sliceString(newFrom, Math.min(state.doc.length, newFrom + text.length), LineBreakPlaceholder) == text)
+            if (state.doc.sliceString(newFrom, Math.min(state.doc.length, newFrom + text.length)) == text)
                 newTo = newFrom + text.length;
-            else if (state.doc.sliceString(Math.max(0, newTo - text.length), newTo, LineBreakPlaceholder) == text)
+            else if (state.doc.sliceString(Math.max(0, newTo - text.length), newTo) == text)
                 newFrom = newTo - text.length;
             else
                 return Decoration.none;
         }
-        else if (state.doc.sliceString(newFrom, newTo, LineBreakPlaceholder) != text) {
+        else if (state.doc.sliceString(newFrom, newTo) != text) {
             return Decoration.none;
         }
         let topView = ContentView.get(node);
@@ -26432,10 +26434,10 @@ if(!String.prototype.matchAll) {
             let breedVars = doc.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
             this.BreedVars = this.processBreedVars(breedVars);
             // Commands
-            let commands = doc.matchAll(/(^|\n)\s*to\s+([^\s\[;]+)(\s*\[([^\]]*)\])?/g);
+            let commands = doc.matchAll(/(^|\n)([^;\n]+[ ]+)?to\s+([^\s\[;]+)(\s*\[([^\];]*)\])?/g);
             this.Commands = this.processProcedures(commands);
             // Reporters
-            let reporters = doc.matchAll(/(^|\n)\s*to-report\s+([^\s\[]+)(\s*\[([^\]]*)\])?/g);
+            let reporters = doc.matchAll(/(^|\n)([^;\n]+[ ]+)?to-report\s+([^\s\[;]+)(\s*\[([^\]']*)\])?/g);
             this.Reporters = this.processProcedures(reporters);
             return this;
         }
@@ -26459,9 +26461,11 @@ if(!String.prototype.matchAll) {
         processProcedures(procedures) {
             let matches = new Map();
             for (var match of procedures) {
-                const name = match[2].toLowerCase();
-                const args = match[4];
-                matches.set(name, args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length);
+                if (!match[2] || match[2].split('"').length % 2 != 0) {
+                    const name = match[3].toLowerCase();
+                    const args = match[5];
+                    matches.set(name, args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length);
+                }
             }
             return matches;
         }
