@@ -125,12 +125,19 @@ const en_us: Record<string, Function> = {
   'Trying to add the code': () => `Trying to add the code to the project...`,
   PreviousVersion: () => `Back`,
   NextVersion: () => `Next`,
+  'Expand messages _': (Number: number) => `Expand ${Number} messages`,
+
+  // Chat and execution messages
   'Connection to server failed _': (Error: string) =>
     `Sorry, the connection to our server failed. Code ${Error}.`,
-  'Expand messages _': (Number: number) => `Expand ${Number} messages`,
   'Summary of request': () => `Below is a summary of my request: `,
   'We need to fix the following errors _': (Number: number) =>
     `Sorry, but we need to fix the ${Number} errors in the code (marked with ___red squiggly lines___) before continuing.`,
+  'Successfully executed': () => `Successfully executed the code.`,
+  'Runtime error _': (Error: string) =>
+    `Sorry, the code failed to run: ${Error}`,
+  'Compile error _': (Error: string) =>
+    `Sorry, I cannot understand the code: ${Error}`,
 };
 
 export { en_us };

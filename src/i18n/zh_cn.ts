@@ -113,7 +113,7 @@ const zh_cn: Record<string, Function> = {
   '~BreedCommand': (Name: string) => `关于 "${Name}" 种类的过程。 `,
   '~CustomCommand': (Name: string) => `代码中定义的一个过程。`,
 
-  // Chat and AI assistant
+  // Chat and AI interface
   Reconnect: () => `重新连接`,
   RunCode: () => `运行代码`,
   'Trying to run the code': () => `尝试运行代码……`,
@@ -123,12 +123,17 @@ const zh_cn: Record<string, Function> = {
   'Trying to add the code': () => `尝试将代码放入作品……`,
   PreviousVersion: () => `后退`,
   NextVersion: () => `前进`,
+  'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,
+
+  // Chat and execution messages
   'Connection to server failed _': (Error: string) =>
     `抱歉，和服务器的连接中断了。代码 ${Error}。`,
-  'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,
   'Summary of request': () => `简单总结我的请求的要点：`,
   'We need to fix the following errors _': (Number: number) =>
     `我们需要先修复代码中的 ${Number} 个错误（用___红色波浪线___标记）。`,
+  'Successfully executed': () => `成功执行了代码。`,
+  'Runtime error _': (Error: string) => `运行时错误：${Error}`,
+  'Compile error _': (Error: string) => `抱歉，未能理解你输入的命令：${Error}`,
 };
 
 export { zh_cn };
