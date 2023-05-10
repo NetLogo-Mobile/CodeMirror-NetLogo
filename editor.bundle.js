@@ -31166,10 +31166,14 @@ if(!String.prototype.matchAll) {
         'Trying to add the code': () => `Trying to add the code to the project...`,
         PreviousVersion: () => `Back`,
         NextVersion: () => `Next`,
-        'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
         'Expand messages _': (Number) => `Expand ${Number} messages`,
+        // Chat and execution messages
+        'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
         'Summary of request': () => `Below is a summary of my request: `,
         'We need to fix the following errors _': (Number) => `Sorry, but we need to fix the ${Number} errors in the code (marked with ___red squiggly lines___) before continuing.`,
+        'Successfully executed': () => `Successfully executed the code.`,
+        'Runtime error _': (Error) => `Sorry, the code failed to run: ${Error}`,
+        'Compile error _': (Error) => `Sorry, I cannot understand the code: ${Error}`,
     };
 
     const zh_cn = {
@@ -31236,7 +31240,7 @@ if(!String.prototype.matchAll) {
         '~CustomReporter': (Name) => `代码中定义的一个函数。`,
         '~BreedCommand': (Name) => `关于 "${Name}" 种类的过程。 `,
         '~CustomCommand': (Name) => `代码中定义的一个过程。`,
-        // Chat and AI assistant
+        // Chat and AI interface
         Reconnect: () => `重新连接`,
         RunCode: () => `运行代码`,
         'Trying to run the code': () => `尝试运行代码……`,
@@ -31246,10 +31250,14 @@ if(!String.prototype.matchAll) {
         'Trying to add the code': () => `尝试将代码放入作品……`,
         PreviousVersion: () => `后退`,
         NextVersion: () => `前进`,
-        'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
         'Expand messages _': (Number) => `展开 ${Number} 条消息`,
+        // Chat and execution messages
+        'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
         'Summary of request': () => `简单总结我的请求的要点：`,
         'We need to fix the following errors _': (Number) => `我们需要先修复代码中的 ${Number} 个错误（用___红色波浪线___标记）。`,
+        'Successfully executed': () => `成功执行了代码。`,
+        'Runtime error _': (Error) => `运行时错误：${Error}`,
+        'Compile error _': (Error) => `抱歉，未能理解你输入的命令：${Error}`,
     };
 
     /** LocalizationManager: Manage all localized texts. */
