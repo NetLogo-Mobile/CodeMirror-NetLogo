@@ -5,7 +5,10 @@ import { syntaxTree } from '@codemirror/language';
 /** classifyPrimitive: Identify type of reporter/command for appropriate tooltip. */
 export const classifyPrimitive = function (name: string) {
   //classify all types of reporter as 'breed','custom', or builtin
-  if (name.indexOf('Reporter') != -1) {
+  if (
+    name.indexOf('Reporter') != -1 &&
+    name.indexOf('ReporterStatement') == -1
+  ) {
     if (name.indexOf('Special') != -1) {
       if (
         name.indexOf('Turtle') != -1 ||
@@ -22,7 +25,7 @@ export const classifyPrimitive = function (name: string) {
   }
 
   //classify all types of commands as 'breed','custom', or builtin
-  if (name.indexOf('Command') != -1) {
+  if (name.indexOf('Command') != -1 && name.indexOf('CommandStatement') == -1) {
     if (name.indexOf('Special') != -1) {
       if (name.indexOf('Create') != -1) {
         name = 'BreedCommand';
