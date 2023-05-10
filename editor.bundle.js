@@ -31205,8 +31205,12 @@ if(!String.prototype.matchAll) {
         'Showing full text help of _': (Name) => `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
         // Default messages
         'Command center welcome (user)': () => `What is here about? Where should I start with?`,
-        'Command center welcome (command)': () => `Here is the command center. You can type in NetLogo code and run it here. Check out the **Code** button to look for the code.`,
-        'Command center welcome (assistant)': () => `Hello! I am your assistant. I can help you learn NetLogo or build your own project. You can also type in NetLogo code and run it here.`,
+        'Command center welcome (command)': () => `Here is the command center. You can type in NetLogo code and run it here, but there is always more to explore. Here are something you can try out.`,
+        'Command center welcome (assistant)': () => `Hello! I am your assistant. I can help you learn NetLogo or build your own project, but there is always more to explore. Here are something you can try out.`,
+        'Run NetLogo code directly': () => `Run **NetLogo** code directly`,
+        'Check out the code tab': () => `Check out the **code** tab of the project`,
+        'Talk to the computer in natural languages': () => `Talk to the computer in **natural languages**`,
+        'Look for the documentation': () => `Look for the **learning materials** of NetLogo`,
     };
 
     const zh_cn = {
@@ -31297,8 +31301,12 @@ if(!String.prototype.matchAll) {
         'Showing full text help of _': (Name) => `显示 [${Name}](<observer=help ${Name} -full>) 的帮助文档。`,
         // Default messages
         'Command center welcome (user)': () => `这是哪儿？我应该怎么开始使用？`,
-        'Command center welcome (command)': () => `你好！这里是控制台。你可以在这里输入 NetLogo 命令并立即执行。点击**代码**按钮可以切换到作品代码。`,
-        'Command center welcome (assistant)': () => `你好！我是你的助手。我可以帮助你学习 NetLogo 或创作你的作品。你也可以输入 NetLogo 命令并立即执行。`,
+        'Command center welcome (command)': () => `你好！这里是控制台。你可以在这里输入 NetLogo 命令并立即执行。还有许多值得探索的功能，例如：`,
+        'Command center welcome (assistant)': () => `你好！我是你的助手。我可以帮助你学习 NetLogo 或创作你的作品。还有许多值得探索的功能，例如：`,
+        'Run NetLogo code directly': () => `直接运行 **NetLogo** 代码`,
+        'Check out the code tab': () => `查看作品的**代码**`,
+        'Talk to the computer in natural languages': () => `用**自然语言**写代码`,
+        'Look for the documentation': () => `查看 NetLogo 语言的**帮助文档**`,
     };
 
     /** LocalizationManager: Manage all localized texts. */
