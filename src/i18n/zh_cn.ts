@@ -69,9 +69,9 @@ const zh_cn: Record<string, Function> = {
   'Infinite loop _': (Name: string) =>
     `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
   'Argument is reserved _': (Name: string) =>
-    `The argument "${Name}" is a reserved NetLogo primitive. Do you want to replace it?`,
+    `参数名称 "${Name}" 和 NetLogo 的关键字重复了。你想换一个名字吗？`,
   'Argument is invalid _': (Name: string) =>
-    `The argument "${Name}" is invalid. Do you want to replace it?`,
+    `参数名称 "${Name}" 不可用。你想换一个名字吗？`,
 
   // Agent types
   Observer: () => '观察者',
