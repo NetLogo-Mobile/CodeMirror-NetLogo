@@ -31238,8 +31238,8 @@ if(!String.prototype.matchAll) {
         'Invalid context _.': (Prior, New, Primitive) => `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
         'Duplicate global statement _': (Name) => `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
         'Infinite loop _': (Name) => `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
-        'Argument is reserved _': (Name) => `The argument "${Name}" is a reserved NetLogo primitive. Do you want to replace it?`,
-        'Argument is invalid _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
+        'Argument is reserved _': (Name) => `参数名称 "${Name}" 和 NetLogo 的关键字重复了。你想换一个名字吗？`,
+        'Argument is invalid _': (Name) => `参数名称 "${Name}" 不可用。你想换一个名字吗？`,
         // Agent types
         Observer: () => '观察者',
         Turtle: () => '海龟',
@@ -31571,7 +31571,7 @@ if(!String.prototype.matchAll) {
     const prettifyAll = function (view) {
         let doc = view.state.doc.toString();
         // eliminate extra spacing
-        let new_doc = initialSpaceRemoval(doc);
+        let new_doc = avoidStrings(doc, initialSpaceRemoval);
         view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
         // give certain nodes their own lines
         view.dispatch({
@@ -31579,7 +31579,7 @@ if(!String.prototype.matchAll) {
         });
         // ensure spacing is correct
         doc = view.state.doc.toString();
-        new_doc = finalSpacing(doc);
+        new_doc = avoidStrings(doc, finalSpacing);
         view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
         // add indentation
         view.dispatch({
@@ -31588,10 +31588,10 @@ if(!String.prototype.matchAll) {
     };
     /** initialSpaceRemoval: Make initial spacing adjustments. */
     const initialSpaceRemoval = function (doc) {
-        let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
-        new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
-        new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
-        new_doc = new_doc.replace(/\n[ ]+/g, '\n');
+        // let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
+        // new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
+        // new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
+        let new_doc = doc.replace(/\n[ ]+/g, '\n');
         new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 [');
         new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
         new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
@@ -31606,9 +31606,25 @@ if(!String.prototype.matchAll) {
         let new_doc = doc.replace(/\n[ ]+/g, '\n');
         new_doc = new_doc.replace(/[ ]+\n/g, '\n');
         new_doc = new_doc.replace(/\n\n+/g, '\n\n');
+        new_doc = new_doc.replace(/ +/g, ' ');
         new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
         new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
         return new_doc;
+    };
+    const avoidStrings = function (doc, func) {
+        let pieces = doc.split('"');
+        let index = 0;
+        let final_docs = [];
+        for (var piece of pieces) {
+            if (index % 2 == 0) {
+                final_docs.push(func(piece));
+            }
+            else {
+                final_docs.push(piece);
+            }
+            index++;
+        }
+        return final_docs.join('"');
     };
     /** addSpacing: Give certain types of nodes their own lines. */
     const addSpacing = function (view, from, to) {
@@ -31676,6 +31692,18 @@ if(!String.prototype.matchAll) {
                             }
                         });
                     }
+                }
+                else if (node.name == 'OpenParen') {
+                    changes.push({ from: node.from, to: node.to, insert: ' (' });
+                }
+                else if (node.name == 'CloseParen') {
+                    changes.push({ from: node.from, to: node.to, insert: ') ' });
+                }
+                else if (node.name == 'OpenBracket') {
+                    changes.push({ from: node.from, to: node.to, insert: ' [ ' });
+                }
+                else if (node.name == 'CloseBracket') {
+                    changes.push({ from: node.from, to: node.to, insert: ' ] ' });
                 }
                 if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
                     if (doc.substring(node.from, node.to).includes('\n')) {
