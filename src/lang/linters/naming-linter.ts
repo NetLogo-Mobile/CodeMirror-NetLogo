@@ -197,6 +197,22 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
             });
           }
         }
+      } else if (noderef.name == 'Arguments') {
+        let current: string[] = [];
+        for (var key of ['Identifier', 'UnsupportedPrim']) {
+          noderef.node.getChildren(key).map((child) => {
+            let name = view.state.sliceDoc(child.from, child.to);
+            if (current.includes(name) || all.includes(name)) {
+              diagnostics.push({
+                from: child.from,
+                to: child.to,
+                severity: 'error',
+                message: Localized.Get('Term _ already used.', name),
+              });
+            }
+            current.push(name);
+          });
+        }
       }
     });
   return diagnostics;

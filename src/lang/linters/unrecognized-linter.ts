@@ -3,6 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Log } from '../../codemirror/utils/debug-utils';
 import { Linter, getDiagnostic } from './linter-builder';
 import { checkBreedLike } from '../../codemirror/utils/breed-utils';
+import { reserved } from '../keywords';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
 export const UnrecognizedLinter: Linter = (
@@ -27,16 +28,17 @@ export const UnrecognizedLinter: Linter = (
         if (node.node.parent?.name == 'Arguments') {
           let child = node.node.firstChild;
           if (
-            child &&
-            (child.name.startsWith('Command') ||
-              child.name.startsWith('Reporter'))
+            reserved.includes(value) ||
+            (child &&
+              (child.name.startsWith('Command') ||
+                child.name.startsWith('Reporter')))
           ) {
             diagnostics.push(
-              getDiagnostic(view, node, 'Argument is primitive _')
+              getDiagnostic(view, node, 'Argument is reserved _')
             );
           } else {
             diagnostics.push(
-              getDiagnostic(view, node, 'Argument is unrecognized _')
+              getDiagnostic(view, node, 'Argument is invalid _')
             );
           }
         } else if (

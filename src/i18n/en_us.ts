@@ -67,9 +67,9 @@ const en_us: Record<string, Function> = {
     `The global "${Name}" statement is already defined. Do you want to combine into one?`,
   'Infinite loop _': (Name: string) =>
     `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
-  'Argument is primitive _': (Name: string) =>
-    `The argument "${Name}" is a built-in primitive. Do you want to replace it?`,
-  'Argument is unrecognized _': (Name: string) =>
+  'Argument is reserved _': (Name: string) =>
+    `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
+  'Argument is invalid _': (Name: string) =>
     `The argument "${Name}" is invalid. Do you want to replace it?`,
 
   // Agent types

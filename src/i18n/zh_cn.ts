@@ -68,9 +68,9 @@ const zh_cn: Record<string, Function> = {
     `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
   'Infinite loop _': (Name: string) =>
     `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
-  'Argument is primitive _': (Name: string) =>
-    `The argument "${Name}" is a built-in primitive. Do you want to replace it?`,
-  'Argument is unrecognized _': (Name: string) =>
+  'Argument is reserved _': (Name: string) =>
+    `The argument "${Name}" is a reserved NetLogo primitive. Do you want to replace it?`,
+  'Argument is invalid _': (Name: string) =>
     `The argument "${Name}" is invalid. Do you want to replace it?`,
 
   // Agent types
