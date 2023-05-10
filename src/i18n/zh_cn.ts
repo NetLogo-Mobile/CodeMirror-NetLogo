@@ -81,6 +81,7 @@ const zh_cn: Record<string, Function> = {
   Patches: () => '格子们',
   Link: () => '链接',
   Links: () => '链接们',
+  Utility: () => '工具',
 
   // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
@@ -124,6 +125,8 @@ const zh_cn: Record<string, Function> = {
   PreviousVersion: () => `后退`,
   NextVersion: () => `前进`,
   'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,
+  FullText: () => `阅读全文`,
+  SeeAlso: () => `参见`,
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) =>
@@ -134,6 +137,15 @@ const zh_cn: Record<string, Function> = {
   'Successfully executed': () => `成功执行了代码。`,
   'Runtime error _': (Error: string) => `运行时错误：${Error}`,
   'Compile error _': (Error: string) => `抱歉，未能理解你输入的命令：${Error}`,
+  'Showing full text help of _': (Name: string) =>
+    `显示 [${Name}](<observer=help ${Name} -full>) 的帮助文档。`,
+
+  // Default messages
+  'Command center welcome (user)': () => `这是哪儿？我应该怎么开始使用？`,
+  'Command center welcome (command)': () =>
+    `你好！这里是控制台。你可以在这里输入 NetLogo 命令并立即执行。点击**代码**按钮可以切换到作品代码。`,
+  'Command center welcome (assistant)': () =>
+    `你好！我是你的助手。我可以帮助你学习 NetLogo 或创作你的作品。你也可以输入 NetLogo 命令并立即执行。`,
 };
 
 export { zh_cn };

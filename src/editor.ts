@@ -95,7 +95,8 @@ export class GalapagosEditor {
         this.Language = NetLogo(this);
         Extensions.push(preprocessStateExtension);
         Extensions.push(stateExtension);
-        Dictionary.ClickHandler = Options.OnDictionaryClick;
+        Dictionary.ClickHandler =
+          Dictionary.ClickHandler ?? Options.OnDictionaryClick;
         this.Linters = netlogoLinters.map((linter) =>
           buildLinter(linter, this)
         );

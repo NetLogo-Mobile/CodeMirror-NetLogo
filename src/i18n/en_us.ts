@@ -80,6 +80,7 @@ const en_us: Record<string, Function> = {
   Patches: () => 'Patches',
   Link: () => 'Link',
   Links: () => 'Links',
+  Utility: () => 'Utility',
 
   // Help messages
   '~VariableName': (Name: string) => `A (unknown) variable. `,
@@ -126,6 +127,8 @@ const en_us: Record<string, Function> = {
   PreviousVersion: () => `Back`,
   NextVersion: () => `Next`,
   'Expand messages _': (Number: number) => `Expand ${Number} messages`,
+  FullText: () => `Read more`,
+  SeeAlso: () => `See also`,
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) =>
@@ -138,6 +141,16 @@ const en_us: Record<string, Function> = {
     `Sorry, the code failed to run: ${Error}`,
   'Compile error _': (Error: string) =>
     `Sorry, I cannot understand the code: ${Error}`,
+  'Showing full text help of _': (Name: string) =>
+    `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
+
+  // Default messages
+  'Command center welcome (user)': () =>
+    `What is here about? Where should I start with?`,
+  'Command center welcome (command)': () =>
+    `Here is the command center. You can type in NetLogo code and run it here. Check out the **Code** button to look for the code.`,
+  'Command center welcome (assistant)': () =>
+    `Hello! I am your assistant. I can help you learn NetLogo or build your own project. You can also type in NetLogo code and run it here.`,
 };
 
 export { en_us };
