@@ -53,7 +53,7 @@ export const prettifyAll = function (view: EditorView) {
   let doc = view.state.doc.toString();
 
   // eliminate extra spacing
-  let new_doc = initialSpaceRemoval(doc);
+  let new_doc = avoidStrings(doc, initialSpaceRemoval);
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
 
   // give certain nodes their own lines
@@ -63,7 +63,7 @@ export const prettifyAll = function (view: EditorView) {
 
   // ensure spacing is correct
   doc = view.state.doc.toString();
-  new_doc = finalSpacing(doc);
+  new_doc = avoidStrings(doc, finalSpacing);
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
 
   // add indentation
@@ -74,10 +74,10 @@ export const prettifyAll = function (view: EditorView) {
 
 /** initialSpaceRemoval: Make initial spacing adjustments. */
 const initialSpaceRemoval = function (doc: string) {
-  let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
-  new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
-  new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
-  new_doc = new_doc.replace(/\n[ ]+/g, '\n');
+  // let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
+  // new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
+  // new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
+  let new_doc = doc.replace(/\n[ ]+/g, '\n');
   new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\[)/g, '$1 [');
   new_doc = new_doc.replace(/(\n[^;\n]+)(\n\s*\])/g, '$1 ]');
   new_doc = new_doc.replace(/(\[\n\s*)([\w\(])/g, '[ $2');
@@ -93,9 +93,25 @@ const finalSpacing = function (doc: string) {
   let new_doc = doc.replace(/\n[ ]+/g, '\n');
   new_doc = new_doc.replace(/[ ]+\n/g, '\n');
   new_doc = new_doc.replace(/\n\n+/g, '\n\n');
+  new_doc = new_doc.replace(/ +/g, ' ');
   new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
   new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
   return new_doc;
+};
+
+const avoidStrings = function (doc: string, func: Function) {
+  let pieces = doc.split('"');
+  let index = 0;
+  let final_docs: string[] = [];
+  for (var piece of pieces) {
+    if (index % 2 == 0) {
+      final_docs.push(func(piece));
+    } else {
+      final_docs.push(piece);
+    }
+    index++;
+  }
+  return final_docs.join('"');
 };
 
 /** addSpacing: Give certain types of nodes their own lines. */
@@ -168,6 +184,14 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
               }
             });
           }
+        } else if (node.name == 'OpenParen') {
+          changes.push({ from: node.from, to: node.to, insert: ' (' });
+        } else if (node.name == 'CloseParen') {
+          changes.push({ from: node.from, to: node.to, insert: ') ' });
+        } else if (node.name == 'OpenBracket') {
+          changes.push({ from: node.from, to: node.to, insert: ' [ ' });
+        } else if (node.name == 'CloseBracket') {
+          changes.push({ from: node.from, to: node.to, insert: ' ] ' });
         }
         if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
           if (doc.substring(node.from, node.to).includes('\n')) {
