@@ -30233,9 +30233,12 @@ if(!String.prototype.matchAll) {
                 Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
                 LastVersion = Editor.GetVersion();
             }
-            return Cached;
+            return Cached.filter((d) => d.to < view.state.selection.main.from ||
+                d.from > view.state.selection.main.to);
         };
-        var Extension = linter(BuiltSource);
+        var Extension = linter(BuiltSource, {
+            needsRefresh: (update) => update.transactions.length > 0,
+        });
         Extension.Source = BuiltSource;
         return Extension;
     };
@@ -30270,13 +30273,14 @@ if(!String.prototype.matchAll) {
                 Log(value, node.name, parents);
                 if (((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Arguments') {
                     let child = node.node.firstChild;
-                    if (child &&
-                        (child.name.startsWith('Command') ||
-                            child.name.startsWith('Reporter'))) {
-                        diagnostics.push(getDiagnostic(view, node, 'Argument is primitive _'));
+                    if (reserved.includes(value) ||
+                        (child &&
+                            (child.name.startsWith('Command') ||
+                                child.name.startsWith('Reporter')))) {
+                        diagnostics.push(getDiagnostic(view, node, 'Argument is reserved _'));
                     }
                     else {
-                        diagnostics.push(getDiagnostic(view, node, 'Argument is unrecognized _'));
+                        diagnostics.push(getDiagnostic(view, node, 'Argument is invalid _'));
                     }
                 }
                 else if (!['[', ']', ')', '(', '"'].includes(value) &&
@@ -30455,10 +30459,14 @@ if(!String.prototype.matchAll) {
                 }
             }
         });
-        return diagnostics.filter((d) => d.from >= view.state.selection.ranges[0].to ||
-            d.to <= view.state.selection.ranges[0].from ||
-            d.message == Localized.Get('Infinite loop _', 'loop') ||
-            d.message == Localized.Get('Infinite loop _', 'while'));
+        return diagnostics;
+        // .filter(
+        //   (d) =>
+        //     d.from >= view.state.selection.ranges[0].to ||
+        //     d.to <= view.state.selection.ranges[0].from ||
+        //     d.message == Localized.Get('Infinite loop _', 'loop') ||
+        //     d.message == Localized.Get('Infinite loop _', 'while')
+        // );
     };
     /** checkLoopEnd: checks if a loop has a stop/die/report statement. */
     const checkLoopEnd = function (view, node) {
@@ -30903,6 +30911,23 @@ if(!String.prototype.matchAll) {
                     }
                 }
             }
+            else if (noderef.name == 'Arguments') {
+                let current = [];
+                for (var key of ['Identifier', 'UnsupportedPrim']) {
+                    noderef.node.getChildren(key).map((child) => {
+                        let name = view.state.sliceDoc(child.from, child.to);
+                        if (current.includes(name) || all.includes(name)) {
+                            diagnostics.push({
+                                from: child.from,
+                                to: child.to,
+                                severity: 'error',
+                                message: Localized.Get('Term _ already used.', name),
+                            });
+                        }
+                        current.push(name);
+                    });
+                }
+            }
         });
         return diagnostics;
     };
@@ -31121,8 +31146,8 @@ if(!String.prototype.matchAll) {
         'Invalid context _.': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
         'Duplicate global statement _': (Name) => `The global "${Name}" statement is already defined. Do you want to combine into one?`,
         'Infinite loop _': (Name) => `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
-        'Argument is primitive _': (Name) => `The argument "${Name}" is a built-in primitive. Do you want to replace it?`,
-        'Argument is unrecognized _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
+        'Argument is reserved _': (Name) => `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
+        'Argument is invalid _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
         // Agent types
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -31213,8 +31238,8 @@ if(!String.prototype.matchAll) {
         'Invalid context _.': (Prior, New, Primitive) => `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
         'Duplicate global statement _': (Name) => `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
         'Infinite loop _': (Name) => `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
-        'Argument is primitive _': (Name) => `The argument "${Name}" is a built-in primitive. Do you want to replace it?`,
-        'Argument is unrecognized _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
+        'Argument is reserved _': (Name) => `The argument "${Name}" is a reserved NetLogo primitive. Do you want to replace it?`,
+        'Argument is invalid _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
         // Agent types
         Observer: () => '观察者',
         Turtle: () => '海龟',
