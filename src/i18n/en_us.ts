@@ -148,9 +148,15 @@ const en_us: Record<string, Function> = {
   'Command center welcome (user)': () =>
     `What is here about? Where should I start with?`,
   'Command center welcome (command)': () =>
-    `Here is the command center. You can type in NetLogo code and run it here. Check out the **Code** button to look for the code.`,
+    `Here is the command center. You can type in NetLogo code and run it here, but there is always more to explore. Here are something you can try out.`,
   'Command center welcome (assistant)': () =>
-    `Hello! I am your assistant. I can help you learn NetLogo or build your own project. You can also type in NetLogo code and run it here.`,
+    `Hello! I am your assistant. I can help you learn NetLogo or build your own project, but there is always more to explore. Here are something you can try out.`,
+  'Run NetLogo code directly': () => `Run **NetLogo** code directly`,
+  'Check out the code tab': () => `Check out the **code** tab of the project`,
+  'Talk to the computer in natural languages': () =>
+    `Talk to the computer in **natural languages**`,
+  'Look for the documentation': () =>
+    `Look for the **learning materials** of NetLogo`,
 };
 
 export { en_us };
