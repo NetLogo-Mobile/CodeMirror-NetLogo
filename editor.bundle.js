@@ -31131,6 +31131,7 @@ if(!String.prototype.matchAll) {
         Patches: () => 'Patches',
         Link: () => 'Link',
         Links: () => 'Links',
+        Utility: () => 'Utility',
         // Help messages
         '~VariableName': (Name) => `A (unknown) variable. `,
         '~ProcedureName': (Name) => `The name of a procedure. `,
@@ -31167,6 +31168,8 @@ if(!String.prototype.matchAll) {
         PreviousVersion: () => `Back`,
         NextVersion: () => `Next`,
         'Expand messages _': (Number) => `Expand ${Number} messages`,
+        FullText: () => `Read more`,
+        SeeAlso: () => `See also`,
         // Chat and execution messages
         'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
         'Summary of request': () => `Below is a summary of my request: `,
@@ -31174,6 +31177,11 @@ if(!String.prototype.matchAll) {
         'Successfully executed': () => `Successfully executed the code.`,
         'Runtime error _': (Error) => `Sorry, the code failed to run: ${Error}`,
         'Compile error _': (Error) => `Sorry, I cannot understand the code: ${Error}`,
+        'Showing full text help of _': (Name) => `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
+        // Default messages
+        'Command center welcome (user)': () => `What is here about? Where should I start with?`,
+        'Command center welcome (command)': () => `Here is the command center. You can type in NetLogo code and run it here. Check out the **Code** button to look for the code.`,
+        'Command center welcome (assistant)': () => `Hello! I am your assistant. I can help you learn NetLogo or build your own project. You can also type in NetLogo code and run it here.`,
     };
 
     const zh_cn = {
@@ -31215,6 +31223,7 @@ if(!String.prototype.matchAll) {
         Patches: () => '格子们',
         Link: () => '链接',
         Links: () => '链接们',
+        Utility: () => '工具',
         // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,
@@ -31251,6 +31260,8 @@ if(!String.prototype.matchAll) {
         PreviousVersion: () => `后退`,
         NextVersion: () => `前进`,
         'Expand messages _': (Number) => `展开 ${Number} 条消息`,
+        FullText: () => `阅读全文`,
+        SeeAlso: () => `参见`,
         // Chat and execution messages
         'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
         'Summary of request': () => `简单总结我的请求的要点：`,
@@ -31258,6 +31269,11 @@ if(!String.prototype.matchAll) {
         'Successfully executed': () => `成功执行了代码。`,
         'Runtime error _': (Error) => `运行时错误：${Error}`,
         'Compile error _': (Error) => `抱歉，未能理解你输入的命令：${Error}`,
+        'Showing full text help of _': (Name) => `显示 [${Name}](<observer=help ${Name} -full>) 的帮助文档。`,
+        // Default messages
+        'Command center welcome (user)': () => `这是哪儿？我应该怎么开始使用？`,
+        'Command center welcome (command)': () => `你好！这里是控制台。你可以在这里输入 NetLogo 命令并立即执行。点击**代码**按钮可以切换到作品代码。`,
+        'Command center welcome (assistant)': () => `你好！我是你的助手。我可以帮助你学习 NetLogo 或创作你的作品。你也可以输入 NetLogo 命令并立即执行。`,
     };
 
     /** LocalizationManager: Manage all localized texts. */
@@ -31930,7 +31946,7 @@ if(!String.prototype.matchAll) {
     class GalapagosEditor {
         /** Constructor: Create an editor instance. */
         constructor(Parent, Options) {
-            var _a;
+            var _a, _b;
             /** Linters: The linters used in this instance. */
             this.Linters = [];
             // #endregion
@@ -31980,7 +31996,8 @@ if(!String.prototype.matchAll) {
                     this.Language = NetLogo(this);
                     Extensions.push(preprocessStateExtension);
                     Extensions.push(stateExtension);
-                    Dictionary.ClickHandler = Options.OnDictionaryClick;
+                    Dictionary.ClickHandler =
+                        (_a = Dictionary.ClickHandler) !== null && _a !== void 0 ? _a : Options.OnDictionaryClick;
                     this.Linters = netlogoLinters.map((linter) => buildLinter(linter, this));
                     // Special case: One-line mode
                     if (!this.Options.OneLine) {
@@ -32015,7 +32032,7 @@ if(!String.prototype.matchAll) {
             });
             this.GetPreprocessState().Context = this.PreprocessContext;
             this.GetPreprocessState().SetEditor(this);
-            this.Options.ParseMode = (_a = this.Options.ParseMode) !== null && _a !== void 0 ? _a : ParseMode.Normal;
+            this.Options.ParseMode = (_b = this.Options.ParseMode) !== null && _b !== void 0 ? _b : ParseMode.Normal;
             this.GetState().Mode = this.Options.ParseMode;
             // Create features
             this.Editing = new EditingFeatures(this);
