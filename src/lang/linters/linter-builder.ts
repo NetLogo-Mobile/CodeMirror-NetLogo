@@ -34,17 +34,19 @@ const buildLinter = function (
       );
       LastVersion = Editor.GetVersion();
     }
-    return Cached.filter(
-      (d) =>
-        d.to < view.state.selection.main.from ||
-        d.from > view.state.selection.main.to
-    );
+    return Cached;
+    // return Cached.filter(
+    //   (d) =>
+    //     d.to < view.state.selection.main.from ||
+    //     d.from > view.state.selection.main.to
+    // );
   };
-  var Extension = linter(BuiltSource, {
-    needsRefresh: (update) =>
-      update.docChanged ||
-      update.startState.selection.main != update.state.selection.main,
-  });
+  // var Extension = linter(BuiltSource, {
+  //   needsRefresh: (update) =>
+  //     update.docChanged ||
+  //     update.startState.selection.main != update.state.selection.main,
+  // });
+  var Extension = linter(BuiltSource);
   (Extension as any).Source = BuiltSource;
   return Extension;
 };
