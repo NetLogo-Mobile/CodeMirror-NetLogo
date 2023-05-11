@@ -15,7 +15,12 @@ export const UnrecognizedLinter: Linter = (
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
-      if ((node.name == '⚠' || node.name == 'Error') && node.to != node.from) {
+      if (
+        (node.name == '⚠' ||
+          node.name == 'Error' ||
+          node.name == 'Misplaced') &&
+        node.to != node.from
+      ) {
         let curr = node.node;
         let parents: string[] = [];
         while (curr.parent) {

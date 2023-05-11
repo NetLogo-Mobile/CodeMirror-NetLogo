@@ -27,11 +27,12 @@ export class StatePreprocess {
     this.Reporters.clear();
     let doc = State.doc.toString();
     // Breeds
-    let breeds = doc.matchAll(/breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g);
+    let globals = doc.replace(/(^|\n)([^;\n]+[ ]+)?to\s+[\s\S]*\s+end/gi, '');
+    let breeds = globals.matchAll(/breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g);
     let processedBreeds = this.processBreeds(breeds);
     this.SingularBreeds = processedBreeds[0];
     this.PluralBreeds = processedBreeds[1];
-    let breedVars = doc.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
+    let breedVars = globals.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
     this.BreedVars = this.processBreedVars(breedVars);
     // Commands
     let commands = doc.matchAll(

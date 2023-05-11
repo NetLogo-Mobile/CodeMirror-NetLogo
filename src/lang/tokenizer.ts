@@ -117,7 +117,27 @@ export const keyword = new ExternalTokenizer((input, stack) => {
   } else if (token == '-' || token == '+') {
     input.acceptToken(PlusMinus);
   } else if (token == 'breed') {
-    input.acceptToken(BreedToken);
+    let offset = 0;
+    let foundText = false;
+    let seenBracket = false;
+    let nextToken = '';
+    while (isValidKeyword(input.peek(offset)) || !foundText) {
+      if (isValidKeyword(input.peek(offset))) {
+        nextToken += String.fromCharCode(input.peek(offset));
+        foundText = true;
+      } else if (input.peek(offset) == 91) {
+        seenBracket = true;
+      }
+      offset++;
+    }
+    if (
+      seenBracket &&
+      [...GetContext().PluralBreeds.keys()].includes(nextToken)
+    ) {
+      input.acceptToken(BreedStr);
+    } else {
+      input.acceptToken(BreedToken);
+    }
   } else if (
     token == 'directed-link-breed' ||
     token == 'undirected-link-breed'

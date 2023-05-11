@@ -33,10 +33,14 @@ globalStatement {
 
   Globals { GlobalStr OpenBracket Identifier* CloseBracket  } |
 
-  Breed { BreedDeclarative OpenBracket BreedPlural BreedSingular !cut CloseBracket } |
+  Breed { BreedStr OpenBracket BreedPlural BreedSingular !cut CloseBracket } |
 
   BreedsOwn {
     Own OpenBracket Identifier* CloseBracket
+  }
+
+  Misplaced {
+    CommandStatement | ReporterStatement
   }
 }
 
@@ -75,7 +79,7 @@ BreedSingular {
 }
 
 BreedPlural {
-  Identifier | SpecialReporter1Args
+  Identifier | SpecialReporter1Args | Reporter0Args
 }
 
 BreedVars {

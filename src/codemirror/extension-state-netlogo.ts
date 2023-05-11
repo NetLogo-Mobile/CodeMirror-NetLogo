@@ -122,7 +122,7 @@ export class StateNetLogo {
       else if (Cursor.node.name == 'Breed') {
         // get breed type
         let breedType = BreedType.Turtle;
-        Cursor.node.getChildren('BreedDeclarative').map((node) => {
+        Cursor.node.getChildren('BreedStr').map((node) => {
           let name = this.getText(State, node);
           if (name.toLowerCase() == 'undirected-link-breed') {
             breedType = BreedType.UndirectedLink;

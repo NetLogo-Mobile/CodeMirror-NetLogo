@@ -126,10 +126,10 @@ export function FixGeneratedCode(
   syntaxTree(state)
     .cursor()
     .iterate((noderef) => {
-      Log(noderef.name, comments);
+      //Log(noderef.name, comments);
       //check for misplaced non-global statements at the global level
       //Collect them into intoProcedure, and remove them from the code
-      if (noderef.name == '⚠' && noderef.node.parent?.name == 'Normal') {
+      if (noderef.name == 'Misplaced') {
         Log(noderef.name, noderef.from, commentFrom, comments);
         intoProcedure.push(
           AddComments(state.sliceDoc(noderef.from, noderef.to), comments)
@@ -158,6 +158,21 @@ export function FixGeneratedCode(
             '\n',
         });
         return false;
+      }
+      if (noderef.name == 'Breed') {
+        // Log("Breed")
+        let child = noderef.node.getChild('BreedPlural');
+        // Log(state.sliceDoc(child?.from??0,child?.to??0))
+        if (
+          child &&
+          state.sliceDoc(child.from, child.to).toLowerCase() == 'turtles'
+        ) {
+          changes.push({
+            from: commentsStart ?? noderef.from,
+            to: noderef.to,
+            insert: '',
+          });
+        }
       }
       // Record the position of the first procedure to know where to add 'play'
       if (!procedureStart && noderef.name == 'Procedure')
@@ -193,6 +208,7 @@ export function FixGeneratedCode(
       insert: 'to play\n' + intoProcedure.join('\n') + '\nend\n\n',
     });
   }
+  // Log("CHANGES",changes)
   // Send in the changes
   Editor.Operations.InsertCode(changes);
   // Third pass: re-introduce the snapshot
