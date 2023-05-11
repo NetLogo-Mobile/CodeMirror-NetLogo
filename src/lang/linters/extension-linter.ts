@@ -1,6 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { EditorSelection } from '@codemirror/state';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';

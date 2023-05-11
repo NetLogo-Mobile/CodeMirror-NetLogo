@@ -10,7 +10,7 @@ class DictionaryManager {
     // Built-in types
     this.RegisterBuiltin('~VariableName');
     this.RegisterBuiltin('~ProcedureName');
-    this.RegisterBuiltin('~Arguments/Identifier');
+    this.RegisterBuiltin('~Arguments');
     this.RegisterBuiltin('~PatchVar');
     this.RegisterBuiltin('~TurtleVar');
     this.RegisterBuiltin('~LinkVar');

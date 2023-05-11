@@ -7,7 +7,6 @@ import {
 } from '../../codemirror/extension-state-netlogo';
 import { LintContext, PreprocessContext } from '../classes/contexts';
 import { GalapagosEditor, Localized } from '../../editor';
-import { SyntaxNode } from '@lezer/common';
 
 /** Linter: A function that takes a view and parse state and returns a list of diagnostics. */
 type Linter = (
@@ -35,15 +34,9 @@ const buildLinter = function (
       );
       LastVersion = Editor.GetVersion();
     }
-    return Cached.filter(
-      (d) =>
-        d.to < view.state.selection.main.from ||
-        d.from > view.state.selection.main.to
-    );
+    return Cached;
   };
-  var Extension = linter(BuiltSource, {
-    needsRefresh: (update) => update.transactions.length > 0,
-  });
+  var Extension = linter(BuiltSource);
   (Extension as any).Source = BuiltSource;
   return Extension;
 };
