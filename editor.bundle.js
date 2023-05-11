@@ -27539,7 +27539,7 @@ if(!String.prototype.matchAll) {
             // Built-in types
             this.RegisterBuiltin('~VariableName');
             this.RegisterBuiltin('~ProcedureName');
-            this.RegisterBuiltin('~Arguments/Identifier');
+            this.RegisterBuiltin('~Arguments');
             this.RegisterBuiltin('~PatchVar');
             this.RegisterBuiltin('~TurtleVar');
             this.RegisterBuiltin('~LinkVar');
@@ -27588,7 +27588,8 @@ if(!String.prototype.matchAll) {
     /** classifyPrimitive: Identify type of reporter/command for appropriate tooltip. */
     const classifyPrimitive = function (name) {
         //classify all types of reporter as 'breed','custom', or builtin
-        if (name.indexOf('Reporter') != -1) {
+        if (name.indexOf('Reporter') != -1 &&
+            name.indexOf('ReporterStatement') == -1) {
             if (name.indexOf('Special') != -1) {
                 if (name.indexOf('Turtle') != -1 ||
                     name.indexOf('Link') != -1 ||
@@ -27604,7 +27605,7 @@ if(!String.prototype.matchAll) {
             }
         }
         //classify all types of commands as 'breed','custom', or builtin
-        if (name.indexOf('Command') != -1) {
+        if (name.indexOf('Command') != -1 && name.indexOf('CommandStatement') == -1) {
             if (name.indexOf('Special') != -1) {
                 if (name.indexOf('Create') != -1) {
                     name = 'BreedCommand';
@@ -30233,12 +30234,9 @@ if(!String.prototype.matchAll) {
                 Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
                 LastVersion = Editor.GetVersion();
             }
-            return Cached.filter((d) => d.to < view.state.selection.main.from ||
-                d.from > view.state.selection.main.to);
+            return Cached;
         };
-        var Extension = linter(BuiltSource, {
-            needsRefresh: (update) => update.transactions.length > 0,
-        });
+        var Extension = linter(BuiltSource);
         Extension.Source = BuiltSource;
         return Extension;
     };
@@ -32281,6 +32279,11 @@ if(!String.prototype.matchAll) {
                 }
             }
             this.RefreshContexts();
+            if (this.Options.ParseMode == ParseMode.Normal) {
+                console.log(new Error().stack);
+                console.log(this.GetCode());
+                console.log(JSON.parse(JSON.stringify(this.LintContext.Breeds)));
+            }
         }
         /** RefreshContexts: Refresh contexts of the editor. */
         RefreshContexts() {
