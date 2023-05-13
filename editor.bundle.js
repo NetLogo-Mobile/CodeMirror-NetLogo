@@ -31227,14 +31227,31 @@ if(!String.prototype.matchAll) {
         'Expand messages _': (Number) => `Expand ${Number} messages`,
         FullText: () => `Read more`,
         SeeAlso: () => `See also`,
+        OK: () => `OK`,
+        Cancel: () => `Cancel`,
+        // Editor interfaces
+        MoreFeatures: () => 'More features',
+        SelectAll: () => 'Select all',
+        Undo: () => 'Undo',
+        Redo: () => 'Redo',
+        JumpToLine: () => 'Jump to line',
+        JumpToProcedure: () => 'Jump to procedure',
+        'There is no procedure': () => 'There is no procedure in the code.',
+        Prettify: () => 'Prettify',
+        ResetCode: () => 'Reset code',
+        'Do you want to reset the code': () => 'Do you want to reset the code to the last successful compilation?',
         // Chat and execution messages
         'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
         'Summary of request': () => `Below is a summary of my request: `,
         'We need to fix the following errors _': (Number) => `Sorry, but we need to fix the ${Number} errors in the code (marked with ___red squiggly lines___) before continuing.`,
         'Successfully executed': () => `Successfully executed the code.`,
+        'Successfully compiled': () => `Successfully compiled the code. We can run them now!`,
         'Runtime error _': (Error) => `Sorry, the code failed to run: ${Error}`,
         'Compile error _': (Error) => `Sorry, I cannot understand the code: ${Error}`,
+        'Compile error in snippet _': (Number) => `Sorry, there are still ${Number} errors in the code snippet.`,
+        'Compile error unknown': (Number) => `Sorry, there is an unknown error. Please report it as a bug.`,
         'Showing full text help of _': (Name) => `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
+        'Please download Turtle Universe': () => `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
         // Default messages
         'Command center welcome (user)': () => `What is here about? Where should I start with?`,
         'Command center welcome (command)': () => `Here is the command center. You can type in NetLogo code and run it here, but there is always more to explore. Here are something you can try out.`,
@@ -31310,6 +31327,17 @@ if(!String.prototype.matchAll) {
         '~CustomReporter': (Name) => `代码中定义的一个函数。`,
         '~BreedCommand': (Name) => `关于 "${Name}" 种类的过程。 `,
         '~CustomCommand': (Name) => `代码中定义的一个过程。`,
+        // Editor interfaces
+        MoreFeatures: () => '更多功能',
+        SelectAll: () => '全选',
+        Undo: () => '撤销',
+        Redo: () => '重做',
+        JumpToLine: () => '跳转到行',
+        JumpToProcedure: () => '跳转到子程序',
+        'There is no procedure': () => '代码中还没有任何子程序。',
+        Prettify: () => '整理代码',
+        ResetCode: () => '重置代码',
+        'Do you want to reset the code': () => '是否将代码重置到最后一次成功编译的状态？',
         // Chat and AI interface
         Reconnect: () => `重新连接`,
         RunCode: () => `运行代码`,
@@ -31323,14 +31351,20 @@ if(!String.prototype.matchAll) {
         'Expand messages _': (Number) => `展开 ${Number} 条消息`,
         FullText: () => `阅读全文`,
         SeeAlso: () => `参见`,
+        OK: () => `确定`,
+        Cancel: () => `取消`,
         // Chat and execution messages
         'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
         'Summary of request': () => `简单总结我的请求的要点：`,
         'We need to fix the following errors _': (Number) => `我们需要先修复代码中的 ${Number} 个错误（用___红色波浪线___标记）。`,
         'Successfully executed': () => `成功执行了代码。`,
+        'Successfully compiled': () => `成功编译了代码。现在可以开始执行了！`,
         'Runtime error _': (Error) => `运行时错误：${Error}`,
         'Compile error _': (Error) => `抱歉，未能理解你输入的命令：${Error}`,
+        'Compile error in snippet _': (Number) => `抱歉，代码中还有 ${Number} 个错误。`,
+        'Compile error unknown': (Number) => `抱歉，编译过程中存在未知错误。请将 BUG 报告给开发者。`,
         'Showing full text help of _': (Name) => `显示 [${Name}](<observer=help ${Name} -full>) 的帮助文档。`,
+        'Please download Turtle Universe': () => `功能在网页模式下不可用。请下载[海龟实验室](https://www.turtlesim.com/products/turtle-universe/index-cn.html)以获得更好的体验。`,
         // Default messages
         'Command center welcome (user)': () => `这是哪儿？我应该怎么开始使用？`,
         'Command center welcome (command)': () => `你好！这里是控制台。你可以在这里输入 NetLogo 命令并立即执行。还有许多值得探索的功能，例如：`,
@@ -32247,17 +32281,40 @@ if(!String.prototype.matchAll) {
                 State.RuntimeErrors.length == 0 &&
                 Errors.length == 0)
                 return;
+            // Dealing with unknown errors
+            this.FixUnknownErrors(Errors);
+            // Set the errors
             State.CompilerErrors = Errors;
             State.RuntimeErrors = [];
             this.ForceLint();
+            // Set the cursor position
+            this.Selection.SetCursorPosition(Errors[0].start);
         }
         /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
         SetRuntimeErrors(Errors) {
             var State = this.GetState();
             if (State.RuntimeErrors.length == 0 && Errors.length == 0)
                 return;
+            // Dealing with unknown errors
+            this.FixUnknownErrors(Errors);
+            // Set the errors
             State.RuntimeErrors = Errors;
             this.ForceLint();
+            // Set the cursor position
+            this.Selection.SetCursorPosition(Errors[0].start);
+        }
+        /** FixUnknownErrors: Fix the unknown errors. */
+        FixUnknownErrors(Errors) {
+            var Code = this.GetCode();
+            var FirstBreak = Code.indexOf('\n');
+            if (FirstBreak === -1)
+                FirstBreak = Code.length;
+            Errors.forEach((Error) => {
+                if (Error.start == 2147483647) {
+                    Error.start = 0;
+                    Error.end = FirstBreak;
+                }
+            });
         }
         /** GetID: Get ID of the editor. */
         GetID() {

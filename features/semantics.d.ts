@@ -16,7 +16,7 @@ export declare class SemanticFeatures {
     /** SyntaxNodesAt: Iterate through syntax nodes at a certain position. */
     SyntaxNodesAt(Position: number, Callback: (Node: SyntaxNodeRef) => void): void;
     /** GetRecognizedMode: Get the recognized program mode. */
-    GetRecognizedMode(): string;
+    GetRecognizedMode(): 'Unknown' | 'Model' | 'Command' | 'Reporter';
     /** Highlight: Export the code in the editor into highlighted HTML. */
     Highlight(): HTMLElement;
     /** HighlightContent: Highlight a given snippet of code. */

@@ -66,6 +66,8 @@ export declare class GalapagosEditor {
     SetCompilerErrors(Errors: RuntimeError[]): void;
     /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
     SetRuntimeErrors(Errors: RuntimeError[]): void;
+    /** FixUnknownErrors: Fix the unknown errors. */
+    private FixUnknownErrors;
     /** ID: ID of the editor. */
     private ID;
     /** Children: The connected editors. */
