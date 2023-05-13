@@ -35,7 +35,7 @@ export class SemanticFeatures {
     this.GetSyntaxTree().cursorAt(Position).iterate(Callback);
   }
   /** GetRecognizedMode: Get the recognized program mode. */
-  GetRecognizedMode(): string {
+  GetRecognizedMode(): 'Unknown' | 'Model' | 'Command' | 'Reporter' {
     return this.Galapagos.GetState().RecognizedMode;
   }
   /** Highlight: Export the code in the editor into highlighted HTML. */

@@ -129,6 +129,21 @@ const en_us: Record<string, Function> = {
   'Expand messages _': (Number: number) => `Expand ${Number} messages`,
   FullText: () => `Read more`,
   SeeAlso: () => `See also`,
+  OK: () => `OK`,
+  Cancel: () => `Cancel`,
+
+  // Editor interfaces
+  MoreFeatures: () => 'More features',
+  SelectAll: () => 'Select all',
+  Undo: () => 'Undo',
+  Redo: () => 'Redo',
+  JumpToLine: () => 'Jump to line',
+  JumpToProcedure: () => 'Jump to procedure',
+  'There is no procedure': () => 'There is no procedure in the code.',
+  Prettify: () => 'Prettify',
+  ResetCode: () => 'Reset code',
+  'Do you want to reset the code': () =>
+    'Do you want to reset the code to the last successful compilation?',
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) =>
@@ -137,12 +152,20 @@ const en_us: Record<string, Function> = {
   'We need to fix the following errors _': (Number: number) =>
     `Sorry, but we need to fix the ${Number} errors in the code (marked with ___red squiggly lines___) before continuing.`,
   'Successfully executed': () => `Successfully executed the code.`,
+  'Successfully compiled': () =>
+    `Successfully compiled the code. We can run them now!`,
   'Runtime error _': (Error: string) =>
     `Sorry, the code failed to run: ${Error}`,
   'Compile error _': (Error: string) =>
     `Sorry, I cannot understand the code: ${Error}`,
+  'Compile error in snippet _': (Number: number) =>
+    `Sorry, there are still ${Number} errors in the code snippet.`,
+  'Compile error unknown': (Number: number) =>
+    `Sorry, there is an unknown error. Please report it as a bug.`,
   'Showing full text help of _': (Name: string) =>
     `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
+  'Please download Turtle Universe': () =>
+    `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
 
   // Default messages
   'Command center welcome (user)': () =>

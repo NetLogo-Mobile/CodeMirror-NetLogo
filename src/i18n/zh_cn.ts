@@ -114,6 +114,19 @@ const zh_cn: Record<string, Function> = {
   '~BreedCommand': (Name: string) => `关于 "${Name}" 种类的过程。 `,
   '~CustomCommand': (Name: string) => `代码中定义的一个过程。`,
 
+  // Editor interfaces
+  MoreFeatures: () => '更多功能',
+  SelectAll: () => '全选',
+  Undo: () => '撤销',
+  Redo: () => '重做',
+  JumpToLine: () => '跳转到行',
+  JumpToProcedure: () => '跳转到子程序',
+  'There is no procedure': () => '代码中还没有任何子程序。',
+  Prettify: () => '整理代码',
+  ResetCode: () => '重置代码',
+  'Do you want to reset the code': () =>
+    '是否将代码重置到最后一次成功编译的状态？',
+
   // Chat and AI interface
   Reconnect: () => `重新连接`,
   RunCode: () => `运行代码`,
@@ -127,6 +140,8 @@ const zh_cn: Record<string, Function> = {
   'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,
   FullText: () => `阅读全文`,
   SeeAlso: () => `参见`,
+  OK: () => `确定`,
+  Cancel: () => `取消`,
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) =>
@@ -135,10 +150,17 @@ const zh_cn: Record<string, Function> = {
   'We need to fix the following errors _': (Number: number) =>
     `我们需要先修复代码中的 ${Number} 个错误（用___红色波浪线___标记）。`,
   'Successfully executed': () => `成功执行了代码。`,
+  'Successfully compiled': () => `成功编译了代码。现在可以开始执行了！`,
   'Runtime error _': (Error: string) => `运行时错误：${Error}`,
   'Compile error _': (Error: string) => `抱歉，未能理解你输入的命令：${Error}`,
+  'Compile error in snippet _': (Number: number) =>
+    `抱歉，代码中还有 ${Number} 个错误。`,
+  'Compile error unknown': (Number: number) =>
+    `抱歉，编译过程中存在未知错误。请将 BUG 报告给开发者。`,
   'Showing full text help of _': (Name: string) =>
     `显示 [${Name}](<observer=help ${Name} -full>) 的帮助文档。`,
+  'Please download Turtle Universe': () =>
+    `功能在网页模式下不可用。请下载[海龟实验室](https://www.turtlesim.com/products/turtle-universe/index-cn.html)以获得更好的体验。`,
 
   // Default messages
   'Command center welcome (user)': () => `这是哪儿？我应该怎么开始使用？`,

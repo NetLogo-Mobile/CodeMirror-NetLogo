@@ -254,16 +254,38 @@ export class GalapagosEditor {
       Errors.length == 0
     )
       return;
+    // Dealing with unknown errors
+    this.FixUnknownErrors(Errors);
+    // Set the errors
     State.CompilerErrors = Errors;
     State.RuntimeErrors = [];
     this.ForceLint();
+    // Set the cursor position
+    this.Selection.SetCursorPosition(Errors[0].start);
   }
   /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
   SetRuntimeErrors(Errors: RuntimeError[]) {
     var State = this.GetState();
     if (State.RuntimeErrors.length == 0 && Errors.length == 0) return;
+    // Dealing with unknown errors
+    this.FixUnknownErrors(Errors);
+    // Set the errors
     State.RuntimeErrors = Errors;
     this.ForceLint();
+    // Set the cursor position
+    this.Selection.SetCursorPosition(Errors[0].start);
+  }
+  /** FixUnknownErrors: Fix the unknown errors. */
+  private FixUnknownErrors(Errors: RuntimeError[]) {
+    var Code = this.GetCode();
+    var FirstBreak = Code.indexOf('\n');
+    if (FirstBreak === -1) FirstBreak = Code.length;
+    Errors.forEach((Error) => {
+      if (Error.start == 2147483647) {
+        Error.start = 0;
+        Error.end = FirstBreak;
+      }
+    });
   }
   // #endregion
 
