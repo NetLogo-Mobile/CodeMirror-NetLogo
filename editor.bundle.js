@@ -4419,7 +4419,9 @@ if(!String.prototype.matchAll) {
                 this.focusNode == domSel.focusNode && this.focusOffset == domSel.focusOffset;
         }
         setRange(range) {
-            this.set(range.anchorNode, range.anchorOffset, range.focusNode, range.focusOffset);
+            let { anchorNode, focusNode } = range;
+            // Clip offsets to node size to avoid crashes when Safari reports bogus offsets (#1152)
+            this.set(anchorNode, Math.min(range.anchorOffset, anchorNode ? maxOffset(anchorNode) : 0), focusNode, Math.min(range.focusOffset, focusNode ? maxOffset(focusNode) : 0));
         }
         set(anchorNode, anchorOffset, focusNode, focusOffset) {
             this.anchorNode = anchorNode;
@@ -4492,6 +4494,8 @@ if(!String.prototype.matchAll) {
         let node = selection.focusNode, offset = selection.focusOffset;
         if (!node || selection.anchorNode != node || selection.anchorOffset != offset)
             return false;
+        // Safari can report bogus offsets (#1152)
+        offset = Math.min(offset, maxOffset(node));
         for (;;) {
             if (offset) {
                 if (node.nodeType != 1)
@@ -6203,6 +6207,23 @@ if(!String.prototype.matchAll) {
     const decorations = /*@__PURE__*/Facet.define();
     const atomicRanges = /*@__PURE__*/Facet.define();
     const scrollMargins = /*@__PURE__*/Facet.define();
+    function getScrollMargins(view) {
+        let left = 0, right = 0, top = 0, bottom = 0;
+        for (let source of view.state.facet(scrollMargins)) {
+            let m = source(view);
+            if (m) {
+                if (m.left != null)
+                    left = Math.max(left, m.left);
+                if (m.right != null)
+                    right = Math.max(right, m.right);
+                if (m.top != null)
+                    top = Math.max(top, m.top);
+                if (m.bottom != null)
+                    bottom = Math.max(bottom, m.bottom);
+            }
+        }
+        return { left, right, top, bottom };
+    }
     const styleModule = /*@__PURE__*/Facet.define();
     class ChangedRange {
         constructor(fromA, toA, fromB, toB) {
@@ -7133,22 +7154,10 @@ if(!String.prototype.matchAll) {
             if (!range.empty && (other = this.coordsAt(range.anchor, range.anchor > range.head ? -1 : 1)))
                 rect = { left: Math.min(rect.left, other.left), top: Math.min(rect.top, other.top),
                     right: Math.max(rect.right, other.right), bottom: Math.max(rect.bottom, other.bottom) };
-            let mLeft = 0, mRight = 0, mTop = 0, mBottom = 0;
-            for (let margins of this.view.state.facet(scrollMargins).map(f => f(this.view)))
-                if (margins) {
-                    let { left, right, top, bottom } = margins;
-                    if (left != null)
-                        mLeft = Math.max(mLeft, left);
-                    if (right != null)
-                        mRight = Math.max(mRight, right);
-                    if (top != null)
-                        mTop = Math.max(mTop, top);
-                    if (bottom != null)
-                        mBottom = Math.max(mBottom, bottom);
-                }
+            let margins = getScrollMargins(this.view);
             let targetRect = {
-                left: rect.left - mLeft, top: rect.top - mTop,
-                right: rect.right + mRight, bottom: rect.bottom + mBottom
+                left: rect.left - margins.left, top: rect.top - margins.top,
+                right: rect.right + margins.right, bottom: rect.bottom + margins.bottom
             };
             scrollRectIntoView(this.view.scrollDOM, targetRect, range.head < range.anchor ? -1 : 1, target.x, target.y, target.xMargin, target.yMargin, this.view.textDirection == Direction.LTR);
         }
@@ -7928,13 +7937,14 @@ if(!String.prototype.matchAll) {
             let sx = 0, sy = 0;
             let rect = ((_a = this.scrollParent) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect())
                 || { left: 0, top: 0, right: this.view.win.innerWidth, bottom: this.view.win.innerHeight };
-            if (event.clientX <= rect.left + dragScrollMargin)
+            let margins = getScrollMargins(this.view);
+            if (event.clientX - margins.left <= rect.left + dragScrollMargin)
                 sx = -dragScrollSpeed(rect.left - event.clientX);
-            else if (event.clientX >= rect.right - dragScrollMargin)
+            else if (event.clientX + margins.right >= rect.right - dragScrollMargin)
                 sx = dragScrollSpeed(event.clientX - rect.right);
-            if (event.clientY <= rect.top + dragScrollMargin)
+            if (event.clientY - margins.top <= rect.top + dragScrollMargin)
                 sy = -dragScrollSpeed(rect.top - event.clientY);
-            else if (event.clientY >= rect.bottom - dragScrollMargin)
+            else if (event.clientY + margins.bottom >= rect.bottom - dragScrollMargin)
                 sy = dragScrollSpeed(event.clientY - rect.bottom);
             this.setScrollSpeed(sx, sy);
         }
@@ -9975,13 +9985,13 @@ if(!String.prototype.matchAll) {
     function applyDOMChange(view, domChange) {
         let change;
         let { newSel } = domChange, sel = view.state.selection.main;
+        let lastKey = view.inputState.lastKeyTime > Date.now() - 100 ? view.inputState.lastKeyCode : -1;
         if (domChange.bounds) {
             let { from, to } = domChange.bounds;
             let preferredPos = sel.from, preferredSide = null;
             // Prefer anchoring to end when Backspace is pressed (or, on
             // Android, when something was deleted)
-            if (view.inputState.lastKeyCode === 8 && view.inputState.lastKeyTime > Date.now() - 100 ||
-                browser.android && domChange.text.length < to - from) {
+            if (lastKey === 8 || browser.android && domChange.text.length < to - from) {
                 preferredPos = sel.to;
                 preferredSide = "end";
             }
@@ -9989,7 +9999,7 @@ if(!String.prototype.matchAll) {
             if (diff) {
                 // Chrome inserts two newlines when pressing shift-enter at the
                 // end of a line. DomChange drops one of those.
-                if (browser.chrome && view.inputState.lastKeyCode == 13 &&
+                if (browser.chrome && lastKey == 13 &&
                     diff.toB == diff.from + 2 && domChange.text.slice(diff.from, diff.toB) == LineBreakPlaceholder + LineBreakPlaceholder)
                     diff.toB--;
                 change = { from: from + diff.from, to: from + diff.toA,
@@ -10047,7 +10057,8 @@ if(!String.prototype.matchAll) {
                 ((change.from == sel.from && change.to == sel.to &&
                     change.insert.length == 1 && change.insert.lines == 2 &&
                     dispatchKey(view.contentDOM, "Enter", 13)) ||
-                    (change.from == sel.from - 1 && change.to == sel.to && change.insert.length == 0 &&
+                    ((change.from == sel.from - 1 && change.to == sel.to && change.insert.length == 0 ||
+                        lastKey == 8 && change.insert.length < change.to - change.from) &&
                         dispatchKey(view.contentDOM, "Backspace", 8)) ||
                     (change.from == sel.from && change.to == sel.to + 1 && change.insert.length == 0 &&
                         dispatchKey(view.contentDOM, "Delete", 46))))
@@ -10445,7 +10456,10 @@ if(!String.prototype.matchAll) {
                     let key = this.delayedAndroidKey;
                     if (key) {
                         this.clearDelayedAndroidKey();
-                        if (!this.flush() && key.force)
+                        this.view.inputState.lastKeyCode = key.keyCode;
+                        this.view.inputState.lastKeyTime = Date.now();
+                        let flushed = this.flush();
+                        if (!flushed && key.force)
                             dispatchKey(this.dom, key.key, key.keyCode);
                     }
                 };
@@ -12604,10 +12618,10 @@ if(!String.prototype.matchAll) {
         return EditorView.mouseSelectionStyle.of((view, event) => filter(event) ? rectangleSelectionStyle(view, event) : null);
     }
     const keys = {
-        Alt: [18, e => e.altKey],
-        Control: [17, e => e.ctrlKey],
-        Shift: [16, e => e.shiftKey],
-        Meta: [91, e => e.metaKey]
+        Alt: [18, e => !!e.altKey],
+        Control: [17, e => !!e.ctrlKey],
+        Shift: [16, e => !!e.shiftKey],
+        Meta: [91, e => !!e.metaKey]
     };
     const showCrosshair = { style: "cursor: crosshair" };
     /**
@@ -21130,7 +21144,7 @@ if(!String.prototype.matchAll) {
         // is. See `Penalty` above.
         match(word) {
             if (this.pattern.length == 0)
-                return [0];
+                return [-100 /* Penalty.NotFull */];
             if (word.length < this.pattern.length)
                 return null;
             let { chars, folded, any, precise, byWord } = this;
@@ -28269,7 +28283,8 @@ if(!String.prototype.matchAll) {
         "LineComment", "BlockComment",
         "VariableDefinition", "TypeDefinition", "Label",
         "PropertyDefinition", "PropertyName",
-        "PrivatePropertyDefinition", "PrivatePropertyName"
+        "PrivatePropertyDefinition", "PrivatePropertyName",
+        ".", "?."
     ];
     /**
     Completion source that looks up locally defined names in
@@ -31180,7 +31195,7 @@ if(!String.prototype.matchAll) {
         'Infinite loop _': (Name) => `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
         'Argument is reserved _': (Name) => `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
         'Argument is invalid _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
-        // Agent types
+        // Agent types and basic names
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
         Turtles: () => 'Turtles',
@@ -31189,6 +31204,10 @@ if(!String.prototype.matchAll) {
         Link: () => 'Link',
         Links: () => 'Links',
         Utility: () => 'Utility',
+        Command: () => 'Command',
+        Reporter: () => 'Reporter',
+        Argument: () => 'Argument',
+        Arguments: (Number) => 'Argument' + (Number > 1 ? 's' : ''),
         // Help messages
         '~VariableName': (Name) => `A (unknown) variable. `,
         '~ProcedureName': (Name) => `The name of a procedure. `,
@@ -31218,17 +31237,21 @@ if(!String.prototype.matchAll) {
         Reconnect: () => `Reconnect`,
         RunCode: () => `Run Code`,
         'Trying to run the code': () => `Trying to run the code...`,
+        'Trying to run the procedure _': (Name) => `Trying to run the procedure \`${Name}\`...`,
         FixCode: () => `Fix Code`,
         AskCode: () => `Ask a Question`,
         AddCode: () => `Add to Project`,
         'Trying to add the code': () => `Trying to add the code to the project...`,
         PreviousVersion: () => `Back`,
         NextVersion: () => `Next`,
-        'Expand messages _': (Number) => `Expand ${Number} messages`,
+        'Expand messages _': (Number) => `Expand ${Number} message` + (Number > 1 ? 's' : ''),
         FullText: () => `Read more`,
         SeeAlso: () => `See also`,
         OK: () => `OK`,
         Cancel: () => `Cancel`,
+        'Run command': () => `Run command`,
+        'Run reporter': () => `Run reporter`,
+        'Execute the procedure': () => `Execute the procedure now`,
         // Editor interfaces
         MoreFeatures: () => 'More features',
         SelectAll: () => 'Select all',
@@ -31250,7 +31273,9 @@ if(!String.prototype.matchAll) {
         'Compile error _': (Error) => `Sorry, I cannot understand the code: ${Error}`,
         'Compile error in snippet _': (Number) => `Sorry, there are still ${Number} errors in the code snippet.`,
         'Compile error unknown': (Number) => `Sorry, there is an unknown error. Please report it as a bug.`,
+        'Compile error in model': () => `Sorry, there are errors in the open project. Please fix the issue in the code tab first.`,
         'Showing full text help of _': (Name) => `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
+        'Arguments needed for execution _': (Name, Arguments) => `The "${Name}" procedure needs argument${Arguments > 1 ? 's' : ''} to run. Please provide them.`,
         'Please download Turtle Universe': () => `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
         // Default messages
         'Command center welcome (user)': () => `What is here about? Where should I start with?`,
@@ -31293,7 +31318,7 @@ if(!String.prototype.matchAll) {
         'Infinite loop _': (Name) => `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
         'Argument is reserved _': (Name) => `参数名称 "${Name}" 和 NetLogo 的关键字重复了。你想换一个名字吗？`,
         'Argument is invalid _': (Name) => `参数名称 "${Name}" 不可用。你想换一个名字吗？`,
-        // Agent types
+        // Agent types and basic names
         Observer: () => '观察者',
         Turtle: () => '海龟',
         Turtles: () => '海龟们',
@@ -31302,6 +31327,10 @@ if(!String.prototype.matchAll) {
         Link: () => '链接',
         Links: () => '链接们',
         Utility: () => '工具',
+        Command: () => '命令',
+        Reporter: () => '函数',
+        Argument: () => '参数',
+        Arguments: () => '参数',
         // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,
@@ -31342,6 +31371,7 @@ if(!String.prototype.matchAll) {
         Reconnect: () => `重新连接`,
         RunCode: () => `运行代码`,
         'Trying to run the code': () => `尝试运行代码……`,
+        'Trying to run the procedure _': (Name) => `尝试运行子程序 \`${Name}\`……`,
         FixCode: () => `修复代码`,
         AskCode: () => `提问`,
         AddCode: () => `放入作品`,
@@ -31353,6 +31383,9 @@ if(!String.prototype.matchAll) {
         SeeAlso: () => `参见`,
         OK: () => `确定`,
         Cancel: () => `取消`,
+        'Run command': () => `执行命令`,
+        'Run reporter': () => `执行函数`,
+        'Execute the procedure': () => `开始执行这段程序`,
         // Chat and execution messages
         'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
         'Summary of request': () => `简单总结我的请求的要点：`,
@@ -31363,7 +31396,9 @@ if(!String.prototype.matchAll) {
         'Compile error _': (Error) => `抱歉，未能理解你输入的命令：${Error}`,
         'Compile error in snippet _': (Number) => `抱歉，代码中还有 ${Number} 个错误。`,
         'Compile error unknown': (Number) => `抱歉，编译过程中存在未知错误。请将 BUG 报告给开发者。`,
+        'Compile error in model': () => `编译模型时遇到错误。请先修复代码面板中的错误，然后尝试执行。`,
         'Showing full text help of _': (Name) => `显示 [${Name}](<observer=help ${Name} -full>) 的帮助文档。`,
+        'Arguments needed for execution _': (Name, Arguments) => `在执行 \`${Name}\` 之前，需要知道它的参数。`,
         'Please download Turtle Universe': () => `功能在网页模式下不可用。请下载[海龟实验室](https://www.turtlesim.com/products/turtle-universe/index-cn.html)以获得更好的体验。`,
         // Default messages
         'Command center welcome (user)': () => `这是哪儿？我应该怎么开始使用？`,
