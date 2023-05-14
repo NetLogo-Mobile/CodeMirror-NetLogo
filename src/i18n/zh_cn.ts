@@ -73,7 +73,7 @@ const zh_cn: Record<string, Function> = {
   'Argument is invalid _': (Name: string) =>
     `参数名称 "${Name}" 不可用。你想换一个名字吗？`,
 
-  // Agent types
+  // Agent types and basic names
   Observer: () => '观察者',
   Turtle: () => '海龟',
   Turtles: () => '海龟们',
@@ -82,6 +82,10 @@ const zh_cn: Record<string, Function> = {
   Link: () => '链接',
   Links: () => '链接们',
   Utility: () => '工具',
+  Command: () => '命令',
+  Reporter: () => '函数',
+  Argument: () => '参数',
+  Arguments: () => '参数',
 
   // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,
@@ -131,6 +135,8 @@ const zh_cn: Record<string, Function> = {
   Reconnect: () => `重新连接`,
   RunCode: () => `运行代码`,
   'Trying to run the code': () => `尝试运行代码……`,
+  'Trying to run the procedure _': (Name: string) =>
+    `尝试运行子程序 \`${Name}\`……`,
   FixCode: () => `修复代码`,
   AskCode: () => `提问`,
   AddCode: () => `放入作品`,
@@ -142,6 +148,9 @@ const zh_cn: Record<string, Function> = {
   SeeAlso: () => `参见`,
   OK: () => `确定`,
   Cancel: () => `取消`,
+  'Run command': () => `执行命令`,
+  'Run reporter': () => `执行函数`,
+  'Execute the procedure': () => `开始执行这段程序`,
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) =>
@@ -157,8 +166,12 @@ const zh_cn: Record<string, Function> = {
     `抱歉，代码中还有 ${Number} 个错误。`,
   'Compile error unknown': (Number: number) =>
     `抱歉，编译过程中存在未知错误。请将 BUG 报告给开发者。`,
+  'Compile error in model': () =>
+    `编译模型时遇到错误。请先修复代码面板中的错误，然后尝试执行。`,
   'Showing full text help of _': (Name: string) =>
     `显示 [${Name}](<observer=help ${Name} -full>) 的帮助文档。`,
+  'Arguments needed for execution _': (Name: string, Arguments: number) =>
+    `在执行 \`${Name}\` 之前，需要知道它的参数。`,
   'Please download Turtle Universe': () =>
     `功能在网页模式下不可用。请下载[海龟实验室](https://www.turtlesim.com/products/turtle-universe/index-cn.html)以获得更好的体验。`,
 

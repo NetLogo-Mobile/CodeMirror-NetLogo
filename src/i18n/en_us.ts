@@ -72,7 +72,7 @@ const en_us: Record<string, Function> = {
   'Argument is invalid _': (Name: string) =>
     `The argument "${Name}" is invalid. Do you want to replace it?`,
 
-  // Agent types
+  // Agent types and basic names
   Observer: () => 'Observer',
   Turtle: () => 'Turtle',
   Turtles: () => 'Turtles',
@@ -81,6 +81,10 @@ const en_us: Record<string, Function> = {
   Link: () => 'Link',
   Links: () => 'Links',
   Utility: () => 'Utility',
+  Command: () => 'Command',
+  Reporter: () => 'Reporter',
+  Argument: () => 'Argument',
+  Arguments: (Number: number) => 'Argument' + (Number > 1 ? 's' : ''),
 
   // Help messages
   '~VariableName': (Name: string) => `A (unknown) variable. `,
@@ -120,17 +124,23 @@ const en_us: Record<string, Function> = {
   Reconnect: () => `Reconnect`,
   RunCode: () => `Run Code`,
   'Trying to run the code': () => `Trying to run the code...`,
+  'Trying to run the procedure _': (Name: string) =>
+    `Trying to run the procedure \`${Name}\`...`,
   FixCode: () => `Fix Code`,
   AskCode: () => `Ask a Question`,
   AddCode: () => `Add to Project`,
   'Trying to add the code': () => `Trying to add the code to the project...`,
   PreviousVersion: () => `Back`,
   NextVersion: () => `Next`,
-  'Expand messages _': (Number: number) => `Expand ${Number} messages`,
+  'Expand messages _': (Number: number) =>
+    `Expand ${Number} message` + (Number > 1 ? 's' : ''),
   FullText: () => `Read more`,
   SeeAlso: () => `See also`,
   OK: () => `OK`,
   Cancel: () => `Cancel`,
+  'Run command': () => `Run command`,
+  'Run reporter': () => `Run reporter`,
+  'Execute the procedure': () => `Execute the procedure now`,
 
   // Editor interfaces
   MoreFeatures: () => 'More features',
@@ -162,8 +172,14 @@ const en_us: Record<string, Function> = {
     `Sorry, there are still ${Number} errors in the code snippet.`,
   'Compile error unknown': (Number: number) =>
     `Sorry, there is an unknown error. Please report it as a bug.`,
+  'Compile error in model': () =>
+    `Sorry, there are errors in the open project. Please fix the issue in the code tab first.`,
   'Showing full text help of _': (Name: string) =>
     `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
+  'Arguments needed for execution _': (Name: string, Arguments: number) =>
+    `The "${Name}" procedure needs argument${
+      Arguments > 1 ? 's' : ''
+    } to run. Please provide them.`,
   'Please download Turtle Universe': () =>
     `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
 
