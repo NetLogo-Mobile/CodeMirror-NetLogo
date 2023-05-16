@@ -31688,7 +31688,7 @@ if(!String.prototype.matchAll) {
         });
         // ensure spacing is correct
         doc = view.state.doc.toString();
-        new_doc = avoidStrings(doc, finalSpacing);
+        new_doc = avoidStrings(doc, finalSpacing).trim();
         view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
         // add indentation
         view.dispatch({
@@ -32195,19 +32195,24 @@ if(!String.prototype.matchAll) {
             // One-line mode
             if (this.Options.OneLine) {
                 Extensions.push(EditorState.transactionFilter.of((Transaction) => {
-                    if (Transaction.docChanged && Transaction.newDoc.lines > 1)
+                    if (Transaction.docChanged && Transaction.newDoc.lines > 1) {
+                        var NewDoc = Transaction.newDoc
+                            .toString()
+                            .replace('\n', ' ')
+                            .trim();
                         return [
                             {
                                 changes: {
                                     from: 0,
                                     to: this.CodeMirror.state.doc.length,
-                                    insert: Transaction.newDoc
-                                        .toString()
-                                        .replace('\n', ' ')
-                                        .trim(),
+                                    insert: NewDoc,
+                                },
+                                selection: {
+                                    anchor: NewDoc.length,
                                 },
                             },
                         ];
+                    }
                     return [Transaction];
                 }));
             }
