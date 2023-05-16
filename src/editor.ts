@@ -126,9 +126,22 @@ export class GalapagosEditor {
     // One-line mode
     if (this.Options.OneLine) {
       Extensions.push(
-        EditorState.transactionFilter.of((tr) =>
-          tr.newDoc.lines > 1 ? [] : tr
-        )
+        EditorState.transactionFilter.of((Transaction) => {
+          if (Transaction.docChanged && Transaction.newDoc.lines > 1)
+            return [
+              {
+                changes: {
+                  from: 0,
+                  to: this.CodeMirror.state.doc.length,
+                  insert: Transaction.newDoc
+                    .toString()
+                    .replace('\n', ' ')
+                    .trim(),
+                },
+              },
+            ];
+          return [Transaction];
+        })
       );
     }
     // Wrapping mode
