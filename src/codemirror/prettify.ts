@@ -63,7 +63,7 @@ export const prettifyAll = function (view: EditorView) {
 
   // ensure spacing is correct
   doc = view.state.doc.toString();
-  new_doc = avoidStrings(doc, finalSpacing);
+  new_doc = avoidStrings(doc, finalSpacing).trim();
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
 
   // add indentation

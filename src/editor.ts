@@ -127,19 +127,24 @@ export class GalapagosEditor {
     if (this.Options.OneLine) {
       Extensions.push(
         EditorState.transactionFilter.of((Transaction) => {
-          if (Transaction.docChanged && Transaction.newDoc.lines > 1)
+          if (Transaction.docChanged && Transaction.newDoc.lines > 1) {
+            var NewDoc = Transaction.newDoc
+              .toString()
+              .replace('\n', ' ')
+              .trim();
             return [
               {
                 changes: {
                   from: 0,
                   to: this.CodeMirror.state.doc.length,
-                  insert: Transaction.newDoc
-                    .toString()
-                    .replace('\n', ' ')
-                    .trim(),
+                  insert: NewDoc,
+                },
+                selection: {
+                  anchor: NewDoc.length,
                 },
               },
             ];
+          }
           return [Transaction];
         })
       );
