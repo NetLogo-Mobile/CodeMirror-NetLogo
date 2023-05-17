@@ -6,6 +6,8 @@ export interface EditorConfig {
   Language?: EditorLanguage;
   /** ReadOnly: Is the editor in read-only mode? */
   ReadOnly?: boolean;
+  /** Placeholder: The placeholder of the editor. */
+  Placeholder?: string | HTMLElement;
   /** OneLine: Is the editor in forced one-line mode? */
   // Basically, we will make the editor an one-line input without additional features & keyboard shortcuts.
   OneLine?: boolean;

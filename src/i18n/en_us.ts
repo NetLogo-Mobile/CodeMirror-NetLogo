@@ -122,13 +122,13 @@ const en_us: Record<string, Function> = {
 
   // Chat and AI assistant
   Reconnect: () => `Reconnect`,
-  RunCode: () => `Run Code`,
+  RunCode: () => `Run`,
   'Trying to run the code': () => `Trying to run the code...`,
   'Trying to run the procedure _': (Name: string) =>
     `Trying to run the procedure \`${Name}\`...`,
-  FixCode: () => `Fix Code`,
-  AskCode: () => `Ask a Question`,
-  AddCode: () => `Add to Project`,
+  FixCode: () => `Fix`,
+  AskCode: () => `Ask`,
+  AddCode: () => `Add to Code`,
   'Trying to add the code': () => `Trying to add the code to the project...`,
   PreviousVersion: () => `Back`,
   NextVersion: () => `Next`,
@@ -154,6 +154,9 @@ const en_us: Record<string, Function> = {
   ResetCode: () => 'Reset code',
   'Do you want to reset the code': () =>
     'Do you want to reset the code to the last successful compilation?',
+  'Type NetLogo command here': () => 'Type NetLogo command here',
+  'Talk to the computer in NetLogo or natural languages': () =>
+    `Talk to the computer in NetLogo or natural languages`,
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) =>

@@ -8,7 +8,7 @@ import {
   Extension,
   TransactionSpec,
 } from '@codemirror/state';
-import { ViewUpdate, keymap } from '@codemirror/view';
+import { ViewUpdate, keymap, placeholder } from '@codemirror/view';
 import { NetLogo } from './lang/netlogo.js';
 import { EditorConfig, EditorLanguage, ParseMode } from './editor-config';
 import { highlight } from './codemirror/style-highlight';
@@ -156,9 +156,10 @@ export class GalapagosEditor {
       );
     }
     // Wrapping mode
-    if (this.Options.Wrapping) {
-      Extensions.push(EditorView.lineWrapping);
-    }
+    if (this.Options.Wrapping) Extensions.push(EditorView.lineWrapping);
+    // Placeholder
+    if (this.Options.Placeholder)
+      Extensions.push(placeholder(this.Options.Placeholder));
     // Build the editor
     this.CodeMirror = new EditorView({
       extensions: Extensions,

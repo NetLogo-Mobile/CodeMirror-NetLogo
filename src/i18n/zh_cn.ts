@@ -130,14 +130,17 @@ const zh_cn: Record<string, Function> = {
   ResetCode: () => '重置代码',
   'Do you want to reset the code': () =>
     '是否将代码重置到最后一次成功编译的状态？',
+  'Type NetLogo command here': () => '在这里输入 NetLogo 命令',
+  'Talk to the computer in NetLogo or natural languages': () =>
+    `用 NetLogo 或自然语言写代码`,
 
   // Chat and AI interface
   Reconnect: () => `重新连接`,
-  RunCode: () => `运行代码`,
+  RunCode: () => `运行`,
   'Trying to run the code': () => `尝试运行代码……`,
   'Trying to run the procedure _': (Name: string) =>
     `尝试运行子程序 \`${Name}\`……`,
-  FixCode: () => `修复代码`,
+  FixCode: () => `修复`,
   AskCode: () => `提问`,
   AddCode: () => `放入作品`,
   'Trying to add the code': () => `尝试将代码放入作品……`,
