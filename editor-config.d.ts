@@ -5,6 +5,8 @@ export interface EditorConfig {
     Language?: EditorLanguage;
     /** ReadOnly: Is the editor in read-only mode? */
     ReadOnly?: boolean;
+    /** Placeholder: The placeholder of the editor. */
+    Placeholder?: string | HTMLElement;
     /** OneLine: Is the editor in forced one-line mode? */
     OneLine?: boolean;
     /** ParseMode: The parsing mode of the editor. */

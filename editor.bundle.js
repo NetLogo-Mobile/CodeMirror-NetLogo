@@ -12568,6 +12568,49 @@ if(!String.prototype.matchAll) {
         decorations: v => v.decorations
     });
 
+    class Placeholder extends WidgetType {
+        constructor(content) {
+            super();
+            this.content = content;
+        }
+        toDOM() {
+            let wrap = document.createElement("span");
+            wrap.className = "cm-placeholder";
+            wrap.style.pointerEvents = "none";
+            wrap.appendChild(typeof this.content == "string" ? document.createTextNode(this.content) : this.content);
+            if (typeof this.content == "string")
+                wrap.setAttribute("aria-label", "placeholder " + this.content);
+            else
+                wrap.setAttribute("aria-hidden", "true");
+            return wrap;
+        }
+        coordsAt(dom) {
+            let rects = dom.firstChild ? clientRectsFor(dom.firstChild) : [];
+            if (!rects.length)
+                return null;
+            let style = window.getComputedStyle(dom.parentNode);
+            let rect = flattenRect(rects[0], style.direction != "rtl");
+            let lineHeight = parseInt(style.lineHeight);
+            if (rect.bottom - rect.top > lineHeight * 1.5)
+                return { left: rect.left, right: rect.right, top: rect.top, bottom: rect.top + lineHeight };
+            return rect;
+        }
+        ignoreEvent() { return false; }
+    }
+    /**
+    Extension that enables a placeholder—a piece of example content
+    to show when the editor is empty.
+    */
+    function placeholder(content) {
+        return ViewPlugin.fromClass(class {
+            constructor(view) {
+                this.view = view;
+                this.placeholder = Decoration.set([Decoration.widget({ widget: new Placeholder(content), side: 1 }).range(0)]);
+            }
+            get decorations() { return this.view.state.doc.length ? Decoration.none : this.placeholder; }
+        }, { decorations: v => v.decorations });
+    }
+
     // Don't compute precise column positions for line offsets above this
     // (since it could get expensive). Assume offset==column for them.
     const MaxOff = 2000;
@@ -31367,12 +31410,12 @@ if(!String.prototype.matchAll) {
         '~CustomCommand': (Name) => `A user-defined command. `,
         // Chat and AI assistant
         Reconnect: () => `Reconnect`,
-        RunCode: () => `Run Code`,
+        RunCode: () => `Run`,
         'Trying to run the code': () => `Trying to run the code...`,
         'Trying to run the procedure _': (Name) => `Trying to run the procedure \`${Name}\`...`,
-        FixCode: () => `Fix Code`,
-        AskCode: () => `Ask a Question`,
-        AddCode: () => `Add to Project`,
+        FixCode: () => `Fix`,
+        AskCode: () => `Ask`,
+        AddCode: () => `Add to Code`,
         'Trying to add the code': () => `Trying to add the code to the project...`,
         PreviousVersion: () => `Back`,
         NextVersion: () => `Next`,
@@ -31395,6 +31438,8 @@ if(!String.prototype.matchAll) {
         Prettify: () => 'Prettify',
         ResetCode: () => 'Reset code',
         'Do you want to reset the code': () => 'Do you want to reset the code to the last successful compilation?',
+        'Type NetLogo command here': () => 'Type NetLogo command here',
+        'Talk to the computer in NetLogo or natural languages': () => `Talk to the computer in NetLogo or natural languages`,
         // Chat and execution messages
         'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
         'Summary of request': () => `Below is a summary of my request: `,
@@ -31500,12 +31545,14 @@ if(!String.prototype.matchAll) {
         Prettify: () => '整理代码',
         ResetCode: () => '重置代码',
         'Do you want to reset the code': () => '是否将代码重置到最后一次成功编译的状态？',
+        'Type NetLogo command here': () => '在这里输入 NetLogo 命令',
+        'Talk to the computer in NetLogo or natural languages': () => `用 NetLogo 或自然语言写代码`,
         // Chat and AI interface
         Reconnect: () => `重新连接`,
-        RunCode: () => `运行代码`,
+        RunCode: () => `运行`,
         'Trying to run the code': () => `尝试运行代码……`,
         'Trying to run the procedure _': (Name) => `尝试运行子程序 \`${Name}\`……`,
-        FixCode: () => `修复代码`,
+        FixCode: () => `修复`,
         AskCode: () => `提问`,
         AddCode: () => `放入作品`,
         'Trying to add the code': () => `尝试将代码放入作品……`,
@@ -32376,9 +32423,11 @@ if(!String.prototype.matchAll) {
                 }));
             }
             // Wrapping mode
-            if (this.Options.Wrapping) {
+            if (this.Options.Wrapping)
                 Extensions.push(EditorView.lineWrapping);
-            }
+            // Placeholder
+            if (this.Options.Placeholder)
+                Extensions.push(placeholder(this.Options.Placeholder));
             // Build the editor
             this.CodeMirror = new EditorView({
                 extensions: Extensions,
