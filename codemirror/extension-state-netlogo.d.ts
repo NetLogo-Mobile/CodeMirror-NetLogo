@@ -32,10 +32,12 @@ export declare class StateNetLogo {
     GetDirty(): boolean;
     /** ParseState: Parse the state from an editor state. */
     ParseState(State: EditorState): StateNetLogo;
+    private parseCommand;
     /** getProcedure: Gather all information about a procedure. */
     private getProcedure;
     /** getContext: Identify context of a block by looking at primitives and variable names. */
     private getContext;
+    private getContextCommandStatement;
     /** getPrimitiveContext: Identify context for a builtin primitive. */
     private getPrimitiveContext;
     /** getCodeBlocks: Gather all information about a given code block. */
@@ -53,6 +55,7 @@ export declare class StateNetLogo {
     private getText;
     /** getLocalVars: Collect local variables within a node. */
     private getLocalVars;
+    private getLocalVarsCommand;
     /** getVariables: Get global or breed variables. */
     private getVariables;
     /** getArgs: Identify arguments for a given procedure. */
