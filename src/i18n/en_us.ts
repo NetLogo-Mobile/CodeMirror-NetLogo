@@ -189,13 +189,14 @@ const en_us: Record<string, Function> = {
   'Command center welcome (command)': () =>
     `Here is the command center. You can type in NetLogo code and run it here, but there is always more to explore. Here are something you can try out.`,
   'Command center welcome (assistant)': () =>
-    `Hello! I am your assistant. I can help you learn NetLogo or build your own project, but there is always more to explore. Here are something you can try out.`,
+    `Hello! This is an AI assistant. I can help you learn NetLogo or build your own project, but there is always more to explore. Here are something you can try out.`,
   'Run NetLogo code directly': () => `Run **NetLogo** code directly`,
   'Check out the code tab': () => `Check out the **code** tab of the project`,
   'Talk to the computer in natural languages': () =>
     `Talk to the computer in **natural languages**`,
   'Look for the documentation': () =>
     `Look for the **learning materials** of NetLogo`,
+  'Ask questions about NetLogo': () => `Ask **questions** about NetLogo`,
 };
 
 export { en_us };

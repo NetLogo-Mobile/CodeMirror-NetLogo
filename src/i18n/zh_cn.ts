@@ -180,11 +180,12 @@ const zh_cn: Record<string, Function> = {
   'Command center welcome (command)': () =>
     `你好！这里是控制台。你可以在这里输入 NetLogo 命令并立即执行。还有许多值得探索的功能，例如：`,
   'Command center welcome (assistant)': () =>
-    `你好！我是你的助手。我可以帮助你学习 NetLogo 或创作你的作品。还有许多值得探索的功能，例如：`,
+    `你好！这里是 AI 助手。我可以帮助你学习 NetLogo 或创作你的作品。还有许多值得探索的功能，例如：`,
   'Run NetLogo code directly': () => `直接运行 **NetLogo** 代码`,
   'Check out the code tab': () => `查看作品的**代码**`,
   'Talk to the computer in natural languages': () => `用**自然语言**写代码`,
   'Look for the documentation': () => `查看 NetLogo 语言的**帮助文档**`,
+  'Ask questions about NetLogo': () => `询问关于 NetLogo 的**问题**`,
 };
 
 export { zh_cn };
