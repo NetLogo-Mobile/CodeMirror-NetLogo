@@ -1,7 +1,13 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { closeCompletion, acceptCompletion } from '@codemirror/autocomplete';
 import { forceParsing, LanguageSupport } from '@codemirror/language';
-import { Prec, Compartment, EditorState, Extension } from '@codemirror/state';
+import {
+  Prec,
+  Compartment,
+  EditorState,
+  Extension,
+  TransactionSpec,
+} from '@codemirror/state';
 import { ViewUpdate, keymap } from '@codemirror/view';
 import { NetLogo } from './lang/netlogo.js';
 import { EditorConfig, EditorLanguage, ParseMode } from './editor-config';

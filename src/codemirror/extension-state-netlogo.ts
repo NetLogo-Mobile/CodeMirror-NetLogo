@@ -102,71 +102,88 @@ export class StateNetLogo {
         this.RecognizedMode = 'Unknown';
         break;
     }
-    if (!Cursor.firstChild()) return this;
-    // Start parsing
-    while (true) {
-      // get extensions
-      if (Cursor.node.name == 'Extensions') {
-        Cursor.node.getChildren('Identifier').map((node) => {
-          this.Extensions.push(this.getText(State, node));
-        });
-      }
-      // get global variables
-      else if (Cursor.node.name == 'Globals') {
-        this.Globals = [
-          ...this.Globals,
-          ...this.getVariables(Cursor.node, State),
-        ];
-      }
-      // get breeds
-      else if (Cursor.node.name == 'Breed') {
-        // get breed type
-        let breedType = BreedType.Turtle;
-        Cursor.node.getChildren('BreedStr').map((node) => {
-          let name = this.getText(State, node);
-          if (name.toLowerCase() == 'undirected-link-breed') {
-            breedType = BreedType.UndirectedLink;
-          } else if (name.toLowerCase() == 'directed-link-breed') {
-            breedType = BreedType.DirectedLink;
-          }
-        });
-        // get breed names
-        const Plural = Cursor.node.getChildren('BreedPlural');
-        const Singular = Cursor.node.getChildren('BreedSingular');
-        if (Plural.length == 1 && Singular.length == 1) {
-          let singular = this.getText(State, Singular[0]);
-          let plural = this.getText(State, Plural[0]);
-          let vars = tempBreedVars.get(plural) ?? [];
-          let breed = new Breed(singular, plural, vars, breedType);
-          this.Breeds.set(singular, breed);
+    if (this.RecognizedMode == 'Model') {
+      if (!Cursor.firstChild()) return this;
+      // Start parsing
+      while (true) {
+        // get extensions
+        if (Cursor.node.name == 'Extensions') {
+          Cursor.node.getChildren('Identifier').map((node) => {
+            this.Extensions.push(this.getText(State, node));
+          });
         }
-      }
-      // get breed variables
-      else if (Cursor.node.name == 'BreedsOwn') {
-        let breedName = '';
-        Cursor.node.getChildren('Own').map((node) => {
-          breedName = this.getText(State, node);
-          breedName = breedName.substring(0, breedName.length - 4);
-        });
-        let breedVars = this.getVariables(Cursor.node, State);
-        let found = false;
-        for (let breed of this.Breeds.values()) {
-          if (breed.Plural == breedName) {
-            breed.Variables = breedVars;
-            found = true;
+        // get global variables
+        else if (Cursor.node.name == 'Globals') {
+          this.Globals = [
+            ...this.Globals,
+            ...this.getVariables(Cursor.node, State),
+          ];
+        }
+        // get breeds
+        else if (Cursor.node.name == 'Breed') {
+          // get breed type
+          let breedType = BreedType.Turtle;
+          Cursor.node.getChildren('BreedStr').map((node) => {
+            let name = this.getText(State, node);
+            if (name.toLowerCase() == 'undirected-link-breed') {
+              breedType = BreedType.UndirectedLink;
+            } else if (name.toLowerCase() == 'directed-link-breed') {
+              breedType = BreedType.DirectedLink;
+            }
+          });
+          // get breed names
+          const Plural = Cursor.node.getChildren('BreedPlural');
+          const Singular = Cursor.node.getChildren('BreedSingular');
+          if (Plural.length == 1 && Singular.length == 1) {
+            let singular = this.getText(State, Singular[0]);
+            let plural = this.getText(State, Plural[0]);
+            let vars = tempBreedVars.get(plural) ?? [];
+            let breed = new Breed(singular, plural, vars, breedType);
+            this.Breeds.set(singular, breed);
           }
         }
-        if (!found) {
-          tempBreedVars.set(breedName, breedVars);
+        // get breed variables
+        else if (Cursor.node.name == 'BreedsOwn') {
+          let breedName = '';
+          Cursor.node.getChildren('Own').map((node) => {
+            breedName = this.getText(State, node);
+            breedName = breedName.substring(0, breedName.length - 4);
+          });
+          let breedVars = this.getVariables(Cursor.node, State);
+          let found = false;
+          for (let breed of this.Breeds.values()) {
+            if (breed.Plural == breedName) {
+              breed.Variables = breedVars;
+              found = true;
+            }
+          }
+          if (!found) {
+            tempBreedVars.set(breedName, breedVars);
+          }
         }
+        // get procedures
+        else if (Cursor.node.name == 'Procedure') {
+          let procedure = this.getProcedure(Cursor.node, State);
+          this.Procedures.set(procedure.Name, procedure);
+        }
+        if (!Cursor.nextSibling()) return this;
       }
-      // get procedures
-      else if (Cursor.node.name == 'Procedure') {
-        let procedure = this.getProcedure(Cursor.node, State);
-        this.Procedures.set(procedure.Name, procedure);
-      }
-      if (!Cursor.nextSibling()) return this;
+    } else if (this.RecognizedMode == 'Command') {
+      let procedure = [];
     }
+    return this;
+  }
+
+  private parseCommand(State: EditorState, node: SyntaxNode): Procedure {
+    let procedure = new Procedure();
+    procedure.PositionStart = node.from;
+    procedure.PositionEnd = node.to;
+    procedure.IsCommand = true;
+    procedure.Name = '⚠EmbeddedMode⚠';
+    procedure.Arguments = [];
+    procedure.Variables = this.getLocalVarsCommand(node, State);
+
+    return procedure;
   }
 
   /** getProcedure: Gather all information about a procedure. */
@@ -291,6 +308,93 @@ export class StateNetLogo {
           child = cursor.nextSibling();
         }
       });
+    });
+    return priorContext;
+  }
+
+  private getContextCommandStatement(node: SyntaxNode, state: EditorState) {
+    let context = new AgentContexts();
+    let priorContext = new AgentContexts();
+    let newContext = context;
+    node.getChildren('CommandStatement').map((node3) => {
+      let cursor = node3.cursor();
+      let child = cursor.firstChild();
+      while (child) {
+        if (
+          cursor.node.name.includes('Command') &&
+          !cursor.node.name.includes('Commands') &&
+          !cursor.node.name.includes('Special')
+        ) {
+          let c = this.getPrimitiveContext(cursor.node, state);
+          if (c) {
+            newContext = combineContexts(c, priorContext);
+            if (!noContext(newContext)) {
+              priorContext = newContext;
+            } else {
+              this.ContextErrors.push(
+                new ContextError(
+                  cursor.node.from,
+                  cursor.node.to,
+                  priorContext,
+                  c,
+                  state.sliceDoc(cursor.node.from, cursor.node.to)
+                )
+              );
+            }
+          }
+        } else if (cursor.node.name == 'VariableDeclaration') {
+          let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
+          let c = new AgentContexts();
+          let name = state.sliceDoc(n?.from, n?.to);
+          if (
+            [
+              'shape',
+              'breed',
+              'hidden?',
+              'label',
+              'label-color',
+              'color',
+            ].includes(name)
+          ) {
+            c = new AgentContexts('-T-L');
+          } else if (n?.getChild('PatchVar')) {
+            c = new AgentContexts('-TP-');
+          } else if (n?.getChild('TurtleVar')) {
+            c = new AgentContexts('-T--');
+          } else if (n?.getChild('LinkVar')) {
+            c = new AgentContexts('---L');
+          } else if (n) {
+            for (let breed of this.Breeds.values()) {
+              if (breed.Variables.includes(name)) {
+                c = this.getBreedContext(breed);
+                // if (breed.IsLinkBreed) {
+                //   c = new AgentContexts('---L');
+                // } else if (breed.Singular == 'patch') {
+                //   c = new AgentContexts('-TP-');
+                // } else {
+                //   c = new AgentContexts('-T--');
+                // }
+              }
+            }
+          }
+          newContext = combineContexts(c, priorContext);
+          if (!noContext(newContext)) {
+            priorContext = newContext;
+          } else {
+            this.ContextErrors.push(
+              new ContextError(
+                cursor.node.from,
+                cursor.node.to,
+                priorContext,
+                c,
+                name
+              )
+            );
+          }
+          //context = combineContexts(c, context);
+        }
+        child = cursor.nextSibling();
+      }
     });
     return priorContext;
   }
@@ -539,25 +643,37 @@ export class StateNetLogo {
   ): LocalVariable[] {
     let localVars: LocalVariable[] = [];
     Node.getChildren('ProcedureContent').map((node1) => {
-      node1.getChildren('CommandStatement').map((node2) => {
-        node2.getChildren('VariableDeclaration').map((node3) => {
-          node3.getChildren('NewVariableDeclaration').map((node4) => {
-            node4.getChildren('Identifier').map((node5) => {
-              let variable = new LocalVariable(
-                this.getText(State, node5),
-                1,
-                node5.from
-              );
-              localVars.push(variable);
-            });
-            node4.getChildren('UnsupportedPrim').map((node5) => {
-              let variable = new LocalVariable(
-                this.getText(State, node5),
-                1,
-                node5.from
-              );
-              localVars.push(variable);
-            });
+      localVars = localVars.concat(
+        this.getLocalVarsCommand(node1, State, isAnon)
+      );
+    });
+    return localVars;
+  }
+
+  private getLocalVarsCommand(
+    Node: SyntaxNode,
+    State: EditorState,
+    isAnon?: Boolean
+  ): LocalVariable[] {
+    let localVars: LocalVariable[] = [];
+    Node.getChildren('CommandStatement').map((node2) => {
+      node2.getChildren('VariableDeclaration').map((node3) => {
+        node3.getChildren('NewVariableDeclaration').map((node4) => {
+          node4.getChildren('Identifier').map((node5) => {
+            let variable = new LocalVariable(
+              this.getText(State, node5),
+              1,
+              node5.from
+            );
+            localVars.push(variable);
+          });
+          node4.getChildren('UnsupportedPrim').map((node5) => {
+            let variable = new LocalVariable(
+              this.getText(State, node5),
+              1,
+              node5.from
+            );
+            localVars.push(variable);
           });
         });
       });

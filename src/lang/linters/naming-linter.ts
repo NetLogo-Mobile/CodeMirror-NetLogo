@@ -92,7 +92,14 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
         const value = view.state
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
-        if (all.includes(value)) {
+        if (noderef.node.parent?.getChildren('To').length == 0) {
+          diagnostics.push({
+            from: noderef.from,
+            to: noderef.to,
+            severity: 'error',
+            message: Localized.Get('Unrecognized global statement _', value),
+          });
+        } else if (all.includes(value)) {
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,

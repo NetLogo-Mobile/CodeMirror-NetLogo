@@ -126,7 +126,7 @@ Arguments {
 ProcedureContent {
   CommandStatement |
   OpenParen CommandStatement CloseParen |
-  Error {globalStatement} ~statement
+  Error {globalStatement | BreedToken OpenBracket BreedPlural BreedSingular CloseBracket} ~statement
 }
 
 ReporterContent {

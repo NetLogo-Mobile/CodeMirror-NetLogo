@@ -129,14 +129,18 @@ export function FixGeneratedCode(
       //Log(noderef.name, comments);
       //check for misplaced non-global statements at the global level
       //Collect them into intoProcedure, and remove them from the code
-      if (noderef.name == 'Misplaced') {
+      if (
+        noderef.name == 'Misplaced' ||
+        (noderef.name == 'Procedure' &&
+          noderef.node.getChildren('To').length == 0)
+      ) {
         Log(noderef.name, noderef.from, commentFrom, comments);
         intoProcedure.push(
           AddComments(state.sliceDoc(noderef.from, noderef.to), comments)
         );
         changes.push({
           from: commentsStart ?? noderef.from,
-          to: noderef.to + 1,
+          to: Math.min(noderef.to + 1, state.doc.toString().length),
           insert: '',
         });
         return false;
@@ -174,6 +178,31 @@ export function FixGeneratedCode(
           });
         }
       }
+      if (noderef.name == 'Extensions') {
+        noderef.node.getChildren('Identifier').map((child) => {
+          let value = state.sliceDoc(child.from, child.to);
+          if (
+            state.doc
+              .toString()
+              .toLowerCase()
+              .includes('(' + value.toLowerCase() + ':') ||
+            state.doc
+              .toString()
+              .toLowerCase()
+              .includes(' ' + value.toLowerCase() + ':') ||
+            state.doc
+              .toString()
+              .toLowerCase()
+              .includes('\n' + value.toLowerCase() + ':')
+          ) {
+            changes.push({
+              from: child.from,
+              to: child.to,
+              insert: '',
+            });
+          }
+        });
+      }
       // Record the position of the first procedure to know where to add 'play'
       if (!procedureStart && noderef.name == 'Procedure')
         procedureStart = noderef.from;
@@ -203,8 +232,8 @@ export function FixGeneratedCode(
   // If there are rogue statements, wrap them into a procedure
   if (intoProcedure.length != 0) {
     changes.push({
-      from: procedureStart ?? 0,
-      to: procedureStart ?? 0,
+      from: procedureStart ?? state.doc.toString().length,
+      to: procedureStart ?? state.doc.toString().length,
       insert: 'to play\n' + intoProcedure.join('\n') + '\nend\n\n',
     });
   }
