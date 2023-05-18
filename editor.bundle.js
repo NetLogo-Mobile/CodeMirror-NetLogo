@@ -31876,6 +31876,14 @@ if(!String.prototype.matchAll) {
             changes: indentRange(view.state, 0, view.state.doc.toString().length),
         });
     };
+    const doubleLineBreaks = [
+        'LineComment',
+        'GlobalStr',
+        'ExtensionStr',
+        'BreedStr',
+        'Own',
+        'To',
+    ];
     /** removeSpacing: Make initial spacing adjustments. */
     function removeSpacing(tree, doc) {
         // initialize
@@ -31891,7 +31899,7 @@ if(!String.prototype.matchAll) {
                 // do minimum spacing
                 if (previous !== '(' && content !== ')') {
                     var spacing = doc.substring(lastPosition, noderef.from);
-                    if (noderef.node.name == 'LineComment') {
+                    if (doubleLineBreaks.indexOf(noderef.node.name) !== -1) {
                         if (spacing.indexOf('\n\n') != -1)
                             result += '\n\n';
                         else if (spacing.indexOf('\n') != -1)
@@ -31913,6 +31921,7 @@ if(!String.prototype.matchAll) {
             },
             mode: IterMode.IncludeAnonymous,
         });
+        console.log(result);
         return result;
     }
     /** removeSpacing: Make initial spacing adjustments. */
