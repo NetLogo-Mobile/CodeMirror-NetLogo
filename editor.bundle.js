@@ -31892,11 +31892,12 @@ if(!String.prototype.matchAll) {
                 if (previous !== '(' && content !== ')') {
                     var spacing = doc.substring(lastPosition, noderef.from);
                     if (noderef.node.name == 'LineComment') {
-                        console.log(spacing);
                         if (spacing.indexOf('\n\n') != -1)
                             result += '\n\n';
-                        else
+                        else if (spacing.indexOf('\n') != -1)
                             result += '\n';
+                        else
+                            result += ' ';
                     }
                     else {
                         if (spacing.indexOf('\n') != -1)
@@ -31909,11 +31910,9 @@ if(!String.prototype.matchAll) {
                 result += content;
                 previous = content;
                 lastPosition = noderef.to;
-                console.log(content);
             },
             mode: IterMode.IncludeAnonymous,
         });
-        console.log(result);
         return result;
     }
     /** removeSpacing: Make initial spacing adjustments. */
