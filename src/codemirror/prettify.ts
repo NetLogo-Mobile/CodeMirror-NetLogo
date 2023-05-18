@@ -72,6 +72,15 @@ export const prettifyAll = function (view: EditorView) {
   });
 };
 
+const doubleLineBreaks = [
+  'LineComment',
+  'GlobalStr',
+  'ExtensionStr',
+  'BreedStr',
+  'Own',
+  'To',
+];
+
 /** removeSpacing: Make initial spacing adjustments. */
 function removeSpacing(tree: Tree, doc: string): string {
   // initialize
@@ -86,7 +95,7 @@ function removeSpacing(tree: Tree, doc: string): string {
       // do minimum spacing
       if (previous !== '(' && content !== ')') {
         var spacing = doc.substring(lastPosition, noderef.from);
-        if (noderef.node.name == 'LineComment') {
+        if (doubleLineBreaks.indexOf(noderef.node.name) !== -1) {
           if (spacing.indexOf('\n\n') != -1) result += '\n\n';
           else if (spacing.indexOf('\n') != -1) result += '\n';
           else result += ' ';
@@ -102,6 +111,7 @@ function removeSpacing(tree: Tree, doc: string): string {
     },
     mode: IterMode.IncludeAnonymous,
   });
+  console.log(result);
   return result;
 }
 

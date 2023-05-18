@@ -86,7 +86,7 @@ BreedVars {
   Identifier | BreedFirst | BreedMiddle | BreedLast
 }
 
-Procedure  {
+Procedure {
   To ProcedureName Arguments? ProcedureContent* End
 }
 
