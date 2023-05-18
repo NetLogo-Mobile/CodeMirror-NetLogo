@@ -31838,7 +31838,7 @@ if(!String.prototype.matchAll) {
         to = view.state.selection.main.to;
         let doc = view.state.doc.toString().substring(from, to);
         // eliminate extra spacing
-        let new_doc = initialSpaceRemoval(doc);
+        let new_doc = removeSpacingRegex(doc);
         view.dispatch(view.state.replaceSelection(new_doc));
         view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
         // add in new lines based on grammar
@@ -31861,11 +31861,11 @@ if(!String.prototype.matchAll) {
     const prettifyAll = function (view) {
         let doc = view.state.doc.toString();
         // eliminate extra spacing
-        let new_doc = avoidStrings(doc, initialSpaceRemoval);
+        let new_doc = removeSpacing(syntaxTree(view.state), doc);
         view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
         // give certain nodes their own lines
         view.dispatch({
-            changes: addSpacing(view, 0, view.state.doc.toString().length),
+            changes: addSpacing(view, 0, new_doc.length),
         });
         // ensure spacing is correct
         doc = view.state.doc.toString();
@@ -31876,8 +31876,48 @@ if(!String.prototype.matchAll) {
             changes: indentRange(view.state, 0, view.state.doc.toString().length),
         });
     };
-    /** initialSpaceRemoval: Make initial spacing adjustments. */
-    const initialSpaceRemoval = function (doc) {
+    /** removeSpacing: Make initial spacing adjustments. */
+    function removeSpacing(tree, doc) {
+        // initialize
+        var result = '';
+        var previous = '';
+        var lastPosition = 0;
+        // iterate through nodes
+        tree.iterate({
+            enter: (noderef) => {
+                if (noderef.node.firstChild != null)
+                    return;
+                var content = doc.substring(noderef.from, noderef.to);
+                // do minimum spacing
+                if (previous !== '(' && content !== ')') {
+                    var spacing = doc.substring(lastPosition, noderef.from);
+                    if (noderef.node.name == 'LineComment') {
+                        console.log(spacing);
+                        if (spacing.indexOf('\n\n') != -1)
+                            result += '\n\n';
+                        else
+                            result += '\n';
+                    }
+                    else {
+                        if (spacing.indexOf('\n') != -1)
+                            result += '\n';
+                        else
+                            result += ' ';
+                    }
+                }
+                // add content
+                result += content;
+                previous = content;
+                lastPosition = noderef.to;
+                console.log(content);
+            },
+            mode: IterMode.IncludeAnonymous,
+        });
+        console.log(result);
+        return result;
+    }
+    /** removeSpacing: Make initial spacing adjustments. */
+    function removeSpacingRegex(doc) {
         // let new_doc = doc.replace(/(\[|\])/g, ' $1 ');
         // new_doc = new_doc.replace(/[ ]*\)[ ]*/g, ') ');
         // new_doc = new_doc.replace(/[ ]*\([ ]*/g, ' (');
@@ -31890,7 +31930,7 @@ if(!String.prototype.matchAll) {
         new_doc = new_doc.replace(/[ ]+\n/g, '\n');
         new_doc = new_doc.replace(/\n\n+/g, '\n\n');
         return new_doc;
-    };
+    }
     /** finalSpacing: Make final spacing adjustments. */
     const finalSpacing = function (doc) {
         let new_doc = doc.replace(/\n[ ]+/g, '\n');
