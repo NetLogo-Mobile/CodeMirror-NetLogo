@@ -286,7 +286,7 @@ export class GalapagosEditor {
     State.RuntimeErrors = [];
     this.ForceLint();
     // Set the cursor position
-    this.Selection.SetCursorPosition(Errors[0].start);
+    if (Errors.length > 0) this.Selection.SetCursorPosition(Errors[0].start);
   }
   /** SetCompilerErrors: Sync the runtime errors and present it on the editor. */
   SetRuntimeErrors(Errors: RuntimeError[]) {
@@ -298,7 +298,7 @@ export class GalapagosEditor {
     State.RuntimeErrors = Errors;
     this.ForceLint();
     // Set the cursor position
-    this.Selection.SetCursorPosition(Errors[0].start);
+    if (Errors.length > 0) this.Selection.SetCursorPosition(Errors[0].start);
   }
   /** FixUnknownErrors: Fix the unknown errors. */
   private FixUnknownErrors(Errors: RuntimeError[]) {
