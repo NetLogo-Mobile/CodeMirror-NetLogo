@@ -87,9 +87,9 @@ function removeSpacing(tree: Tree, doc: string): string {
       if (previous !== '(' && content !== ')') {
         var spacing = doc.substring(lastPosition, noderef.from);
         if (noderef.node.name == 'LineComment') {
-          console.log(spacing);
           if (spacing.indexOf('\n\n') != -1) result += '\n\n';
-          else result += '\n';
+          else if (spacing.indexOf('\n') != -1) result += '\n';
+          else result += ' ';
         } else {
           if (spacing.indexOf('\n') != -1) result += '\n';
           else result += ' ';
@@ -99,11 +99,9 @@ function removeSpacing(tree: Tree, doc: string): string {
       result += content;
       previous = content;
       lastPosition = noderef.to;
-      console.log(content);
     },
     mode: IterMode.IncludeAnonymous,
   });
-  console.log(result);
   return result;
 }
 
