@@ -30,7 +30,12 @@ export const RuntimeLinter: LintSource = (view: EditorView) => {
 
 // RuntimeError: Error from the compiler.
 export interface RuntimeError {
+  /** Message: The error message. */
   message: string;
+  /** Start: The start position of the error. */
   start: number;
+  /** End: The end position of the error. */
   end: number;
+  /** Code: The code snippet that bears the error. */
+  code?: string;
 }

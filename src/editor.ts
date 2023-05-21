@@ -206,10 +206,13 @@ export class GalapagosEditor {
   GetCodeSlice(Start: number, End: number) {
     return this.CodeMirror.state.sliceDoc(Start, End);
   }
+  /** IsReadOnly: Whether the editor is readonly. */
+  IsReadOnly: boolean = false;
   /** SetReadOnly: Set the readonly status for the editor. */
-  SetReadOnly(status: boolean) {
+  SetReadOnly(Status: boolean) {
+    this.IsReadOnly = Status;
     this.CodeMirror.dispatch({
-      effects: this.Editable.reconfigure(EditorView.editable.of(!status)),
+      effects: this.Editable.reconfigure(EditorView.editable.of(!Status)),
     });
   }
   /** AddChild: Add a child editor. */
@@ -309,6 +312,10 @@ export class GalapagosEditor {
       if (Error.start == 2147483647) {
         Error.start = 0;
         Error.end = FirstBreak;
+      } else {
+        try {
+          Error.code = Code.slice(Error.start, Error.end);
+        } catch {}
       }
     });
   }

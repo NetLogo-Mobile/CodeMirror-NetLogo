@@ -186,6 +186,10 @@ const en_us: Record<string, Function> = {
   'Please download Turtle Universe': () =>
     `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
 
+  // Options
+  'Help me fix this code': () => `Help me fix this code`,
+  'Explain the error': () => `Explain the error`,
+
   // Default messages
   'Command center welcome (user)': () =>
     `What is here about? Where should I start with?`,

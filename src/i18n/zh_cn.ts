@@ -165,6 +165,8 @@ const zh_cn: Record<string, Function> = {
   'Successfully compiled': () => `成功编译了代码。现在可以开始执行了！`,
   'Runtime error _': (Error: string) => `运行时错误：${Error}`,
   'Compile error _': (Error: string) => `抱歉，未能理解你输入的命令：${Error}`,
+  'Runtime error in snippet _': (Number: number) =>
+    `抱歉，代码运行时出现了 ${Number} 个错误。`,
   'Compile error in snippet _': (Number: number) =>
     `抱歉，代码中还有 ${Number} 个错误。`,
   'Compile error unknown': (Number: number) =>
@@ -177,6 +179,10 @@ const zh_cn: Record<string, Function> = {
     `在执行 \`${Name}\` 之前，需要知道它的参数。`,
   'Please download Turtle Universe': () =>
     `功能在网页模式下不可用。请下载[海龟实验室](https://www.turtlesim.com/products/turtle-universe/index-cn.html)以获得更好的体验。`,
+
+  // Options
+  'Help me fix this code': () => `试试 AI 自动修复代码`,
+  'Explain the error': () => `让 AI 解释错误信息`,
 
   // Default messages
   'Command center welcome (user)': () => `这是哪儿？我应该怎么开始使用？`,
