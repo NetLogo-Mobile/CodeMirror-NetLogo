@@ -16614,7 +16614,7 @@ if(!String.prototype.matchAll) {
         });
     }
     /**
-    Syntax node prop used to register sublangauges. Should be added to
+    Syntax node prop used to register sublanguages. Should be added to
     the top level node type for the language.
     */
     const sublanguageProp = /*@__PURE__*/new NodeProp();
@@ -16806,8 +16806,15 @@ if(!String.prototype.matchAll) {
             view.dispatch({});
         return !!success;
     }
-    // Lezer-style Input object for a Text document.
+    /**
+    Lezer-style
+    [`Input`](https://lezer.codemirror.net/docs/ref#common.Input)
+    object for a [`Text`](https://codemirror.net/6/docs/ref/#state.Text) object.
+    */
     class DocInput {
+        /**
+        Create an input object for the given document.
+        */
         constructor(doc) {
             this.doc = doc;
             this.cursorPos = 0;
@@ -31454,6 +31461,9 @@ if(!String.prototype.matchAll) {
         'Showing full text help of _': (Name) => `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
         'Arguments needed for execution _': (Name, Arguments) => `The "${Name}" procedure needs argument${Arguments > 1 ? 's' : ''} to run. Please provide them.`,
         'Please download Turtle Universe': () => `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
+        // Options
+        'Help me fix this code': () => `Help me fix this code`,
+        'Explain the error': () => `Explain the error`,
         // Default messages
         'Command center welcome (user)': () => `What is here about? Where should I start with?`,
         'Command center welcome (command)': () => `Here is the command center. You can type in NetLogo code and run it here, but there is always more to explore. Here are something you can try out.`,
@@ -31574,12 +31584,16 @@ if(!String.prototype.matchAll) {
         'Successfully compiled': () => `成功编译了代码。现在可以开始执行了！`,
         'Runtime error _': (Error) => `运行时错误：${Error}`,
         'Compile error _': (Error) => `抱歉，未能理解你输入的命令：${Error}`,
+        'Runtime error in snippet _': (Number) => `抱歉，代码运行时出现了 ${Number} 个错误。`,
         'Compile error in snippet _': (Number) => `抱歉，代码中还有 ${Number} 个错误。`,
         'Compile error unknown': (Number) => `抱歉，编译过程中存在未知错误。请将 BUG 报告给开发者。`,
         'Compile error in model': () => `编译模型时遇到错误。请先修复代码面板中的错误，然后尝试执行。`,
         'Showing full text help of _': (Name) => `显示 [${Name}](<observer=help ${Name} -full>) 的帮助文档。`,
         'Arguments needed for execution _': (Name, Arguments) => `在执行 \`${Name}\` 之前，需要知道它的参数。`,
         'Please download Turtle Universe': () => `功能在网页模式下不可用。请下载[海龟实验室](https://www.turtlesim.com/products/turtle-universe/index-cn.html)以获得更好的体验。`,
+        // Options
+        'Help me fix this code': () => `试试 AI 自动修复代码`,
+        'Explain the error': () => `让 AI 解释错误信息`,
         // Default messages
         'Command center welcome (user)': () => `这是哪儿？我应该怎么开始使用？`,
         'Command center welcome (command)': () => `你好！这里是控制台。你可以在这里输入 NetLogo 命令并立即执行。还有许多值得探索的功能，例如：`,
@@ -32378,6 +32392,8 @@ if(!String.prototype.matchAll) {
             var _a, _b;
             /** Linters: The linters used in this instance. */
             this.Linters = [];
+            /** IsReadOnly: Whether the editor is readonly. */
+            this.IsReadOnly = false;
             // #endregion
             // #region "Context Sharing"
             /** ID: ID of the editor. */
@@ -32522,9 +32538,10 @@ if(!String.prototype.matchAll) {
             return this.CodeMirror.state.sliceDoc(Start, End);
         }
         /** SetReadOnly: Set the readonly status for the editor. */
-        SetReadOnly(status) {
+        SetReadOnly(Status) {
+            this.IsReadOnly = Status;
             this.CodeMirror.dispatch({
-                effects: this.Editable.reconfigure(EditorView.editable.of(!status)),
+                effects: this.Editable.reconfigure(EditorView.editable.of(!Status)),
             });
         }
         /** AddChild: Add a child editor. */
@@ -32626,6 +32643,12 @@ if(!String.prototype.matchAll) {
                 if (Error.start == 2147483647) {
                     Error.start = 0;
                     Error.end = FirstBreak;
+                }
+                else {
+                    try {
+                        Error.code = Code.slice(Error.start, Error.end);
+                    }
+                    catch (_a) { }
                 }
             });
         }

@@ -48,8 +48,10 @@ export declare class GalapagosEditor {
     GetCode(): string;
     /** GetCodeSlice: Returns a slice of code from the editor. */
     GetCodeSlice(Start: number, End: number): string;
+    /** IsReadOnly: Whether the editor is readonly. */
+    IsReadOnly: boolean;
     /** SetReadOnly: Set the readonly status for the editor. */
-    SetReadOnly(status: boolean): void;
+    SetReadOnly(Status: boolean): void;
     /** AddChild: Add a child editor. */
     AddChild(child: GalapagosEditor): void;
     /** Blur: Make the editor lose the focus (if any). */
