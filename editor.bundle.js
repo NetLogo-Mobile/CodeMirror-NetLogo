@@ -32164,6 +32164,7 @@ if(!String.prototype.matchAll) {
         syntaxTree(state)
             .cursor()
             .iterate((noderef) => {
+            var _a, _b;
             //Log(noderef.name, comments);
             //check for misplaced non-global statements at the global level
             //Collect them into intoProcedure, and remove them from the code
@@ -32231,6 +32232,19 @@ if(!String.prototype.matchAll) {
                         });
                     }
                 });
+            }
+            if (noderef.name == 'SpecialCommand0Args' &&
+                state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'setup') {
+                let procedure = (_b = (_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.parent) === null || _b === void 0 ? void 0 : _b.parent;
+                let name = procedure === null || procedure === void 0 ? void 0 : procedure.getChild('ProcedureName');
+                if ((procedure === null || procedure === void 0 ? void 0 : procedure.name) == 'Procedure' &&
+                    state.sliceDoc(name === null || name === void 0 ? void 0 : name.from, name === null || name === void 0 ? void 0 : name.to).toLowerCase() == 'go') {
+                    changes.push({
+                        from: commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from,
+                        to: noderef.to + 1,
+                        insert: '',
+                    });
+                }
             }
             // Record the position of the first procedure to know where to add 'play'
             if (!procedureStart && noderef.name == 'Procedure')
