@@ -203,6 +203,23 @@ export function FixGeneratedCode(
           }
         });
       }
+      if (
+        noderef.name == 'SpecialCommand0Args' &&
+        state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'setup'
+      ) {
+        let procedure = noderef.node.parent?.parent?.parent;
+        let name = procedure?.getChild('ProcedureName');
+        if (
+          procedure?.name == 'Procedure' &&
+          state.sliceDoc(name?.from, name?.to).toLowerCase() == 'go'
+        ) {
+          changes.push({
+            from: commentsStart ?? noderef.from,
+            to: noderef.to + 1,
+            insert: '',
+          });
+        }
+      }
       // Record the position of the first procedure to know where to add 'play'
       if (!procedureStart && noderef.name == 'Procedure')
         procedureStart = noderef.from;
