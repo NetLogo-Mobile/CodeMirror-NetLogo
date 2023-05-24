@@ -31462,6 +31462,7 @@ if(!String.prototype.matchAll) {
         'Do you want to reset the code': () => 'Do you want to reset the code to the last successful compilation?',
         'Type NetLogo command here': () => 'Type NetLogo command here',
         'Talk to the computer in NetLogo or natural languages': () => `Talk to the computer in NetLogo or natural languages`,
+        'Copied to clipboard': () => 'The item has been copied to clipboard.',
         // Chat and execution messages
         'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
         'Summary of request': () => `Below is a summary of my request: `,
@@ -31591,6 +31592,7 @@ if(!String.prototype.matchAll) {
         'Run command': () => `执行命令`,
         'Run reporter': () => `执行函数`,
         'Execute the procedure': () => `开始执行这段程序`,
+        'Copied to clipboard': () => `内容已复制到剪贴板。`,
         // Chat and execution messages
         'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
         'Summary of request': () => `简单总结我的请求的要点：`,
