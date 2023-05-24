@@ -7,6 +7,8 @@ import {
 import { getSingularName } from './utils/breed-utils';
 import { syntaxTree } from '@codemirror/language';
 import { Log } from './utils/debug-utils';
+import { LintContext } from 'src/lang/classes/contexts';
+import { BreedType } from 'src/lang/classes/structures';
 
 /** FixGeneratedCode: Try to fix and prettify the generated code. */
 export function FixGeneratedCodeRegex(
@@ -122,6 +124,7 @@ export function FixGeneratedCode(
   let commentsStart: null | number = null;
   let commentFrom: null | number = null;
   let procedureStart: null | number = null;
+  let reserved = getReserved(Editor.LintContext);
   // Go over the syntax tree
   syntaxTree(state)
     .cursor()
@@ -220,9 +223,44 @@ export function FixGeneratedCode(
           });
         }
       }
-      // if(noderef.name=='Procedure' && noderef.node.getChildren('ProcedureContent').length==1){
-
-      // }
+      if (
+        noderef.name == 'Procedure' &&
+        noderef.node.getChildren('ProcedureContent').length == 1
+      ) {
+        let child = noderef.node
+          .getChild('ProcedureContent')
+          ?.getChild('CommandStatement')
+          ?.getChild('SpecialCommand0Args');
+        if (
+          child &&
+          state.doc
+            .toString()
+            .toLowerCase()
+            .includes('to ' + state.sliceDoc(child.from, child.to))
+        ) {
+          changes.push({
+            from: noderef.from,
+            to: noderef.to,
+            insert: '',
+          });
+        }
+      } else if (
+        noderef.name == 'Procedure' &&
+        noderef.node.getChildren('ProcedureContent').length == 0
+      ) {
+        changes.push({ from: noderef.from, to: noderef.to, insert: '' });
+      } else if (noderef.name == 'ProcedureName') {
+        let name = state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+        if (reserved.includes(name)) {
+          let pieces = name.split('-');
+          pieces[0] = 'setup';
+          changes.push({
+            from: noderef.from,
+            to: noderef.to,
+            insert: pieces.join('-'),
+          });
+        }
+      }
       // Record the position of the first procedure to know where to add 'play'
       if (!procedureStart && noderef.name == 'Procedure')
         procedureStart = noderef.from;
@@ -272,4 +310,41 @@ export function FixGeneratedCode(
 function AddComments(str: string, comments: string[]) {
   if (comments.length == 0) return str;
   else return comments.join('\n') + '\n' + str;
+}
+
+function getReserved(lintContext: LintContext) {
+  let all = [];
+  for (let b of lintContext.Breeds.values()) {
+    if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+      all.push('hatch-' + b.Plural);
+      all.push('sprout-' + b.Plural);
+      all.push('create-' + b.Plural);
+      all.push('create-ordered-' + b.Plural);
+      all.push(b.Plural + '-at');
+      all.push(b.Plural + '-here');
+      all.push(b.Plural + '-on');
+      all.push('is-' + b.Singular + '?');
+    } else {
+      all.push('create-' + b.Plural + '-to');
+      all.push('create-' + b.Singular + '-to');
+      all.push('create-' + b.Plural + '-from');
+      all.push('create-' + b.Singular + '-from');
+      all.push('create-' + b.Plural + '-with');
+      all.push('create-' + b.Singular + '-with');
+      all.push('out-' + b.Singular + '-to');
+      all.push('out-' + b.Singular + '-neighbors');
+      all.push('out-' + b.Singular + '-neighbor?');
+      all.push('in-' + b.Singular + '-from');
+      all.push('in-' + b.Singular + '-neighbors');
+      all.push('in-' + b.Singular + '-neighbor?');
+      all.push('my-' + b.Plural);
+      all.push('my-in-' + b.Plural);
+      all.push('my-out-' + b.Plural);
+      all.push(b.Singular + '-neighbor?');
+      all.push(b.Singular + '-neighbors');
+      all.push(b.Singular + '-with');
+      all.push('is-' + b.Singular + '?');
+    }
+  }
+  return all;
 }
