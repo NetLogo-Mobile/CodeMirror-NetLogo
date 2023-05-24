@@ -1,6 +1,14 @@
-import { indentRange, syntaxTree } from '@codemirror/language';
+import {
+  getIndentation,
+  indentRange,
+  syntaxTree,
+  indentString,
+} from '@codemirror/language';
 import { EditorView } from 'codemirror';
 import { IterMode, SyntaxNode, Tree } from '@lezer/common';
+import { GalapagosEditor } from 'src/editor';
+import { Log } from './utils/debug-utils';
+import { EditorState } from '@codemirror/state';
 
 /** prettify: Change selection to fit formatting standards. */
 export const prettify = function (
@@ -49,37 +57,68 @@ export const prettify = function (
 };
 
 /** prettifyAll: Make whole code file follow formatting standards. */
-export const prettifyAll = function (view: EditorView) {
+export const prettifyAll = function (
+  view: EditorView,
+  Editor: GalapagosEditor
+) {
   let doc = view.state.doc.toString();
 
   // eliminate extra spacing
   let new_doc = removeSpacing(syntaxTree(view.state), doc);
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
-
+  Editor.ForceParse();
   // give certain nodes their own lines
   view.dispatch({
     changes: addSpacing(view, 0, new_doc.length),
   });
-
+  Editor.ForceParse();
+  //console.log(view.state.doc.toString())
   // ensure spacing is correct
-  doc = view.state.doc.toString();
-  new_doc = avoidStrings(doc, finalSpacing).trim();
-  view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+  // doc = view.state.doc.toString();
+  // new_doc = avoidStrings(doc, finalSpacing).trim();
+  // view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
 
   // add indentation
   view.dispatch({
-    changes: indentRange(view.state, 0, view.state.doc.toString().length),
+    changes: indentRange(view.state, 0, view.state.doc.toString().length), //indent(view.state.doc.toString(),view.state)
   });
+  if (doc != view.state.doc.toString()) {
+    Log('made changes');
+  }
 };
 
 const doubleLineBreaks = [
-  'LineComment',
+  // 'LineComment',
   'GlobalStr',
   'ExtensionStr',
   'BreedStr',
   'Own',
   'To',
 ];
+
+function indent(doc: String, state: EditorState) {
+  let changes = [];
+  let start: null | number = null;
+  let end = 0;
+  for (let pos = 0; pos < doc.length; pos++) {
+    if (doc[pos] == '\n') {
+      start = pos;
+    } else if (start && doc[pos] != ' ' && doc[pos] != ';') {
+      end = pos;
+      let indent = getIndentation(state, pos) ?? 0;
+      //console.log(indent,doc.substring(end,end+3))
+      if (indent % 2 != 0) {
+        indent++;
+      }
+      changes.push({ from: start, to: end, insert: '\n' + ' '.repeat(indent) });
+      start = null;
+    } else if (doc[pos] == ';') {
+      start = null;
+    }
+  }
+  //console.log(changes.length)
+  return changes;
+}
 
 /** removeSpacing: Make initial spacing adjustments. */
 function removeSpacing(tree: Tree, doc: string): string {
@@ -91,14 +130,18 @@ function removeSpacing(tree: Tree, doc: string): string {
   tree.iterate({
     enter: (noderef) => {
       if (noderef.node.firstChild != null) return;
+
       var content = doc.substring(noderef.from, noderef.to);
       // do minimum spacing
-      if (previous !== '(' && content !== ')') {
+      if (previous !== '(' && content !== ')' && noderef.from > 0) {
         var spacing = doc.substring(lastPosition, noderef.from);
         if (doubleLineBreaks.indexOf(noderef.node.name) !== -1) {
           if (spacing.indexOf('\n\n') != -1) result += '\n\n';
           else if (spacing.indexOf('\n') != -1) result += '\n';
           else result += ' ';
+        } else if (noderef.name == 'LineComment') {
+          spacing = spacing.replace(/\n\n+/g, '\n\n');
+          result += spacing;
         } else {
           if (spacing.indexOf('\n') != -1) result += '\n';
           else result += ' ';
@@ -111,7 +154,7 @@ function removeSpacing(tree: Tree, doc: string): string {
     },
     mode: IterMode.IncludeAnonymous,
   });
-  console.log(result);
+  //console.log(result);
   return result;
 }
 
@@ -227,20 +270,48 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
               }
             });
           }
-        } else if (node.name == 'OpenParen') {
+        } else if (
+          node.name == 'OpenParen' &&
+          ![' ', '(', '\n'].includes(
+            view.state.sliceDoc(node.from - 1, node.from)
+          )
+        ) {
           changes.push({ from: node.from, to: node.to, insert: ' (' });
-        } else if (node.name == 'CloseParen') {
+        } else if (
+          node.name == 'CloseParen' &&
+          ![' ', '\n', ')'].includes(view.state.sliceDoc(node.to, node.to + 1))
+        ) {
           changes.push({ from: node.from, to: node.to, insert: ') ' });
         } else if (node.name == 'OpenBracket') {
-          changes.push({ from: node.from, to: node.to, insert: ' [ ' });
+          let bracket = '';
+          if (view.state.sliceDoc(node.from - 1, node.from) != ' ') {
+            bracket += ' ';
+          }
+          bracket += '[';
+          if (
+            ![' ', '\n'].includes(view.state.sliceDoc(node.to, node.to + 1))
+          ) {
+            bracket += ' ';
+          }
+          changes.push({ from: node.from, to: node.to, insert: bracket });
         } else if (node.name == 'CloseBracket') {
-          changes.push({ from: node.from, to: node.to, insert: ' ] ' });
+          let bracket = '';
+          if (view.state.sliceDoc(node.from - 1, node.from) != ' ') {
+            bracket += ' ';
+          }
+          bracket += ']';
+          if (
+            ![' ', '\n'].includes(view.state.sliceDoc(node.to, node.to + 1))
+          ) {
+            bracket += ' ';
+          }
+          changes.push({ from: node.from, to: node.to, insert: bracket });
         }
         if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
           if (doc.substring(node.from, node.to).includes('\n')) {
             for (var name of ['CloseBracket', 'Extension', 'Identifier']) {
               node.node.getChildren(name).map((child) => {
-                if (doc[child.from - 1] != '\n') {
+                if (doc[child.from - 1] != '\n' && child.from > 0) {
                   changes.push({
                     from: child.from,
                     to: child.from,

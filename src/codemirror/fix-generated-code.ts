@@ -220,6 +220,9 @@ export function FixGeneratedCode(
           });
         }
       }
+      // if(noderef.name=='Procedure' && noderef.node.getChildren('ProcedureContent').length==1){
+
+      // }
       // Record the position of the first procedure to know where to add 'play'
       if (!procedureStart && noderef.name == 'Procedure')
         procedureStart = noderef.from;

@@ -94,7 +94,7 @@ export class SemanticFeatures {
   /** PrettifyAll: Prettify all the NetLogo code. */
   PrettifyAll() {
     this.Galapagos.ForceParse();
-    prettifyAll(this.CodeMirror);
+    prettifyAll(this.CodeMirror, this.Galapagos);
   }
   /** PrettifyOrAll: Prettify the selected code. If no code is selected, prettify all. */
   PrettifyOrAll() {

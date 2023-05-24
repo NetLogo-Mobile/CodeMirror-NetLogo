@@ -11,6 +11,7 @@ import {
   foldInside,
   continuedIndent,
   ParseContext,
+  TreeIndentContext,
 } from '@codemirror/language';
 import { styleTags, tags as t } from '@lezer/highlight';
 import { closeBrackets } from '@codemirror/autocomplete';
@@ -121,18 +122,28 @@ export const NetLogoLanguage = LRLanguage.define({
       }),
       // Indentations
       indentNodeProp.add({
-        CodeBlock: delimitedIndent({ closing: ']', align: false }),
+        // LineComment:(context)=>{
+        //   console.log("HERE")
+        //   console.log(context.column(context.pos))
+        //   console.log(context)
+        //   return context.column(context.pos)
+        // },
+        ReporterContent: delimitedIndent({ closing: '[', align: true }),
+        ReporterStatement: delimitedIndent({ closing: '[', align: true }),
+        CommandStatement: delimitedIndent({ closing: '[', align: true }),
+        ProcedureContent: delimitedIndent({ closing: '[' }),
+        CodeBlock: delimitedIndent({ closing: ']' }),
         AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
         Extensions: delimitedIndent({ closing: ']', align: false }),
         Globals: delimitedIndent({ closing: ']', align: false }),
         Breed: delimitedIndent({ closing: ']', align: false }),
         BreedsOwn: delimitedIndent({ closing: ']', align: false }),
-        Procedure: (context) =>
-          /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
+        Procedure: (context) => {
+          return /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
             ? context.baseIndent
-            : context.lineIndent(context.node.from) + context.unit,
-        ReporterContent: continuedIndent(),
-        ProcedureContent: continuedIndent(),
+            : context.lineIndent(context.node.from) + context.unit;
+        },
+
         // delimitedIndent({ closing: 'end' }),
         // Doesn't work well with "END" or "eND". Should do a bug report to CM6.
       }),
@@ -149,6 +160,23 @@ export const NetLogoLanguage = LRLanguage.define({
     indentOnInput: /^\s*end$/i,
   },
 });
+
+function getUnits(context: TreeIndentContext) {
+  if (/^\s*\[/.test(context.textAfter) || /^\s*\]/.test(context.textAfter)) {
+    console.log('skipping');
+    return 0;
+  }
+  console.log(context.node.firstChild?.name);
+  //if(node){}
+  let match = context.textAfter.match(/^\s*([\w|-]+)/);
+  console.log(context.textAfter, match);
+  if (match) {
+    console.log(match);
+    return match[0].length;
+  } else {
+    return 2;
+  }
+}
 
 /// [Fold](#language.foldNodeProp) function that folds everything but
 /// the first and the last child of a syntax node. Useful for nodes
