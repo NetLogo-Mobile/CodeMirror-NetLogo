@@ -44,10 +44,6 @@ if(!String.prototype.matchAll) {
     */
     class Text {
         /**
-        @internal
-        */
-        constructor() { }
-        /**
         Get the line description around the given position.
         */
         lineAt(pos) {
@@ -141,7 +137,8 @@ if(!String.prototype.matchAll) {
             return new LineCursor(inner);
         }
         /**
-        @internal
+        Return the document as a string, using newline characters to
+        separate lines.
         */
         toString() { return this.sliceString(0); }
         /**
@@ -153,6 +150,10 @@ if(!String.prototype.matchAll) {
             this.flatten(lines);
             return lines;
         }
+        /**
+        @internal
+        */
+        constructor() { }
         /**
         Create a `Text` instance for the given array of lines.
         */
@@ -2197,7 +2198,10 @@ if(!String.prototype.matchAll) {
         is(type) { return this.type == type; }
         /**
         Define a new effect type. The type parameter indicates the type
-        of values that his effect holds.
+        of values that his effect holds. It should be a type that
+        doesn't include `undefined`, since that is used in
+        [mapping](https://codemirror.net/6/docs/ref/#state.StateEffect.map) to indicate that an effect is
+        removed.
         */
         static define(spec = {}) {
             return new StateEffectType(spec.map || (v => v));
@@ -3340,8 +3344,7 @@ if(!String.prototype.matchAll) {
         static compare(oldSets, newSets, 
         /**
         This indicates how the underlying data changed between these
-        ranges, and is needed to synchronize the iteration. `from` and
-        `to` are coordinates in the _new_ space, after these changes.
+        ranges, and is needed to synchronize the iteration.
         */
         textDiff, comparator, 
         /**
@@ -3452,6 +3455,18 @@ if(!String.prototype.matchAll) {
     an array of [`Range`](https://codemirror.net/6/docs/ref/#state.Range) objects.
     */
     class RangeSetBuilder {
+        finishChunk(newArrays) {
+            this.chunks.push(new Chunk(this.from, this.to, this.value, this.maxPoint));
+            this.chunkPos.push(this.chunkStart);
+            this.chunkStart = -1;
+            this.setMaxPoint = Math.max(this.setMaxPoint, this.maxPoint);
+            this.maxPoint = -1;
+            if (newArrays) {
+                this.from = [];
+                this.to = [];
+                this.value = [];
+            }
+        }
         /**
         Create an empty builder.
         */
@@ -3468,18 +3483,6 @@ if(!String.prototype.matchAll) {
             this.maxPoint = -1;
             this.setMaxPoint = -1;
             this.nextLayer = null;
-        }
-        finishChunk(newArrays) {
-            this.chunks.push(new Chunk(this.from, this.to, this.value, this.maxPoint));
-            this.chunkPos.push(this.chunkStart);
-            this.chunkStart = -1;
-            this.setMaxPoint = Math.max(this.setMaxPoint, this.maxPoint);
-            this.maxPoint = -1;
-            if (newArrays) {
-                this.from = [];
-                this.to = [];
-                this.value = [];
-            }
         }
         /**
         Add a range. Ranges should be added in sorted (by `from` and
@@ -3840,7 +3843,7 @@ if(!String.prototype.matchAll) {
             let end = diff < 0 ? a.to + dPos : b.to, clipEnd = Math.min(end, endB);
             if (a.point || b.point) {
                 if (!(a.point && b.point && (a.point == b.point || a.point.eq(b.point)) &&
-                    sameValues(a.activeForPoint(a.to + dPos), b.activeForPoint(b.to))))
+                    sameValues(a.activeForPoint(a.to), b.activeForPoint(b.to))))
                     comparator.comparePoint(pos, clipEnd, a.point, b.point);
             }
             else {
@@ -16094,7 +16097,7 @@ if(!String.prototype.matchAll) {
                         break;
                     pos = next.to + start;
                     if (pos > from) {
-                        this.highlightRange(inner.cursor(), Math.max(from, next.from + start), Math.min(to, pos), inheritedClass, innerHighlighters);
+                        this.highlightRange(inner.cursor(), Math.max(from, next.from + start), Math.min(to, pos), "", innerHighlighters);
                         this.startSpan(pos, cls);
                     }
                 }
@@ -16102,6 +16105,8 @@ if(!String.prototype.matchAll) {
                     cursor.parent();
             }
             else if (cursor.firstChild()) {
+                if (mounted)
+                    inheritedClass = "";
                 do {
                     if (cursor.to <= from)
                         continue;
@@ -26870,17 +26875,27 @@ if(!String.prototype.matchAll) {
                 }),
                 // Indentations
                 indentNodeProp.add({
-                    CodeBlock: delimitedIndent({ closing: ']', align: false }),
+                    // LineComment:(context)=>{
+                    //   console.log("HERE")
+                    //   console.log(context.column(context.pos))
+                    //   console.log(context)
+                    //   return context.column(context.pos)
+                    // },
+                    ReporterContent: delimitedIndent({ closing: '[', align: true }),
+                    ReporterStatement: delimitedIndent({ closing: '[', align: true }),
+                    CommandStatement: delimitedIndent({ closing: '[', align: true }),
+                    ProcedureContent: delimitedIndent({ closing: '[' }),
+                    CodeBlock: delimitedIndent({ closing: ']' }),
                     AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
                     Extensions: delimitedIndent({ closing: ']', align: false }),
                     Globals: delimitedIndent({ closing: ']', align: false }),
                     Breed: delimitedIndent({ closing: ']', align: false }),
                     BreedsOwn: delimitedIndent({ closing: ']', align: false }),
-                    Procedure: (context) => /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
-                        ? context.baseIndent
-                        : context.lineIndent(context.node.from) + context.unit,
-                    ReporterContent: continuedIndent(),
-                    ProcedureContent: continuedIndent(),
+                    Procedure: (context) => {
+                        return /^\s*[Ee][Nn][Dd]/.test(context.textAfter)
+                            ? context.baseIndent
+                            : context.lineIndent(context.node.from) + context.unit;
+                    },
                     // delimitedIndent({ closing: 'end' }),
                     // Doesn't work well with "END" or "eND". Should do a bug report to CM6.
                 }),
@@ -31872,26 +31887,32 @@ if(!String.prototype.matchAll) {
         return view.state.selection.main.to;
     };
     /** prettifyAll: Make whole code file follow formatting standards. */
-    const prettifyAll = function (view) {
+    const prettifyAll = function (view, Editor) {
         let doc = view.state.doc.toString();
         // eliminate extra spacing
         let new_doc = removeSpacing(syntaxTree(view.state), doc);
         view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+        Editor.ForceParse();
         // give certain nodes their own lines
         view.dispatch({
             changes: addSpacing(view, 0, new_doc.length),
         });
+        Editor.ForceParse();
+        //console.log(view.state.doc.toString())
         // ensure spacing is correct
-        doc = view.state.doc.toString();
-        new_doc = avoidStrings(doc, finalSpacing).trim();
-        view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+        // doc = view.state.doc.toString();
+        // new_doc = avoidStrings(doc, finalSpacing).trim();
+        // view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
         // add indentation
         view.dispatch({
-            changes: indentRange(view.state, 0, view.state.doc.toString().length),
+            changes: indentRange(view.state, 0, view.state.doc.toString().length), //indent(view.state.doc.toString(),view.state)
         });
+        if (doc != view.state.doc.toString()) {
+            Log('made changes');
+        }
     };
     const doubleLineBreaks = [
-        'LineComment',
+        // 'LineComment',
         'GlobalStr',
         'ExtensionStr',
         'BreedStr',
@@ -31911,7 +31932,7 @@ if(!String.prototype.matchAll) {
                     return;
                 var content = doc.substring(noderef.from, noderef.to);
                 // do minimum spacing
-                if (previous !== '(' && content !== ')') {
+                if (previous !== '(' && content !== ')' && noderef.from > 0) {
                     var spacing = doc.substring(lastPosition, noderef.from);
                     if (doubleLineBreaks.indexOf(noderef.node.name) !== -1) {
                         if (spacing.indexOf('\n\n') != -1)
@@ -31920,6 +31941,10 @@ if(!String.prototype.matchAll) {
                             result += '\n';
                         else
                             result += ' ';
+                    }
+                    else if (noderef.name == 'LineComment') {
+                        spacing = spacing.replace(/\n\n+/g, '\n\n');
+                        result += spacing;
                     }
                     else {
                         if (spacing.indexOf('\n') != -1)
@@ -31935,7 +31960,7 @@ if(!String.prototype.matchAll) {
             },
             mode: IterMode.IncludeAnonymous,
         });
-        console.log(result);
+        //console.log(result);
         return result;
     }
     /** removeSpacing: Make initial spacing adjustments. */
@@ -31962,21 +31987,6 @@ if(!String.prototype.matchAll) {
         new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
         new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
         return new_doc;
-    };
-    const avoidStrings = function (doc, func) {
-        let pieces = doc.split('"');
-        let index = 0;
-        let final_docs = [];
-        for (var piece of pieces) {
-            if (index % 2 == 0) {
-                final_docs.push(func(piece));
-            }
-            else {
-                final_docs.push(piece);
-            }
-            index++;
-        }
-        return final_docs.join('"');
     };
     /** addSpacing: Give certain types of nodes their own lines. */
     const addSpacing = function (view, from, to) {
@@ -32045,23 +32055,41 @@ if(!String.prototype.matchAll) {
                         });
                     }
                 }
-                else if (node.name == 'OpenParen') {
+                else if (node.name == 'OpenParen' &&
+                    ![' ', '(', '\n'].includes(view.state.sliceDoc(node.from - 1, node.from))) {
                     changes.push({ from: node.from, to: node.to, insert: ' (' });
                 }
-                else if (node.name == 'CloseParen') {
+                else if (node.name == 'CloseParen' &&
+                    ![' ', '\n', ')'].includes(view.state.sliceDoc(node.to, node.to + 1))) {
                     changes.push({ from: node.from, to: node.to, insert: ') ' });
                 }
                 else if (node.name == 'OpenBracket') {
-                    changes.push({ from: node.from, to: node.to, insert: ' [ ' });
+                    let bracket = '';
+                    if (view.state.sliceDoc(node.from - 1, node.from) != ' ') {
+                        bracket += ' ';
+                    }
+                    bracket += '[';
+                    if (![' ', '\n'].includes(view.state.sliceDoc(node.to, node.to + 1))) {
+                        bracket += ' ';
+                    }
+                    changes.push({ from: node.from, to: node.to, insert: bracket });
                 }
                 else if (node.name == 'CloseBracket') {
-                    changes.push({ from: node.from, to: node.to, insert: ' ] ' });
+                    let bracket = '';
+                    if (view.state.sliceDoc(node.from - 1, node.from) != ' ') {
+                        bracket += ' ';
+                    }
+                    bracket += ']';
+                    if (![' ', '\n'].includes(view.state.sliceDoc(node.to, node.to + 1))) {
+                        bracket += ' ';
+                    }
+                    changes.push({ from: node.from, to: node.to, insert: bracket });
                 }
                 if (['Extensions', 'Globals', 'BreedsOwn'].includes(node.name)) {
                     if (doc.substring(node.from, node.to).includes('\n')) {
                         for (var name of ['CloseBracket', 'Extension', 'Identifier']) {
                             node.node.getChildren(name).map((child) => {
-                                if (doc[child.from - 1] != '\n') {
+                                if (doc[child.from - 1] != '\n' && child.from > 0) {
                                     changes.push({
                                         from: child.from,
                                         to: child.from,
@@ -32246,6 +32274,8 @@ if(!String.prototype.matchAll) {
                     });
                 }
             }
+            // if(noderef.name=='Procedure' && noderef.node.getChildren('ProcedureContent').length==1){
+            // }
             // Record the position of the first procedure to know where to add 'play'
             if (!procedureStart && noderef.name == 'Procedure')
                 procedureStart = noderef.from;
@@ -32369,7 +32399,7 @@ if(!String.prototype.matchAll) {
         /** PrettifyAll: Prettify all the NetLogo code. */
         PrettifyAll() {
             this.Galapagos.ForceParse();
-            prettifyAll(this.CodeMirror);
+            prettifyAll(this.CodeMirror, this.Galapagos);
         }
         /** PrettifyOrAll: Prettify the selected code. If no code is selected, prettify all. */
         PrettifyOrAll() {
