@@ -32188,11 +32188,12 @@ if(!String.prototype.matchAll) {
         let commentsStart = null;
         let commentFrom = null;
         let procedureStart = null;
+        let reserved = getReserved(Editor.LintContext);
         // Go over the syntax tree
         syntaxTree(state)
             .cursor()
             .iterate((noderef) => {
-            var _a, _b;
+            var _a, _b, _c, _d;
             //Log(noderef.name, comments);
             //check for misplaced non-global statements at the global level
             //Collect them into intoProcedure, and remove them from the code
@@ -32274,8 +32275,38 @@ if(!String.prototype.matchAll) {
                     });
                 }
             }
-            // if(noderef.name=='Procedure' && noderef.node.getChildren('ProcedureContent').length==1){
-            // }
+            if (noderef.name == 'Procedure' &&
+                noderef.node.getChildren('ProcedureContent').length == 1) {
+                let child = (_d = (_c = noderef.node
+                    .getChild('ProcedureContent')) === null || _c === void 0 ? void 0 : _c.getChild('CommandStatement')) === null || _d === void 0 ? void 0 : _d.getChild('SpecialCommand0Args');
+                if (child &&
+                    state.doc
+                        .toString()
+                        .toLowerCase()
+                        .includes('to ' + state.sliceDoc(child.from, child.to))) {
+                    changes.push({
+                        from: noderef.from,
+                        to: noderef.to,
+                        insert: '',
+                    });
+                }
+            }
+            else if (noderef.name == 'Procedure' &&
+                noderef.node.getChildren('ProcedureContent').length == 0) {
+                changes.push({ from: noderef.from, to: noderef.to, insert: '' });
+            }
+            else if (noderef.name == 'ProcedureName') {
+                let name = state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+                if (reserved.includes(name)) {
+                    let pieces = name.split('-');
+                    pieces[0] = 'setup';
+                    changes.push({
+                        from: noderef.from,
+                        to: noderef.to,
+                        insert: pieces.join('-'),
+                    });
+                }
+            }
             // Record the position of the first procedure to know where to add 'play'
             if (!procedureStart && noderef.name == 'Procedure')
                 procedureStart = noderef.from;
@@ -32327,6 +32358,43 @@ if(!String.prototype.matchAll) {
             return str;
         else
             return comments.join('\n') + '\n' + str;
+    }
+    function getReserved(lintContext) {
+        let all = [];
+        for (let b of lintContext.Breeds.values()) {
+            if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+                all.push('hatch-' + b.Plural);
+                all.push('sprout-' + b.Plural);
+                all.push('create-' + b.Plural);
+                all.push('create-ordered-' + b.Plural);
+                all.push(b.Plural + '-at');
+                all.push(b.Plural + '-here');
+                all.push(b.Plural + '-on');
+                all.push('is-' + b.Singular + '?');
+            }
+            else {
+                all.push('create-' + b.Plural + '-to');
+                all.push('create-' + b.Singular + '-to');
+                all.push('create-' + b.Plural + '-from');
+                all.push('create-' + b.Singular + '-from');
+                all.push('create-' + b.Plural + '-with');
+                all.push('create-' + b.Singular + '-with');
+                all.push('out-' + b.Singular + '-to');
+                all.push('out-' + b.Singular + '-neighbors');
+                all.push('out-' + b.Singular + '-neighbor?');
+                all.push('in-' + b.Singular + '-from');
+                all.push('in-' + b.Singular + '-neighbors');
+                all.push('in-' + b.Singular + '-neighbor?');
+                all.push('my-' + b.Plural);
+                all.push('my-in-' + b.Plural);
+                all.push('my-out-' + b.Plural);
+                all.push(b.Singular + '-neighbor?');
+                all.push(b.Singular + '-neighbors');
+                all.push(b.Singular + '-with');
+                all.push('is-' + b.Singular + '?');
+            }
+        }
+        return all;
     }
 
     /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
