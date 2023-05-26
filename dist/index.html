@@ -7,6 +7,8 @@
   <body>
     <button name="NextTest" onclick="RunNextTest();">Test</button>
     <button name="Test" onclick="RunTests();">Test All</button>
+    <button name="NextTest" onclick="RunNextAutoFixTest();">Test Autofix</button>
+    <button name="Test" onclick="RunAutoFixTests();">Test All Autofix</button>
     <!-- <button name="Errors" onclick="Editor.CountErrors();">Count errors</button> -->
     <button name="Pretty" onclick="Editor.Semantics.Prettify();">Pretty</button>
     <button name="PrettyAll" onclick="Editor.Semantics.PrettifyAll();"
@@ -71,6 +73,7 @@
     <div id="Code"></div>
     <script src="editor.bundle.js"></script>
     <script src="editor.tests.js"></script>
+    <script src="editor.autofixtests.js"></script>
     <script>
       var Editor;
       // Load the page
@@ -111,6 +114,35 @@
           Errors = await RunNextTest();
         }
         console.log(`Automatic test done: ${TestIndex} models in total.`);
+      };
+      var AutoFixTestIndex=0
+      RunNextAutoFixTest=async()=>{
+        if(AutoFixTestIndex>=AutoFixTests.length) return null;
+        let Next = AutoFixTests[AutoFixTestIndex];
+        // Set the code
+        Editor.SetCode(Next['pre'])
+        Editor.ForceParse();
+        Editor.ForceLint();
+        Editor.Semantics.FixGeneratedCode(Editor.GetCode())
+        Editor.ForceParse();
+        Editor.ForceLint();
+        let Errors = await Editor.ForceLintAsync();
+        let ErrorCount = Errors.filter((D) => D.severity == 'error').length;
+        let Differences= Editor.GetCode()!=Next['post']
+        if(Differences){
+          console.log(Editor.GetCode(),Next['post'],Editor.GetCode().length,Next['post'].length)
+        }
+        // Report the result
+        console.log(`Model ${AutoFixTestIndex}: Linting errors ${ErrorCount}. Fixing differences ${Differences}.}`);
+        AutoFixTestIndex++;
+        return ErrorCount>0 || Differences;
+      };
+      RunAutoFixTests = async () => {
+        let Errors = false;
+        while (Errors == false) {
+          Errors = await RunNextAutoFixTest();
+        }
+        console.log(`Automatic test done: ${AutoFixTestIndex} models in total.`);
       };
     </script>
   </body>
