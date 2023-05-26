@@ -1,7 +1,7 @@
 import * as File from 'fs';
 import Path from 'path';
 
-let modelPath = './src/tests/models/builtin';
+let modelPath = './src/tests/models';
 let parsedModels: [string, string[]][] = [];
 let autofixPath = './src/tests/autofix';
 let autofixModels: { pre: string; post: string }[] = [];

@@ -12,8 +12,8 @@ breed [ rabbits rabbit ]
 
 to play
   ; Use the "create-rabbits" command to create 100 rabbits
-  create-rabbits
-    100 [
-      ; Set the location of each rabbit to a random location on the x and y axis
-      setxy random-xcor random-ycor ]
+  create-rabbits 100 [
+    ; Set the location of each rabbit to a random location on the x and y axis
+    setxy random-xcor random-ycor 
+  ]
 end

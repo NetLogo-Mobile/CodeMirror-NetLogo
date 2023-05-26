@@ -27,13 +27,12 @@ breed [ coins coin ]
 
 to setup-coins
   ; Use the "create-" command to create a single coin
-  create-coins
-    1 [
-      ; Set the shape of the coin
-      set shape "circle"
-      ; Set the color of the coin
-      set color red
-      ; Set the size of the coin
-      set size 1
-    ]
+  create-coins 1 [
+    ; Set the shape of the coin
+    set shape "circle"
+    ; Set the color of the coin
+    set color red
+    ; Set the size of the coin
+    set size 1
+  ]
 end
