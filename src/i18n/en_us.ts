@@ -157,6 +157,7 @@ const en_us: Record<string, Function> = {
   'Type NetLogo command here': () => 'Type NetLogo command here',
   'Talk to the computer in NetLogo or natural languages': () =>
     `Talk to the computer in NetLogo or natural languages`,
+  'Copied to clipboard': () => 'The item has been copied to clipboard.',
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) =>

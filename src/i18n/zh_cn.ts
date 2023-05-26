@@ -154,6 +154,7 @@ const zh_cn: Record<string, Function> = {
   'Run command': () => `执行命令`,
   'Run reporter': () => `执行函数`,
   'Execute the procedure': () => `开始执行这段程序`,
+  'Copied to clipboard': () => `内容已复制到剪贴板。`,
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) =>
