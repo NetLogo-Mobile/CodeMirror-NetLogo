@@ -1,0 +1,39 @@
+; Use this procedure to set up the coins
+; This procedure will create a single coin with the specified shape, color, and size
+; To create more coins, simply change the number in the "create-coins" command
+; To change the properties of the coins, modify the "set shape", "set color", and "set size" commands
+
+to setup-coins
+  ; Create a new breed called "coins"
+  breed [ coins coin ]
+  ; Use the "create-" command to create a single coin
+  create-coins
+  1 [
+    ; Set the shape of the coin
+    set shape "circle"
+    ; Set the color of the coin
+    set color red
+    ; Set the size of the coin
+    set size 1
+  ]
+end
+===
+; Create a new breed called "coins"
+breed [ coins coin ]
+; Use this procedure to set up the coins
+; This procedure will create a single coin with the specified shape, color, and size
+; To create more coins, simply change the number in the "create-coins" command
+; To change the properties of the coins, modify the "set shape", "set color", and "set size" commands
+
+to setup-coins
+  ; Use the "create-" command to create a single coin
+  create-coins
+    1 [
+      ; Set the shape of the coin
+      set shape "circle"
+      ; Set the color of the coin
+      set color red
+      ; Set the size of the coin
+      set size 1
+    ]
+end
