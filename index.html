@@ -133,7 +133,7 @@
           console.log(Editor.GetCode(),Next['post'],Editor.GetCode().length,Next['post'].length)
         }
         // Report the result
-        console.log(`Model ${AutoFixTestIndex}: Linting errors ${ErrorCount}. Fixing differences ${Differences}.}`);
+        console.log(`Model ${AutoFixTestIndex}: Linting errors ${ErrorCount}. Fixing differences ${Differences}.`);
         AutoFixTestIndex++;
         return ErrorCount>0 || Differences;
       };
