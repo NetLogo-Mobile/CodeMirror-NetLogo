@@ -16073,7 +16073,7 @@ if(!String.prototype.matchAll) {
                 if (rule.mode == 1 /* Inherit */)
                     inheritedClass += (inheritedClass ? " " : "") + tagCls;
             }
-            this.startSpan(cursor.from, cls);
+            this.startSpan(Math.max(from, start), cls);
             if (rule.opaque)
                 return;
             let mounted = cursor.tree && cursor.tree.prop(NodeProp.mounted);
@@ -16098,7 +16098,7 @@ if(!String.prototype.matchAll) {
                     pos = next.to + start;
                     if (pos > from) {
                         this.highlightRange(inner.cursor(), Math.max(from, next.from + start), Math.min(to, pos), "", innerHighlighters);
-                        this.startSpan(pos, cls);
+                        this.startSpan(Math.min(to, pos), cls);
                     }
                 }
                 if (hasChild)
@@ -23775,21 +23775,53 @@ if(!String.prototype.matchAll) {
         // be done.
         /// @internal
         forceReduce() {
-            let reduce = this.p.parser.stateSlot(this.state, 5 /* ParseState.ForcedReduce */);
+            let { parser } = this.p;
+            let reduce = parser.stateSlot(this.state, 5 /* ParseState.ForcedReduce */);
             if ((reduce & 65536 /* Action.ReduceFlag */) == 0)
                 return false;
-            let { parser } = this.p;
             if (!parser.validAction(this.state, reduce)) {
                 let depth = reduce >> 19 /* Action.ReduceDepthShift */, term = reduce & 65535 /* Action.ValueMask */;
                 let target = this.stack.length - depth * 3;
-                if (target < 0 || parser.getGoto(this.stack[target], term, false) < 0)
-                    return false;
+                if (target < 0 || parser.getGoto(this.stack[target], term, false) < 0) {
+                    let backup = this.findForcedReduction();
+                    if (backup == null)
+                        return false;
+                    reduce = backup;
+                }
                 this.storeNode(0 /* Term.Err */, this.reducePos, this.reducePos, 4, true);
                 this.score -= 100 /* Recover.Reduce */;
             }
             this.reducePos = this.pos;
             this.reduce(reduce);
             return true;
+        }
+        /// Try to scan through the automaton to find some kind of reduction
+        /// that can be applied. Used when the regular ForcedReduce field
+        /// isn't a valid action. @internal
+        findForcedReduction() {
+            let { parser } = this.p, seen = [];
+            let explore = (state, depth) => {
+                if (seen.includes(state))
+                    return;
+                seen.push(state);
+                return parser.allActions(state, (action) => {
+                    if (action & (262144 /* Action.StayFlag */ | 131072 /* Action.GotoFlag */)) ;
+                    else if (action & 65536 /* Action.ReduceFlag */) {
+                        let rDepth = (action >> 19 /* Action.ReduceDepthShift */) - depth;
+                        if (rDepth > 1) {
+                            let term = action & 65535 /* Action.ValueMask */, target = this.stack.length - rDepth * 3;
+                            if (target >= 0 && parser.getGoto(this.stack[target], term, false) >= 0)
+                                return (rDepth << 19 /* Action.ReduceDepthShift */) | 65536 /* Action.ReduceFlag */ | term;
+                        }
+                    }
+                    else {
+                        let found = explore(action, depth + 1);
+                        if (found != null)
+                            return found;
+                    }
+                });
+            };
+            return explore(this.state, 0);
         }
         /// @internal
         forceAll() {
@@ -25015,18 +25047,22 @@ if(!String.prototype.matchAll) {
         }
         /// @internal
         validAction(state, action) {
-            if (action == this.stateSlot(state, 4 /* ParseState.DefaultReduce */))
-                return true;
-            for (let i = this.stateSlot(state, 1 /* ParseState.Actions */);; i += 3) {
+            return !!this.allActions(state, a => a == action ? true : null);
+        }
+        /// @internal
+        allActions(state, action) {
+            let deflt = this.stateSlot(state, 4 /* ParseState.DefaultReduce */);
+            let result = deflt ? action(deflt) : undefined;
+            for (let i = this.stateSlot(state, 1 /* ParseState.Actions */); result == null; i += 3) {
                 if (this.data[i] == 65535 /* Seq.End */) {
                     if (this.data[i + 1] == 1 /* Seq.Next */)
                         i = pair(this.data, i + 2);
                     else
-                        return false;
+                        break;
                 }
-                if (action == pair(this.data, i + 1))
-                    return true;
+                result = action(pair(this.data, i + 1));
             }
+            return result;
         }
         /// Get the states that can follow this one through shift actions or
         /// goto jumps. @internal
