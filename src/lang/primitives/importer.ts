@@ -66,7 +66,7 @@ export const Dataset: Primitive[] = ${JSON.stringify(this.Primitives)}`
       ReturnType: this.ConvertToArgument(Source.returnType ?? 'unit'),
       AgentContext: new AgentContexts(Source.agentClassString),
       Precedence: 0, // Needs to check with the actual code
-      DefaultOption: Source.defaultArgCount ?? 0,
+      DefaultOption: Source.defaultArgCount,
     };
     this.Primitives.push(Primitive);
   }
