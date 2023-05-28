@@ -1,0 +1,17 @@
+globals [ color something-else ]
+breed [ trains train ]
+trains-own [ size ]
+to create-trains
+  create-trains 100 [ set color red ]
+end
+to setup
+  create-trains
+end
+===
+globals [ something-else ]
+breed [ trains train ]
+to setup-trains
+  create-trains 100 [
+    set color red
+  ]
+end
