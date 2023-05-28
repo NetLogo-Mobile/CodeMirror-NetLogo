@@ -78,7 +78,7 @@
     },
     {
       "name": "play-at",
-      "argTypes": ["number", "number"],
+      "argTypes": ["number", { "type": "number", "isRepeatable": true }],
       "returnType": "unit"
     },
     {

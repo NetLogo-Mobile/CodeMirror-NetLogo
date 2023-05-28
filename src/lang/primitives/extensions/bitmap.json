@@ -70,6 +70,21 @@
       "name": "width",
       "argTypes": ["wildcard"],
       "returnType": "number"
+    },
+    {
+      "name": "set-pixel",
+      "argTypes": ["wildcard", "number", "number", "list"],
+      "returnType": "unit"
+    },
+    {
+      "name": "get-pixel",
+      "argTypes": ["wildcard", "number", "number"],
+      "returnType": "list"
+    },
+    {
+      "name": "as-shape",
+      "argTypes": ["wildcard", "string"],
+      "returnType": "unit"
     }
   ]
 }
