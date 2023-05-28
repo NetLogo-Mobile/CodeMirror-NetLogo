@@ -22,6 +22,11 @@
       "returnType": "unit"
     },
     {
+      "name": "copy-to-shape",
+      "argTypes": ["wildcard", "string"],
+      "returnType": "unit"
+    },
+    {
       "name": "difference-rgb",
       "argTypes": ["wildcard", "wildcard"],
       "returnType": "wildcard"
@@ -80,11 +85,6 @@
       "name": "get-pixel",
       "argTypes": ["wildcard", "number", "number"],
       "returnType": "list"
-    },
-    {
-      "name": "as-shape",
-      "argTypes": ["wildcard", "string"],
-      "returnType": "unit"
     }
   ]
 }
