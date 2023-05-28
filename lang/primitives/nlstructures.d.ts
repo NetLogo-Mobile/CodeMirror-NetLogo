@@ -4,6 +4,7 @@ export interface NLWPrimitive {
     argTypes: string[];
     returnType?: string;
     agentClassString?: string;
+    defaultArgCount?: number;
 }
 /** NLArgument: Metadata structure for NetLogo argument. */
 export interface NLArgument {
