@@ -32865,7 +32865,16 @@ if(!String.prototype.matchAll) {
                     }
                     for (var [name, breed] of state.Breeds) {
                         breed.EditorID = child.ID;
-                        mainLint.Breeds.set(name, breed);
+                        if (mainLint.Breeds.has(name)) {
+                            var variables = mainLint.Breeds.get(name).Variables;
+                            breed.Variables.forEach((variable) => {
+                                if (!variables.includes(variable))
+                                    variables.push(variable);
+                            });
+                        }
+                        else {
+                            mainLint.Breeds.set(name, breed);
+                        }
                     }
                 }
             }
