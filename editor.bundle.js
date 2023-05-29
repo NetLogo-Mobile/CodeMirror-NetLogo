@@ -27753,9 +27753,10 @@ if(!String.prototype.matchAll) {
                     'Globals',
                     'Breed',
                     'Extensions',
-                ].includes(noderef.name) &&
-                    !this.getText(State, noderef.node).includes('\n')) {
-                    vars.push(this.getText(State, noderef.node));
+                ].includes(noderef.name)) {
+                    var Text = this.getText(State, noderef.node);
+                    if (Text !== '' && !Text.includes('\n'))
+                        vars.push(this.getText(State, noderef.node));
                 }
             });
             return [...new Set(vars)];
