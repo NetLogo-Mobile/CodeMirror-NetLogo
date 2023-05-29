@@ -703,10 +703,11 @@ export class StateNetLogo {
           'Globals',
           'Breed',
           'Extensions',
-        ].includes(noderef.name) &&
-        !this.getText(State, noderef.node).includes('\n')
+        ].includes(noderef.name)
       ) {
-        vars.push(this.getText(State, noderef.node));
+        var Text = this.getText(State, noderef.node);
+        if (Text !== '' && !Text.includes('\n'))
+          vars.push(this.getText(State, noderef.node));
       }
     });
     return [...new Set(vars)];
