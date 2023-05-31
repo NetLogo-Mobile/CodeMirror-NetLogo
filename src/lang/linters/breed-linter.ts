@@ -104,7 +104,7 @@ const checkValidBreed = function (
     ) {
       pluralLink.push(b.Plural);
       singularLink.push(b.Singular);
-    } else {
+    } else if (b.BreedType == BreedType.Turtle) {
       pluralTurtle.push(b.Plural);
       singularTurtle.push(b.Singular);
     }
@@ -130,7 +130,10 @@ const checkValidBreed = function (
     result.isLink = false;
     result.isPlural = false;
   } else if (node.name == 'Own' || node.name == 'Arg') {
-    result.isValid = listItemInString(value, pluralLink.concat(pluralTurtle));
+    result.isValid = listItemInString(
+      value,
+      pluralLink.concat([...pluralTurtle, 'patches'])
+    );
     result.isLink = false;
     result.isPlural = true;
   } else if (

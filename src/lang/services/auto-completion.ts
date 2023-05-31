@@ -114,7 +114,7 @@ export class AutoCompletion {
   private getBreedCommands(state: LintContext): string[] {
     let commands: string[] = [];
     for (let b of state.Breeds.values()) {
-      if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+      if (b.BreedType == BreedType.Turtle) {
         commands.push('hatch-' + b.Plural);
         commands.push('sprout-' + b.Plural);
         commands.push('create-' + b.Plural);

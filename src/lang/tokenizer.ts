@@ -159,6 +159,17 @@ export const keyword = new ExternalTokenizer((input, stack) => {
   ) {
     input.acceptToken(UnsupportedPrim);
   } else {
+    // Check if token is a reporter/commander
+    const primitive = PrimitiveManager.GetNamedPrimitive(token);
+    if (primitive != null) {
+      if (PrimitiveManager.IsReporter(primitive)) {
+        input.acceptToken(Reporter);
+      } else {
+        input.acceptToken(Command);
+      }
+      return;
+    }
+
     // Check if token is a breed reporter/command
     const match = matchBreed(token);
     if (match != 0) {
@@ -169,17 +180,6 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     const customMatch = matchCustomProcedure(token);
     if (customMatch != 0) {
       input.acceptToken(customMatch);
-      return;
-    }
-
-    // Check if token is a reporter/commander
-    const primitive = PrimitiveManager.GetNamedPrimitive(token);
-    if (primitive != null) {
-      if (PrimitiveManager.IsReporter(primitive)) {
-        input.acceptToken(Reporter);
-      } else {
-        input.acceptToken(Command);
-      }
       return;
     } else {
       input.acceptToken(Identifier);
