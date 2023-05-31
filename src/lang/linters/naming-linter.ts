@@ -18,7 +18,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
     'link',
   ];
   for (let b of lintContext.Breeds.values()) {
-    if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+    if (b.BreedType == BreedType.Turtle) {
       all.push('hatch-' + b.Plural);
       all.push('sprout-' + b.Plural);
       all.push('create-' + b.Plural);
