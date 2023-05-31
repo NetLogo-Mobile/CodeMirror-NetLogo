@@ -135,7 +135,6 @@ export function FixGeneratedCode(
       // I don't understand why the parser does not recognize `to test end test` as rouge statements.
       if (
         noderef.name == 'Misplaced' ||
-        noderef.name == '⚠' ||
         (noderef.name == 'Procedure' &&
           noderef.node.getChildren('To').length == 0)
       ) {
