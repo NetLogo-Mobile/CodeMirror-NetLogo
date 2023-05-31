@@ -90,7 +90,7 @@ Procedure {
   To ProcedureName Arguments? ProcedureContent* End
 }
 
-ProcedureName {
+ProcedureName[@dynamicPrecedence=1] {
   UnsupportedPrim |
   Identifier | 
   SpecialCommand | 
@@ -116,7 +116,8 @@ ProcedureName {
   SpecialCommand5Args |
   SpecialCommand6Args |
   SpecialCommandCreateTurtle |
-  SpecialCommandCreateLink
+  SpecialCommandCreateLink |
+  Command2Args
 }
 
 Arguments {
@@ -292,7 +293,7 @@ Commands {
   Identifier ~statement
 }
 
-Reporters{
+Reporters {
   Reporter0Args |
   Reporter1Args |
   Reporter2Args |
@@ -358,6 +359,7 @@ Reporters{
   CloseParen { ")" }
 
   "[" "]"
+
 }
 
 expression {
