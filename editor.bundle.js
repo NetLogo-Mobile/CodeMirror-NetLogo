@@ -30115,7 +30115,7 @@ if(!String.prototype.matchAll) {
         /** AppendBreed: Append a breed to the editor. */
         AppendBreed(Type, Plural, Singular) {
             // Check if the breed already exists
-            if (Plural == 'Patches' || Singular == 'Patch')
+            if (Plural == 'patches' || Singular == 'patch')
                 return false;
             if (Plural == Singular)
                 Singular = getSingularName(Plural);
@@ -32244,7 +32244,6 @@ if(!String.prototype.matchAll) {
             // Collect them into intoProcedure, and remove them from the code
             // I don't understand why the parser does not recognize `to test end test` as rouge statements.
             if (noderef.name == 'Misplaced' ||
-                noderef.name == '⚠' ||
                 (noderef.name == 'Procedure' &&
                     noderef.node.getChildren('To').length == 0)) {
                 Log(noderef.name, noderef.from, commentFrom, comments);
