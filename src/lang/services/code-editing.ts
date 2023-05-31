@@ -101,6 +101,7 @@ export class CodeEditing {
     Singular: string
   ): boolean {
     // Check if the breed already exists
+    if (Plural == 'Patches' || Singular == 'Patch') return false;
     if (Plural == Singular) Singular = getSingularName(Plural);
     for (let [Sin, Breed] of this.Galapagos.LintContext.Breeds) {
       if (

@@ -146,6 +146,7 @@ const zh_cn: Record<string, Function> = {
   'Trying to add the code': () => `尝试将代码放入作品……`,
   PreviousVersion: () => `后退`,
   NextVersion: () => `前进`,
+  Finish: () => `完成`,
   'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,
   FullText: () => `阅读全文`,
   SeeAlso: () => `参见`,
@@ -154,6 +155,7 @@ const zh_cn: Record<string, Function> = {
   'Run command': () => `执行命令`,
   'Run reporter': () => `执行函数`,
   'Execute the procedure': () => `开始执行这段程序`,
+  'Press enter to execute again': () => `按回车键可以再次执行。`,
   'Copied to clipboard': () => `内容已复制到剪贴板。`,
 
   // Chat and execution messages

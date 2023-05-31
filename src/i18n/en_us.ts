@@ -132,6 +132,7 @@ const en_us: Record<string, Function> = {
   'Trying to add the code': () => `Trying to add the code to the project...`,
   PreviousVersion: () => `Back`,
   NextVersion: () => `Next`,
+  Finish: () => `Finish`,
   'Expand messages _': (Number: number) =>
     `Expand ${Number} message` + (Number > 1 ? 's' : ''),
   FullText: () => `Read more`,
@@ -157,6 +158,8 @@ const en_us: Record<string, Function> = {
   'Type NetLogo command here': () => 'Type NetLogo command here',
   'Talk to the computer in NetLogo or natural languages': () =>
     `Talk to the computer in NetLogo or natural languages`,
+  'Press enter to execute again': () =>
+    `Press Enter will execute the code again.`,
   'Copied to clipboard': () => 'The item has been copied to clipboard.',
 
   // Chat and execution messages

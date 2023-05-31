@@ -14,13 +14,13 @@
 
 @top Program { 
   Normal {
-    (globalStatement ~statement| Procedure)*
+    (globalStatement | Misplaced ~statement | Procedure)*
   } |
   OnelineReporter {
     ReporterStatement | Value
   } |
   Embedded {
-    (CommandStatement | OpenParen CommandStatement CloseParen)+
+    (CommandStatement ~statement | OpenParen CommandStatement CloseParen)+
   }
 }
 
@@ -38,10 +38,10 @@ globalStatement {
   BreedsOwn {
     Own OpenBracket Identifier* CloseBracket
   }
+}
 
-  Misplaced {
-    CommandStatement | ReporterStatement
-  }
+Misplaced {
+  CommandStatement
 }
 
 specialReportersCommands {

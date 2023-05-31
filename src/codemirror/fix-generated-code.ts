@@ -124,16 +124,18 @@ export function FixGeneratedCode(
   let commentsStart: null | number = null;
   let commentFrom: null | number = null;
   let procedureStart: null | number = null;
-  let reserved = getReserved(Editor.LintContext);
+  let reserved = GetReserved(Editor.LintContext);
   // Go over the syntax tree
   syntaxTree(state)
     .cursor()
     .iterate((noderef) => {
-      //Log(noderef.name, comments);
-      //check for misplaced non-global statements at the global level
-      //Collect them into intoProcedure, and remove them from the code
+      // Log(noderef.name, comments);
+      // check for misplaced non-global statements at the global level
+      // Collect them into intoProcedure, and remove them from the code
+      // I don't understand why the parser does not recognize `to test end test` as rouge statements.
       if (
         noderef.name == 'Misplaced' ||
+        noderef.name == '⚠' ||
         (noderef.name == 'Procedure' &&
           noderef.node.getChildren('To').length == 0)
       ) {
@@ -148,8 +150,8 @@ export function FixGeneratedCode(
         });
         return false;
       }
-      //check for misplaced global statements
-      //Move them to the top of the program
+      // check for misplaced global statements
+      // Move them to the top of the program
       if (noderef.name == 'Error') {
         Log(noderef.name, comments);
         changes.push({
@@ -266,10 +268,10 @@ export function FixGeneratedCode(
         procedureStart = noderef.from;
       // Record the position of the comments
       if (noderef.name == 'LineComment') {
-        //take only the one preceding comment
+        // take only the one preceding comment
         comments = [state.sliceDoc(noderef.from, noderef.to)];
         commentsStart = noderef.from;
-        //take all immediately preceding comments
+        // take all immediately preceding comments
         // comments.push(state.sliceDoc(noderef.from, noderef.to));
         // commentsStart = commentsStart ?? noderef.from;
       } else if (comments.length > 0 && !commentFrom) {
@@ -312,7 +314,8 @@ function AddComments(str: string, comments: string[]) {
   else return comments.join('\n') + '\n' + str;
 }
 
-function getReserved(lintContext: LintContext) {
+/** GetReserved: Get the list of reserved words. */
+function GetReserved(lintContext: LintContext): string[] {
   let all = [];
   for (let b of lintContext.Breeds.values()) {
     if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
