@@ -26443,6 +26443,9 @@ if(!String.prototype.matchAll) {
         getBreedCommands(state) {
             let commands = [];
             for (let b of state.Breeds.values()) {
+                // Patch has no commands
+                if (b.BreedType == BreedType.Patch)
+                    continue;
                 if (b.BreedType == BreedType.Turtle) {
                     commands.push('hatch-' + b.Plural);
                     commands.push('sprout-' + b.Plural);
