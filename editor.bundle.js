@@ -25769,6 +25769,17 @@ if(!String.prototype.matchAll) {
             input.acceptToken(UnsupportedPrim);
         }
         else {
+            // Check if token is a reporter/commander
+            const primitive = PrimitiveManager.GetNamedPrimitive(token);
+            if (primitive != null) {
+                if (PrimitiveManager.IsReporter(primitive)) {
+                    input.acceptToken(Reporter);
+                }
+                else {
+                    input.acceptToken(Command);
+                }
+                return;
+            }
             // Check if token is a breed reporter/command
             const match = matchBreed(token);
             if (match != 0) {
@@ -25779,17 +25790,6 @@ if(!String.prototype.matchAll) {
             const customMatch = matchCustomProcedure(token);
             if (customMatch != 0) {
                 input.acceptToken(customMatch);
-                return;
-            }
-            // Check if token is a reporter/commander
-            const primitive = PrimitiveManager.GetNamedPrimitive(token);
-            if (primitive != null) {
-                if (PrimitiveManager.IsReporter(primitive)) {
-                    input.acceptToken(Reporter);
-                }
-                else {
-                    input.acceptToken(Command);
-                }
                 return;
             }
             else {
@@ -26442,7 +26442,7 @@ if(!String.prototype.matchAll) {
         getBreedCommands(state) {
             let commands = [];
             for (let b of state.Breeds.values()) {
-                if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+                if (b.BreedType == BreedType.Turtle) {
                     commands.push('hatch-' + b.Plural);
                     commands.push('sprout-' + b.Plural);
                     commands.push('create-' + b.Plural);
@@ -30417,7 +30417,7 @@ if(!String.prototype.matchAll) {
                 pluralLink.push(b.Plural);
                 singularLink.push(b.Singular);
             }
-            else {
+            else if (b.BreedType == BreedType.Turtle) {
                 pluralTurtle.push(b.Plural);
                 singularTurtle.push(b.Singular);
             }
@@ -30441,7 +30441,7 @@ if(!String.prototype.matchAll) {
             result.isPlural = false;
         }
         else if (node.name == 'Own' || node.name == 'Arg') {
-            result.isValid = listItemInString(value, pluralLink.concat(pluralTurtle));
+            result.isValid = listItemInString(value, pluralLink.concat([...pluralTurtle, 'patches']));
             result.isLink = false;
             result.isPlural = true;
         }
@@ -31015,7 +31015,7 @@ if(!String.prototype.matchAll) {
             'link',
         ];
         for (let b of lintContext.Breeds.values()) {
-            if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+            if (b.BreedType == BreedType.Turtle) {
                 all.push('hatch-' + b.Plural);
                 all.push('sprout-' + b.Plural);
                 all.push('create-' + b.Plural);
