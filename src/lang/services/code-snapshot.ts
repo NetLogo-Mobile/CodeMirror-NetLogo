@@ -1,6 +1,5 @@
 import { Breed, Procedure } from '../classes/structures';
 import { GalapagosEditor } from '../../editor';
-import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 
 /** CodeSnapshot: A snapshot of the code with grammatical structures. */
 export interface CodeSnapshot {

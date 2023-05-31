@@ -1,12 +1,12 @@
-import { GalapagosEditor } from '../editor';
+import { GalapagosEditor } from '../../editor';
 import {
   BuildSnapshot,
   CodeSnapshot,
   IntegrateSnapshot,
-} from '../lang/services/code-snapshot';
-import { getSingularName } from './utils/breed-utils';
+} from './code-snapshot';
+import { getSingularName } from '../../codemirror/utils/breed-utils';
 import { syntaxTree } from '@codemirror/language';
-import { Log } from './utils/debug-utils';
+import { Log } from '../../codemirror/utils/debug-utils';
 import { LintContext } from 'src/lang/classes/contexts';
 import { BreedType } from 'src/lang/classes/structures';
 
@@ -168,13 +168,11 @@ export function FixGeneratedCode(
         return false;
       }
       if (noderef.name == 'Breed') {
-        // Log("Breed")
         let child = noderef.node.getChild('BreedPlural');
-        // Log(state.sliceDoc(child?.from??0,child?.to??0))
-        if (
-          child &&
-          state.sliceDoc(child.from, child.to).toLowerCase() == 'turtles'
-        ) {
+        let value = child
+          ? state.sliceDoc(child.from, child.to).toLowerCase()
+          : '';
+        if (value === 'turtles' || value === 'patches' || value === 'links') {
           changes.push({
             from: commentsStart ?? noderef.from,
             to: noderef.to,

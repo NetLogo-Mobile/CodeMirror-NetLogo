@@ -11,7 +11,7 @@ import {
   CodeSnapshot,
   IntegrateSnapshot,
 } from '../lang/services/code-snapshot';
-import { FixGeneratedCode } from '../codemirror/fix-generated-code';
+import { FixGeneratedCode } from '../lang/services/fix-generated-code';
 
 /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
 export class SemanticFeatures {
