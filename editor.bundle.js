@@ -25727,7 +25727,7 @@ if(!String.prototype.matchAll) {
             let foundText = false;
             let seenBracket = false;
             let nextToken = '';
-            while (isValidKeyword(input.peek(offset)) || !foundText) {
+            while (offset < 100 && (isValidKeyword(input.peek(offset)) || !foundText)) {
                 if (isValidKeyword(input.peek(offset))) {
                     nextToken += String.fromCharCode(input.peek(offset));
                     foundText = true;
