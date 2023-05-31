@@ -32273,11 +32273,11 @@ if(!String.prototype.matchAll) {
                 return false;
             }
             if (noderef.name == 'Breed') {
-                // Log("Breed")
                 let child = noderef.node.getChild('BreedPlural');
-                // Log(state.sliceDoc(child?.from??0,child?.to??0))
-                if (child &&
-                    state.sliceDoc(child.from, child.to).toLowerCase() == 'turtles') {
+                let value = child
+                    ? state.sliceDoc(child.from, child.to).toLowerCase()
+                    : '';
+                if (value === 'turtles' || value === 'patches' || value === 'links') {
                     changes.push({
                         from: commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from,
                         to: noderef.to,
