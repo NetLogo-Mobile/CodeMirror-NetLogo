@@ -1,6 +1,5 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
 
-import { syntaxTree } from '@codemirror/language';
 import {
   Breed,
   LocalVariable,

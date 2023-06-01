@@ -216,17 +216,26 @@ export class GalapagosEditor {
     });
   }
   /** AddChild: Add a child editor. */
-  AddChild(child: GalapagosEditor) {
-    if (child.Children.length > 0)
+  AddChild(Child: GalapagosEditor) {
+    if (Child.Children.length > 0)
       throw new Error(
         'Cannot add an editor that already has children as child.'
       );
-    this.Children.push(child);
-    child.ID = this.Children.length;
-    child.ParentEditor = this;
-    child.PreprocessContext = this.PreprocessContext;
-    child.LintContext = this.LintContext;
-    child.GetPreprocessState().Context = this.PreprocessContext;
+    this.Children.push(Child);
+    Child.ID = this.Children.length;
+    Child.ParentEditor = this;
+    // Generative editors are sort of independent
+    if (Child.Options.ParseMode !== ParseMode.Generative) {
+      Child.LintContext = this.LintContext;
+      Child.PreprocessContext = this.PreprocessContext;
+      Child.GetPreprocessState().Context = this.PreprocessContext;
+    }
+  }
+  /** SyncContext: Sync the context of the child editor. */
+  SyncContext(Child: GalapagosEditor) {
+    Child.LintContext = this.LintContext;
+    Child.PreprocessContext = this.PreprocessContext;
+    Child.GetPreprocessState().Context = this.PreprocessContext;
   }
   /** Blur: Make the editor lose the focus (if any). */
   Blur() {
@@ -407,11 +416,6 @@ export class GalapagosEditor {
       }
     }
     this.RefreshContexts();
-    //if (this.Options.ParseMode == ParseMode.Normal) {
-    //console.log(new Error().stack);
-    //console.log(this.GetCode());
-    //console.log(JSON.parse(JSON.stringify(this.LintContext.Breeds)));
-    //}
   }
   /** RefreshContexts: Refresh contexts of the editor. */
   private RefreshContexts() {
