@@ -53,7 +53,9 @@ export declare class GalapagosEditor {
     /** SetReadOnly: Set the readonly status for the editor. */
     SetReadOnly(Status: boolean): void;
     /** AddChild: Add a child editor. */
-    AddChild(child: GalapagosEditor): void;
+    AddChild(Child: GalapagosEditor): void;
+    /** SyncContext: Sync the context of the child editor. */
+    SyncContext(Child: GalapagosEditor): void;
     /** Blur: Make the editor lose the focus (if any). */
     Blur(): void;
     /** Focus: Make the editor gain the focus (if possible). */
