@@ -30977,9 +30977,13 @@ if(!String.prototype.matchAll) {
     // NamingLinter: Ensures no duplicate breed names
     const NamingLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
-        let all = [];
+        let defined = [];
+        let breedDefined = [];
         // Reserved keywords
         let reserved = ['turtles', 'turtle', 'patches', 'patch', 'links', 'link'];
+        reserved.push(...turtleVars);
+        reserved.push(...patchVars);
+        reserved.push(...linkVars);
         for (let b of lintContext.Breeds.values()) {
             if (b.BreedType == BreedType.Turtle) {
                 reserved.push('hatch-' + b.Plural);
@@ -31013,15 +31017,11 @@ if(!String.prototype.matchAll) {
                 reserved.push('is-' + b.Singular + '?');
             }
         }
-        // Seen variables
-        let seen = [];
-        let link_vars = [];
-        let turtle_vars = [];
-        let patch_vars = [];
         // Used & reserved
-        var NameCheck = (node, type, extra) => {
+        var NameCheck = (node, type, extra, isBreed = false) => {
             const value = view.state.sliceDoc(node.from, node.to).toLowerCase();
-            if (all.includes(value) || (extra === null || extra === void 0 ? void 0 : extra.includes(value))) {
+            // For breeds, we ignore other breed variables since you can re-define them in NetLogo
+            if (defined.includes(value) || (extra === null || extra === void 0 ? void 0 : extra.includes(value)) || (!isBreed && breedDefined.includes(value))) {
                 diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
             }
             else if (reserved.includes(value) ||
@@ -31031,8 +31031,7 @@ if(!String.prototype.matchAll) {
             if (extra)
                 extra.push(value);
             else {
-                all.push(value);
-                seen.push(value);
+                defined.push(value);
             }
         };
         // Go through the syntax tree
@@ -31060,108 +31059,37 @@ if(!String.prototype.matchAll) {
             }
             else if (noderef.name == 'BreedsOwn') {
                 let own = noderef.node.getChild('Own');
-                let internal_vars = [];
+                let breedvars = [];
                 if (!own)
                     return;
                 let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
                 breedName = breedName.substring(0, breedName.length - 4);
-                if (breedName == 'turtles' ||
-                    isLinkBreed(breedName, lintContext) == false) {
-                    noderef.node.getChildren('Identifier').map((child) => {
-                        let name = view.state.sliceDoc(child.from, child.to);
-                        if (turtle_vars.includes(name) ||
-                            seen.includes(name) ||
-                            internal_vars.includes(name)) {
-                            diagnostics.push({
-                                from: child.from,
-                                to: child.to,
-                                severity: 'error',
-                                message: Localized.Get('Term _ already used', name, 'breed variable'),
-                            });
-                        }
-                        else if (reserved.includes(name) ||
-                            primitives.GetNamedPrimitive(name) ||
-                            turtleVars.includes(name)) {
-                            diagnostics.push({
-                                from: child.from,
-                                to: child.to,
-                                severity: 'error',
-                                message: Localized.Get('Term _ reserved', name, 'breed variable'),
-                            });
-                        }
-                        internal_vars.push(name);
-                        all.push(name);
-                        if (breedName == 'turtles') {
-                            turtle_vars.push(name);
-                        }
-                    });
+                if (breedName == 'turtles') {
+                    NameCheck(noderef, 'Breed variable');
                 }
-                else if (breedName == 'links' ||
-                    isLinkBreed(breedName, lintContext) == true) {
-                    noderef.node.getChildren('Identifier').map((child) => {
-                        let name = view.state.sliceDoc(child.from, child.to);
-                        if (link_vars.includes(name) ||
-                            seen.includes(name) ||
-                            internal_vars.includes(name)) {
-                            diagnostics.push({
-                                from: child.from,
-                                to: child.to,
-                                severity: 'error',
-                                message: Localized.Get('Term _ already used', name, 'breed variable'),
-                            });
-                        }
-                        else if (reserved.includes(name) ||
-                            primitives.GetNamedPrimitive(name) ||
-                            linkVars.includes(name)) {
-                            diagnostics.push({
-                                from: child.from,
-                                to: child.to,
-                                severity: 'error',
-                                message: Localized.Get('Term _ reserved', name, 'breed variable'),
-                            });
-                        }
-                        internal_vars.push(name);
-                        all.push(name);
-                        if (breedName == 'links') {
-                            link_vars.push(name);
-                        }
-                    });
+                else if (breedName == 'links') {
+                    NameCheck(noderef, 'Link variable');
                 }
                 else if (breedName == 'patches') {
-                    noderef.node.getChildren('Identifier').map((child) => {
-                        let name = view.state.sliceDoc(child.from, child.to);
-                        if (patch_vars.includes(name) ||
-                            seen.includes(name) ||
-                            internal_vars.includes(name)) {
-                            diagnostics.push({
-                                from: child.from,
-                                to: child.to,
-                                severity: 'error',
-                                message: Localized.Get('Term _ already used', name, 'breed variable'),
-                            });
-                        }
-                        else if (reserved.includes(name) ||
-                            primitives.GetNamedPrimitive(name) ||
-                            patchVars.includes(name)) {
-                            diagnostics.push({
-                                from: child.from,
-                                to: child.to,
-                                severity: 'error',
-                                message: Localized.Get('Term _ reserved', name, 'breed variable'),
-                            });
-                        }
-                        all.push(name);
-                        internal_vars.push(name);
-                        patch_vars.push(name);
-                    });
+                    NameCheck(noderef, 'Patch variable');
                 }
+                else if (isLinkBreed(breedName, lintContext)) {
+                    NameCheck(noderef, 'Turtle variable', breedvars, true);
+                }
+                else {
+                    NameCheck(noderef, 'Link variable', breedvars, true);
+                }
+                breedDefined.push(...breedvars);
             }
             else if (noderef.name == 'NewVariableDeclaration') {
+                // TODO: Optimize it so that whenever we see a procedure, we check the local variables
+                // Now, for each new variable declaration, we look back again
+                // Since the new variable definition is typically few, not a high priority
                 let child = (_c = noderef.node.getChild('Identifier')) !== null && _c !== void 0 ? _c : noderef.node.getChild('UnsupportedPrim');
                 if (!child)
                     return;
-                let local_vars = getLocalVars(child, view.state, lintContext);
-                NameCheck(noderef, 'Local variable', local_vars);
+                let localvars = getLocalVars(child, view.state, lintContext);
+                NameCheck(noderef, 'Local variable', localvars);
             }
             else if (noderef.name == 'Arguments') {
                 let current = [];
@@ -31397,6 +31325,10 @@ if(!String.prototype.matchAll) {
         Arguments: (Number) => 'Argument' + (Number > 1 ? 's' : ''),
         Breed: () => 'Breed',
         'Global variable': () => 'Global variable',
+        'Turtle variable': () => 'Turtle variable',
+        'Patch variable': () => 'Patch variable',
+        'Link variable': () => 'Link variable',
+        'Local variable': () => 'Local variable',
         'Procedure name': () => 'Procedure name',
         // Help messages
         '~VariableName': (Name) => `A (unknown) variable. `,
@@ -31533,6 +31465,10 @@ if(!String.prototype.matchAll) {
         Arguments: () => '参数',
         Breed: () => '种类',
         'Global variable': () => '全局变量',
+        'Turtle variable': () => '海龟变量',
+        'Patch variable': () => '格子变量',
+        'Link variable': () => '链接变量',
+        'Local variable': () => '本地变量',
         'Procedure name': () => '变量名称',
         // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
