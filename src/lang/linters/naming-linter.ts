@@ -143,6 +143,9 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
         NameCheck(child, 'Local variable', localvars);
       } else if (noderef.name == 'Arguments') {
         let current: string[] = [];
+        if (noderef.node.parent?.name == 'AnonArguments') {
+          current = getLocalVars(noderef.node, view.state, lintContext);
+        }
         for (var key of ['Identifier', 'UnsupportedPrim']) {
           noderef.node.getChildren(key).map((child) => {
             NameCheck(child, 'Argument', current);
