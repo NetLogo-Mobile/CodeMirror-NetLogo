@@ -51,21 +51,31 @@ const buildLinter = function (
   return Extension;
 };
 
+/** getDiagnostic: Returns a diagnostic object from a node and message. */
 export const getDiagnostic = function (
   view: EditorView,
   node: { from: number; to: number },
   message: string,
-  severity: 'error' | 'info' | 'warning' = 'error'
+  severity: 'error' | 'info' | 'warning' = 'error',
+  ...values: string[]
 ): Diagnostic {
-  var value = view.state.sliceDoc(node.from, node.to);
+  var value = view.state.sliceDoc(node.from, node.to).trim();
   // Cut short the value if it's too long
   if (value.length >= 20) value = value.substring(0, 17) + '...';
+  if (values.length == 0) values.push(value);
   return {
     from: node.from,
-    to: node.to,
+    to: node.from + value.length,
     severity: severity,
-    message: Localized.Get(message, value),
+    message: Localized.Get(message, ...values),
   };
+};
+
+/** getNodeTo: Returns the proper end of a node. */
+export const getNodeTo = function (node: { from: number; to: number }, view: EditorView) {
+  let val = view.state.sliceDoc(node.from, node.to);
+  val = val.trimEnd();
+  return node.from + val.length;
 };
 
 export { buildLinter, Linter };

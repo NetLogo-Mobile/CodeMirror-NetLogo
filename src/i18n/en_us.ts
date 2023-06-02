@@ -45,16 +45,16 @@ const en_us: Record<string, Function> = {
     Actual: string
   ) =>
     `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
-  'Missing extension _.': (Name: string) =>
+  'Missing extension _': (Name: string) =>
     `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
-  'Unsupported missing extension _.': (Name: string) =>
+  'Unsupported missing extension _': (Name: string) =>
     `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
-  'Unsupported extension _.': (Name: string) =>
+  'Unsupported extension _': (Name: string) =>
     `The extension "${Name}" is not supported in this editor.`,
-  'Term _ already used.': (Name: string, type: string) =>
-    `"${Name}" is already defined by the user. Try a different ${type}.`,
-  'Term _ reserved.': (Name: string, type: string) =>
-    `"${Name}" is a reserved keyword in NetLogo. Try a different ${type}.`,
+  'Term _ already used': (Name: string, Type: string) =>
+    `"${Name}" is already defined by the user. Try a different ${en_us[Type]().toLowerCase()} name.`,
+  'Term _ reserved': (Name: string, Type: string) =>
+    `"${Name}" is a reserved keyword in NetLogo. Try a different ${en_us[Type]().toLowerCase()} name.`,
   'Invalid breed procedure _': (Name: string) =>
     `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
   'Missing command before _': (Name: string) =>
@@ -63,7 +63,7 @@ const en_us: Record<string, Function> = {
     `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
   'Unmatched item _': (Current: string, Expected: string) =>
     `This "${Current}" needs a matching ${Expected}.`,
-  'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
+  'Invalid context _': (Prior: string, New: string, Primitive: string) =>
     `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
   'Duplicate global statement _': (Name: string) =>
     `The global "${Name}" statement is already defined. Do you want to combine into one?`,
@@ -87,6 +87,9 @@ const en_us: Record<string, Function> = {
   Reporter: () => 'Reporter',
   Argument: () => 'Argument',
   Arguments: (Number: number) => 'Argument' + (Number > 1 ? 's' : ''),
+  Breed: () => 'Breed',
+  'Global variable': () => 'Global variable',
+  'Procedure name': () => 'Procedure name',
 
   // Help messages
   '~VariableName': (Name: string) => `A (unknown) variable. `,

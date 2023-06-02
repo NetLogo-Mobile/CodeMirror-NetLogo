@@ -1,7 +1,7 @@
 import { matchBrackets, syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { Linter } from './linter-builder';
+import { Linter, getDiagnostic } from './linter-builder';
 
 // BracketLinter: Checks if all brackets/parentheses have matches
 export const BracketLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -50,12 +50,7 @@ export const BracketLinter: Linter = (view, preprocessContext, lintContext) => {
       }
       // Push the diagnostic
       if (current != '')
-        diagnostics.push({
-          from: node.from,
-          to: node.to,
-          severity: 'error',
-          message: Localized.Get('Unmatched item _', current, expected),
-        });
+        diagnostics.push(getDiagnostic(view, node, 'Unmatched item _', 'error', current, expected));
     });
   return diagnostics;
 };

@@ -1,7 +1,7 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { Linter } from './linter-builder';
+import { Linter, getDiagnostic } from './linter-builder';
 import {
   checkBreedLike,
   getBreedName,
@@ -30,21 +30,15 @@ export const IdentifierLinter: Linter = (
       if (noderef.name == 'Identifier' && noderef.node.parent?.name != '⚠') {
         const Node = noderef.node;
         const value = view.state.sliceDoc(noderef.from, noderef.to);
-
         //check if it meets some initial criteria for validity
         if (!checkValidIdentifier(Node, value, context)) {
           //check if the identifier looks like a breed procedure (e.g. "create-___")
           let result = checkBreedLike(value);
           if (!result.found) {
-            //console.log(value, noderef.name, noderef.node.parent?.name);
-            diagnostics.push({
-              from: noderef.from,
-              to: noderef.to,
-              severity: 'error',
-              message: Localized.Get('Unrecognized identifier _', value),
-            });
+            // console.log(value, noderef.name, noderef.node.parent?.name);
+            diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
           } else {
-            //pull out name of possible intended breed
+            // pull out name of possible intended breed
             let breedinfo = getBreedName(value);
             Log(breedinfo);
             if (!context.breedNames.includes(breedinfo.breed)) {

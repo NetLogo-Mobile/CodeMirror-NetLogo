@@ -1,6 +1,6 @@
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { Linter } from './linter-builder';
+import { Linter, getDiagnostic } from './linter-builder';
 import { Procedure, CodeBlock, AgentContexts } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
 import {
@@ -17,17 +17,10 @@ export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
   // }
   let stateNetLogo = view.state.field(stateExtension);
   for (let c of stateNetLogo.ContextErrors) {
-    diagnostics.push({
-      from: c.From,
-      to: c.To,
-      severity: 'error',
-      message: Localized.Get(
-        'Invalid context _.',
-        contextToString(c.PriorContext),
-        contextToString(c.ConflictingContext),
-        c.Primitive
-      ),
-    });
+    diagnostics.push(getDiagnostic(view, { from: c.From, to: c.To }, 'Invalid context _', 'error', 
+      contextToString(c.PriorContext),
+      contextToString(c.ConflictingContext),
+      c.Primitive));
   }
   return diagnostics;
 };

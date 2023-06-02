@@ -46,12 +46,10 @@ const zh_cn: Record<string, Function> = {
     `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
   'Invalid extension _.': (Name: string) =>
     `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
-  // 'Term _ already used.': (Name: string) =>
-  //   `"${Name}" 已经被定义过了。试试换个名字吧。`,
-  'Term _ already used.': (Name: string, type: string) =>
-    `"${Name}" is already defined by the user. Try a different ${type}.`,
-  'Term _ reserved.': (Name: string, type: string) =>
-    `"${Name}" is a reserved keyword in NetLogo. Try a different ${type}.`,
+  'Term _ already used': (Name: string, Type: string) =>
+    `"${zh_cn[Type]()} ${Name}" 已经被定义过了。试试换个名字吧。`,
+  'Term _ reserved': (Name: string, Type: string) =>
+    `"${zh_cn[Type]()} ${Name}" 是一个 NetLogo 关键字。试试换个名字吧。`,
   'Invalid breed procedure _': (Name: string) =>
     `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
   'Missing command before _': (Name: string) =>
@@ -60,13 +58,13 @@ const zh_cn: Record<string, Function> = {
     `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
   'Unmatched item _': (Current: string, Expected: string) =>
     `"${Current}" 需要对应的 ${Expected}。`,
-  'Unsupported extension _.': (Name: string) =>
+  'Unsupported extension _': (Name: string) =>
     `这个编辑器不支持扩展 "${Name}"。`,
-  'Missing extension _.': (Name: string) =>
+  'Missing extension _': (Name: string) =>
     `你需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
-  'Unsupported missing extension _.': (Name: string) =>
+  'Unsupported missing extension _': (Name: string) =>
     `你需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
-  'Invalid context _.': (Prior: string, New: string, Primitive: string) =>
+  'Invalid context _': (Prior: string, New: string, Primitive: string) =>
     `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
   'Duplicate global statement _': (Name: string) =>
     `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
@@ -90,6 +88,9 @@ const zh_cn: Record<string, Function> = {
   Reporter: () => '函数',
   Argument: () => '参数',
   Arguments: () => '参数',
+  Breed: () => '种类',
+  'Global variable': () => '全局变量',
+  'Procedure name': () => '变量名称',
 
   // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,

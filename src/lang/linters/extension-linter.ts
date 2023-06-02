@@ -1,7 +1,7 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
-import { Linter } from './linter-builder';
+import { Linter, getDiagnostic } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
 import {
   checkValidIdentifier,
@@ -30,14 +30,8 @@ export const ExtensionLinter: Linter = (
       if (noderef.name == 'Extensions') {
         noderef.node.getChildren('Identifier').map((child) => {
           let name = view.state.sliceDoc(child.from, child.to);
-          if (primitives.GetExtensions().indexOf(name) == -1) {
-            diagnostics.push({
-              from: child.from,
-              to: child.to,
-              severity: 'warning',
-              message: Localized.Get('Unsupported extension _.', name),
-            });
-          }
+          if (primitives.GetExtensions().indexOf(name) == -1)
+            diagnostics.push(getDiagnostic(view, child, 'Unsupported extension _', 'warning'));
         });
         noderef.node.getChildren('CloseBracket').map((child) => {
           extension_index = child.from;
@@ -68,8 +62,8 @@ export const ExtensionLinter: Linter = (
           to: noderef.to,
           severity: 'error',
           message: !noderef.name.includes('Unsupported')
-            ? Localized.Get('Missing extension _.', vals[0])
-            : Localized.Get('Unsupported missing extension _.', vals[0]),
+            ? Localized.Get('Missing extension _', vals[0])
+            : Localized.Get('Unsupported missing extension _', vals[0]),
           actions: [AddGlobalsAction('Extensions', [vals[0]])],
         });
       }

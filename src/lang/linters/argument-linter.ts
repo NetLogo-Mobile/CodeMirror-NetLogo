@@ -4,7 +4,7 @@ import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes/structures';
-import { Linter } from './linter-builder';
+import { Linter, getDiagnostic } from './linter-builder';
 import { Localized } from '../../editor';
 import { PreprocessContext } from '../classes/contexts';
 import { Log } from '../../codemirror/utils/debug-utils';
@@ -46,35 +46,17 @@ export const ArgumentLinter: Linter = (
             : noderef.node.getChildren('Identifier').length +
               noderef.node.getChildren('UnsupportedPrim').length +
               noderef.node.getChildren('Value').length;
-        diagnostics.push({
-          from: noderef.from,
-          to: getTo(noderef.node, view.state),
-          severity: 'error',
-          message: Localized.Get(
-            'Too few right args for _. Expected _, found _.',
-            func,
-            expected.toString(),
-            actual.toString()
-          ),
-        });
+        diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', "error", 
+          func, expected.toString(), actual.toString()));
       } else if (
         (noderef.name == 'ReporterStatement' ||
           noderef.name == 'CommandStatement') &&
         noderef.node.getChildren('Arg')
       ) {
         const Node = noderef.node;
-        const value = view.state
-          .sliceDoc(noderef.from, noderef.to)
-          .toLowerCase();
         // Checking if missing command (it shows up as a specific grammatical structure)
-        if (Node.firstChild?.name == '⚠') {
-          diagnostics.push({
-            from: Node.from,
-            to: getTo(Node, view.state),
-            severity: 'error',
-            message: Localized.Get('Missing command before _', value),
-          });
-        }
+        if (Node.firstChild?.name == '⚠')
+          diagnostics.push(getDiagnostic(view, Node, 'Missing command _'));
         // Checking the arguments
         let args = getArgs(Node);
         // Log(args.rightArgs.map((node)=>view.state.sliceDoc(node.from, node.to)))
@@ -123,53 +105,17 @@ export const ArgumentLinter: Linter = (
           }
           // create error messages
           else if (error_type == 'no primitive') {
-            diagnostics.push({
-              from: noderef.from,
-              to: getTo(noderef.node, view.state),
-              severity: 'error',
-              message: Localized.Get(
-                'Problem identifying primitive _. Expected _, found _.',
-                func.toString(),
-                expected.toString(),
-                actual.toString()
-              ),
-            });
+            diagnostics.push(getDiagnostic(view, noderef.node, 'Problem identifying primitive _. Expected _, found _.', "error", 
+              func.toString(), expected.toString(), actual.toString()));
           } else if (error_type == 'left') {
-            diagnostics.push({
-              from: noderef.from,
-              to: getTo(noderef.node, view.state),
-              severity: 'error',
-              message: Localized.Get(
-                'Left args for _. Expected _, found _.',
-                func.toString(),
-                expected.toString(),
-                actual.toString()
-              ),
-            });
+            diagnostics.push(getDiagnostic(view, noderef.node, 'Left args for _. Expected _, found _.', "error", 
+              func.toString(), expected.toString(), actual.toString()));
           } else if (error_type == 'rightmin') {
-            diagnostics.push({
-              from: noderef.from,
-              to: getTo(noderef.node, view.state),
-              severity: 'error',
-              message: Localized.Get(
-                'Too few right args for _. Expected _, found _.',
-                func.toString(),
-                expected.toString(),
-                actual.toString()
-              ),
-            });
+            diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', "error", 
+              func.toString(), expected.toString(), actual.toString()));
           } else if (error_type == 'rightmax') {
-            diagnostics.push({
-              from: noderef.from,
-              to: getTo(noderef.node, view.state),
-              severity: 'error',
-              message: Localized.Get(
-                'Too many right args for _. Expected _, found _.',
-                func.toString(),
-                expected.toString(),
-                actual.toString()
-              ),
-            });
+            diagnostics.push(getDiagnostic(view, noderef.node, 'Too many right args for _. Expected _, found _.', "error", 
+              func.toString(), expected.toString(), actual.toString()));
           }
         }
         // Check for infinite loops
@@ -190,25 +136,12 @@ export const ArgumentLinter: Linter = (
             potentialLoop = true;
           }
           // Check for loop end
-          if (potentialLoop && !checkLoopEnd(view, Node)) {
-            diagnostics.push({
-              from: Node.from,
-              to: getTo(Node, view.state),
-              severity: 'error',
-              message: Localized.Get('Infinite loop _', funcName),
-            });
-          }
+          if (potentialLoop && !checkLoopEnd(view, Node))
+            diagnostics.push(getDiagnostic(view, noderef.node, 'Infinite loop _', "error", funcName));
         }
       }
     });
   return diagnostics;
-  // .filter(
-  //   (d) =>
-  //     d.from >= view.state.selection.ranges[0].to ||
-  //     d.to <= view.state.selection.ranges[0].from ||
-  //     d.message == Localized.Get('Infinite loop _', 'loop') ||
-  //     d.message == Localized.Get('Infinite loop _', 'while')
-  // );
 };
 
 /** checkLoopEnd: checks if a loop has a stop/die/report statement. */
@@ -397,10 +330,4 @@ const getBreedProcedureArgs = function (func_type: string) {
   } else {
     return null;
   }
-};
-
-const getTo = function (node: SyntaxNode, state: EditorState) {
-  let val = state.sliceDoc(node.from, node.to);
-  val = val.trimEnd();
-  return node.from + val.length;
 };

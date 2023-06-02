@@ -26,9 +26,7 @@ export const ModeLinter: Linter = (
   unexpected = unexpected ?? CheckMode(node, 'Embedded', mode);
   unexpected = unexpected ?? CheckMode(node, 'Normal', mode);
   if (unexpected != null) {
-    diagnostics.push(
-      getDiagnostic(view, unexpected, `Invalid for ${mode} mode _`)
-    );
+    diagnostics.push(getDiagnostic(view, unexpected, `Invalid for ${mode} mode _`));
     return diagnostics;
   }
   // The global statements are not allowed in oneline/embedded modes
@@ -42,9 +40,7 @@ export const ModeLinter: Linter = (
       'BreedsOwn',
     ]) {
       node.getChildren(name).map((child) => {
-        diagnostics.push(
-          getDiagnostic(view, child, `Invalid for ${mode} mode _`)
-        );
+        diagnostics.push(getDiagnostic(view, child, `Invalid for ${mode} mode _`));
       });
     }
   }

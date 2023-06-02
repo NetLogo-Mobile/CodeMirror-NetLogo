@@ -38,26 +38,18 @@ export const UnrecognizedLinter: Linter = (
               (child.name.startsWith('Command') ||
                 child.name.startsWith('Reporter')))
           ) {
-            diagnostics.push(
-              getDiagnostic(view, node, 'Argument is reserved _')
-            );
+            diagnostics.push(getDiagnostic(view, node, 'Argument is reserved _'));
           } else {
-            diagnostics.push(
-              getDiagnostic(view, node, 'Argument is invalid _')
-            );
+            diagnostics.push(getDiagnostic(view, node, 'Argument is invalid _'));
           }
         } else if (
           !['[', ']', ')', '(', '"'].includes(value) &&
           !checkBreedLike(value).found
         ) {
           if (node.node.parent?.name == 'Normal') {
-            diagnostics.push(
-              getDiagnostic(view, node, 'Unrecognized global statement _')
-            );
+            diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));
           } else {
-            diagnostics.push(
-              getDiagnostic(view, node, 'Unrecognized statement _')
-            );
+            diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
           }
         }
       }
