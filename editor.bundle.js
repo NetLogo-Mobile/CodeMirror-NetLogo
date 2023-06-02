@@ -31028,10 +31028,12 @@ if(!String.prototype.matchAll) {
                 primitives.GetNamedPrimitive(value)) {
                 diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
             }
-            if (extra)
-                extra.push(value);
             else {
-                defined.push(value);
+                if (extra)
+                    extra.push(value);
+                else {
+                    defined.push(value);
+                }
             }
         };
         // Go through the syntax tree
@@ -31054,7 +31056,7 @@ if(!String.prototype.matchAll) {
                     diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized global statement _', 'error'));
                 }
                 else {
-                    NameCheck(noderef, 'Procedure name');
+                    NameCheck(noderef, 'Procedure');
                 }
             }
             else if (noderef.name == 'BreedsOwn') {
@@ -31064,32 +31066,35 @@ if(!String.prototype.matchAll) {
                     return;
                 let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
                 breedName = breedName.substring(0, breedName.length - 4);
-                if (breedName == 'turtles') {
-                    NameCheck(noderef, 'Breed variable');
-                }
-                else if (breedName == 'links') {
-                    NameCheck(noderef, 'Link variable');
-                }
-                else if (breedName == 'patches') {
-                    NameCheck(noderef, 'Patch variable');
-                }
-                else if (isLinkBreed(breedName, lintContext)) {
-                    NameCheck(noderef, 'Turtle variable', breedvars, true);
-                }
-                else {
-                    NameCheck(noderef, 'Link variable', breedvars, true);
-                }
+                noderef.node.getChildren('Identifier').map((child) => {
+                    if (breedName == 'turtles') {
+                        NameCheck(child, 'Breed variable');
+                    }
+                    else if (breedName == 'links') {
+                        NameCheck(child, 'Link variable');
+                    }
+                    else if (breedName == 'patches') {
+                        NameCheck(child, 'Patch variable');
+                    }
+                    else if (isLinkBreed(breedName, lintContext)) {
+                        NameCheck(child, 'Link variable', breedvars, true);
+                    }
+                    else {
+                        NameCheck(child, 'Turtle variable', breedvars, true);
+                    }
+                });
                 breedDefined.push(...breedvars);
             }
             else if (noderef.name == 'NewVariableDeclaration') {
                 // TODO: Optimize it so that whenever we see a procedure, we check the local variables
                 // Now, for each new variable declaration, we look back again
+                // It would also solve the issue of arguments & local variables using the same name
                 // Since the new variable definition is typically few, not a high priority
                 let child = (_c = noderef.node.getChild('Identifier')) !== null && _c !== void 0 ? _c : noderef.node.getChild('UnsupportedPrim');
                 if (!child)
                     return;
                 let localvars = getLocalVars(child, view.state, lintContext);
-                NameCheck(noderef, 'Local variable', localvars);
+                NameCheck(child, 'Local variable', localvars);
             }
             else if (noderef.name == 'Arguments') {
                 let current = [];
@@ -31299,7 +31304,7 @@ if(!String.prototype.matchAll) {
         'Missing extension _': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
         'Unsupported missing extension _': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
         'Unsupported extension _': (Name) => `The extension "${Name}" is not supported in this editor.`,
-        'Term _ already used': (Name, Type) => `"${Name}" is already defined by the user. Try a different ${en_us[Type]().toLowerCase()} name.`,
+        'Term _ already used': (Name, Type) => `"${Name}" is already defined in the code. Try a different ${en_us[Type]().toLowerCase()} name.`,
         'Term _ reserved': (Name, Type) => `"${Name}" is a reserved keyword in NetLogo. Try a different ${en_us[Type]().toLowerCase()} name.`,
         'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
         'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
@@ -31324,12 +31329,12 @@ if(!String.prototype.matchAll) {
         Argument: () => 'Argument',
         Arguments: (Number) => 'Argument' + (Number > 1 ? 's' : ''),
         Breed: () => 'Breed',
+        Procedure: () => 'Procedure',
         'Global variable': () => 'Global variable',
         'Turtle variable': () => 'Turtle variable',
         'Patch variable': () => 'Patch variable',
         'Link variable': () => 'Link variable',
         'Local variable': () => 'Local variable',
-        'Procedure name': () => 'Procedure name',
         // Help messages
         '~VariableName': (Name) => `A (unknown) variable. `,
         '~ProcedureName': (Name) => `The name of a procedure. `,
@@ -31464,12 +31469,12 @@ if(!String.prototype.matchAll) {
         Argument: () => '参数',
         Arguments: () => '参数',
         Breed: () => '种类',
+        Procedure: () => '过程',
         'Global variable': () => '全局变量',
         'Turtle variable': () => '海龟变量',
         'Patch variable': () => '格子变量',
         'Link variable': () => '链接变量',
         'Local variable': () => '本地变量',
-        'Procedure name': () => '变量名称',
         // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,
