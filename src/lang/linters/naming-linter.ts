@@ -6,50 +6,46 @@ import { BreedType } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
 import { getLocalVars } from './utils/check-identifier';
 import { PrimitiveManager } from '../primitives/primitives';
+import { turtleVars, patchVars, linkVars } from '../keywords';
+import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 
 let primitives = PrimitiveManager;
 
 // NamingLinter: Ensures no duplicate breed names
 export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  let all: string[] = [
-    'turtles',
-    'turtle',
-    'patches',
-    'patch',
-    'links',
-    'link',
-  ];
+  let all: string[] = [];
+  let reserved = ['turtles', 'turtle', 'patches', 'patch', 'links', 'link'];
   for (let b of lintContext.Breeds.values()) {
     if (b.BreedType == BreedType.Turtle) {
-      all.push('hatch-' + b.Plural);
-      all.push('sprout-' + b.Plural);
-      all.push('create-' + b.Plural);
-      all.push('create-ordered-' + b.Plural);
-      all.push(b.Plural + '-at');
-      all.push(b.Plural + '-here');
-      all.push(b.Plural + '-on');
-      all.push('is-' + b.Singular + '?');
+      reserved.push('hatch-' + b.Plural);
+      reserved.push('sprout-' + b.Plural);
+      reserved.push('create-' + b.Plural);
+      reserved.push('create-ordered-' + b.Plural);
+      reserved.push(b.Plural + '-at');
+      reserved.push(b.Plural + '-here');
+      reserved.push(b.Plural + '-on');
+      reserved.push('is-' + b.Singular + '?');
     } else {
-      all.push('create-' + b.Plural + '-to');
-      all.push('create-' + b.Singular + '-to');
-      all.push('create-' + b.Plural + '-from');
-      all.push('create-' + b.Singular + '-from');
-      all.push('create-' + b.Plural + '-with');
-      all.push('create-' + b.Singular + '-with');
-      all.push('out-' + b.Singular + '-to');
-      all.push('out-' + b.Singular + '-neighbors');
-      all.push('out-' + b.Singular + '-neighbor?');
-      all.push('in-' + b.Singular + '-from');
-      all.push('in-' + b.Singular + '-neighbors');
-      all.push('in-' + b.Singular + '-neighbor?');
-      all.push('my-' + b.Plural);
-      all.push('my-in-' + b.Plural);
-      all.push('my-out-' + b.Plural);
-      all.push(b.Singular + '-neighbor?');
-      all.push(b.Singular + '-neighbors');
-      all.push(b.Singular + '-with');
-      all.push('is-' + b.Singular + '?');
+      reserved.push('create-' + b.Plural + '-to');
+      reserved.push('create-' + b.Singular + '-to');
+      reserved.push('create-' + b.Plural + '-from');
+      reserved.push('create-' + b.Singular + '-from');
+      reserved.push('create-' + b.Plural + '-with');
+      reserved.push('create-' + b.Singular + '-with');
+      reserved.push('out-' + b.Singular + '-to');
+      reserved.push('out-' + b.Singular + '-neighbors');
+      reserved.push('out-' + b.Singular + '-neighbor?');
+      reserved.push('in-' + b.Singular + '-from');
+      reserved.push('in-' + b.Singular + '-neighbors');
+      reserved.push('in-' + b.Singular + '-neighbor?');
+      reserved.push('my-' + b.Plural);
+      reserved.push('my-in-' + b.Plural);
+      reserved.push('my-out-' + b.Plural);
+      reserved.push(b.Singular + '-neighbor?');
+      reserved.push(b.Singular + '-neighbors');
+      reserved.push(b.Singular + '-with');
+      reserved.push('is-' + b.Singular + '?');
     }
   }
   let seen: string[] = [];
@@ -69,7 +65,17 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
             from: noderef.from,
             to: noderef.to,
             severity: 'error',
-            message: Localized.Get('Term _ already used.', value),
+            message: Localized.Get('Term _ already used.', value, 'breed name'),
+          });
+        } else if (
+          reserved.includes(value) ||
+          primitives.GetNamedPrimitive(value)
+        ) {
+          diagnostics.push({
+            from: noderef.from,
+            to: noderef.to,
+            severity: 'error',
+            message: Localized.Get('Term _ reserved.', value, 'breed name'),
           });
         }
         seen.push(value);
@@ -86,7 +92,17 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
             from: noderef.from,
             to: noderef.to,
             severity: 'error',
-            message: Localized.Get('Term _ already used.', value),
+            message: Localized.Get('Term _ already used.', value, 'global'),
+          });
+        } else if (
+          reserved.includes(value) ||
+          primitives.GetNamedPrimitive(value)
+        ) {
+          diagnostics.push({
+            from: noderef.from,
+            to: noderef.to,
+            severity: 'error',
+            message: Localized.Get('Term _ reserved.', value, 'global'),
           });
         }
         seen.push(value);
@@ -107,14 +123,21 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
             from: noderef.from,
             to: noderef.to,
             severity: 'error',
-            message: Localized.Get('Term _ already used.', value),
+            message: Localized.Get(
+              'Term _ already used.',
+              value,
+              'procedure name'
+            ),
           });
-        } else if (primitives.GetNamedPrimitive(value)) {
+        } else if (
+          reserved.includes(value) ||
+          primitives.GetNamedPrimitive(value)
+        ) {
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
             severity: 'error',
-            message: Localized.Get('Term _ already used.', value),
+            message: Localized.Get('Term _ reserved.', value, 'procedure name'),
           });
         }
         seen.push(value);
@@ -140,7 +163,26 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
                   from: child.from,
                   to: child.to,
                   severity: 'error',
-                  message: Localized.Get('Term _ already used.', name),
+                  message: Localized.Get(
+                    'Term _ already used.',
+                    name,
+                    'breed variable'
+                  ),
+                });
+              } else if (
+                reserved.includes(name) ||
+                primitives.GetNamedPrimitive(name) ||
+                turtleVars.includes(name)
+              ) {
+                diagnostics.push({
+                  from: child.from,
+                  to: child.to,
+                  severity: 'error',
+                  message: Localized.Get(
+                    'Term _ reserved.',
+                    name,
+                    'breed variable'
+                  ),
                 });
               }
               internal_vars.push(name);
@@ -166,7 +208,26 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
                   from: child.from,
                   to: child.to,
                   severity: 'error',
-                  message: Localized.Get('Term _ already used.', name),
+                  message: Localized.Get(
+                    'Term _ already used.',
+                    name,
+                    'breed variable'
+                  ),
+                });
+              } else if (
+                reserved.includes(name) ||
+                primitives.GetNamedPrimitive(name) ||
+                linkVars.includes(name)
+              ) {
+                diagnostics.push({
+                  from: child.from,
+                  to: child.to,
+                  severity: 'error',
+                  message: Localized.Get(
+                    'Term _ reserved.',
+                    name,
+                    'breed variable'
+                  ),
                 });
               }
               internal_vars.push(name);
@@ -189,7 +250,26 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
                   from: child.from,
                   to: child.to,
                   severity: 'error',
-                  message: Localized.Get('Term _ already used.', name),
+                  message: Localized.Get(
+                    'Term _ already used.',
+                    name,
+                    'breed variable'
+                  ),
+                });
+              } else if (
+                reserved.includes(name) ||
+                primitives.GetNamedPrimitive(name) ||
+                patchVars.includes(name)
+              ) {
+                diagnostics.push({
+                  from: child.from,
+                  to: child.to,
+                  severity: 'error',
+                  message: Localized.Get(
+                    'Term _ reserved.',
+                    name,
+                    'breed variable'
+                  ),
                 });
               }
               all.push(name);
@@ -210,7 +290,25 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
               from: child.from,
               to: child.to,
               severity: 'error',
-              message: Localized.Get('Term _ already used.', name),
+              message: Localized.Get(
+                'Term _ already used.',
+                name,
+                'local variable'
+              ),
+            });
+          } else if (
+            reserved.includes(name) ||
+            primitives.GetNamedPrimitive(name)
+          ) {
+            diagnostics.push({
+              from: child.from,
+              to: child.to,
+              severity: 'error',
+              message: Localized.Get(
+                'Term _ reserved.',
+                name,
+                'local variable'
+              ),
             });
           }
         }
@@ -224,7 +322,21 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
                 from: child.from,
                 to: child.to,
                 severity: 'error',
-                message: Localized.Get('Term _ already used.', name),
+                message: Localized.Get(
+                  'Term _ already used.',
+                  name,
+                  'argument'
+                ),
+              });
+            } else if (
+              reserved.includes(name) ||
+              primitives.GetNamedPrimitive(name)
+            ) {
+              diagnostics.push({
+                from: child.from,
+                to: child.to,
+                severity: 'error',
+                message: Localized.Get('Term _ reserved.', name, 'argument'),
               });
             }
             current.push(name);
@@ -245,4 +357,24 @@ const getBreedType = (breedName: string, lintContext: LintContext) => {
     }
   }
   return null;
+};
+
+const getErrorMsg = (
+  value: string,
+  node: SyntaxNode | SyntaxNodeRef,
+  type: string,
+  custom: boolean
+) => {
+  let msg = null;
+  if (custom) {
+    msg = Localized.Get('Term _ already used.', value, type);
+  } else {
+    msg = Localized.Get('Term _ is reserved.', value, type);
+  }
+  return {
+    from: node.from,
+    to: node.to,
+    severity: 'error',
+    message: msg,
+  };
 };

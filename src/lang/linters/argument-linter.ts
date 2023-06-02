@@ -48,7 +48,7 @@ export const ArgumentLinter: Linter = (
               noderef.node.getChildren('Value').length;
         diagnostics.push({
           from: noderef.from,
-          to: noderef.to,
+          to: getTo(noderef.node, view.state),
           severity: 'error',
           message: Localized.Get(
             'Too few right args for _. Expected _, found _.',
@@ -70,7 +70,7 @@ export const ArgumentLinter: Linter = (
         if (Node.firstChild?.name == '⚠') {
           diagnostics.push({
             from: Node.from,
-            to: Node.to,
+            to: getTo(Node, view.state),
             severity: 'error',
             message: Localized.Get('Missing command before _', value),
           });
@@ -125,7 +125,7 @@ export const ArgumentLinter: Linter = (
           else if (error_type == 'no primitive') {
             diagnostics.push({
               from: noderef.from,
-              to: noderef.to,
+              to: getTo(noderef.node, view.state),
               severity: 'error',
               message: Localized.Get(
                 'Problem identifying primitive _. Expected _, found _.',
@@ -137,7 +137,7 @@ export const ArgumentLinter: Linter = (
           } else if (error_type == 'left') {
             diagnostics.push({
               from: noderef.from,
-              to: noderef.to,
+              to: getTo(noderef.node, view.state),
               severity: 'error',
               message: Localized.Get(
                 'Left args for _. Expected _, found _.',
@@ -149,7 +149,7 @@ export const ArgumentLinter: Linter = (
           } else if (error_type == 'rightmin') {
             diagnostics.push({
               from: noderef.from,
-              to: noderef.to,
+              to: getTo(noderef.node, view.state),
               severity: 'error',
               message: Localized.Get(
                 'Too few right args for _. Expected _, found _.',
@@ -161,7 +161,7 @@ export const ArgumentLinter: Linter = (
           } else if (error_type == 'rightmax') {
             diagnostics.push({
               from: noderef.from,
-              to: noderef.to,
+              to: getTo(noderef.node, view.state),
               severity: 'error',
               message: Localized.Get(
                 'Too many right args for _. Expected _, found _.',
@@ -193,7 +193,7 @@ export const ArgumentLinter: Linter = (
           if (potentialLoop && !checkLoopEnd(view, Node)) {
             diagnostics.push({
               from: Node.from,
-              to: Node.to,
+              to: getTo(Node, view.state),
               severity: 'error',
               message: Localized.Get('Infinite loop _', funcName),
             });
@@ -397,4 +397,10 @@ const getBreedProcedureArgs = function (func_type: string) {
   } else {
     return null;
   }
+};
+
+const getTo = function (node: SyntaxNode, state: EditorState) {
+  let val = state.sliceDoc(node.from, node.to);
+  val = val.trimEnd();
+  return node.from + val.length;
 };
