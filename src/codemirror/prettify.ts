@@ -71,6 +71,7 @@ export const prettifyAll = function (
   view.dispatch({
     changes: addSpacing(view, 0, new_doc.length),
   });
+  doc = view.state.doc.toString();
   Editor.ForceParse();
   //console.log(view.state.doc.toString())
   // ensure spacing is correct

@@ -90,34 +90,8 @@ Procedure {
   To ProcedureName Arguments? ProcedureContent* End
 }
 
-ProcedureName[@dynamicPrecedence=1] {
-  UnsupportedPrim |
-  Identifier | 
-  SpecialCommand | 
-  SpecialReporter0Args |
-  SpecialReporter1Args |
-  SpecialReporter2Args |
-  SpecialReporter3Args |
-  SpecialReporter4Args |
-  SpecialReporter5Args |
-  SpecialReporter6Args |
-  SpecialReporter1ArgsBoth |
-  SpecialReporter0ArgsLink |
-  SpecialReporter1ArgsLink |
-  SpecialReporter2ArgsTurtle |
-  SpecialReporter0ArgsTurtle |
-  SpecialReporter1ArgsTurtle |
-  SpecialReporter0ArgsLinkP |
-  SpecialCommand0Args |
-  SpecialCommand1Args |
-  SpecialCommand2Args |
-  SpecialCommand3Args |
-  SpecialCommand4Args |
-  SpecialCommand5Args |
-  SpecialCommand6Args |
-  SpecialCommandCreateTurtle |
-  SpecialCommandCreateLink |
-  Command2Args
+ProcedureName {
+  Identifier
 }
 
 Arguments {

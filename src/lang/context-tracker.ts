@@ -8,11 +8,14 @@ export const contextTracker = new ContextTracker({
   start: {
     extensionsGlobals: false,
     globalStatement: true,
-    procedureName: false,
+    procedureName: 2,
   },
   shift: (context, term, stack, input) => {
-    let globalStatements = true ? input.pos == 0 : context.globalStatement;
-    let procedureName = false;
+    let globalStatements = input.pos == 0 ? true : context.globalStatement;
+    let procedureName =
+      context.procedureName < 2
+        ? context.procedureName + 1
+        : context.procedureName;
     let token = '';
     if (input.next == 93) {
       input.advance();
@@ -52,7 +55,7 @@ export const contextTracker = new ContextTracker({
       return {
         extensionsGlobals: context.extensionsGlobals,
         globalStatement: false,
-        procedureName: true,
+        procedureName: 0,
       };
     }
     return {

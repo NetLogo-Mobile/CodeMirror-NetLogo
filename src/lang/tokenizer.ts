@@ -59,7 +59,7 @@ export const keyword = new ExternalTokenizer((input, stack) => {
   token = token.toLowerCase();
   // Find if the token belongs to any category
   // When these were under the regular tokenizer, they matched to word parts rather than whole words
-  if (stack.context.extensionsGlobals || stack.context.procedureName) {
+  if (stack.context.extensionsGlobals || stack.context.procedureName < 2) {
     input.acceptToken(Identifier);
     return;
   }

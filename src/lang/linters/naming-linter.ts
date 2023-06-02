@@ -5,6 +5,9 @@ import { Linter } from './linter-builder';
 import { BreedType } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
 import { getLocalVars } from './utils/check-identifier';
+import { PrimitiveManager } from '../primitives/primitives';
+
+let primitives = PrimitiveManager;
 
 // NamingLinter: Ensures no duplicate breed names
 export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -100,6 +103,13 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
             message: Localized.Get('Unrecognized global statement _', value),
           });
         } else if (all.includes(value)) {
+          diagnostics.push({
+            from: noderef.from,
+            to: noderef.to,
+            severity: 'error',
+            message: Localized.Get('Term _ already used.', value),
+          });
+        } else if (primitives.GetNamedPrimitive(value)) {
           diagnostics.push({
             from: noderef.from,
             to: noderef.to,
