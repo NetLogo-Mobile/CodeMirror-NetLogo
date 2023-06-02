@@ -25946,7 +25946,8 @@ if(!String.prototype.matchAll) {
                 token == 'globals' ||
                 token == 'breed' ||
                 token == 'directed-link-breed' ||
-                token == 'undirected-link-breed') {
+                token == 'undirected-link-breed' ||
+                token.endsWith('-own')) {
                 while (input.next == 32) {
                     input.advance();
                 }
@@ -25965,6 +25966,13 @@ if(!String.prototype.matchAll) {
                     extensionsGlobals: context.extensionsGlobals,
                     globalStatement: false,
                     procedureName: 0,
+                };
+            }
+            else if (token == 'end') {
+                return {
+                    extensionsGlobals: context.extensionsGlobals,
+                    globalStatement: true,
+                    procedureName: procedureName,
                 };
             }
             return {
@@ -30623,7 +30631,7 @@ if(!String.prototype.matchAll) {
                     : noderef.node.getChildren('Identifier').length +
                         noderef.node.getChildren('UnsupportedPrim').length +
                         noderef.node.getChildren('Value').length;
-                diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', "error", func, expected.toString(), actual.toString()));
+                diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', 'error', func, expected.toString(), actual.toString()));
             }
             else if ((noderef.name == 'ReporterStatement' ||
                 noderef.name == 'CommandStatement') &&
@@ -30679,16 +30687,16 @@ if(!String.prototype.matchAll) {
                     if (func == null || expected == null || actual == null) ;
                     // create error messages
                     else if (error_type == 'no primitive') {
-                        diagnostics.push(getDiagnostic(view, noderef.node, 'Problem identifying primitive _. Expected _, found _.', "error", func.toString(), expected.toString(), actual.toString()));
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Problem identifying primitive _. Expected _, found _.', 'error', func.toString(), expected.toString(), actual.toString()));
                     }
                     else if (error_type == 'left') {
-                        diagnostics.push(getDiagnostic(view, noderef.node, 'Left args for _. Expected _, found _.', "error", func.toString(), expected.toString(), actual.toString()));
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Left args for _. Expected _, found _.', 'error', func.toString(), expected.toString(), actual.toString()));
                     }
                     else if (error_type == 'rightmin') {
-                        diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', "error", func.toString(), expected.toString(), actual.toString()));
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', 'error', func.toString(), expected.toString(), actual.toString()));
                     }
                     else if (error_type == 'rightmax') {
-                        diagnostics.push(getDiagnostic(view, noderef.node, 'Too many right args for _. Expected _, found _.', "error", func.toString(), expected.toString(), actual.toString()));
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Too many right args for _. Expected _, found _.', 'error', func.toString(), expected.toString(), actual.toString()));
                     }
                 }
                 // Check for infinite loops
@@ -30711,7 +30719,7 @@ if(!String.prototype.matchAll) {
                     }
                     // Check for loop end
                     if (potentialLoop && !checkLoopEnd(view, Node))
-                        diagnostics.push(getDiagnostic(view, noderef.node, 'Infinite loop _', "error", funcName));
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Infinite loop _', 'error', funcName));
                 }
             }
         });
@@ -31021,7 +31029,9 @@ if(!String.prototype.matchAll) {
         var NameCheck = (node, type, extra, isBreed = false) => {
             const value = view.state.sliceDoc(node.from, node.to).toLowerCase();
             // For breeds, we ignore other breed variables since you can re-define them in NetLogo
-            if (defined.includes(value) || (extra === null || extra === void 0 ? void 0 : extra.includes(value)) || (!isBreed && breedDefined.includes(value))) {
+            if (defined.includes(value) ||
+                (extra === null || extra === void 0 ? void 0 : extra.includes(value)) ||
+                (!isBreed && breedDefined.includes(value))) {
                 diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
             }
             else if (reserved.includes(value) ||
