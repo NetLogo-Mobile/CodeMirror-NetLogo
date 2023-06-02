@@ -52,9 +52,13 @@ const en_us: Record<string, Function> = {
   'Unsupported extension _': (Name: string) =>
     `The extension "${Name}" is not supported in this editor.`,
   'Term _ already used': (Name: string, Type: string) =>
-    `"${Name}" is already defined in the code. Try a different ${en_us[Type]().toLowerCase()} name.`,
+    `"${Name}" is already defined in the code. Try a different ${en_us[
+      Type
+    ]().toLowerCase()} name.`,
   'Term _ reserved': (Name: string, Type: string) =>
-    `"${Name}" is a reserved keyword in NetLogo. Try a different ${en_us[Type]().toLowerCase()} name.`,
+    `"${Name}" is a reserved keyword in NetLogo. Try a different ${en_us[
+      Type
+    ]().toLowerCase()} name.`,
   'Invalid breed procedure _': (Name: string) =>
     `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
   'Missing command before _': (Name: string) =>

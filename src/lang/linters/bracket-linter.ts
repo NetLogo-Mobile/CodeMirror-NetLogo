@@ -50,7 +50,16 @@ export const BracketLinter: Linter = (view, preprocessContext, lintContext) => {
       }
       // Push the diagnostic
       if (current != '')
-        diagnostics.push(getDiagnostic(view, node, 'Unmatched item _', 'error', current, expected));
+        diagnostics.push(
+          getDiagnostic(
+            view,
+            node,
+            'Unmatched item _',
+            'error',
+            current,
+            expected
+          )
+        );
     });
   return diagnostics;
 };

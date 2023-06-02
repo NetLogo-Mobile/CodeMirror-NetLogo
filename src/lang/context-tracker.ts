@@ -37,7 +37,8 @@ export const contextTracker = new ContextTracker({
       token == 'globals' ||
       token == 'breed' ||
       token == 'directed-link-breed' ||
-      token == 'undirected-link-breed'
+      token == 'undirected-link-breed' ||
+      token.endsWith('-own')
     ) {
       while (input.next == 32) {
         input.advance();
@@ -56,6 +57,12 @@ export const contextTracker = new ContextTracker({
         extensionsGlobals: context.extensionsGlobals,
         globalStatement: false,
         procedureName: 0,
+      };
+    } else if (token == 'end') {
+      return {
+        extensionsGlobals: context.extensionsGlobals,
+        globalStatement: true,
+        procedureName: procedureName,
       };
     }
     return {

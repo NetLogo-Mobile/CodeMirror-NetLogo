@@ -31,7 +31,9 @@ export const ExtensionLinter: Linter = (
         noderef.node.getChildren('Identifier').map((child) => {
           let name = view.state.sliceDoc(child.from, child.to);
           if (primitives.GetExtensions().indexOf(name) == -1)
-            diagnostics.push(getDiagnostic(view, child, 'Unsupported extension _', 'warning'));
+            diagnostics.push(
+              getDiagnostic(view, child, 'Unsupported extension _', 'warning')
+            );
         });
         noderef.node.getChildren('CloseBracket').map((child) => {
           extension_index = child.from;

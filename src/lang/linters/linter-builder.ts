@@ -72,7 +72,10 @@ export const getDiagnostic = function (
 };
 
 /** getNodeTo: Returns the proper end of a node. */
-export const getNodeTo = function (node: { from: number; to: number }, view: EditorView) {
+export const getNodeTo = function (
+  node: { from: number; to: number },
+  view: EditorView
+) {
   let val = view.state.sliceDoc(node.from, node.to);
   val = val.trimEnd();
   return node.from + val.length;

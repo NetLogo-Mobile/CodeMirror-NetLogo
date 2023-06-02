@@ -36,7 +36,9 @@ export const IdentifierLinter: Linter = (
           let result = checkBreedLike(value);
           if (!result.found) {
             // console.log(value, noderef.name, noderef.node.parent?.name);
-            diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
+            diagnostics.push(
+              getDiagnostic(view, noderef, 'Unrecognized identifier _')
+            );
           } else {
             // pull out name of possible intended breed
             let breedinfo = getBreedName(value);

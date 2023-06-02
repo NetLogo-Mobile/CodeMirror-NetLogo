@@ -46,8 +46,17 @@ export const ArgumentLinter: Linter = (
             : noderef.node.getChildren('Identifier').length +
               noderef.node.getChildren('UnsupportedPrim').length +
               noderef.node.getChildren('Value').length;
-        diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', "error", 
-          func, expected.toString(), actual.toString()));
+        diagnostics.push(
+          getDiagnostic(
+            view,
+            noderef.node,
+            'Too few right args for _. Expected _, found _.',
+            'error',
+            func,
+            expected.toString(),
+            actual.toString()
+          )
+        );
       } else if (
         (noderef.name == 'ReporterStatement' ||
           noderef.name == 'CommandStatement') &&
@@ -105,17 +114,53 @@ export const ArgumentLinter: Linter = (
           }
           // create error messages
           else if (error_type == 'no primitive') {
-            diagnostics.push(getDiagnostic(view, noderef.node, 'Problem identifying primitive _. Expected _, found _.', "error", 
-              func.toString(), expected.toString(), actual.toString()));
+            diagnostics.push(
+              getDiagnostic(
+                view,
+                noderef.node,
+                'Problem identifying primitive _. Expected _, found _.',
+                'error',
+                func.toString(),
+                expected.toString(),
+                actual.toString()
+              )
+            );
           } else if (error_type == 'left') {
-            diagnostics.push(getDiagnostic(view, noderef.node, 'Left args for _. Expected _, found _.', "error", 
-              func.toString(), expected.toString(), actual.toString()));
+            diagnostics.push(
+              getDiagnostic(
+                view,
+                noderef.node,
+                'Left args for _. Expected _, found _.',
+                'error',
+                func.toString(),
+                expected.toString(),
+                actual.toString()
+              )
+            );
           } else if (error_type == 'rightmin') {
-            diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', "error", 
-              func.toString(), expected.toString(), actual.toString()));
+            diagnostics.push(
+              getDiagnostic(
+                view,
+                noderef.node,
+                'Too few right args for _. Expected _, found _.',
+                'error',
+                func.toString(),
+                expected.toString(),
+                actual.toString()
+              )
+            );
           } else if (error_type == 'rightmax') {
-            diagnostics.push(getDiagnostic(view, noderef.node, 'Too many right args for _. Expected _, found _.', "error", 
-              func.toString(), expected.toString(), actual.toString()));
+            diagnostics.push(
+              getDiagnostic(
+                view,
+                noderef.node,
+                'Too many right args for _. Expected _, found _.',
+                'error',
+                func.toString(),
+                expected.toString(),
+                actual.toString()
+              )
+            );
           }
         }
         // Check for infinite loops
@@ -137,7 +182,15 @@ export const ArgumentLinter: Linter = (
           }
           // Check for loop end
           if (potentialLoop && !checkLoopEnd(view, Node))
-            diagnostics.push(getDiagnostic(view, noderef.node, 'Infinite loop _', "error", funcName));
+            diagnostics.push(
+              getDiagnostic(
+                view,
+                noderef.node,
+                'Infinite loop _',
+                'error',
+                funcName
+              )
+            );
         }
       }
     });

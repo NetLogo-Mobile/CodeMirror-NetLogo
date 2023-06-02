@@ -53,23 +53,36 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
     }
   }
   // Used & reserved
-  var NameCheck = (node: SyntaxNode | SyntaxNodeRef, type: string, extra?: string[], isBreed: boolean = false) => {
+  var NameCheck = (
+    node: SyntaxNode | SyntaxNodeRef,
+    type: string,
+    extra?: string[],
+    isBreed: boolean = false
+  ) => {
     const value = view.state.sliceDoc(node.from, node.to).toLowerCase();
     // For breeds, we ignore other breed variables since you can re-define them in NetLogo
-    if (defined.includes(value) || extra?.includes(value) || (!isBreed && breedDefined.includes(value))) {
-      diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
+    if (
+      defined.includes(value) ||
+      extra?.includes(value) ||
+      (!isBreed && breedDefined.includes(value))
+    ) {
+      diagnostics.push(
+        getDiagnostic(view, node, 'Term _ already used', 'error', value, type)
+      );
     } else if (
       reserved.includes(value) ||
       primitives.GetNamedPrimitive(value)
     ) {
-      diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
+      diagnostics.push(
+        getDiagnostic(view, node, 'Term _ reserved', 'error', value, type)
+      );
     } else {
       if (extra) extra.push(value);
       else {
         defined.push(value);
       }
     }
-  }
+  };
   // Go through the syntax tree
   syntaxTree(view.state)
     .cursor()
@@ -86,7 +99,14 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
           .sliceDoc(noderef.from, noderef.to)
           .toLowerCase();
         if (noderef.node.parent?.getChildren('To').length == 0) {
-          diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized global statement _', 'error'));
+          diagnostics.push(
+            getDiagnostic(
+              view,
+              noderef,
+              'Unrecognized global statement _',
+              'error'
+            )
+          );
         } else {
           NameCheck(noderef, 'Procedure');
         }
