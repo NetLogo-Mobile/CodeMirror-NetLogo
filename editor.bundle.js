@@ -31050,7 +31050,7 @@ if(!String.prototype.matchAll) {
         syntaxTree(view.state)
             .cursor()
             .iterate((noderef) => {
-            var _a, _b, _c;
+            var _a, _b, _c, _d;
             if (noderef.name == 'BreedSingular' || noderef.name == 'BreedPlural') {
                 NameCheck(noderef, 'Breed');
             }
@@ -31108,6 +31108,9 @@ if(!String.prototype.matchAll) {
             }
             else if (noderef.name == 'Arguments') {
                 let current = [];
+                if (((_d = noderef.node.parent) === null || _d === void 0 ? void 0 : _d.name) == 'AnonArguments') {
+                    current = getLocalVars(noderef.node, view.state, lintContext);
+                }
                 for (var key of ['Identifier', 'UnsupportedPrim']) {
                     noderef.node.getChildren(key).map((child) => {
                         NameCheck(child, 'Argument', current);
