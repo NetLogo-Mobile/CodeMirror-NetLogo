@@ -89,6 +89,10 @@ const en_us: Record<string, Function> = {
   Arguments: (Number: number) => 'Argument' + (Number > 1 ? 's' : ''),
   Breed: () => 'Breed',
   'Global variable': () => 'Global variable',
+  'Turtle variable': () => 'Turtle variable',
+  'Patch variable': () => 'Patch variable',
+  'Link variable': () => 'Link variable',
+  'Local variable': () => 'Local variable',
   'Procedure name': () => 'Procedure name',
 
   // Help messages

@@ -14,9 +14,13 @@ let primitives = PrimitiveManager;
 // NamingLinter: Ensures no duplicate breed names
 export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  let all: string[] = [];
+  let defined: string[] = [];
+  let breedDefined: string[] = [];
   // Reserved keywords
   let reserved = ['turtles', 'turtle', 'patches', 'patch', 'links', 'link'];
+  reserved.push(...turtleVars);
+  reserved.push(...patchVars);
+  reserved.push(...linkVars);
   for (let b of lintContext.Breeds.values()) {
     if (b.BreedType == BreedType.Turtle) {
       reserved.push('hatch-' + b.Plural);
@@ -49,16 +53,11 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
       reserved.push('is-' + b.Singular + '?');
     }
   }
-  // Seen variables
-  let seen: string[] = [];
-  let link_vars: string[] = [];
-  let turtle_vars: string[] = [];
-  let patch_vars: string[] = [];
-  let other_vars: string[] = [];
   // Used & reserved
-  var NameCheck = (node: SyntaxNode | SyntaxNodeRef, type: string, extra?: string[]) => {
+  var NameCheck = (node: SyntaxNode | SyntaxNodeRef, type: string, extra?: string[], isBreed: boolean = false) => {
     const value = view.state.sliceDoc(node.from, node.to).toLowerCase();
-    if (all.includes(value) || extra?.includes(value)) {
+    // For breeds, we ignore other breed variables since you can re-define them in NetLogo
+    if (defined.includes(value) || extra?.includes(value) || (!isBreed && breedDefined.includes(value))) {
       diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
     } else if (
       reserved.includes(value) ||
@@ -68,8 +67,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
     }
     if (extra) extra.push(value);
     else {
-      all.push(value);
-      seen.push(value);
+      defined.push(value);
     }
   }
   // Go through the syntax tree
@@ -94,146 +92,32 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
         }
       } else if (noderef.name == 'BreedsOwn') {
         let own = noderef.node.getChild('Own');
-        let internal_vars: string[] = [];
+        let breedvars: string[] = [];
         if (!own) return;
         let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
         breedName = breedName.substring(0, breedName.length - 4);
-        if (
-          breedName == 'turtles' ||
-          isLinkBreed(breedName, lintContext) == false
-        ) {
-          noderef.node.getChildren('Identifier').map((child) => {
-            let name = view.state.sliceDoc(child.from, child.to);
-            if (
-              turtle_vars.includes(name) ||
-              seen.includes(name) ||
-              internal_vars.includes(name)
-            ) {
-              diagnostics.push({
-                from: child.from,
-                to: child.to,
-                severity: 'error',
-                message: Localized.Get(
-                  'Term _ already used',
-                  name,
-                  'breed variable'
-                ),
-              });
-            } else if (
-              reserved.includes(name) ||
-              primitives.GetNamedPrimitive(name) ||
-              turtleVars.includes(name)
-            ) {
-              diagnostics.push({
-                from: child.from,
-                to: child.to,
-                severity: 'error',
-                message: Localized.Get(
-                  'Term _ reserved',
-                  name,
-                  'breed variable'
-                ),
-              });
-            }
-            internal_vars.push(name);
-            all.push(name);
-            if (breedName == 'turtles') {
-              turtle_vars.push(name);
-            } else {
-              other_vars.push(name);
-            }
-          });
-        } else if (
-          breedName == 'links' ||
-          isLinkBreed(breedName, lintContext) == true
-        ) {
-          noderef.node.getChildren('Identifier').map((child) => {
-            let name = view.state.sliceDoc(child.from, child.to);
-            if (
-              link_vars.includes(name) ||
-              seen.includes(name) ||
-              internal_vars.includes(name)
-            ) {
-              diagnostics.push({
-                from: child.from,
-                to: child.to,
-                severity: 'error',
-                message: Localized.Get(
-                  'Term _ already used',
-                  name,
-                  'breed variable'
-                ),
-              });
-            } else if (
-              reserved.includes(name) ||
-              primitives.GetNamedPrimitive(name) ||
-              linkVars.includes(name)
-            ) {
-              diagnostics.push({
-                from: child.from,
-                to: child.to,
-                severity: 'error',
-                message: Localized.Get(
-                  'Term _ reserved',
-                  name,
-                  'breed variable'
-                ),
-              });
-            }
-            internal_vars.push(name);
-            all.push(name);
-            if (breedName == 'links') {
-              link_vars.push(name);
-            } else {
-              other_vars.push(name);
-            }
-          });
+        if (breedName == 'turtles') {
+          NameCheck(noderef, 'Breed variable');
+        } else if (breedName == 'links') {
+          NameCheck(noderef, 'Link variable');
         } else if (breedName == 'patches') {
-          noderef.node.getChildren('Identifier').map((child) => {
-            let name = view.state.sliceDoc(child.from, child.to);
-            if (
-              patch_vars.includes(name) ||
-              seen.includes(name) ||
-              internal_vars.includes(name)
-            ) {
-              diagnostics.push({
-                from: child.from,
-                to: child.to,
-                severity: 'error',
-                message: Localized.Get(
-                  'Term _ already used',
-                  name,
-                  'breed variable'
-                ),
-              });
-            } else if (
-              reserved.includes(name) ||
-              primitives.GetNamedPrimitive(name) ||
-              patchVars.includes(name)
-            ) {
-              diagnostics.push({
-                from: child.from,
-                to: child.to,
-                severity: 'error',
-                message: Localized.Get(
-                  'Term _ reserved',
-                  name,
-                  'breed variable'
-                ),
-              });
-            }
-            all.push(name);
-            internal_vars.push(name);
-            patch_vars.push(name);
-          });
+          NameCheck(noderef, 'Patch variable');
+        } else if (isLinkBreed(breedName, lintContext)) {
+          NameCheck(noderef, 'Turtle variable', breedvars, true);
+        } else {
+          NameCheck(noderef, 'Link variable', breedvars, true);
         }
+        breedDefined.push(...breedvars);
       } else if (noderef.name == 'NewVariableDeclaration') {
+        // TODO: Optimize it so that whenever we see a procedure, we check the local variables
+        // Now, for each new variable declaration, we look back again
+        // Since the new variable definition is typically few, not a high priority
         let child =
           noderef.node.getChild('Identifier') ??
           noderef.node.getChild('UnsupportedPrim');
         if (!child) return;
-        let local_vars = getLocalVars(child, view.state, lintContext);
-        NameCheck(noderef, 'Local variable', local_vars);
+        let localvars = getLocalVars(child, view.state, lintContext);
+        NameCheck(noderef, 'Local variable', localvars);
       } else if (noderef.name == 'Arguments') {
         let current: string[] = [];
         for (var key of ['Identifier', 'UnsupportedPrim']) {

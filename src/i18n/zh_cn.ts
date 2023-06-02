@@ -90,6 +90,10 @@ const zh_cn: Record<string, Function> = {
   Arguments: () => '参数',
   Breed: () => '种类',
   'Global variable': () => '全局变量',
+  'Turtle variable': () => '海龟变量',
+  'Patch variable': () => '格子变量',
+  'Link variable': () => '链接变量',
+  'Local variable': () => '本地变量',
   'Procedure name': () => '变量名称',
 
   // Help messages
