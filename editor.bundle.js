@@ -25653,7 +25653,7 @@ if(!String.prototype.matchAll) {
         token = token.toLowerCase();
         // Find if the token belongs to any category
         // When these were under the regular tokenizer, they matched to word parts rather than whole words
-        if (stack.context) {
+        if (stack.context.extensionsGlobals || stack.context.procedureName) {
             input.acceptToken(Identifier$1);
             return;
         }
@@ -25910,21 +25910,26 @@ if(!String.prototype.matchAll) {
         return 0;
     }
 
+    // let globalStatements=true
     const contextTracker = new ContextTracker({
-        start: false,
-        // {
-        //   extensionsGlobals:false,
-        //   globalStatement:true
-        // },
+        //false,
+        start: {
+            extensionsGlobals: false,
+            globalStatement: true,
+            procedureName: false,
+        },
         shift: (context, term, stack, input) => {
+            let globalStatements = input.pos == 0 ;
+            let procedureName = false;
             let token = '';
             if (input.next == 93) {
                 input.advance();
-                return false;
-                // return {
-                //   extensionsGlobals:false,
-                //   globalStatement:context.globalStatement
-                // }
+                // return false;
+                return {
+                    extensionsGlobals: false,
+                    globalStatement: globalStatements,
+                    procedureName: procedureName,
+                };
             }
             // Find until the token is complete
             while (isValidKeyword(input.next)) {
@@ -25932,26 +25937,36 @@ if(!String.prototype.matchAll) {
                 input.advance();
             }
             token = token.toLowerCase();
-            if (token == 'extensions' || token == 'globals') {
-                //|| token=='directed-link-breed' || token == 'undirected-link-breed') {
+            if (token == 'extensions' ||
+                token == 'globals' ||
+                token == 'breed' ||
+                token == 'directed-link-breed' ||
+                token == 'undirected-link-breed') {
                 while (input.next == 32) {
                     input.advance();
                 }
-                if (input.next == 91) {
-                    return true;
-                    // return {
-                    //   extensionsGlobals:true,
-                    //   globalStatement:context.globalStatement
-                    // }
+                if (input.next == 91 && globalStatements) {
+                    // return true;
+                    return {
+                        extensionsGlobals: true,
+                        globalStatement: globalStatements,
+                        procedureName: procedureName,
+                    };
                 }
             }
-            // else if (context.globalStatement && (token=='to' || token=='to-report')) {
-            //   return {
-            //     extensionsGlobals:context.extensionsGlobals,
-            //     globalStatement:false
-            //   }
-            // }
-            return context;
+            else if (token == 'to' || token == 'to-report') {
+                // globalStatements=false
+                return {
+                    extensionsGlobals: context.extensionsGlobals,
+                    globalStatement: false,
+                    procedureName: true,
+                };
+            }
+            return {
+                extensionsGlobals: context.extensionsGlobals,
+                globalStatement: globalStatements,
+                procedureName: procedureName,
+            };
         },
     });
 
