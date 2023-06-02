@@ -30063,6 +30063,48 @@ if(!String.prototype.matchAll) {
         return true;
     });
 
+    /** buildLinter: Builds a linter extension from a linter function. */
+    const buildLinter = function (Source, Editor) {
+        var LastVersion = -1;
+        var Cached = [];
+        var BuiltSource = (view) => {
+            if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
+                var state = view.state.field(stateExtension);
+                Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
+                LastVersion = Editor.GetVersion();
+            }
+            return Cached;
+            // return Cached.filter(
+            //   (d) =>
+            //     d.to < view.state.selection.main.from ||
+            //     d.from > view.state.selection.main.to
+            // );
+        };
+        // var Extension = linter(BuiltSource, {
+        //   needsRefresh: (update) =>
+        //     update.docChanged ||
+        //     update.startState.selection.main != update.state.selection.main,
+        // });
+        var Extension = linter(BuiltSource);
+        Extension.Source = BuiltSource;
+        return Extension;
+    };
+    /** getDiagnostic: Returns a diagnostic object from a node and message. */
+    const getDiagnostic = function (view, node, message, severity = 'error', ...values) {
+        var value = view.state.sliceDoc(node.from, node.to).trim();
+        // Cut short the value if it's too long
+        if (value.length >= 20)
+            value = value.substring(0, 17) + '...';
+        if (values.length == 0)
+            values.push(value);
+        return {
+            from: node.from,
+            to: node.from + value.length,
+            severity: severity,
+            message: Localized.Get(message, ...values),
+        };
+    };
+
     /** CodeEditing: Functions for editing code. */
     class CodeEditing {
         /** Constructor: Create a new code editing service. */
@@ -30250,16 +30292,11 @@ if(!String.prototype.matchAll) {
                     //check if the identifier looks like a breed procedure (e.g. "create-___")
                     let result = checkBreedLike(value);
                     if (!result.found) {
-                        //console.log(value, noderef.name, noderef.node.parent?.name);
-                        diagnostics.push({
-                            from: noderef.from,
-                            to: noderef.to,
-                            severity: 'error',
-                            message: Localized.Get('Unrecognized identifier _', value),
-                        });
+                        // console.log(value, noderef.name, noderef.node.parent?.name);
+                        diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
                     }
                     else {
-                        //pull out name of possible intended breed
+                        // pull out name of possible intended breed
                         let breedinfo = getBreedName(value);
                         Log(breedinfo);
                         if (!context.breedNames.includes(breedinfo.breed)) {
@@ -30511,45 +30548,6 @@ if(!String.prototype.matchAll) {
         return found;
     };
 
-    /** buildLinter: Builds a linter extension from a linter function. */
-    const buildLinter = function (Source, Editor) {
-        var LastVersion = -1;
-        var Cached = [];
-        var BuiltSource = (view) => {
-            if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
-                var state = view.state.field(stateExtension);
-                Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
-                LastVersion = Editor.GetVersion();
-            }
-            return Cached;
-            // return Cached.filter(
-            //   (d) =>
-            //     d.to < view.state.selection.main.from ||
-            //     d.from > view.state.selection.main.to
-            // );
-        };
-        // var Extension = linter(BuiltSource, {
-        //   needsRefresh: (update) =>
-        //     update.docChanged ||
-        //     update.startState.selection.main != update.state.selection.main,
-        // });
-        var Extension = linter(BuiltSource);
-        Extension.Source = BuiltSource;
-        return Extension;
-    };
-    const getDiagnostic = function (view, node, message, severity = 'error') {
-        var value = view.state.sliceDoc(node.from, node.to);
-        // Cut short the value if it's too long
-        if (value.length >= 20)
-            value = value.substring(0, 17) + '...';
-        return {
-            from: node.from,
-            to: node.to,
-            severity: severity,
-            message: Localized.Get(message, value),
-        };
-    };
-
     // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
     const UnrecognizedLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
@@ -30625,29 +30623,15 @@ if(!String.prototype.matchAll) {
                     : noderef.node.getChildren('Identifier').length +
                         noderef.node.getChildren('UnsupportedPrim').length +
                         noderef.node.getChildren('Value').length;
-                diagnostics.push({
-                    from: noderef.from,
-                    to: getTo(noderef.node, view.state),
-                    severity: 'error',
-                    message: Localized.Get('Too few right args for _. Expected _, found _.', func, expected.toString(), actual.toString()),
-                });
+                diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', "error", func, expected.toString(), actual.toString()));
             }
             else if ((noderef.name == 'ReporterStatement' ||
                 noderef.name == 'CommandStatement') &&
                 noderef.node.getChildren('Arg')) {
                 const Node = noderef.node;
-                const value = view.state
-                    .sliceDoc(noderef.from, noderef.to)
-                    .toLowerCase();
                 // Checking if missing command (it shows up as a specific grammatical structure)
-                if (((_a = Node.firstChild) === null || _a === void 0 ? void 0 : _a.name) == '⚠') {
-                    diagnostics.push({
-                        from: Node.from,
-                        to: getTo(Node, view.state),
-                        severity: 'error',
-                        message: Localized.Get('Missing command before _', value),
-                    });
-                }
+                if (((_a = Node.firstChild) === null || _a === void 0 ? void 0 : _a.name) == '⚠')
+                    diagnostics.push(getDiagnostic(view, Node, 'Missing command _'));
                 // Checking the arguments
                 let args = getArgs(Node);
                 // Log(args.rightArgs.map((node)=>view.state.sliceDoc(node.from, node.to)))
@@ -30695,36 +30679,16 @@ if(!String.prototype.matchAll) {
                     if (func == null || expected == null || actual == null) ;
                     // create error messages
                     else if (error_type == 'no primitive') {
-                        diagnostics.push({
-                            from: noderef.from,
-                            to: getTo(noderef.node, view.state),
-                            severity: 'error',
-                            message: Localized.Get('Problem identifying primitive _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
-                        });
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Problem identifying primitive _. Expected _, found _.', "error", func.toString(), expected.toString(), actual.toString()));
                     }
                     else if (error_type == 'left') {
-                        diagnostics.push({
-                            from: noderef.from,
-                            to: getTo(noderef.node, view.state),
-                            severity: 'error',
-                            message: Localized.Get('Left args for _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
-                        });
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Left args for _. Expected _, found _.', "error", func.toString(), expected.toString(), actual.toString()));
                     }
                     else if (error_type == 'rightmin') {
-                        diagnostics.push({
-                            from: noderef.from,
-                            to: getTo(noderef.node, view.state),
-                            severity: 'error',
-                            message: Localized.Get('Too few right args for _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
-                        });
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Too few right args for _. Expected _, found _.', "error", func.toString(), expected.toString(), actual.toString()));
                     }
                     else if (error_type == 'rightmax') {
-                        diagnostics.push({
-                            from: noderef.from,
-                            to: getTo(noderef.node, view.state),
-                            severity: 'error',
-                            message: Localized.Get('Too many right args for _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
-                        });
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Too many right args for _. Expected _, found _.', "error", func.toString(), expected.toString(), actual.toString()));
                     }
                 }
                 // Check for infinite loops
@@ -30746,25 +30710,12 @@ if(!String.prototype.matchAll) {
                         potentialLoop = true;
                     }
                     // Check for loop end
-                    if (potentialLoop && !checkLoopEnd(view, Node)) {
-                        diagnostics.push({
-                            from: Node.from,
-                            to: getTo(Node, view.state),
-                            severity: 'error',
-                            message: Localized.Get('Infinite loop _', funcName),
-                        });
-                    }
+                    if (potentialLoop && !checkLoopEnd(view, Node))
+                        diagnostics.push(getDiagnostic(view, noderef.node, 'Infinite loop _', "error", funcName));
                 }
             }
         });
         return diagnostics;
-        // .filter(
-        //   (d) =>
-        //     d.from >= view.state.selection.ranges[0].to ||
-        //     d.to <= view.state.selection.ranges[0].from ||
-        //     d.message == Localized.Get('Infinite loop _', 'loop') ||
-        //     d.message == Localized.Get('Infinite loop _', 'while')
-        // );
     };
     /** checkLoopEnd: checks if a loop has a stop/die/report statement. */
     const checkLoopEnd = function (view, node) {
@@ -30938,11 +30889,6 @@ if(!String.prototype.matchAll) {
             return null;
         }
     };
-    const getTo = function (node, state) {
-        let val = state.sliceDoc(node.from, node.to);
-        val = val.trimEnd();
-        return node.from + val.length;
-    };
 
     // UnsupportedLinter: Checks for unsupported primitives
     // Important note: anything with a colon and no supported extension is tokenized as
@@ -30991,14 +30937,8 @@ if(!String.prototype.matchAll) {
             if (noderef.name == 'Extensions') {
                 noderef.node.getChildren('Identifier').map((child) => {
                     let name = view.state.sliceDoc(child.from, child.to);
-                    if (primitives$1.GetExtensions().indexOf(name) == -1) {
-                        diagnostics.push({
-                            from: child.from,
-                            to: child.to,
-                            severity: 'warning',
-                            message: Localized.Get('Unsupported extension _.', name),
-                        });
-                    }
+                    if (primitives$1.GetExtensions().indexOf(name) == -1)
+                        diagnostics.push(getDiagnostic(view, child, 'Unsupported extension _', 'warning'));
                 });
                 noderef.node.getChildren('CloseBracket').map((child) => {
                     child.from;
@@ -31024,8 +30964,8 @@ if(!String.prototype.matchAll) {
                     to: noderef.to,
                     severity: 'error',
                     message: !noderef.name.includes('Unsupported')
-                        ? Localized.Get('Missing extension _.', vals[0])
-                        : Localized.Get('Unsupported missing extension _.', vals[0]),
+                        ? Localized.Get('Missing extension _', vals[0])
+                        : Localized.Get('Unsupported missing extension _', vals[0]),
                     actions: [AddGlobalsAction('Extensions', [vals[0]])],
                 });
             }
@@ -31038,6 +30978,7 @@ if(!String.prototype.matchAll) {
     const NamingLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
         let all = [];
+        // Reserved keywords
         let reserved = ['turtles', 'turtle', 'patches', 'patch', 'links', 'link'];
         for (let b of lintContext.Breeds.values()) {
             if (b.BreedType == BreedType.Turtle) {
@@ -31072,247 +31013,168 @@ if(!String.prototype.matchAll) {
                 reserved.push('is-' + b.Singular + '?');
             }
         }
+        // Seen variables
         let seen = [];
         let link_vars = [];
         let turtle_vars = [];
         let patch_vars = [];
+        // Used & reserved
+        var NameCheck = (node, type, extra) => {
+            const value = view.state.sliceDoc(node.from, node.to).toLowerCase();
+            if (all.includes(value) || (extra === null || extra === void 0 ? void 0 : extra.includes(value))) {
+                diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
+            }
+            else if (reserved.includes(value) ||
+                primitives.GetNamedPrimitive(value)) {
+                diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
+            }
+            if (extra)
+                extra.push(value);
+            else {
+                all.push(value);
+                seen.push(value);
+            }
+        };
+        // Go through the syntax tree
         syntaxTree(view.state)
             .cursor()
             .iterate((noderef) => {
             var _a, _b, _c;
             if (noderef.name == 'BreedSingular' || noderef.name == 'BreedPlural') {
-                const value = view.state
-                    .sliceDoc(noderef.from, noderef.to)
-                    .toLowerCase();
-                if (all.includes(value)) {
-                    diagnostics.push({
-                        from: noderef.from,
-                        to: noderef.to,
-                        severity: 'error',
-                        message: Localized.Get('Term _ already used.', value, 'breed name'),
-                    });
-                }
-                else if (reserved.includes(value) ||
-                    primitives.GetNamedPrimitive(value)) {
-                    diagnostics.push({
-                        from: noderef.from,
-                        to: noderef.to,
-                        severity: 'error',
-                        message: Localized.Get('Term _ reserved.', value, 'breed name'),
-                    });
-                }
-                seen.push(value);
-                all.push(value);
+                NameCheck(noderef, 'Breed');
             }
             else if (noderef.name == 'Identifier' &&
                 ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Globals') {
-                const value = view.state
-                    .sliceDoc(noderef.from, noderef.to)
-                    .toLowerCase();
-                if (all.includes(value)) {
-                    diagnostics.push({
-                        from: noderef.from,
-                        to: noderef.to,
-                        severity: 'error',
-                        message: Localized.Get('Term _ already used.', value, 'global'),
-                    });
-                }
-                else if (reserved.includes(value) ||
-                    primitives.GetNamedPrimitive(value)) {
-                    diagnostics.push({
-                        from: noderef.from,
-                        to: noderef.to,
-                        severity: 'error',
-                        message: Localized.Get('Term _ reserved.', value, 'global'),
-                    });
-                }
-                seen.push(value);
-                all.push(value);
+                NameCheck(noderef, 'Global variable');
             }
             else if (noderef.name == 'ProcedureName') {
-                const value = view.state
+                view.state
                     .sliceDoc(noderef.from, noderef.to)
                     .toLowerCase();
                 if (((_b = noderef.node.parent) === null || _b === void 0 ? void 0 : _b.getChildren('To').length) == 0) {
-                    diagnostics.push({
-                        from: noderef.from,
-                        to: noderef.to,
-                        severity: 'error',
-                        message: Localized.Get('Unrecognized global statement _', value),
-                    });
+                    diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized global statement _', 'error'));
                 }
-                else if (all.includes(value)) {
-                    diagnostics.push({
-                        from: noderef.from,
-                        to: noderef.to,
-                        severity: 'error',
-                        message: Localized.Get('Term _ already used.', value, 'procedure name'),
-                    });
+                else {
+                    NameCheck(noderef, 'Procedure name');
                 }
-                else if (reserved.includes(value) ||
-                    primitives.GetNamedPrimitive(value)) {
-                    diagnostics.push({
-                        from: noderef.from,
-                        to: noderef.to,
-                        severity: 'error',
-                        message: Localized.Get('Term _ reserved.', value, 'procedure name'),
-                    });
-                }
-                seen.push(value);
-                all.push(value);
             }
             else if (noderef.name == 'BreedsOwn') {
                 let own = noderef.node.getChild('Own');
                 let internal_vars = [];
-                if (own) {
-                    let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
-                    breedName = breedName.substring(0, breedName.length - 4);
-                    if (breedName == 'turtles' ||
-                        getBreedType(breedName, lintContext) == false) {
-                        noderef.node.getChildren('Identifier').map((child) => {
-                            let name = view.state.sliceDoc(child.from, child.to);
-                            if (turtle_vars.includes(name) ||
-                                seen.includes(name) ||
-                                internal_vars.includes(name)) {
-                                diagnostics.push({
-                                    from: child.from,
-                                    to: child.to,
-                                    severity: 'error',
-                                    message: Localized.Get('Term _ already used.', name, 'breed variable'),
-                                });
-                            }
-                            else if (reserved.includes(name) ||
-                                primitives.GetNamedPrimitive(name) ||
-                                turtleVars.includes(name)) {
-                                diagnostics.push({
-                                    from: child.from,
-                                    to: child.to,
-                                    severity: 'error',
-                                    message: Localized.Get('Term _ reserved.', name, 'breed variable'),
-                                });
-                            }
-                            internal_vars.push(name);
-                            all.push(name);
-                            if (breedName == 'turtles') {
-                                turtle_vars.push(name);
-                            }
-                        });
-                    }
-                    else if (breedName == 'links' ||
-                        getBreedType(breedName, lintContext) == true) {
-                        noderef.node.getChildren('Identifier').map((child) => {
-                            let name = view.state.sliceDoc(child.from, child.to);
-                            if (link_vars.includes(name) ||
-                                seen.includes(name) ||
-                                internal_vars.includes(name)) {
-                                diagnostics.push({
-                                    from: child.from,
-                                    to: child.to,
-                                    severity: 'error',
-                                    message: Localized.Get('Term _ already used.', name, 'breed variable'),
-                                });
-                            }
-                            else if (reserved.includes(name) ||
-                                primitives.GetNamedPrimitive(name) ||
-                                linkVars.includes(name)) {
-                                diagnostics.push({
-                                    from: child.from,
-                                    to: child.to,
-                                    severity: 'error',
-                                    message: Localized.Get('Term _ reserved.', name, 'breed variable'),
-                                });
-                            }
-                            internal_vars.push(name);
-                            all.push(name);
-                            if (breedName == 'links') {
-                                link_vars.push(name);
-                            }
-                        });
-                    }
-                    else if (breedName == 'patches') {
-                        noderef.node.getChildren('Identifier').map((child) => {
-                            let name = view.state.sliceDoc(child.from, child.to);
-                            if (patch_vars.includes(name) ||
-                                seen.includes(name) ||
-                                internal_vars.includes(name)) {
-                                diagnostics.push({
-                                    from: child.from,
-                                    to: child.to,
-                                    severity: 'error',
-                                    message: Localized.Get('Term _ already used.', name, 'breed variable'),
-                                });
-                            }
-                            else if (reserved.includes(name) ||
-                                primitives.GetNamedPrimitive(name) ||
-                                patchVars.includes(name)) {
-                                diagnostics.push({
-                                    from: child.from,
-                                    to: child.to,
-                                    severity: 'error',
-                                    message: Localized.Get('Term _ reserved.', name, 'breed variable'),
-                                });
-                            }
-                            all.push(name);
-                            internal_vars.push(name);
-                            patch_vars.push(name);
-                        });
-                    }
+                if (!own)
+                    return;
+                let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
+                breedName = breedName.substring(0, breedName.length - 4);
+                if (breedName == 'turtles' ||
+                    isLinkBreed(breedName, lintContext) == false) {
+                    noderef.node.getChildren('Identifier').map((child) => {
+                        let name = view.state.sliceDoc(child.from, child.to);
+                        if (turtle_vars.includes(name) ||
+                            seen.includes(name) ||
+                            internal_vars.includes(name)) {
+                            diagnostics.push({
+                                from: child.from,
+                                to: child.to,
+                                severity: 'error',
+                                message: Localized.Get('Term _ already used', name, 'breed variable'),
+                            });
+                        }
+                        else if (reserved.includes(name) ||
+                            primitives.GetNamedPrimitive(name) ||
+                            turtleVars.includes(name)) {
+                            diagnostics.push({
+                                from: child.from,
+                                to: child.to,
+                                severity: 'error',
+                                message: Localized.Get('Term _ reserved', name, 'breed variable'),
+                            });
+                        }
+                        internal_vars.push(name);
+                        all.push(name);
+                        if (breedName == 'turtles') {
+                            turtle_vars.push(name);
+                        }
+                    });
+                }
+                else if (breedName == 'links' ||
+                    isLinkBreed(breedName, lintContext) == true) {
+                    noderef.node.getChildren('Identifier').map((child) => {
+                        let name = view.state.sliceDoc(child.from, child.to);
+                        if (link_vars.includes(name) ||
+                            seen.includes(name) ||
+                            internal_vars.includes(name)) {
+                            diagnostics.push({
+                                from: child.from,
+                                to: child.to,
+                                severity: 'error',
+                                message: Localized.Get('Term _ already used', name, 'breed variable'),
+                            });
+                        }
+                        else if (reserved.includes(name) ||
+                            primitives.GetNamedPrimitive(name) ||
+                            linkVars.includes(name)) {
+                            diagnostics.push({
+                                from: child.from,
+                                to: child.to,
+                                severity: 'error',
+                                message: Localized.Get('Term _ reserved', name, 'breed variable'),
+                            });
+                        }
+                        internal_vars.push(name);
+                        all.push(name);
+                        if (breedName == 'links') {
+                            link_vars.push(name);
+                        }
+                    });
+                }
+                else if (breedName == 'patches') {
+                    noderef.node.getChildren('Identifier').map((child) => {
+                        let name = view.state.sliceDoc(child.from, child.to);
+                        if (patch_vars.includes(name) ||
+                            seen.includes(name) ||
+                            internal_vars.includes(name)) {
+                            diagnostics.push({
+                                from: child.from,
+                                to: child.to,
+                                severity: 'error',
+                                message: Localized.Get('Term _ already used', name, 'breed variable'),
+                            });
+                        }
+                        else if (reserved.includes(name) ||
+                            primitives.GetNamedPrimitive(name) ||
+                            patchVars.includes(name)) {
+                            diagnostics.push({
+                                from: child.from,
+                                to: child.to,
+                                severity: 'error',
+                                message: Localized.Get('Term _ reserved', name, 'breed variable'),
+                            });
+                        }
+                        all.push(name);
+                        internal_vars.push(name);
+                        patch_vars.push(name);
+                    });
                 }
             }
             else if (noderef.name == 'NewVariableDeclaration') {
                 let child = (_c = noderef.node.getChild('Identifier')) !== null && _c !== void 0 ? _c : noderef.node.getChild('UnsupportedPrim');
-                if (child) {
-                    let local_vars = getLocalVars(child, view.state, lintContext);
-                    let name = view.state.sliceDoc(child.from, child.to);
-                    if (all.includes(name) || local_vars.includes(name)) {
-                        diagnostics.push({
-                            from: child.from,
-                            to: child.to,
-                            severity: 'error',
-                            message: Localized.Get('Term _ already used.', name, 'local variable'),
-                        });
-                    }
-                    else if (reserved.includes(name) ||
-                        primitives.GetNamedPrimitive(name)) {
-                        diagnostics.push({
-                            from: child.from,
-                            to: child.to,
-                            severity: 'error',
-                            message: Localized.Get('Term _ reserved.', name, 'local variable'),
-                        });
-                    }
-                }
+                if (!child)
+                    return;
+                let local_vars = getLocalVars(child, view.state, lintContext);
+                NameCheck(noderef, 'Local variable', local_vars);
             }
             else if (noderef.name == 'Arguments') {
                 let current = [];
                 for (var key of ['Identifier', 'UnsupportedPrim']) {
                     noderef.node.getChildren(key).map((child) => {
-                        let name = view.state.sliceDoc(child.from, child.to);
-                        if (current.includes(name) || all.includes(name)) {
-                            diagnostics.push({
-                                from: child.from,
-                                to: child.to,
-                                severity: 'error',
-                                message: Localized.Get('Term _ already used.', name, 'argument'),
-                            });
-                        }
-                        else if (reserved.includes(name) ||
-                            primitives.GetNamedPrimitive(name)) {
-                            diagnostics.push({
-                                from: child.from,
-                                to: child.to,
-                                severity: 'error',
-                                message: Localized.Get('Term _ reserved.', name, 'argument'),
-                            });
-                        }
-                        current.push(name);
+                        NameCheck(child, 'Argument', current);
                     });
                 }
             }
         });
         return diagnostics;
     };
-    const getBreedType = (breedName, lintContext) => {
+    const isLinkBreed = (breedName, lintContext) => {
         for (var [name, breed] of lintContext.Breeds) {
             if (breed.Plural.toLowerCase() == breedName.toLowerCase()) {
                 return (breed.BreedType == BreedType.DirectedLink ||
@@ -31362,12 +31224,7 @@ if(!String.prototype.matchAll) {
             }
             // Push the diagnostic
             if (current != '')
-                diagnostics.push({
-                    from: node.from,
-                    to: node.to,
-                    severity: 'error',
-                    message: Localized.Get('Unmatched item _', current, expected),
-                });
+                diagnostics.push(getDiagnostic(view, node, 'Unmatched item _', 'error', current, expected));
         });
         return diagnostics;
     };
@@ -31434,12 +31291,7 @@ if(!String.prototype.matchAll) {
         // }
         let stateNetLogo = view.state.field(stateExtension);
         for (let c of stateNetLogo.ContextErrors) {
-            diagnostics.push({
-                from: c.From,
-                to: c.To,
-                severity: 'error',
-                message: Localized.Get('Invalid context _.', contextToString(c.PriorContext), contextToString(c.ConflictingContext), c.Primitive),
-            });
+            diagnostics.push(getDiagnostic(view, { from: c.From, to: c.To }, 'Invalid context _', 'error', contextToString(c.PriorContext), contextToString(c.ConflictingContext), c.Primitive));
         }
         return diagnostics;
     };
@@ -31516,16 +31368,16 @@ if(!String.prototype.matchAll) {
         'Left args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects ${Expected} left argument(s). ${Actual} argument(s) found.`,
         'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at least ${Expected} right argument(s). ${Actual} argument(s) found.`,
         'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"${Name}" expects at most ${Expected} right argument(s). ${Actual} argument(s) found.`,
-        'Missing extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
-        'Unsupported missing extension _.': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
-        'Unsupported extension _.': (Name) => `The extension "${Name}" is not supported in this editor.`,
-        'Term _ already used.': (Name, type) => `"${Name}" is already defined by the user. Try a different ${type}.`,
-        'Term _ reserved.': (Name, type) => `"${Name}" is a reserved keyword in NetLogo. Try a different ${type}.`,
+        'Missing extension _': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
+        'Unsupported missing extension _': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
+        'Unsupported extension _': (Name) => `The extension "${Name}" is not supported in this editor.`,
+        'Term _ already used': (Name, Type) => `"${Name}" is already defined by the user. Try a different ${en_us[Type]().toLowerCase()} name.`,
+        'Term _ reserved': (Name, Type) => `"${Name}" is a reserved keyword in NetLogo. Try a different ${en_us[Type]().toLowerCase()} name.`,
         'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
         'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
         'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
         'Unmatched item _': (Current, Expected) => `This "${Current}" needs a matching ${Expected}.`,
-        'Invalid context _.': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
+        'Invalid context _': (Prior, New, Primitive) => `Based on preceding statements, the context of this codeblock is "${Prior}", but "${Primitive}" has a "${New}" context.`,
         'Duplicate global statement _': (Name) => `The global "${Name}" statement is already defined. Do you want to combine into one?`,
         'Infinite loop _': (Name) => `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
         'Argument is reserved _': (Name) => `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
@@ -31543,6 +31395,9 @@ if(!String.prototype.matchAll) {
         Reporter: () => 'Reporter',
         Argument: () => 'Argument',
         Arguments: (Number) => 'Argument' + (Number > 1 ? 's' : ''),
+        Breed: () => 'Breed',
+        'Global variable': () => 'Global variable',
+        'Procedure name': () => 'Procedure name',
         // Help messages
         '~VariableName': (Name) => `A (unknown) variable. `,
         '~ProcedureName': (Name) => `The name of a procedure. `,
@@ -31649,18 +31504,16 @@ if(!String.prototype.matchAll) {
         'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
         'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
         'Invalid extension _.': (Name) => `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
-        // 'Term _ already used.': (Name: string) =>
-        //   `"${Name}" 已经被定义过了。试试换个名字吧。`,
-        'Term _ already used.': (Name, type) => `"${Name}" is already defined by the user. Try a different ${type}.`,
-        'Term _ reserved.': (Name, type) => `"${Name}" is a reserved keyword in NetLogo. Try a different ${type}.`,
+        'Term _ already used': (Name, Type) => `"${zh_cn[Type]()} ${Name}" 已经被定义过了。试试换个名字吧。`,
+        'Term _ reserved': (Name, Type) => `"${zh_cn[Type]()} ${Name}" 是一个 NetLogo 关键字。试试换个名字吧。`,
         'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
         'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
         'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
         'Unmatched item _': (Current, Expected) => `"${Current}" 需要对应的 ${Expected}。`,
-        'Unsupported extension _.': (Name) => `这个编辑器不支持扩展 "${Name}"。`,
-        'Missing extension _.': (Name) => `你需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
-        'Unsupported missing extension _.': (Name) => `你需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
-        'Invalid context _.': (Prior, New, Primitive) => `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
+        'Unsupported extension _': (Name) => `这个编辑器不支持扩展 "${Name}"。`,
+        'Missing extension _': (Name) => `你需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
+        'Unsupported missing extension _': (Name) => `你需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
+        'Invalid context _': (Prior, New, Primitive) => `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
         'Duplicate global statement _': (Name) => `全局声明 "${Name}" 已经被定义过了。你想合并吗？`,
         'Infinite loop _': (Name) => `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
         'Argument is reserved _': (Name) => `参数名称 "${Name}" 和 NetLogo 的关键字重复了。你想换一个名字吗？`,
@@ -31678,6 +31531,9 @@ if(!String.prototype.matchAll) {
         Reporter: () => '函数',
         Argument: () => '参数',
         Arguments: () => '参数',
+        Breed: () => '种类',
+        'Global variable': () => '全局变量',
+        'Procedure name': () => '变量名称',
         // Help messages
         '~VariableName': (Name) => `一个（未知的）变量。`,
         '~ProcedureName': (Name) => `过程或函数的名称。`,

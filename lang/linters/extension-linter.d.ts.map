@@ -1,1 +1,1 @@
-{"version":3,"file":"extension-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/extension-linter.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,MAAM,EAAE,MAAM,kBAAkB,CAAC;AAa1C,eAAO,MAAM,eAAe,EAAE,MA6D7B,CAAC"}
+{"version":3,"file":"extension-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/extension-linter.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,MAAM,EAAiB,MAAM,kBAAkB,CAAC;AAazD,eAAO,MAAM,eAAe,EAAE,MAuD7B,CAAC"}
