@@ -14269,15 +14269,16 @@ if(!String.prototype.matchAll) {
         /// not have its children iterated over (or `leave` called).
         iterate(spec) {
             let { enter, leave, from = 0, to = this.length } = spec;
-            for (let c = this.cursor((spec.mode || 0) | IterMode.IncludeAnonymous);;) {
+            let mode = spec.mode || 0, anon = (mode & IterMode.IncludeAnonymous) > 0;
+            for (let c = this.cursor(mode | IterMode.IncludeAnonymous);;) {
                 let entered = false;
-                if (c.from <= to && c.to >= from && (c.type.isAnonymous || enter(c) !== false)) {
+                if (c.from <= to && c.to >= from && (!anon && c.type.isAnonymous || enter(c) !== false)) {
                     if (c.firstChild())
                         continue;
                     entered = true;
                 }
                 for (;;) {
-                    if (entered && leave && !c.type.isAnonymous)
+                    if (entered && leave && (anon || !c.type.isAnonymous))
                         leave(c);
                     if (c.nextSibling())
                         break;
@@ -15364,6 +15365,8 @@ if(!String.prototype.matchAll) {
             this.overlay = overlay;
             this.target = target;
             this.ranges = ranges;
+            if (!ranges.length || ranges.some(r => r.from >= r.to))
+                throw new RangeError("Invalid inner parse ranges given: " + JSON.stringify(ranges));
         }
     }
     class ActiveOverlay {
@@ -23876,13 +23879,13 @@ if(!String.prototype.matchAll) {
         emitContext() {
             let last = this.buffer.length - 1;
             if (last < 0 || this.buffer[last] != -3)
-                this.buffer.push(this.curContext.hash, this.reducePos, this.reducePos, -3);
+                this.buffer.push(this.curContext.hash, this.pos, this.pos, -3);
         }
         /// @internal
         emitLookAhead() {
             let last = this.buffer.length - 1;
             if (last < 0 || this.buffer[last] != -4)
-                this.buffer.push(this.lookAhead, this.reducePos, this.reducePos, -4);
+                this.buffer.push(this.lookAhead, this.pos, this.pos, -4);
         }
         updateContext(context) {
             if (context != this.curContext.context) {
@@ -30624,7 +30627,7 @@ if(!String.prototype.matchAll) {
                         noderef.node.getChildren('Value').length;
                 diagnostics.push({
                     from: noderef.from,
-                    to: noderef.to,
+                    to: getTo(noderef.node, view.state),
                     severity: 'error',
                     message: Localized.Get('Too few right args for _. Expected _, found _.', func, expected.toString(), actual.toString()),
                 });
@@ -30640,7 +30643,7 @@ if(!String.prototype.matchAll) {
                 if (((_a = Node.firstChild) === null || _a === void 0 ? void 0 : _a.name) == '⚠') {
                     diagnostics.push({
                         from: Node.from,
-                        to: Node.to,
+                        to: getTo(Node, view.state),
                         severity: 'error',
                         message: Localized.Get('Missing command before _', value),
                     });
@@ -30694,7 +30697,7 @@ if(!String.prototype.matchAll) {
                     else if (error_type == 'no primitive') {
                         diagnostics.push({
                             from: noderef.from,
-                            to: noderef.to,
+                            to: getTo(noderef.node, view.state),
                             severity: 'error',
                             message: Localized.Get('Problem identifying primitive _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
                         });
@@ -30702,7 +30705,7 @@ if(!String.prototype.matchAll) {
                     else if (error_type == 'left') {
                         diagnostics.push({
                             from: noderef.from,
-                            to: noderef.to,
+                            to: getTo(noderef.node, view.state),
                             severity: 'error',
                             message: Localized.Get('Left args for _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
                         });
@@ -30710,7 +30713,7 @@ if(!String.prototype.matchAll) {
                     else if (error_type == 'rightmin') {
                         diagnostics.push({
                             from: noderef.from,
-                            to: noderef.to,
+                            to: getTo(noderef.node, view.state),
                             severity: 'error',
                             message: Localized.Get('Too few right args for _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
                         });
@@ -30718,7 +30721,7 @@ if(!String.prototype.matchAll) {
                     else if (error_type == 'rightmax') {
                         diagnostics.push({
                             from: noderef.from,
-                            to: noderef.to,
+                            to: getTo(noderef.node, view.state),
                             severity: 'error',
                             message: Localized.Get('Too many right args for _. Expected _, found _.', func.toString(), expected.toString(), actual.toString()),
                         });
@@ -30746,7 +30749,7 @@ if(!String.prototype.matchAll) {
                     if (potentialLoop && !checkLoopEnd(view, Node)) {
                         diagnostics.push({
                             from: Node.from,
-                            to: Node.to,
+                            to: getTo(Node, view.state),
                             severity: 'error',
                             message: Localized.Get('Infinite loop _', funcName),
                         });
@@ -30935,6 +30938,11 @@ if(!String.prototype.matchAll) {
             return null;
         }
     };
+    const getTo = function (node, state) {
+        let val = state.sliceDoc(node.from, node.to);
+        val = val.trimEnd();
+        return node.from + val.length;
+    };
 
     // UnsupportedLinter: Checks for unsupported primitives
     // Important note: anything with a colon and no supported extension is tokenized as
@@ -31029,45 +31037,39 @@ if(!String.prototype.matchAll) {
     // NamingLinter: Ensures no duplicate breed names
     const NamingLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
-        let all = [
-            'turtles',
-            'turtle',
-            'patches',
-            'patch',
-            'links',
-            'link',
-        ];
+        let all = [];
+        let reserved = ['turtles', 'turtle', 'patches', 'patch', 'links', 'link'];
         for (let b of lintContext.Breeds.values()) {
             if (b.BreedType == BreedType.Turtle) {
-                all.push('hatch-' + b.Plural);
-                all.push('sprout-' + b.Plural);
-                all.push('create-' + b.Plural);
-                all.push('create-ordered-' + b.Plural);
-                all.push(b.Plural + '-at');
-                all.push(b.Plural + '-here');
-                all.push(b.Plural + '-on');
-                all.push('is-' + b.Singular + '?');
+                reserved.push('hatch-' + b.Plural);
+                reserved.push('sprout-' + b.Plural);
+                reserved.push('create-' + b.Plural);
+                reserved.push('create-ordered-' + b.Plural);
+                reserved.push(b.Plural + '-at');
+                reserved.push(b.Plural + '-here');
+                reserved.push(b.Plural + '-on');
+                reserved.push('is-' + b.Singular + '?');
             }
             else {
-                all.push('create-' + b.Plural + '-to');
-                all.push('create-' + b.Singular + '-to');
-                all.push('create-' + b.Plural + '-from');
-                all.push('create-' + b.Singular + '-from');
-                all.push('create-' + b.Plural + '-with');
-                all.push('create-' + b.Singular + '-with');
-                all.push('out-' + b.Singular + '-to');
-                all.push('out-' + b.Singular + '-neighbors');
-                all.push('out-' + b.Singular + '-neighbor?');
-                all.push('in-' + b.Singular + '-from');
-                all.push('in-' + b.Singular + '-neighbors');
-                all.push('in-' + b.Singular + '-neighbor?');
-                all.push('my-' + b.Plural);
-                all.push('my-in-' + b.Plural);
-                all.push('my-out-' + b.Plural);
-                all.push(b.Singular + '-neighbor?');
-                all.push(b.Singular + '-neighbors');
-                all.push(b.Singular + '-with');
-                all.push('is-' + b.Singular + '?');
+                reserved.push('create-' + b.Plural + '-to');
+                reserved.push('create-' + b.Singular + '-to');
+                reserved.push('create-' + b.Plural + '-from');
+                reserved.push('create-' + b.Singular + '-from');
+                reserved.push('create-' + b.Plural + '-with');
+                reserved.push('create-' + b.Singular + '-with');
+                reserved.push('out-' + b.Singular + '-to');
+                reserved.push('out-' + b.Singular + '-neighbors');
+                reserved.push('out-' + b.Singular + '-neighbor?');
+                reserved.push('in-' + b.Singular + '-from');
+                reserved.push('in-' + b.Singular + '-neighbors');
+                reserved.push('in-' + b.Singular + '-neighbor?');
+                reserved.push('my-' + b.Plural);
+                reserved.push('my-in-' + b.Plural);
+                reserved.push('my-out-' + b.Plural);
+                reserved.push(b.Singular + '-neighbor?');
+                reserved.push(b.Singular + '-neighbors');
+                reserved.push(b.Singular + '-with');
+                reserved.push('is-' + b.Singular + '?');
             }
         }
         let seen = [];
@@ -31087,7 +31089,16 @@ if(!String.prototype.matchAll) {
                         from: noderef.from,
                         to: noderef.to,
                         severity: 'error',
-                        message: Localized.Get('Term _ already used.', value),
+                        message: Localized.Get('Term _ already used.', value, 'breed name'),
+                    });
+                }
+                else if (reserved.includes(value) ||
+                    primitives.GetNamedPrimitive(value)) {
+                    diagnostics.push({
+                        from: noderef.from,
+                        to: noderef.to,
+                        severity: 'error',
+                        message: Localized.Get('Term _ reserved.', value, 'breed name'),
                     });
                 }
                 seen.push(value);
@@ -31103,7 +31114,16 @@ if(!String.prototype.matchAll) {
                         from: noderef.from,
                         to: noderef.to,
                         severity: 'error',
-                        message: Localized.Get('Term _ already used.', value),
+                        message: Localized.Get('Term _ already used.', value, 'global'),
+                    });
+                }
+                else if (reserved.includes(value) ||
+                    primitives.GetNamedPrimitive(value)) {
+                    diagnostics.push({
+                        from: noderef.from,
+                        to: noderef.to,
+                        severity: 'error',
+                        message: Localized.Get('Term _ reserved.', value, 'global'),
                     });
                 }
                 seen.push(value);
@@ -31126,15 +31146,16 @@ if(!String.prototype.matchAll) {
                         from: noderef.from,
                         to: noderef.to,
                         severity: 'error',
-                        message: Localized.Get('Term _ already used.', value),
+                        message: Localized.Get('Term _ already used.', value, 'procedure name'),
                     });
                 }
-                else if (primitives.GetNamedPrimitive(value)) {
+                else if (reserved.includes(value) ||
+                    primitives.GetNamedPrimitive(value)) {
                     diagnostics.push({
                         from: noderef.from,
                         to: noderef.to,
                         severity: 'error',
-                        message: Localized.Get('Term _ already used.', value),
+                        message: Localized.Get('Term _ reserved.', value, 'procedure name'),
                     });
                 }
                 seen.push(value);
@@ -31157,7 +31178,17 @@ if(!String.prototype.matchAll) {
                                     from: child.from,
                                     to: child.to,
                                     severity: 'error',
-                                    message: Localized.Get('Term _ already used.', name),
+                                    message: Localized.Get('Term _ already used.', name, 'breed variable'),
+                                });
+                            }
+                            else if (reserved.includes(name) ||
+                                primitives.GetNamedPrimitive(name) ||
+                                turtleVars.includes(name)) {
+                                diagnostics.push({
+                                    from: child.from,
+                                    to: child.to,
+                                    severity: 'error',
+                                    message: Localized.Get('Term _ reserved.', name, 'breed variable'),
                                 });
                             }
                             internal_vars.push(name);
@@ -31178,7 +31209,17 @@ if(!String.prototype.matchAll) {
                                     from: child.from,
                                     to: child.to,
                                     severity: 'error',
-                                    message: Localized.Get('Term _ already used.', name),
+                                    message: Localized.Get('Term _ already used.', name, 'breed variable'),
+                                });
+                            }
+                            else if (reserved.includes(name) ||
+                                primitives.GetNamedPrimitive(name) ||
+                                linkVars.includes(name)) {
+                                diagnostics.push({
+                                    from: child.from,
+                                    to: child.to,
+                                    severity: 'error',
+                                    message: Localized.Get('Term _ reserved.', name, 'breed variable'),
                                 });
                             }
                             internal_vars.push(name);
@@ -31198,7 +31239,17 @@ if(!String.prototype.matchAll) {
                                     from: child.from,
                                     to: child.to,
                                     severity: 'error',
-                                    message: Localized.Get('Term _ already used.', name),
+                                    message: Localized.Get('Term _ already used.', name, 'breed variable'),
+                                });
+                            }
+                            else if (reserved.includes(name) ||
+                                primitives.GetNamedPrimitive(name) ||
+                                patchVars.includes(name)) {
+                                diagnostics.push({
+                                    from: child.from,
+                                    to: child.to,
+                                    severity: 'error',
+                                    message: Localized.Get('Term _ reserved.', name, 'breed variable'),
                                 });
                             }
                             all.push(name);
@@ -31218,7 +31269,16 @@ if(!String.prototype.matchAll) {
                             from: child.from,
                             to: child.to,
                             severity: 'error',
-                            message: Localized.Get('Term _ already used.', name),
+                            message: Localized.Get('Term _ already used.', name, 'local variable'),
+                        });
+                    }
+                    else if (reserved.includes(name) ||
+                        primitives.GetNamedPrimitive(name)) {
+                        diagnostics.push({
+                            from: child.from,
+                            to: child.to,
+                            severity: 'error',
+                            message: Localized.Get('Term _ reserved.', name, 'local variable'),
                         });
                     }
                 }
@@ -31233,7 +31293,16 @@ if(!String.prototype.matchAll) {
                                 from: child.from,
                                 to: child.to,
                                 severity: 'error',
-                                message: Localized.Get('Term _ already used.', name),
+                                message: Localized.Get('Term _ already used.', name, 'argument'),
+                            });
+                        }
+                        else if (reserved.includes(name) ||
+                            primitives.GetNamedPrimitive(name)) {
+                            diagnostics.push({
+                                from: child.from,
+                                to: child.to,
+                                severity: 'error',
+                                message: Localized.Get('Term _ reserved.', name, 'argument'),
                             });
                         }
                         current.push(name);
@@ -31450,7 +31519,8 @@ if(!String.prototype.matchAll) {
         'Missing extension _.': (Name) => `Seems that you need to put "${Name}" in the "extensions" section. Do you want to do that now?`,
         'Unsupported missing extension _.': (Name) => `"${Name}" is missing in the "extensions" section; this extension might not yet be supported by this version of NetLogo.`,
         'Unsupported extension _.': (Name) => `The extension "${Name}" is not supported in this editor.`,
-        'Term _ already used.': (Name) => `"${Name}" is already used. Try a different name.`,
+        'Term _ already used.': (Name, type) => `"${Name}" is already defined by the user. Try a different ${type}.`,
+        'Term _ reserved.': (Name, type) => `"${Name}" is a reserved keyword in NetLogo. Try a different ${type}.`,
         'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
         'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
         'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
@@ -31579,7 +31649,10 @@ if(!String.prototype.matchAll) {
         'Too few right args for _. Expected _, found _.': (Name, Expected, Actual) => `原语 "${Name}" 需要至少 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
         'Too many right args for _. Expected _, found _.': (Name, Expected, Actual) => `"原语 "${Name}" 需要至多 ${Expected} 个右侧参数，但代码中只有 ${Actual} 个。`,
         'Invalid extension _.': (Name) => `看起来你需要在 "extensions" 中加入 "${Name}"。想现在试试吗？`,
-        'Term _ already used.': (Name) => `"${Name}" 已经被定义过了。试试换个名字吧。`,
+        // 'Term _ already used.': (Name: string) =>
+        //   `"${Name}" 已经被定义过了。试试换个名字吧。`,
+        'Term _ already used.': (Name, type) => `"${Name}" is already defined by the user. Try a different ${type}.`,
+        'Term _ reserved.': (Name, type) => `"${Name}" is a reserved keyword in NetLogo. Try a different ${type}.`,
         'Invalid breed procedure _': (Name) => `你还没有定义名为 "${Name}" 的种类。想现在试试吗？`,
         'Missing command before _': (Name) => `语句 "${Name}" 之前需要一个命令。你打算用它做些什么？`,
         'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
