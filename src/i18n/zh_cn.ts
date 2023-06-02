@@ -89,12 +89,12 @@ const zh_cn: Record<string, Function> = {
   Argument: () => '参数',
   Arguments: () => '参数',
   Breed: () => '种类',
+  Procedure: () => '过程',
   'Global variable': () => '全局变量',
   'Turtle variable': () => '海龟变量',
   'Patch variable': () => '格子变量',
   'Link variable': () => '链接变量',
   'Local variable': () => '本地变量',
-  'Procedure name': () => '变量名称',
 
   // Help messages
   '~VariableName': (Name: string) => `一个（未知的）变量。`,

@@ -1,6 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { Localized } from '../../editor';
 import { Linter, getDiagnostic } from './linter-builder';
 import { BreedType } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
@@ -64,10 +63,11 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
       primitives.GetNamedPrimitive(value)
     ) {
       diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
-    }
-    if (extra) extra.push(value);
-    else {
-      defined.push(value);
+    } else {
+      if (extra) extra.push(value);
+      else {
+        defined.push(value);
+      }
     }
   }
   // Go through the syntax tree
@@ -88,7 +88,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
         if (noderef.node.parent?.getChildren('To').length == 0) {
           diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized global statement _', 'error'));
         } else {
-          NameCheck(noderef, 'Procedure name');
+          NameCheck(noderef, 'Procedure');
         }
       } else if (noderef.name == 'BreedsOwn') {
         let own = noderef.node.getChild('Own');
@@ -96,28 +96,31 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
         if (!own) return;
         let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
         breedName = breedName.substring(0, breedName.length - 4);
-        if (breedName == 'turtles') {
-          NameCheck(noderef, 'Breed variable');
-        } else if (breedName == 'links') {
-          NameCheck(noderef, 'Link variable');
-        } else if (breedName == 'patches') {
-          NameCheck(noderef, 'Patch variable');
-        } else if (isLinkBreed(breedName, lintContext)) {
-          NameCheck(noderef, 'Turtle variable', breedvars, true);
-        } else {
-          NameCheck(noderef, 'Link variable', breedvars, true);
-        }
+        noderef.node.getChildren('Identifier').map((child) => {
+          if (breedName == 'turtles') {
+            NameCheck(child, 'Breed variable');
+          } else if (breedName == 'links') {
+            NameCheck(child, 'Link variable');
+          } else if (breedName == 'patches') {
+            NameCheck(child, 'Patch variable');
+          } else if (isLinkBreed(breedName, lintContext)) {
+            NameCheck(child, 'Link variable', breedvars, true);
+          } else {
+            NameCheck(child, 'Turtle variable', breedvars, true);
+          }
+        });
         breedDefined.push(...breedvars);
       } else if (noderef.name == 'NewVariableDeclaration') {
         // TODO: Optimize it so that whenever we see a procedure, we check the local variables
         // Now, for each new variable declaration, we look back again
+        // It would also solve the issue of arguments & local variables using the same name
         // Since the new variable definition is typically few, not a high priority
         let child =
           noderef.node.getChild('Identifier') ??
           noderef.node.getChild('UnsupportedPrim');
         if (!child) return;
         let localvars = getLocalVars(child, view.state, lintContext);
-        NameCheck(noderef, 'Local variable', localvars);
+        NameCheck(child, 'Local variable', localvars);
       } else if (noderef.name == 'Arguments') {
         let current: string[] = [];
         for (var key of ['Identifier', 'UnsupportedPrim']) {

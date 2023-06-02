@@ -52,7 +52,7 @@ const en_us: Record<string, Function> = {
   'Unsupported extension _': (Name: string) =>
     `The extension "${Name}" is not supported in this editor.`,
   'Term _ already used': (Name: string, Type: string) =>
-    `"${Name}" is already defined by the user. Try a different ${en_us[Type]().toLowerCase()} name.`,
+    `"${Name}" is already defined in the code. Try a different ${en_us[Type]().toLowerCase()} name.`,
   'Term _ reserved': (Name: string, Type: string) =>
     `"${Name}" is a reserved keyword in NetLogo. Try a different ${en_us[Type]().toLowerCase()} name.`,
   'Invalid breed procedure _': (Name: string) =>
@@ -88,12 +88,12 @@ const en_us: Record<string, Function> = {
   Argument: () => 'Argument',
   Arguments: (Number: number) => 'Argument' + (Number > 1 ? 's' : ''),
   Breed: () => 'Breed',
+  Procedure: () => 'Procedure',
   'Global variable': () => 'Global variable',
   'Turtle variable': () => 'Turtle variable',
   'Patch variable': () => 'Patch variable',
   'Link variable': () => 'Link variable',
   'Local variable': () => 'Local variable',
-  'Procedure name': () => 'Procedure name',
 
   // Help messages
   '~VariableName': (Name: string) => `A (unknown) variable. `,
