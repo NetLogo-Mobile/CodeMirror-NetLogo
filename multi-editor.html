@@ -19,15 +19,12 @@
           },
           ParseMode: 'Normal',
         });
-        EmbeddedEditor = new GalapagosEditor(
-          document.getElementById('Container2'),
-          {
-            OnUpdate: (Changed, Update) => {
-              if (Changed) console.log(Update);
-            },
-            ParseMode: 'Generative',
-          }
-        );
+        EmbeddedEditor = new GalapagosEditor(document.getElementById('Container2'), {
+          OnUpdate: (Changed, Update) => {
+            if (Changed) console.log(Update);
+          },
+          ParseMode: 'Generative',
+        });
         EditorDictionary.Initialize({});
         Editor.AddChild(EmbeddedEditor);
         Editor.SetWidgetVariables([

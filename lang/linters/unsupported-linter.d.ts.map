@@ -1,1 +1,1 @@
-{"version":3,"file":"unsupported-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/unsupported-linter.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,MAAM,EAAE,MAAM,kBAAkB,CAAC;AAW1C,eAAO,MAAM,iBAAiB,EAAE,MAiC/B,CAAC"}
+{"version":3,"file":"unsupported-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/unsupported-linter.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,MAAM,EAAE,MAAM,kBAAkB,CAAC;AAQ1C,eAAO,MAAM,iBAAiB,EAAE,MA6B/B,CAAC"}

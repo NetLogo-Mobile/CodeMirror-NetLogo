@@ -11,22 +11,12 @@
     <button name="Test" onclick="RunAutoFixTests();">Test All Autofix</button>
     <!-- <button name="Errors" onclick="Editor.CountErrors();">Count errors</button> -->
     <button name="Pretty" onclick="Editor.Semantics.Prettify();">Pretty</button>
-    <button name="PrettyAll" onclick="Editor.Semantics.PrettifyAll();"
-      >Pretty All</button
-    >
+    <button name="PrettyAll" onclick="Editor.Semantics.PrettifyAll();">Pretty All</button>
     <button name="Undo" onclick="Editor.Editing.Undo();">Undo</button>
     <button name="Redo" onclick="Editor.Editing.Redo();">Redo</button>
-    <button
-      name="Fix"
-      onclick="Editor.Semantics.FixGeneratedCode(Editor.GetCode());"
-      >Fix</button
-    >
-    <button name="set read only" onclick="Editor.SetReadOnly(true);">
-      Set ReadOnly
-    </button>
-    <button name="set edit" onclick="Editor.SetReadOnly(false);">
-      Set Editable
-    </button>
+    <button name="Fix" onclick="Editor.Semantics.FixGeneratedCode(Editor.GetCode());">Fix</button>
+    <button name="set read only" onclick="Editor.SetReadOnly(true);"> Set ReadOnly </button>
+    <button name="set edit" onclick="Editor.SetReadOnly(false);"> Set Editable </button>
     <!--<button name="find" onclick="Editor.Find('test')">Find "test"</button>
     <button name="find all" onclick="Editor.FindAll('test')">
       Find All "test"
@@ -41,15 +31,9 @@
       Go to line 80
     </button>
     <button name="select all" onclick="Editor.SelectAll();">Select All</button>-->
-    <button name="replace interface" onclick="Editor.Editing.ShowReplace();">
-      Replace
-    </button>
-    <button name="go to line interface" onclick="Editor.Editing.ShowJumpTo();">
-      Go to line
-    </button>
-    <button name="Find interface" onclick="Editor.Editing.ShowFind();">
-      Find
-    </button>
+    <button name="replace interface" onclick="Editor.Editing.ShowReplace();"> Replace </button>
+    <button name="go to line interface" onclick="Editor.Editing.ShowJumpTo();"> Go to line </button>
+    <button name="Find interface" onclick="Editor.Editing.ShowFind();"> Find </button>
     <!--<button name="Select" onclick="Editor.Select(40,60);">
       Select character 40 to 60
     </button>
@@ -61,9 +45,7 @@
       onclick="console.log(Editor.GetSelectionCode());">
       Get Selection Code
     </button>-->
-    <button name="Hide All Interfaces" onclick="Editor.Editing.HideAll();">
-      Hide Interfaces
-    </button>
+    <button name="Hide All Interfaces" onclick="Editor.Editing.HideAll();"> Hide Interfaces </button>
     <!--<button
       name="Highlight"
       onclick="document.getElementById('Code').appendChild(Editor.Highlight('to setup'));">
@@ -115,27 +97,27 @@
         }
         console.log(`Automatic test done: ${TestIndex} models in total.`);
       };
-      var AutoFixTestIndex=0
-      RunNextAutoFixTest=async()=>{
-        if(AutoFixTestIndex>=AutoFixTests.length) return null;
+      var AutoFixTestIndex = 0;
+      RunNextAutoFixTest = async () => {
+        if (AutoFixTestIndex >= AutoFixTests.length) return null;
         let Next = AutoFixTests[AutoFixTestIndex];
         // Set the code
-        Editor.SetCode(Next['pre'])
+        Editor.SetCode(Next['pre']);
         Editor.ForceParse();
         Editor.ForceLint();
-        Editor.Semantics.FixGeneratedCode(Editor.GetCode())
+        Editor.Semantics.FixGeneratedCode(Editor.GetCode());
         Editor.ForceParse();
         Editor.ForceLint();
         let Errors = await Editor.ForceLintAsync();
         let ErrorCount = Errors.filter((D) => D.severity == 'error').length;
-        let Differences= Editor.GetCode()!=Next['post']
-        if(Differences){
-          console.log(Editor.GetCode(),Next['post'],Editor.GetCode().length,Next['post'].length)
+        let Differences = Editor.GetCode() != Next['post'];
+        if (Differences) {
+          console.log(Editor.GetCode(), Next['post'], Editor.GetCode().length, Next['post'].length);
         }
         // Report the result
         console.log(`Model ${AutoFixTestIndex}: Linting errors ${ErrorCount}. Found differences: ${Differences}.`);
         AutoFixTestIndex++;
-        return ErrorCount>0 || Differences;
+        return ErrorCount > 0 || Differences;
       };
       RunAutoFixTests = async () => {
         let Errors = false;
