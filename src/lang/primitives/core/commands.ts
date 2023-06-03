@@ -70,10 +70,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        { types: ['agent', 'agentset'], isRepeatable: false },
-        'commandblock',
-      ],
+      right: [{ types: ['agent', 'agentset'], isRepeatable: false }, 'commandblock'],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -105,10 +102,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'turtle agentset',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['turtle agentset', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -252,11 +246,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        { types: ['string', 'list'], isRepeatable: false },
-        'string',
-        'wildcard',
-      ],
+      right: [{ types: ['string', 'list'], isRepeatable: false }, 'string', 'wildcard'],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -336,10 +326,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'number',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['number', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -728,10 +715,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'turtle',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['turtle', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -763,10 +747,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        { types: ['turtle agentset', 'linkset'], isRepeatable: false },
-        'string',
-      ],
+      right: [{ types: ['turtle agentset', 'linkset'], isRepeatable: false }, 'string'],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -1134,10 +1115,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'number',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['number', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -1441,10 +1419,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'number',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['number', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -1588,12 +1563,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'string',
-        { types: ['agent', 'agentset'], isRepeatable: false },
-        'string',
-        'reporterblock',
-      ],
+      right: ['string', { types: ['agent', 'agentset'], isRepeatable: false }, 'string', 'reporterblock'],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -2137,10 +2107,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'turtle',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['turtle', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -2356,10 +2323,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'turtle agentset',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['turtle agentset', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -2556,11 +2520,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'boolean',
-        { types: ['boolean', 'commandblock'], isRepeatable: true },
-        'commandblock',
-      ],
+      right: ['boolean', { types: ['boolean', 'commandblock'], isRepeatable: true }, 'commandblock'],
       ret: 'unit',
       defaultOption: 3,
       minimumOption: 2,
@@ -2608,10 +2568,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'turtle',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['turtle', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -2643,10 +2600,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        { types: ['list', 'turtle agentset'], isRepeatable: false },
-        'number',
-      ],
+      right: [{ types: ['list', 'turtle agentset'], isRepeatable: false }, 'number'],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -2694,10 +2648,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'turtle agentset',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['turtle agentset', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -2873,10 +2824,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'number',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['number', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -2908,10 +2856,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        { type: 'list', isRepeatable: true, isOptional: false },
-        'command',
-      ],
+      right: [{ type: 'list', isRepeatable: true, isOptional: false }, 'command'],
       ret: 'unit',
       defaultOption: 2,
       minimumOption: null,
@@ -3023,11 +2968,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'boolean',
-        { types: ['boolean', 'commandblock'], isRepeatable: true },
-        'commandblock',
-      ],
+      right: ['boolean', { types: ['boolean', 'commandblock'], isRepeatable: true }, 'commandblock'],
       ret: 'unit',
       defaultOption: 3,
       minimumOption: 2,
@@ -3171,11 +3112,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'string',
-        { types: ['agent', 'agentset'], isRepeatable: false },
-        'string',
-      ],
+      right: ['string', { types: ['agent', 'agentset'], isRepeatable: false }, 'string'],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -3191,10 +3128,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'number',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['number', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,
@@ -3226,10 +3160,7 @@ const Commands: NLPrimitive[] = [
     syntax: {
       precedence: 0,
       left: 'unit',
-      right: [
-        'number',
-        { type: 'commandblock', isRepeatable: false, isOptional: true },
-      ],
+      right: ['number', { type: 'commandblock', isRepeatable: false, isOptional: true }],
       ret: 'unit',
       defaultOption: null,
       minimumOption: null,

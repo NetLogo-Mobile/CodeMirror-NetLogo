@@ -53,12 +53,7 @@
     },
     {
       "name": "bind",
-      "argTypes": [
-        { "types": ["string", "number"] },
-        "string",
-        "boolean",
-        { "types": ["string", "command"] }
-      ],
+      "argTypes": [{ "types": ["string", "number"] }, "string", "boolean", { "types": ["string", "command"] }],
       "returnType": "unit"
     },
     {

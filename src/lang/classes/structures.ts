@@ -115,12 +115,7 @@ export class Breed {
   /** EditorID: Which editor created the breed (for LinkContext). */
   public EditorID?: number;
   /** Build a breed. */
-  public constructor(
-    Singular: string,
-    Plural: string,
-    Variables: string[],
-    BreedType: BreedType
-  ) {
+  public constructor(Singular: string, Plural: string, Variables: string[], BreedType: BreedType) {
     this.Singular = Singular;
     this.Plural = Plural;
     this.Variables = Variables;

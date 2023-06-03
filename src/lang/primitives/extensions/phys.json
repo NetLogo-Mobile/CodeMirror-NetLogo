@@ -15,13 +15,7 @@
     },
     {
       "name": "raycast-all",
-      "argTypes": [
-        "number",
-        "number",
-        "number",
-        "number",
-        { "types": ["string", "command"] }
-      ],
+      "argTypes": ["number", "number", "number", "number", { "types": ["string", "command"] }],
       "returnType": "unit",
       "agentClassString": "OTPL"
     },
@@ -104,12 +98,7 @@
     },
     {
       "name": "show-orthogonal",
-      "argTypes": [
-        { "types": ["number", "list"] },
-        "number",
-        "number",
-        "boolean"
-      ],
+      "argTypes": [{ "types": ["number", "list"] }, "number", "number", "boolean"],
       "returnType": "unit",
       "agentClassString": "-TP-"
     },

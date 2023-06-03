@@ -35,14 +35,10 @@ export class StatePreprocess {
     let breedVars = globals.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
     this.BreedVars = this.processBreedVars(breedVars);
     // Commands
-    let commands = doc.matchAll(
-      /(^|\n)([^;\n]+[ ]+)?to\s+([^\s\[;]+)(\s*\[([^\];]*)\])?/g
-    );
+    let commands = doc.matchAll(/(^|\n)([^;\n]+[ ]+)?to\s+([^\s\[;]+)(\s*\[([^\];]*)\])?/g);
     this.Commands = this.processProcedures(commands);
     // Reporters
-    let reporters = doc.matchAll(
-      /(^|\n)([^;\n]+[ ]+)?to-report\s+([^\s\[;]+)(\s*\[([^\]']*)\])?/g
-    );
+    let reporters = doc.matchAll(/(^|\n)([^;\n]+[ ]+)?to-report\s+([^\s\[;]+)(\s*\[([^\]']*)\])?/g);
     this.Reporters = this.processProcedures(reporters);
     return this;
   }
@@ -53,9 +49,7 @@ export class StatePreprocess {
   }
 
   /** processBreedVars: Parse the code for breed variables. */
-  private processBreedVars(
-    matches: IterableIterator<RegExpMatchArray>
-  ): string[] {
+  private processBreedVars(matches: IterableIterator<RegExpMatchArray>): string[] {
     let vars: string[] = [];
     for (var m of matches) {
       let match = m[1];
@@ -68,27 +62,20 @@ export class StatePreprocess {
   }
 
   /** processProcedures: Parse the code for procedure names. */
-  private processProcedures(
-    procedures: IterableIterator<RegExpMatchArray>
-  ): Map<string, number> {
+  private processProcedures(procedures: IterableIterator<RegExpMatchArray>): Map<string, number> {
     let matches: Map<string, number> = new Map<string, number>();
     for (var match of procedures) {
       if (!match[2] || match[2].split('"').length % 2 != 0) {
         const name = match[3].toLowerCase();
         const args = match[5];
-        matches.set(
-          name,
-          args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length
-        );
+        matches.set(name, args == null ? 0 : [...args.matchAll(/([^\s])+/g)].length);
       }
     }
     return matches;
   }
 
   /** processBreeds: Parse the code for breed names. */
-  private processBreeds(
-    breeds: IterableIterator<RegExpMatchArray>
-  ): string[][] {
+  private processBreeds(breeds: IterableIterator<RegExpMatchArray>): string[][] {
     let singularmatches: string[] = ['patch', 'turtle', 'link'];
     let pluralmatches: string[] = ['patches', 'turtles', 'links'];
     let count = 3;

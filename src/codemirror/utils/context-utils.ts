@@ -20,7 +20,5 @@ export const combineContexts = function (c1: AgentContexts, c2: AgentContexts) {
 
 /** noContext: Identify if there is no valid context. */
 export const noContext = function (context: AgentContexts) {
-  return (
-    !context.Observer && !context.Turtle && !context.Patch && !context.Link
-  );
+  return !context.Observer && !context.Turtle && !context.Patch && !context.Link;
 };

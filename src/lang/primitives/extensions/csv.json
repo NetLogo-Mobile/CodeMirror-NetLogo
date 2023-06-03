@@ -33,11 +33,7 @@
     },
     {
       "name": "to-file",
-      "argTypes": [
-        "string",
-        "list",
-        { "type": "string", "isRepeatable": true }
-      ],
+      "argTypes": ["string", "list", { "type": "string", "isRepeatable": true }],
       "defaultArgCount": 2,
       "returnType": "unit"
     }

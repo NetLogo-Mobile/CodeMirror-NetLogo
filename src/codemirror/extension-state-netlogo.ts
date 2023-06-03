@@ -42,8 +42,7 @@ export class StateNetLogo {
   /** Mode: The editor's parsing mode. */
   public Mode: ParseMode = ParseMode.Normal;
   /** RecognizedMode: The editor's recognized mode. */
-  public RecognizedMode: 'Unknown' | 'Model' | 'Command' | 'Reporter' =
-    'Unknown';
+  public RecognizedMode: 'Unknown' | 'Model' | 'Command' | 'Reporter' = 'Unknown';
   /** ContextErrors: Context errors detected during processing. */
   public ContextErrors: ContextError[] = [];
   // #endregion
@@ -69,18 +68,9 @@ export class StateNetLogo {
     this.Extensions = [];
     this.Globals = [];
     this.ContextErrors = [];
-    this.Breeds.set(
-      'turtle',
-      new Breed('turtle', 'turtles', [], BreedType.Turtle)
-    );
-    this.Breeds.set(
-      'patch',
-      new Breed('patch', 'patches', [], BreedType.Patch)
-    );
-    this.Breeds.set(
-      'link',
-      new Breed('link', 'links', [], BreedType.UndirectedLink)
-    );
+    this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], BreedType.Turtle));
+    this.Breeds.set('patch', new Breed('patch', 'patches', [], BreedType.Patch));
+    this.Breeds.set('link', new Breed('link', 'links', [], BreedType.UndirectedLink));
     let tempBreedVars: Map<string, string[]> = new Map<string, string[]>();
     this.IsDirty = false;
     // Get the cursor
@@ -113,10 +103,7 @@ export class StateNetLogo {
         }
         // get global variables
         else if (Cursor.node.name == 'Globals') {
-          this.Globals = [
-            ...this.Globals,
-            ...this.getVariables(Cursor.node, State),
-          ];
+          this.Globals = [...this.Globals, ...this.getVariables(Cursor.node, State)];
         }
         // get breeds
         else if (Cursor.node.name == 'Breed') {
@@ -193,9 +180,7 @@ export class StateNetLogo {
 
     procedure.IsCommand = true;
     if (node.getChild('To')) {
-      procedure.IsCommand =
-        this.getText(State, node.getChildren('To')[0].node).toLowerCase() ==
-        'to';
+      procedure.IsCommand = this.getText(State, node.getChildren('To')[0].node).toLowerCase() == 'to';
     }
 
     node.getChildren('ProcedureName').map((node) => {
@@ -203,19 +188,9 @@ export class StateNetLogo {
     });
     procedure.Arguments = this.getArgs(node, State);
     procedure.Variables = this.getLocalVars(node, State, false);
-    procedure.AnonymousProcedures = this.searchAnonProcedure(
-      node,
-      State,
-      procedure
-    );
+    procedure.AnonymousProcedures = this.searchAnonProcedure(node, State, procedure);
     procedure.Context = this.getContext(node, State);
-    procedure.CodeBlocks = this.getCodeBlocks(
-      node,
-      State,
-      procedure.Context,
-      procedure.Variables,
-      procedure.Arguments
-    );
+    procedure.CodeBlocks = this.getCodeBlocks(node, State, procedure.Context, procedure.Variables, procedure.Arguments);
     return procedure;
   }
 
@@ -252,21 +227,10 @@ export class StateNetLogo {
               }
             }
           } else if (cursor.node.name == 'VariableDeclaration') {
-            let n = cursor.node
-              .getChild('SetVariable')
-              ?.getChild('VariableName');
+            let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
             let c = new AgentContexts();
             let name = state.sliceDoc(n?.from, n?.to);
-            if (
-              [
-                'shape',
-                'breed',
-                'hidden?',
-                'label',
-                'label-color',
-                'color',
-              ].includes(name)
-            ) {
+            if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
               c = new AgentContexts('-T-L');
             } else if (n?.getChild('PatchVar')) {
               c = new AgentContexts('-TP-');
@@ -292,15 +256,7 @@ export class StateNetLogo {
             if (!noContext(newContext)) {
               priorContext = newContext;
             } else {
-              this.ContextErrors.push(
-                new ContextError(
-                  cursor.node.from,
-                  cursor.node.to,
-                  priorContext,
-                  c,
-                  name
-                )
-              );
+              this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, c, name));
             }
             //context = combineContexts(c, context);
           }
@@ -345,16 +301,7 @@ export class StateNetLogo {
           let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
           let c = new AgentContexts();
           let name = state.sliceDoc(n?.from, n?.to);
-          if (
-            [
-              'shape',
-              'breed',
-              'hidden?',
-              'label',
-              'label-color',
-              'color',
-            ].includes(name)
-          ) {
+          if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
             c = new AgentContexts('-T-L');
           } else if (n?.getChild('PatchVar')) {
             c = new AgentContexts('-TP-');
@@ -380,15 +327,7 @@ export class StateNetLogo {
           if (!noContext(newContext)) {
             priorContext = newContext;
           } else {
-            this.ContextErrors.push(
-              new ContextError(
-                cursor.node.from,
-                cursor.node.to,
-                priorContext,
-                c,
-                name
-              )
-            );
+            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, c, name));
           }
           //context = combineContexts(c, context);
         }
@@ -439,17 +378,9 @@ export class StateNetLogo {
             //     this.getContext(child, state)
             //   );
             // }
-            block.Variables = vars.concat(
-              this.getLocalVars(child.node, state, true)
-            );
+            block.Variables = vars.concat(this.getLocalVars(child.node, state, true));
             block.Arguments = args;
-            block.CodeBlocks = this.getCodeBlocks(
-              child.node,
-              state,
-              block.Context,
-              block.Variables,
-              block.Arguments
-            );
+            block.CodeBlocks = this.getCodeBlocks(child.node, state, block.Context, block.Variables, block.Arguments);
             block.Breed = prim.breed;
             blocks.push(block);
           }
@@ -473,25 +404,15 @@ export class StateNetLogo {
     let cursor = node.parent?.cursor();
     let ask = false;
     if (cursor?.firstChild()) {
-      if (
-        !['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(
-          cursor.node.name
-        )
-      ) {
-        prim.name = state
-          .sliceDoc(cursor.node.from, cursor.node.to)
-          .toLowerCase();
+      if (!['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(cursor.node.name)) {
+        prim.name = state.sliceDoc(cursor.node.from, cursor.node.to).toLowerCase();
         prim.type = cursor.node.name;
         if (prim.name == 'ask') {
           ask = true;
         }
       }
       while (cursor.nextSibling() && prim.name == '') {
-        if (
-          !['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(
-            cursor.node.name
-          )
-        ) {
+        if (!['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(cursor.node.name)) {
           prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
           prim.type = cursor.node.name;
         } else if (cursor.node.name == 'Arg' && ask) {
@@ -509,10 +430,7 @@ export class StateNetLogo {
       if (prim.breed != '') {
         let breed = null;
         for (let b of this.Breeds.values()) {
-          if (
-            prim.breed.toLowerCase() == b.Singular ||
-            prim.breed.toLowerCase() == b.Plural
-          ) {
+          if (prim.breed.toLowerCase() == b.Singular || prim.breed.toLowerCase() == b.Plural) {
             breed = b;
           }
         }
@@ -539,10 +457,7 @@ export class StateNetLogo {
   }
 
   private getBreedContext(breed: Breed) {
-    if (
-      breed.BreedType == BreedType.DirectedLink ||
-      breed.BreedType == BreedType.UndirectedLink
-    ) {
+    if (breed.BreedType == BreedType.DirectedLink || breed.BreedType == BreedType.UndirectedLink) {
       return new AgentContexts('---L');
     } else if (breed.Singular == 'patch') {
       return new AgentContexts('-TP-');
@@ -552,11 +467,7 @@ export class StateNetLogo {
   }
 
   /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */
-  private searchAnonProcedure(
-    node: SyntaxNode,
-    State: EditorState,
-    procedure: Procedure
-  ): Procedure[] {
+  private searchAnonProcedure(node: SyntaxNode, State: EditorState, procedure: Procedure): Procedure[] {
     let anonymousProcedures: Procedure[] = [];
     node.cursor().iterate((noderef) => {
       if (noderef.node.to > node.to) {
@@ -564,23 +475,17 @@ export class StateNetLogo {
       }
       if (
         node != noderef.node &&
-        (noderef.name == 'AnonymousProcedure' ||
-          noderef.name == 'ShortAnonymousProcedure') &&
+        (noderef.name == 'AnonymousProcedure' || noderef.name == 'ShortAnonymousProcedure') &&
         !this.checkRanges(anonymousProcedures, noderef.node)
       ) {
-        anonymousProcedures.push(
-          this.getAnonProcedure(noderef, State, procedure)
-        );
+        anonymousProcedures.push(this.getAnonProcedure(noderef, State, procedure));
       }
     });
     return anonymousProcedures;
   }
 
   /** checkRanges: Identify whether a node is inside the set of procedures or code blocks. */
-  private checkRanges(
-    procedures: Procedure[] | CodeBlock[],
-    node: SyntaxNode
-  ): boolean {
+  private checkRanges(procedures: Procedure[] | CodeBlock[], node: SyntaxNode): boolean {
     let included = false;
     for (let p of procedures) {
       if (p.PositionStart <= node.from && p.PositionEnd >= node.to) {
@@ -591,19 +496,14 @@ export class StateNetLogo {
   }
 
   /** getAnonProcedure: Gather information about the anonymous procedure. */
-  private getAnonProcedure(
-    noderef: SyntaxNodeRef,
-    State: EditorState,
-    procedure: Procedure
-  ): Procedure {
+  private getAnonProcedure(noderef: SyntaxNodeRef, State: EditorState, procedure: Procedure): Procedure {
     let anonProc = new Procedure();
     anonProc.PositionStart = noderef.from;
     anonProc.PositionEnd = noderef.to;
     anonProc.Variables = procedure.Variables;
     anonProc.IsAnonymous = true;
     anonProc.Name = '';
-    anonProc.IsCommand =
-      noderef.node.getChildren('ProcedureContent').length > 0;
+    anonProc.IsCommand = noderef.node.getChildren('ProcedureContent').length > 0;
     let args: string[] = [];
     let Node = noderef.node;
     Node.getChildren('AnonArguments').map((node) => {
@@ -617,15 +517,9 @@ export class StateNetLogo {
       });
     });
     anonProc.Arguments = args;
-    anonProc.Variables = anonProc.Variables.concat(
-      this.getLocalVars(Node, State, true)
-    );
+    anonProc.Variables = anonProc.Variables.concat(this.getLocalVars(Node, State, true));
 
-    anonProc.AnonymousProcedures = this.searchAnonProcedure(
-      Node,
-      State,
-      anonProc
-    );
+    anonProc.AnonymousProcedures = this.searchAnonProcedure(Node, State, anonProc);
     return anonProc;
   }
 
@@ -635,43 +529,25 @@ export class StateNetLogo {
   }
 
   /** getLocalVars: Collect local variables within a node. */
-  private getLocalVars(
-    Node: SyntaxNode,
-    State: EditorState,
-    isAnon: Boolean
-  ): LocalVariable[] {
+  private getLocalVars(Node: SyntaxNode, State: EditorState, isAnon: Boolean): LocalVariable[] {
     let localVars: LocalVariable[] = [];
     Node.getChildren('ProcedureContent').map((node1) => {
-      localVars = localVars.concat(
-        this.getLocalVarsCommand(node1, State, isAnon)
-      );
+      localVars = localVars.concat(this.getLocalVarsCommand(node1, State, isAnon));
     });
     return localVars;
   }
 
-  private getLocalVarsCommand(
-    Node: SyntaxNode,
-    State: EditorState,
-    isAnon?: Boolean
-  ): LocalVariable[] {
+  private getLocalVarsCommand(Node: SyntaxNode, State: EditorState, isAnon?: Boolean): LocalVariable[] {
     let localVars: LocalVariable[] = [];
     Node.getChildren('CommandStatement').map((node2) => {
       node2.getChildren('VariableDeclaration').map((node3) => {
         node3.getChildren('NewVariableDeclaration').map((node4) => {
           node4.getChildren('Identifier').map((node5) => {
-            let variable = new LocalVariable(
-              this.getText(State, node5),
-              1,
-              node5.from
-            );
+            let variable = new LocalVariable(this.getText(State, node5), 1, node5.from);
             localVars.push(variable);
           });
           node4.getChildren('UnsupportedPrim').map((node5) => {
-            let variable = new LocalVariable(
-              this.getText(State, node5),
-              1,
-              node5.from
-            );
+            let variable = new LocalVariable(this.getText(State, node5), 1, node5.from);
             localVars.push(variable);
           });
         });
@@ -705,8 +581,7 @@ export class StateNetLogo {
         ].includes(noderef.name)
       ) {
         var Text = this.getText(State, noderef.node);
-        if (Text !== '' && !Text.includes('\n'))
-          vars.push(this.getText(State, noderef.node));
+        if (Text !== '' && !Text.includes('\n')) vars.push(this.getText(State, noderef.node));
       }
     });
     return [...new Set(vars)];

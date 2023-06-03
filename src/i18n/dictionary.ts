@@ -35,14 +35,11 @@ class DictionaryManager {
   }
   // RegisterInternal: Register some built-in explanations.
   private RegisterBuiltin(...Args: string[]) {
-    Args.map(
-      (Arg) => (this.Data[Arg.toLowerCase()] = Localized.Get(Args[0], '{0}'))
-    );
+    Args.map((Arg) => (this.Data[Arg.toLowerCase()] = Localized.Get(Args[0], '{0}')));
   }
   // Get: Get an explanation from the dictionary.
   public Get(Key: string, Value: string): string {
-    if (Dictionary.Check(Key))
-      return Dictionary.Data[Key.trim().toLowerCase()].replace('{0}', Value);
+    if (Dictionary.Check(Key)) return Dictionary.Data[Key.trim().toLowerCase()].replace('{0}', Value);
     return Key;
   }
   // Check: Check if a key exists in the dictionary.

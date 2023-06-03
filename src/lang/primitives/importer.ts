@@ -6,12 +6,7 @@ import path from 'path';
 import { Log } from '../../codemirror/utils/debug-utils.ts';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import {
-  Primitive,
-  NetLogoType,
-  AgentContexts,
-  Argument,
-} from '../classes/structures.js';
+import { Primitive, NetLogoType, AgentContexts, Argument } from '../classes/structures.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { Commands } from './core/commands.ts';
@@ -38,12 +33,8 @@ class PrimitiveImporter {
     File.readdirSync(Extensions).forEach((Path) => {
       if (!Path.endsWith('.json')) return;
       const Extension = path.parse(Path).name;
-      const Metadata: any = JSON.parse(
-        File.readFileSync(path.join(Extensions, Path), 'utf8')
-      );
-      Metadata.prims.forEach((Primitive: NLWPrimitive) =>
-        this.ImportNLW(Extension, Primitive)
-      );
+      const Metadata: any = JSON.parse(File.readFileSync(path.join(Extensions, Path), 'utf8'));
+      Metadata.prims.forEach((Primitive: NLWPrimitive) => this.ImportNLW(Extension, Primitive));
     });
   }
   /** Export: Export all primitives to a file. */
@@ -85,17 +76,10 @@ export const Dataset: Primitive[] = ${JSON.stringify(this.Primitives)}`
         Source.syntax.blockAgentClassString == 'null'
           ? new AgentContexts(Source.syntax.agentClassString)
           : new AgentContexts(Source.syntax.blockAgentClassString),
-      DefaultOption:
-        Source.syntax.defaultOption == null
-          ? undefined
-          : Source.syntax.defaultOption,
-      MinimumOption:
-        Source.syntax.minimumOption == null
-          ? undefined
-          : Source.syntax.minimumOption,
+      DefaultOption: Source.syntax.defaultOption == null ? undefined : Source.syntax.defaultOption,
+      MinimumOption: Source.syntax.minimumOption == null ? undefined : Source.syntax.minimumOption,
       IsRightAssociative: Source.syntax.isRightAssociative ? true : undefined,
-      IntroducesContext:
-        Source.syntax.introducesContext == 'true' ? true : undefined,
+      IntroducesContext: Source.syntax.introducesContext == 'true' ? true : undefined,
       CanBeConcise: Source.syntax.canBeConcise ? true : undefined,
       InheritParentContext: Source.syntax.blockAgentClassString == 'null',
     };

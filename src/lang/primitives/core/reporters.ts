@@ -70,11 +70,7 @@ const Reporters: NLPrimitive[] = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [
-        'number',
-        { types: ['string', 'list'], isRepeatable: false },
-        'wildcard',
-      ],
+      right: ['number', { types: ['string', 'list'], isRepeatable: false }, 'wildcard'],
       ret: { types: ['string', 'list'], isRepeatable: false },
       defaultOption: null,
       minimumOption: null,
@@ -746,9 +742,7 @@ const Reporters: NLPrimitive[] = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [
-        { types: ['list', 'patch agentset', 'patch'], isRepeatable: true },
-      ],
+      right: [{ types: ['list', 'patch agentset', 'patch'], isRepeatable: true }],
       ret: 'patch agentset',
       defaultOption: 1,
       minimumOption: 0,
@@ -1515,10 +1509,7 @@ const Reporters: NLPrimitive[] = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [
-        'wildcard',
-        { types: ['string', 'list', 'agentset'], isRepeatable: false },
-      ],
+      right: ['wildcard', { types: ['string', 'list', 'agentset'], isRepeatable: false }],
       ret: 'boolean',
       defaultOption: null,
       minimumOption: null,
@@ -1918,11 +1909,7 @@ const Reporters: NLPrimitive[] = [
     syntax: {
       precedence: 3,
       left: 'unit',
-      right: [
-        'boolean',
-        'reporterblock',
-        { types: ['boolean', 'reporterblock'], isRepeatable: true },
-      ],
+      right: ['boolean', 'reporterblock', { types: ['boolean', 'reporterblock'], isRepeatable: true }],
       ret: 'wildcard',
       defaultOption: 3,
       minimumOption: null,
@@ -2002,11 +1989,7 @@ const Reporters: NLPrimitive[] = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [
-        'number',
-        { types: ['string', 'list'], isRepeatable: false },
-        'wildcard',
-      ],
+      right: ['number', { types: ['string', 'list'], isRepeatable: false }, 'wildcard'],
       ret: { types: ['string', 'list'], isRepeatable: false },
       defaultOption: null,
       minimumOption: null,
@@ -3826,9 +3809,7 @@ const Reporters: NLPrimitive[] = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [
-        { types: ['list', 'turtle agentset', 'turtle'], isRepeatable: true },
-      ],
+      right: [{ types: ['list', 'turtle agentset', 'turtle'], isRepeatable: true }],
       ret: 'turtle agentset',
       defaultOption: 1,
       minimumOption: 0,
@@ -3844,10 +3825,7 @@ const Reporters: NLPrimitive[] = [
     syntax: {
       precedence: 10,
       left: 'unit',
-      right: [
-        'reporter',
-        { type: 'list', isRepeatable: true, isOptional: false },
-      ],
+      right: ['reporter', { type: 'list', isRepeatable: true, isOptional: false }],
       ret: 'list',
       defaultOption: 2,
       minimumOption: null,

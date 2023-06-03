@@ -4,11 +4,7 @@ import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 
 // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
-export const UnrecognizedGlobalLinter: Linter = (
-  view,
-  preprocessContext,
-  lintContext
-) => {
+export const UnrecognizedGlobalLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
   let cursor = syntaxTree(view.state).cursor();
   let lastGlobalPos = 0;
@@ -23,9 +19,7 @@ export const UnrecognizedGlobalLinter: Linter = (
     cursor.node.getChildren('Procedure').map((child) => {
       if (child.from < lastGlobalPos) {
         let value = view.state.sliceDoc(child.from, child.to).split('\n')[0];
-        let nameNode = child.node
-          .getChild('Procedure')
-          ?.getChild('ProcedureName');
+        let nameNode = child.node.getChild('Procedure')?.getChild('ProcedureName');
         if (nameNode) {
           value = view.state.sliceDoc(nameNode.from, nameNode.to);
         }

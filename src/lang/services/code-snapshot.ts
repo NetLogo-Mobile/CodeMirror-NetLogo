@@ -16,14 +16,8 @@ export interface CodeSnapshot {
 }
 
 /** GetProcedureCode: Get the code of a procedure. */
-export function GetProcedureCode(
-  Snapshot: CodeSnapshot,
-  Procedure: Procedure
-): string {
-  return Snapshot.Code.substring(
-    Procedure.PositionStart,
-    Procedure.PositionEnd
-  );
+export function GetProcedureCode(Snapshot: CodeSnapshot, Procedure: Procedure): string {
+  return Snapshot.Code.substring(Procedure.PositionStart, Procedure.PositionEnd);
 }
 
 /** BuildSnapshot: Build a snapshot of the code. */
@@ -50,18 +44,11 @@ export function BuildSnapshot(Galapagos: GalapagosEditor): CodeSnapshot {
 }
 
 /** IntegrateSnapshot: Integrate a snapshot into the code. */
-export function IntegrateSnapshot(
-  Galapagos: GalapagosEditor,
-  Snapshot: CodeSnapshot
-) {
+export function IntegrateSnapshot(Galapagos: GalapagosEditor, Snapshot: CodeSnapshot) {
   // Haven't decided about procedures yet
   // Integrate the breeds
   for (var [Singular, Breed] of Snapshot.Breeds) {
-    Galapagos.Operations.AppendBreed(
-      Breed.BreedType,
-      Breed.Plural,
-      Breed.Singular
-    );
+    Galapagos.Operations.AppendBreed(Breed.BreedType, Breed.Plural, Breed.Singular);
   }
   for (var [Singular, Breed] of Snapshot.Breeds) {
     Galapagos.Operations.AppendBreedVariables(Breed.Plural, Breed.Variables);

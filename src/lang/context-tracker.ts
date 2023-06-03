@@ -12,10 +12,7 @@ export const contextTracker = new ContextTracker({
   },
   shift: (context, term, stack, input) => {
     let globalStatements = input.pos == 0 ? true : context.globalStatement;
-    let procedureName =
-      context.procedureName < 2
-        ? context.procedureName + 1
-        : context.procedureName;
+    let procedureName = context.procedureName < 2 ? context.procedureName + 1 : context.procedureName;
     let token = '';
     if (input.next == 93) {
       input.advance();

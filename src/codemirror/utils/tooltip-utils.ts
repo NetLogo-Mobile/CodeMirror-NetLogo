@@ -5,16 +5,9 @@ import { syntaxTree } from '@codemirror/language';
 /** classifyPrimitive: Identify type of reporter/command for appropriate tooltip. */
 export const classifyPrimitive = function (name: string) {
   //classify all types of reporter as 'breed','custom', or builtin
-  if (
-    name.indexOf('Reporter') != -1 &&
-    name.indexOf('ReporterStatement') == -1
-  ) {
+  if (name.indexOf('Reporter') != -1 && name.indexOf('ReporterStatement') == -1) {
     if (name.indexOf('Special') != -1) {
-      if (
-        name.indexOf('Turtle') != -1 ||
-        name.indexOf('Link') != -1 ||
-        name.indexOf('Both') != -1
-      ) {
+      if (name.indexOf('Turtle') != -1 || name.indexOf('Link') != -1 || name.indexOf('Both') != -1) {
         name = 'BreedReporter';
       } else {
         name = 'CustomReporter';
@@ -57,12 +50,7 @@ export const classifyBreedName = function (term: string, breeds: Breed[]) {
 };
 
 /** getLink: Identify internal link for tooltips (e.g. creation of variable). */
-export const getLink = function (
-  nodeName: string,
-  childName: string,
-  term: string,
-  state: EditorState
-) {
+export const getLink = function (nodeName: string, childName: string, term: string, state: EditorState) {
   let linkData = {
     to: 0,
     from: 0,

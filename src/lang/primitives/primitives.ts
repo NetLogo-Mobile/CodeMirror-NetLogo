@@ -13,8 +13,7 @@ export class Primitives {
 
   /** Register: Register a primitive information. */
   public Register(Extension: string, Source: Primitive) {
-    var FullName =
-      Extension == '' ? Source.Name : `${Extension}:${Source.Name}`;
+    var FullName = Extension == '' ? Source.Name : `${Extension}:${Source.Name}`;
     if (!this.Metadata.has(FullName)) {
       if (this.ExtensionNames.indexOf(Extension) == -1) {
         this.ExtensionNames.push(Extension);
@@ -67,10 +66,7 @@ export class Primitives {
   public GetCompletions(Extensions: string[]): Completion[] {
     var Results: Completion[] = [];
     for (var Primitive of this.Metadata.values()) {
-      if (
-        Primitive.Extension == '' ||
-        Extensions.indexOf(Primitive.Extension) != -1
-      ) {
+      if (Primitive.Extension == '' || Extensions.indexOf(Primitive.Extension) != -1) {
         var Name = Primitive.Name;
         if (Primitive.Extension != '') Name = `${Primitive.Extension}:${Name}`;
         Results.push({

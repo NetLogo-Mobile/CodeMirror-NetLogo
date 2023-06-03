@@ -4,16 +4,8 @@ import { SyntaxNode } from '@lezer/common';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 import { Breed, BreedType } from '../classes/structures';
-import {
-  CheckContext,
-  checkValidIdentifier,
-  getCheckContext,
-} from './utils/check-identifier';
-import {
-  getBreedName,
-  getPluralName,
-  getSingularName,
-} from '../../codemirror/utils/breed-utils';
+import { CheckContext, checkValidIdentifier, getCheckContext } from './utils/check-identifier';
+import { getBreedName, getPluralName, getSingularName } from '../../codemirror/utils/breed-utils';
 import { AddBreedAction } from './utils/actions';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
@@ -38,9 +30,7 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
       ) {
         //console.log(lintContext)
         const Node = noderef.node;
-        const value = view.state
-          .sliceDoc(noderef.from, noderef.to)
-          .toLowerCase();
+        const value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
         let result = checkValidBreed(Node, value, context, breeds);
         if (!result.isValid) {
           let breed_result = getBreedName(value);
@@ -55,13 +45,7 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
               singular = breed_result.breed;
               plural = getPluralName(breed_result.breed);
             }
-            actions.push(
-              AddBreedAction(
-                result.isLink ? BreedType.UndirectedLink : BreedType.Turtle,
-                plural,
-                singular
-              )
-            );
+            actions.push(AddBreedAction(result.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular));
           }
           diagnostics.push({
             from: noderef.from,
@@ -78,12 +62,7 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
 
 // checkValidBreed: Checks if the term in the structure of a breed command/reporter
 // is the name of an actual breed, and in the correct singular/plural form
-const checkValidBreed = function (
-  node: SyntaxNode,
-  value: string,
-  context: CheckContext,
-  breeds: Breed[]
-) {
+const checkValidBreed = function (node: SyntaxNode, value: string, context: CheckContext, breeds: Breed[]) {
   //let isValid = true;
   let result = {
     isValid: true,
@@ -98,10 +77,7 @@ const checkValidBreed = function (
   let pluralLink: string[] = [];
   let singularLink: string[] = [];
   for (let b of breeds) {
-    if (
-      b.BreedType == BreedType.DirectedLink ||
-      b.BreedType == BreedType.UndirectedLink
-    ) {
+    if (b.BreedType == BreedType.DirectedLink || b.BreedType == BreedType.UndirectedLink) {
       pluralLink.push(b.Plural);
       singularLink.push(b.Singular);
     } else if (b.BreedType == BreedType.Turtle) {
@@ -115,25 +91,16 @@ const checkValidBreed = function (
     result.isValid = listItemInString(value, singularLink.concat(pluralLink));
     result.isLink = true;
     result.isPlural = false;
-  } else if (
-    node.name == 'SpecialReporter0ArgsLink' ||
-    node.name == 'SpecialReporter1ArgsLink'
-  ) {
+  } else if (node.name == 'SpecialReporter0ArgsLink' || node.name == 'SpecialReporter1ArgsLink') {
     result.isValid = listItemInString(value, singularLink);
     result.isLink = true;
     result.isPlural = false;
   } else if (node.name == 'SpecialReporter1ArgsBoth') {
-    result.isValid = listItemInString(
-      value,
-      singularLink.concat(singularTurtle)
-    );
+    result.isValid = listItemInString(value, singularLink.concat(singularTurtle));
     result.isLink = false;
     result.isPlural = false;
   } else if (node.name == 'Own' || node.name == 'Arg') {
-    result.isValid = listItemInString(
-      value,
-      pluralLink.concat([...pluralTurtle, 'patches'])
-    );
+    result.isValid = listItemInString(value, pluralLink.concat([...pluralTurtle, 'patches']));
     result.isLink = false;
     result.isPlural = true;
   } else if (

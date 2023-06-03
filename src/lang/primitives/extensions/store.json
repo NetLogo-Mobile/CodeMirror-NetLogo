@@ -18,11 +18,7 @@
     },
     {
       "name": "put",
-      "argTypes": [
-        "string",
-        "string",
-        { "type": "commandblock", "isOptional": true }
-      ],
+      "argTypes": ["string", "string", { "type": "commandblock", "isOptional": true }],
       "returnType": "unit"
     },
     {

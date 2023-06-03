@@ -46,11 +46,7 @@ export const acceptableIdentifiers = [
 ];
 
 // checkValidIdentifier: Checks identifiers for valid variable/procedure/breed names
-export const checkValidIdentifier = function (
-  Node: SyntaxNode,
-  value: string,
-  context: CheckContext
-): boolean {
+export const checkValidIdentifier = function (Node: SyntaxNode, value: string, context: CheckContext): boolean {
   value = value.toLowerCase();
   // checks if parent is in a category that is always valid (e.g. 'Globals')
   if (acceptableIdentifiers.includes(Node.parent?.name ?? '')) return true;
@@ -64,8 +60,7 @@ export const checkValidIdentifier = function (
   )
     return true;
   // checks if identifier is a breed name or variable
-  if (context.breedNames.includes(value) || context.breedVars.includes(value))
-    return true;
+  if (context.breedNames.includes(value) || context.breedVars.includes(value)) return true;
   // checks if identifier is a variable already declared in the procedure
   // collects list of valid local variables for given position
   let procedureVars = getLocalVars(Node, context.state, context.parseState);
@@ -74,11 +69,7 @@ export const checkValidIdentifier = function (
 };
 
 // getLocalVars: collects list of valid local variables for given position
-export const getLocalVars = function (
-  Node: SyntaxNode,
-  state: EditorState,
-  parseState: LintContext | StateNetLogo
-) {
+export const getLocalVars = function (Node: SyntaxNode, state: EditorState, parseState: LintContext | StateNetLogo) {
   // get the procedure name
   let curr_node = Node;
   let procedureName = '';
@@ -103,9 +94,7 @@ export const getLocalVars = function (
     });
     //pulls out all local variables within the anonymous procedures up until current position
     if (procedure) {
-      procedureVars.push(
-        ...gatherAnonVars(procedure.AnonymousProcedures, Node)
-      );
+      procedureVars.push(...gatherAnonVars(procedure.AnonymousProcedures, Node));
       procedureVars.push(...gatherAnonVars(procedure.CodeBlocks, Node));
     }
     if (procedure?.Arguments) {
@@ -116,16 +105,10 @@ export const getLocalVars = function (
 };
 
 // gatherAnonVars: collects out valid local variables from anonymous procedures and code blocks
-const gatherAnonVars = function (
-  group: CodeBlock[] | Procedure[],
-  Node: SyntaxNode
-) {
+const gatherAnonVars = function (group: CodeBlock[] | Procedure[], Node: SyntaxNode) {
   let procedureVars: string[] = [];
   group.map((anonProc) => {
-    if (
-      Node.from >= anonProc.PositionStart &&
-      Node.to <= anonProc.PositionEnd
-    ) {
+    if (Node.from >= anonProc.PositionStart && Node.to <= anonProc.PositionEnd) {
       anonProc.Variables.map((variable) => {
         if (variable.CreationPos < Node.from) {
           procedureVars.push(variable.Name);

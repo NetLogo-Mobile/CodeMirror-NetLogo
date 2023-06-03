@@ -6,21 +6,12 @@ import { checkBreedLike } from '../../codemirror/utils/breed-utils';
 import { reserved } from '../keywords';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
-export const UnrecognizedLinter: Linter = (
-  view,
-  preprocessContext,
-  lintContext
-) => {
+export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
-      if (
-        (node.name == '⚠' ||
-          node.name == 'Error' ||
-          node.name == 'Misplaced') &&
-        node.to != node.from
-      ) {
+      if ((node.name == '⚠' || node.name == 'Error' || node.name == 'Misplaced') && node.to != node.from) {
         let curr = node.node;
         let parents: string[] = [];
         while (curr.parent) {
@@ -34,30 +25,17 @@ export const UnrecognizedLinter: Linter = (
           let child = node.node.firstChild;
           if (
             reserved.includes(value) ||
-            (child &&
-              (child.name.startsWith('Command') ||
-                child.name.startsWith('Reporter')))
+            (child && (child.name.startsWith('Command') || child.name.startsWith('Reporter')))
           ) {
-            diagnostics.push(
-              getDiagnostic(view, node, 'Argument is reserved _')
-            );
+            diagnostics.push(getDiagnostic(view, node, 'Argument is reserved _'));
           } else {
-            diagnostics.push(
-              getDiagnostic(view, node, 'Argument is invalid _')
-            );
+            diagnostics.push(getDiagnostic(view, node, 'Argument is invalid _'));
           }
-        } else if (
-          !['[', ']', ')', '(', '"'].includes(value) &&
-          !checkBreedLike(value).found
-        ) {
+        } else if (!['[', ']', ')', '(', '"'].includes(value) && !checkBreedLike(value).found) {
           if (node.node.parent?.name == 'Normal') {
-            diagnostics.push(
-              getDiagnostic(view, node, 'Unrecognized global statement _')
-            );
+            diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));
           } else {
-            diagnostics.push(
-              getDiagnostic(view, node, 'Unrecognized statement _')
-            );
+            diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
           }
         }
       }

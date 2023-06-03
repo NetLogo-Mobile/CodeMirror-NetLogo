@@ -65,18 +65,9 @@ let primitives = PrimitiveManager;
 const specializeReporter = function (token: string) {
   token = token.toLowerCase();
 
-  if (
-    token == 'se' ||
-    token == 'list' ||
-    token == 'sentence' ||
-    token == 'word'
-  ) {
+  if (token == 'se' || token == 'list' || token == 'sentence' || token == 'word') {
     return Reporter2ArgsVar0;
-  } else if (
-    token == 'patch-set' ||
-    token == 'link-set' ||
-    token == 'turtle-set'
-  ) {
+  } else if (token == 'patch-set' || token == 'link-set' || token == 'turtle-set') {
     return Reporter1ArgsVar0;
   }
 
@@ -279,9 +270,4 @@ const specializeSpecialCommand = function (token: string) {
   }
 };
 
-export {
-  specializeReporter,
-  specializeSpecialReporter,
-  specializeCommand,
-  specializeSpecialCommand,
-};
+export { specializeReporter, specializeSpecialReporter, specializeCommand, specializeSpecialCommand };

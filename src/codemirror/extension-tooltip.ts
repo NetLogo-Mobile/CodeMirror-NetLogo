@@ -3,11 +3,7 @@ import { StateField, EditorState, EditorSelection } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { Dictionary } from '../i18n/dictionary';
-import {
-  classifyPrimitive,
-  classifyBreedName,
-  getLink,
-} from './utils/tooltip-utils';
+import { classifyPrimitive, classifyBreedName, getLink } from './utils/tooltip-utils';
 import { GalapagosEditor, Localized } from '../editor';
 import { Log } from './utils/debug-utils';
 import { LintContext } from '../lang/classes/contexts';
@@ -28,26 +24,16 @@ export const buildToolTips = function (Editor: GalapagosEditor) {
 };
 
 // getSelectionTooltips: Get the tooltips for the current selection
-function getSelectionTooltips(
-  state: EditorState,
-  Editor: GalapagosEditor
-): readonly Tooltip[] {
+function getSelectionTooltips(state: EditorState, Editor: GalapagosEditor): readonly Tooltip[] {
   var ranges = state.selection.ranges.filter(
-    (range) =>
-      !range.empty &&
-      state.doc.lineAt(range.from).number == state.doc.lineAt(range.to).number
+    (range) => !range.empty && state.doc.lineAt(range.from).number == state.doc.lineAt(range.to).number
   );
   if (ranges.length != 1) return [];
   return [getTooltip(ranges[0].from, ranges[0].to, state, Editor)];
 }
 
 // getTooltip: Get the tooltip for the given range
-function getTooltip(
-  from: number,
-  to: number,
-  state: EditorState,
-  editor: GalapagosEditor
-): Tooltip {
+function getTooltip(from: number, to: number, state: EditorState, editor: GalapagosEditor): Tooltip {
   var NLState = editor.LintContext;
   // Check what to display & if the selected range covers more than one token
   var multipleTokens = false;
@@ -69,15 +55,8 @@ function getTooltip(
       var name = classifyPrimitive(ref.name);
 
       // Check the category name to see if a valid closest term has been found
-      if (
-        closestTerm == '~BreedSingular' ||
-        closestTerm == '~Arguments' ||
-        closestTerm == '~ProcedureName'
-      ) {
-      } else if (
-        Dictionary.Check(`~${name}`) ||
-        Localized.Get(`~${name}`) != `~${name}`
-      ) {
+      if (closestTerm == '~BreedSingular' || closestTerm == '~Arguments' || closestTerm == '~ProcedureName') {
+      } else if (Dictionary.Check(`~${name}`) || Localized.Get(`~${name}`) != `~${name}`) {
         closestTerm = `~${name}`;
       } else if (
         Dictionary.Check(`~${parentName}/${name}`) ||
@@ -120,10 +99,7 @@ function getTooltip(
       closestTerm = '~BreedVariable';
     } else {
       //if term is not a breed variable, check if it is a local variable for a procedure
-      if (
-        closestTerm == '~VariableName' ||
-        (parentName == 'Identifier' && closestTerm == '')
-      ) {
+      if (closestTerm == '~VariableName' || (parentName == 'Identifier' && closestTerm == '')) {
         secondTerm = NLState.GetProcedureFromVariable(term, lastFrom, lastTo);
         //if procedure cannot be identified, term is an unidentified local variable
         if (secondTerm != null) closestTerm = '~LocalVariable';
@@ -140,13 +116,7 @@ function getTooltip(
 
   // Check if there is an internal link for the tooltip
   // (e.g. first mention of a variable, or a procedure name)
-  let result = getInternalLink(
-    term,
-    closestTerm,
-    secondTerm ?? '',
-    state,
-    NLState
-  );
+  let result = getInternalLink(term, closestTerm, secondTerm ?? '', state, NLState);
 
   // Return the tooltip
   return {
@@ -168,9 +138,7 @@ function getTooltip(
         message += '➤';
         dom.addEventListener('click', () =>
           view.dispatch({
-            selection: EditorSelection.create([
-              EditorSelection.range(result.from, result.to),
-            ]),
+            selection: EditorSelection.create([EditorSelection.range(result.from, result.to)]),
             effects: [EditorView.scrollIntoView(result.from, { y: 'center' })],
           })
         );
@@ -227,10 +195,7 @@ function getInternalLink(
         if (node.name == 'BreedsOwn') {
           let correctNode = false;
           node.node.getChildren('Own').map((subnode) => {
-            if (
-              state.sliceDoc(subnode.from, subnode.to) ==
-              secondTerm + '-own'
-            ) {
+            if (state.sliceDoc(subnode.from, subnode.to) == secondTerm + '-own') {
               correctNode = true;
             }
           });
@@ -247,19 +212,12 @@ function getInternalLink(
       });
   }
   //link to start of the procedure being called
-  else if (
-    closestTerm == '~CustomReporter' ||
-    closestTerm == '~CustomCommand'
-  ) {
+  else if (closestTerm == '~CustomReporter' || closestTerm == '~CustomCommand') {
     syntaxTree(state)
       .cursor()
       .iterate((node) => {
-        if (node.name == 'ProcedureName')
-          Log(state.sliceDoc(node.from, node.to));
-        if (
-          node.name == 'ProcedureName' &&
-          state.sliceDoc(node.from, node.to) == term
-        ) {
+        if (node.name == 'ProcedureName') Log(state.sliceDoc(node.from, node.to));
+        if (node.name == 'ProcedureName' && state.sliceDoc(node.from, node.to) == term) {
           linkData.to = node.to;
           linkData.from = node.from;
           linkData.hasLink = true;
@@ -280,10 +238,7 @@ function getInternalLink(
         .iterate((node) => {
           if (node.name == 'Procedure') {
             let nameNode = node.node.getChild('ProcedureName');
-            if (
-              nameNode &&
-              state.sliceDoc(nameNode.from, nameNode.to) == procName
-            ) {
+            if (nameNode && state.sliceDoc(nameNode.from, nameNode.to) == procName) {
               node.node
                 .getChild('Arguments')
                 ?.getChildren('Identifier')
@@ -316,8 +271,7 @@ function getInternalLink(
             enter: (noderef) => {
               if (
                 noderef.name == 'Identifier' &&
-                (noderef.node.parent?.name == 'AnonArguments' ||
-                  noderef.node.parent?.name == 'Arguments')
+                (noderef.node.parent?.name == 'AnonArguments' || noderef.node.parent?.name == 'Arguments')
               ) {
                 if (state.sliceDoc(noderef.from, noderef.to) == term) {
                   linkData.to = noderef.to;

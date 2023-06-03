@@ -186,9 +186,7 @@ function foldProcedure(node: SyntaxNode): { from: number; to: number } | null {
   first = first ?? node.getChild('ProcedureName');
   first = first ?? node.firstChild;
   let last = node.lastChild;
-  return first && first.to < last!.from
-    ? { from: first.to, to: last!.type.isError ? node.to : last!.to }
-    : null;
+  return first && first.to < last!.from ? { from: first.to, to: last!.type.isError ? node.to : last!.to } : null;
 }
 
 /** NetLogo: The NetLogo language support. */
@@ -207,7 +205,6 @@ const EmptyContext = new PreprocessContext();
 export function GetContext(): PreprocessContext {
   var Context = ParseContext.get()! as any;
   if (Context == null) return EmptyContext;
-  Context.Context =
-    Context.Context ?? Context.state.field(preprocessStateExtension).Context;
+  Context.Context = Context.Context ?? Context.state.field(preprocessStateExtension).Context;
   return Context.Context;
 }

@@ -3,10 +3,7 @@ import { EditorView } from '@codemirror/view';
 import { ChangeSpec } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
 import { BreedType } from '../classes/structures';
-import {
-  GetCursorInsideMode,
-  GetCursorUntilMode,
-} from '../linters/utils/cursors';
+import { GetCursorInsideMode, GetCursorUntilMode } from '../linters/utils/cursors';
 import { GalapagosEditor } from '../../editor';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 import { getSingularName } from '../../codemirror/utils/breed-utils';
@@ -46,15 +43,11 @@ export class CodeEditing {
   /** AddTermToBracket: Add a term to a bracket. */
   private AddTermToBracket(Contents: string[], Node: SyntaxNode): boolean {
     // De-duplicate the contents
-    var Identifiers = Node.node
-      .getChildren('Identifier')
-      .map((Child) => this.GetSlice(Child.from, Child.to).trim());
+    var Identifiers = Node.node.getChildren('Identifier').map((Child) => this.GetSlice(Child.from, Child.to).trim());
     Contents = Contents.filter((Content) => Identifiers.indexOf(Content) == -1);
     if (Contents.length == 0) return false;
     // Find the spaces between the brackets
-    let Seperator = this.View.state.sliceDoc(Node.from, Node.to).includes('\n')
-      ? '\n'
-      : ' ';
+    let Seperator = this.View.state.sliceDoc(Node.from, Node.to).includes('\n') ? '\n' : ' ';
     var From = this.FindFirstChild(Node, 'CloseBracket')!.from;
     // Insert the contents
     for (let Content of Contents.reverse()) {
@@ -63,9 +56,7 @@ export class CodeEditing {
         to: From,
         insert: Content + Seperator,
       });
-      this.InsertCode(
-        indentRange(this.View.state, From, From + 1 + Content.length)
-      );
+      this.InsertCode(indentRange(this.View.state, From, From + 1 + Content.length));
     }
     return true;
   }
@@ -73,10 +64,7 @@ export class CodeEditing {
 
   // #region "Global Statements"
   /** AppendGlobals: Append items of a global statement to the editor. */
-  public AppendGlobals(
-    Field: 'Globals' | 'Extensions',
-    Items: string[]
-  ): boolean {
+  public AppendGlobals(Field: 'Globals' | 'Extensions', Items: string[]): boolean {
     Items = [...new Set(Items.filter((Item) => reserved.indexOf(Item) == -1))];
     if (Items.length == 0) return false;
     // Find the cursor
@@ -95,21 +83,12 @@ export class CodeEditing {
     return true;
   }
   /** AppendBreed: Append a breed to the editor. */
-  public AppendBreed(
-    Type: BreedType,
-    Plural: string,
-    Singular: string
-  ): boolean {
+  public AppendBreed(Type: BreedType, Plural: string, Singular: string): boolean {
     // Check if the breed already exists
     if (Plural == 'patches' || Singular == 'patch') return false;
     if (Plural == Singular) Singular = getSingularName(Plural);
     for (let [Sin, Breed] of this.Galapagos.LintContext.Breeds) {
-      if (
-        Breed.Plural == Plural ||
-        Breed.Singular == Singular ||
-        Breed.Singular == Plural ||
-        Breed.Plural == Singular
-      )
+      if (Breed.Plural == Plural || Breed.Singular == Singular || Breed.Singular == Plural || Breed.Plural == Singular)
         return false;
     }
     // TODO: Find the most appropriate place to insert the breed
@@ -126,9 +105,7 @@ export class CodeEditing {
   }
   /** AppendBreedVariables: Add variables to a breed. */
   public AppendBreedVariables(Plural: string, Variables: string[]): boolean {
-    Variables = [
-      ...new Set(Variables.filter((Item) => reserved.indexOf(Item) == -1)),
-    ];
+    Variables = [...new Set(Variables.filter((Item) => reserved.indexOf(Item) == -1))];
     if (Variables.length == 0) return false;
     let Cursor = GetCursorInsideMode(this.View.state);
     // Find the first existing statement
@@ -161,10 +138,7 @@ export class CodeEditing {
     syntaxTree(view.state)
       .cursor()
       .iterate((node) => {
-        if (
-          node.name == 'Procedure' &&
-          view.state.sliceDoc(node.from, node.to) == name
-        ) {
+        if (node.name == 'Procedure' && view.state.sliceDoc(node.from, node.to) == name) {
           index = node.from + content.length;
           view.dispatch({
             changes: {

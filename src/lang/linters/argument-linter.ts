@@ -13,11 +13,7 @@ import { EditorView } from 'codemirror';
 let primitives = PrimitiveManager;
 
 // ArgumentLinter: ensure all primitives have an acceptable number of arguments
-export const ArgumentLinter: Linter = (
-  view,
-  preprocessContext,
-  lintContext
-) => {
+export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
   syntaxTree(view.state)
     .cursor()
@@ -26,23 +22,16 @@ export const ArgumentLinter: Linter = (
         // Checking let/set statements
         (noderef.name == 'SetVariable' &&
           (noderef.node.getChildren('VariableName').length != 1 ||
-            noderef.node.getChildren('Value').length +
-              noderef.node.getChildren('ReporterStatement').length !=
-              1)) ||
+            noderef.node.getChildren('Value').length + noderef.node.getChildren('ReporterStatement').length != 1)) ||
         (noderef.name == 'NewVariableDeclaration' &&
-          (noderef.node.getChildren('Identifier').length +
-            noderef.node.getChildren('UnsupportedPrim').length !=
-            1 ||
-            noderef.node.getChildren('Value').length +
-              noderef.node.getChildren('ReporterStatement').length !=
-              1))
+          (noderef.node.getChildren('Identifier').length + noderef.node.getChildren('UnsupportedPrim').length != 1 ||
+            noderef.node.getChildren('Value').length + noderef.node.getChildren('ReporterStatement').length != 1))
       ) {
         let func = noderef.name == 'SetVariable' ? 'Set' : 'Let';
         let expected = 2;
         let actual =
           noderef.name == 'SetVariable'
-            ? noderef.node.getChildren('VariableName').length +
-              noderef.node.getChildren('Value').length
+            ? noderef.node.getChildren('VariableName').length + noderef.node.getChildren('Value').length
             : noderef.node.getChildren('Identifier').length +
               noderef.node.getChildren('UnsupportedPrim').length +
               noderef.node.getChildren('Value').length;
@@ -58,14 +47,12 @@ export const ArgumentLinter: Linter = (
           )
         );
       } else if (
-        (noderef.name == 'ReporterStatement' ||
-          noderef.name == 'CommandStatement') &&
+        (noderef.name == 'ReporterStatement' || noderef.name == 'CommandStatement') &&
         noderef.node.getChildren('Arg')
       ) {
         const Node = noderef.node;
         // Checking if missing command (it shows up as a specific grammatical structure)
-        if (Node.firstChild?.name == '⚠')
-          diagnostics.push(getDiagnostic(view, Node, 'Missing command _'));
+        if (Node.firstChild?.name == '⚠') diagnostics.push(getDiagnostic(view, Node, 'Missing command _'));
         // Checking the arguments
         let args = getArgs(Node);
         // Log(args.rightArgs.map((node)=>view.state.sliceDoc(node.from, node.to)))
@@ -165,9 +152,7 @@ export const ArgumentLinter: Linter = (
         }
         // Check for infinite loops
         if (args.func) {
-          let funcName = view.state
-            .sliceDoc(args.func.from, args.func.to)
-            .toLowerCase();
+          let funcName = view.state.sliceDoc(args.func.from, args.func.to).toLowerCase();
           var potentialLoop = false;
           // Find potentials
           if (funcName == 'while') {
@@ -182,15 +167,7 @@ export const ArgumentLinter: Linter = (
           }
           // Check for loop end
           if (potentialLoop && !checkLoopEnd(view, Node))
-            diagnostics.push(
-              getDiagnostic(
-                view,
-                noderef.node,
-                'Infinite loop _',
-                'error',
-                funcName
-              )
-            );
+            diagnostics.push(getDiagnostic(view, noderef.node, 'Infinite loop _', 'error', funcName));
         }
       }
     });
@@ -239,9 +216,7 @@ export const getArgs = function (Node: SyntaxNode) {
     } else if (
       // collect nodes containing right args ('Commands'/'Reporters' are specifically for map, filter, etc.)
       seenFunc &&
-      (cursor.node.name == 'Arg' ||
-        cursor.node.name == 'Commands' ||
-        cursor.node.name == 'Reporters')
+      (cursor.node.name == 'Arg' || cursor.node.name == 'Commands' || cursor.node.name == 'Reporters')
     ) {
       args.rightArgs.push(cursor.node);
     } else if (
@@ -283,12 +258,7 @@ export const checkValidNumArgs = function (
       preprocessContext.Reporters.get(func) ??
       getBreedCommandArgs(func) ??
       getBreedProcedureArgs(args.func.name);
-    return [
-      numArgs == args.rightArgs.length,
-      func,
-      numArgs,
-      args.rightArgs.length,
-    ];
+    return [numArgs == args.rightArgs.length, func, numArgs, args.rightArgs.length];
   } else if (func == '-') {
     if (!args.hasParentheses && !args.leftArgs) {
       Log('left args');
@@ -309,25 +279,18 @@ export const checkValidNumArgs = function (
       return ['no primitive', func, 0, 0];
     } else if (
       // checks for incorrect numbers of arguments on the left side
-      (primitive.LeftArgumentType?.Types[0] == NetLogoType.Unit &&
-        args.leftArgs) ||
-      (primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit &&
-        !args.leftArgs)
+      (primitive.LeftArgumentType?.Types[0] == NetLogoType.Unit && args.leftArgs) ||
+      (primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit && !args.leftArgs)
     ) {
       Log('left args');
-      let expected =
-        primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit ? 1 : 0;
+      let expected = primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit ? 1 : 0;
       let actual = args.leftArgs ? 1 : 0;
       Log('left', expected, actual);
       return ['left', func, expected, actual];
     } else {
       let rightArgMin = 0;
       let rightArgMax = 0;
-      if (
-        (args.func?.name.includes('APCommand') ||
-          args.func?.name.includes('Var')) &&
-        !args.hasParentheses
-      ) {
+      if ((args.func?.name.includes('APCommand') || args.func?.name.includes('Var')) && !args.hasParentheses) {
         let name = args.func?.name;
         name = name.replace('Command', '');
         name = name.replace('ArgsVar', '');
@@ -338,14 +301,10 @@ export const checkValidNumArgs = function (
         rightArgMin = args.hasParentheses
           ? primitive.MinimumOption ??
             primitive.DefaultOption ??
-            primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
-              .length
-          : primitive.DefaultOption ??
-            primitive.RightArgumentTypes.filter((arg) => arg.Optional == false)
-              .length;
+            primitive.RightArgumentTypes.filter((arg) => arg.Optional == false).length
+          : primitive.DefaultOption ?? primitive.RightArgumentTypes.filter((arg) => arg.Optional == false).length;
         rightArgMax =
-          primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length >
-            0 && args.hasParentheses
+          primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length > 0 && args.hasParentheses
             ? 100
             : primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
       }

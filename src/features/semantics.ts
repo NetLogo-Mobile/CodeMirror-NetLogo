@@ -6,11 +6,7 @@ import { Tree, SyntaxNodeRef } from '@lezer/common';
 import { prettify, prettifyAll } from '../codemirror/prettify';
 import { forEachDiagnostic, Diagnostic } from '@codemirror/lint';
 import { syntaxTree } from '@codemirror/language';
-import {
-  BuildSnapshot,
-  CodeSnapshot,
-  IntegrateSnapshot,
-} from '../lang/services/code-snapshot';
+import { BuildSnapshot, CodeSnapshot, IntegrateSnapshot } from '../lang/services/code-snapshot';
 import { FixGeneratedCode } from '../lang/services/fix-generated-code';
 
 /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */
@@ -45,10 +41,7 @@ export class SemanticFeatures {
   }
   /** HighlightContent: Highlight a given snippet of code. */
   HighlightContent(Content: string): HTMLElement {
-    return this.HighlightTree(
-      this.Galapagos.Language.language.parser.parse(Content),
-      Content
-    );
+    return this.HighlightTree(this.Galapagos.Language.language.parser.parse(Content), Content);
   }
   /** HighlightTree: Highlight a parsed syntax tree and a snippet of code. */
   HighlightTree(Tree: Tree, Content: string): HTMLElement {
@@ -61,8 +54,7 @@ export class SemanticFeatures {
         Span.innerText = Line;
         if (Style != '') Span.className = Style;
         if (Span.innerHTML != '') Container.appendChild(Span);
-        if (I != Lines.length - 1)
-          Container.appendChild(document.createElement('br'));
+        if (I != Lines.length - 1) Container.appendChild(document.createElement('br'));
       }
     });
     return Container;
@@ -81,8 +73,7 @@ export class SemanticFeatures {
       pos = to;
     });
     // If the last node doesn't end at the end of the content, add it.
-    pos != Tree.length &&
-      Callback(Content.slice(pos, Tree.length), '', pos, Tree.length);
+    pos != Tree.length && Callback(Content.slice(pos, Tree.length), '', pos, Tree.length);
   }
   // #endregion
 
@@ -99,8 +90,7 @@ export class SemanticFeatures {
   /** PrettifyOrAll: Prettify the selected code. If no code is selected, prettify all. */
   PrettifyOrAll() {
     var Ranges = this.CodeMirror.state.selection.ranges;
-    if (Ranges.length == 0 || Ranges[0].from == Ranges[0].to)
-      this.PrettifyAll();
+    if (Ranges.length == 0 || Ranges[0].from == Ranges[0].to) this.PrettifyAll();
     else this.Prettify();
   }
   /** BuildSnapshot: Build a snapshot of the code. */
@@ -119,9 +109,7 @@ export class SemanticFeatures {
 
   // #region "Linting"
   /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
-  ForEachDiagnostic(
-    Callback: (d: Diagnostic, from: number, to: number) => void
-  ) {
+  ForEachDiagnostic(Callback: (d: Diagnostic, from: number, to: number) => void) {
     forEachDiagnostic(this.CodeMirror.state, Callback);
   }
   // #endregion

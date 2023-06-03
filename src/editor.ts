@@ -1,37 +1,21 @@
 import { EditorView, basicSetup } from 'codemirror';
 import { closeCompletion, acceptCompletion } from '@codemirror/autocomplete';
 import { forceParsing, LanguageSupport } from '@codemirror/language';
-import {
-  Prec,
-  Compartment,
-  EditorState,
-  Extension,
-  TransactionSpec,
-} from '@codemirror/state';
+import { Prec, Compartment, EditorState, Extension, TransactionSpec } from '@codemirror/state';
 import { ViewUpdate, keymap, placeholder } from '@codemirror/view';
 import { NetLogo } from './lang/netlogo.js';
 import { EditorConfig, EditorLanguage, ParseMode } from './editor-config';
 import { highlight } from './codemirror/style-highlight';
 import { updateExtension } from './codemirror/extension-update';
-import {
-  stateExtension,
-  StateNetLogo,
-} from './codemirror/extension-state-netlogo';
-import {
-  preprocessStateExtension,
-  StatePreprocess,
-} from './codemirror/extension-state-preprocess.js';
+import { stateExtension, StateNetLogo } from './codemirror/extension-state-netlogo';
+import { preprocessStateExtension, StatePreprocess } from './codemirror/extension-state-preprocess.js';
 import { buildToolTips } from './codemirror/extension-tooltip';
 import { lightTheme } from './codemirror/theme-light';
 import { javascript } from '@codemirror/lang-javascript';
 import { html } from '@codemirror/lang-html';
 import { css } from '@codemirror/lang-css';
 import { netlogoLinters } from './lang/linters/linters';
-import {
-  CompilerLinter,
-  RuntimeError,
-  RuntimeLinter,
-} from './lang/linters/runtime-linter.js';
+import { CompilerLinter, RuntimeError, RuntimeLinter } from './lang/linters/runtime-linter.js';
 import { Dictionary } from './i18n/dictionary.js';
 import { Diagnostic, linter } from '@codemirror/lint';
 import { LocalizationManager } from './i18n/localized.js';
@@ -101,21 +85,14 @@ export class GalapagosEditor {
         this.Language = NetLogo(this);
         Extensions.push(preprocessStateExtension);
         Extensions.push(stateExtension);
-        Dictionary.ClickHandler =
-          Dictionary.ClickHandler ?? Options.OnDictionaryClick;
-        this.Linters = netlogoLinters.map((linter) =>
-          buildLinter(linter, this)
-        );
+        Dictionary.ClickHandler = Dictionary.ClickHandler ?? Options.OnDictionaryClick;
+        this.Linters = netlogoLinters.map((linter) => buildLinter(linter, this));
         // Special case: One-line mode
         if (!this.Options.OneLine) {
           Extensions.push(buildToolTips(this));
         } else {
-          Extensions.unshift(
-            Prec.highest(keymap.of([{ key: 'Enter', run: () => true }]))
-          );
-          Extensions.unshift(
-            Prec.highest(keymap.of([{ key: 'Tab', run: acceptCompletion }]))
-          );
+          Extensions.unshift(Prec.highest(keymap.of([{ key: 'Enter', run: () => true }])));
+          Extensions.unshift(Prec.highest(keymap.of([{ key: 'Tab', run: acceptCompletion }])));
         }
         Extensions.push(...this.Linters);
         Extensions.push(linter(CompilerLinter));
@@ -134,10 +111,7 @@ export class GalapagosEditor {
       Extensions.push(
         EditorState.transactionFilter.of((Transaction) => {
           if (Transaction.docChanged && Transaction.newDoc.lines > 1) {
-            var NewDoc = Transaction.newDoc
-              .toString()
-              .replace('\n', ' ')
-              .trim();
+            var NewDoc = Transaction.newDoc.toString().replace('\n', ' ').trim();
             return [
               {
                 changes: {
@@ -158,8 +132,7 @@ export class GalapagosEditor {
     // Wrapping mode
     if (this.Options.Wrapping) Extensions.push(EditorView.lineWrapping);
     // Placeholder
-    if (this.Options.Placeholder)
-      Extensions.push(placeholder(this.Options.Placeholder));
+    if (this.Options.Placeholder) Extensions.push(placeholder(this.Options.Placeholder));
     // Build the editor
     this.CodeMirror = new EditorView({
       extensions: Extensions,
@@ -217,10 +190,7 @@ export class GalapagosEditor {
   }
   /** AddChild: Add a child editor. */
   AddChild(Child: GalapagosEditor) {
-    if (Child.Children.length > 0)
-      throw new Error(
-        'Cannot add an editor that already has children as child.'
-      );
+    if (Child.Children.length > 0) throw new Error('Cannot add an editor that already has children as child.');
     this.Children.push(Child);
     Child.ID = this.Children.length;
     Child.ParentEditor = this;
@@ -251,8 +221,7 @@ export class GalapagosEditor {
   }
   /** SetWidgetVariables: Sync the widget-defined global variables to the syntax parser/linter. */
   SetWidgetVariables(Variables: string[], ForceLint?: boolean) {
-    if (this.ParentEditor != null)
-      throw new Error('Cannot set widget variables on a child editor.');
+    if (this.ParentEditor != null) throw new Error('Cannot set widget variables on a child editor.');
     var State = this.GetState();
     var Current = State.WidgetGlobals;
     var Changed = Current.length != Variables.length;
@@ -285,12 +254,7 @@ export class GalapagosEditor {
   // TODO: Some errors come with start 2147483647, which needs to be rendered as a tip without position.
   SetCompilerErrors(Errors: RuntimeError[]) {
     var State = this.GetState();
-    if (
-      State.CompilerErrors.length == 0 &&
-      State.RuntimeErrors.length == 0 &&
-      Errors.length == 0
-    )
-      return;
+    if (State.CompilerErrors.length == 0 && State.RuntimeErrors.length == 0 && Errors.length == 0) return;
     // Dealing with unknown errors
     this.FixUnknownErrors(Errors);
     // Set the errors
@@ -362,10 +326,8 @@ export class GalapagosEditor {
   /** GetChildren: Get the logical children of the editor. */
   private GetChildren(): GalapagosEditor[] {
     // For the generative mode, it takes the context from its parent but does not contribute to it
-    if (this.Options.ParseMode == ParseMode.Generative)
-      return [this.ParentEditor!, this];
-    if (this.Options.ParseMode == ParseMode.Normal)
-      return [...this.Children, this];
+    if (this.Options.ParseMode == ParseMode.Generative) return [this.ParentEditor!, this];
+    if (this.Options.ParseMode == ParseMode.Normal) return [...this.Children, this];
     return [];
   }
   /** UpdateContext: Try to update the context of this editor. */
@@ -379,10 +341,7 @@ export class GalapagosEditor {
     // Update the shared editor, if needed
     if (!this.ParentEditor || this.Options.ParseMode == ParseMode.Generative) {
       this.UpdateSharedContext();
-    } else if (
-      this.ParentEditor &&
-      this.Options.ParseMode == ParseMode.Normal
-    ) {
+    } else if (this.ParentEditor && this.Options.ParseMode == ParseMode.Normal) {
       this.ParentEditor.UpdateContext();
     }
     return true;
@@ -393,11 +352,9 @@ export class GalapagosEditor {
     for (var child of this.GetChildren()) {
       if (child.Options.ParseMode == ParseMode.Normal || child == this) {
         let state = child.CodeMirror.state.field(stateExtension);
-        for (var name of state.Extensions)
-          mainLint.Extensions.set(name, child.ID);
+        for (var name of state.Extensions) mainLint.Extensions.set(name, child.ID);
         for (var name of state.Globals) mainLint.Globals.set(name, child.ID);
-        for (var name of state.WidgetGlobals)
-          mainLint.WidgetGlobals.set(name, child.ID);
+        for (var name of state.WidgetGlobals) mainLint.WidgetGlobals.set(name, child.ID);
         for (var [name, procedure] of state.Procedures) {
           procedure.EditorID = child.ID;
           mainLint.Procedures.set(name, procedure);
@@ -435,10 +392,7 @@ export class GalapagosEditor {
     // Update the shared editor, if needed
     if (!this.ParentEditor || this.Options.ParseMode == ParseMode.Generative) {
       this.UpdateSharedPreprocess();
-    } else if (
-      this.ParentEditor &&
-      this.Options.ParseMode == ParseMode.Normal
-    ) {
+    } else if (this.ParentEditor && this.Options.ParseMode == ParseMode.Normal) {
       this.ParentEditor.UpdatePreprocessContext();
     }
     return true;
@@ -449,12 +403,9 @@ export class GalapagosEditor {
     for (var child of this.GetChildren()) {
       if (child.Options.ParseMode == ParseMode.Normal || child == this) {
         let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
-        for (var p of preprocess.PluralBreeds)
-          mainPreprocess.PluralBreeds.set(p, child.ID);
-        for (var p of preprocess.SingularBreeds)
-          mainPreprocess.SingularBreeds.set(p, child.ID);
-        for (var p of preprocess.BreedVars)
-          mainPreprocess.BreedVars.set(p, child.ID);
+        for (var p of preprocess.PluralBreeds) mainPreprocess.PluralBreeds.set(p, child.ID);
+        for (var p of preprocess.SingularBreeds) mainPreprocess.SingularBreeds.set(p, child.ID);
+        for (var p of preprocess.BreedVars) mainPreprocess.BreedVars.set(p, child.ID);
         for (var [p, num_args] of preprocess.Commands) {
           mainPreprocess.Commands.set(p, num_args);
           mainPreprocess.CommandsOrigin.set(p, child.ID);
@@ -473,9 +424,7 @@ export class GalapagosEditor {
   async ForceLintAsync(): Promise<Diagnostic[]> {
     var Diagnostics = [];
     for (var Extension of this.Linters) {
-      var Results = await Promise.resolve(
-        (Extension as any).Source(this.CodeMirror)
-      );
+      var Results = await Promise.resolve((Extension as any).Source(this.CodeMirror));
       Diagnostics.push(...Results);
     }
     return Diagnostics;
@@ -507,11 +456,9 @@ export class GalapagosEditor {
     }
     if (update.focusChanged) {
       if (this.CodeMirror.hasFocus) {
-        if (this.Options.OnFocused != null)
-          this.Options.OnFocused(this.CodeMirror);
+        if (this.Options.OnFocused != null) this.Options.OnFocused(this.CodeMirror);
       } else {
-        if (this.Options.OnBlurred != null)
-          this.Options.OnBlurred(this.CodeMirror);
+        if (this.Options.OnBlurred != null) this.Options.OnBlurred(this.CodeMirror);
       }
     }
   }

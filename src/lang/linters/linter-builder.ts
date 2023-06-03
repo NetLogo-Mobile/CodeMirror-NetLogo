@@ -1,10 +1,7 @@
 import { Diagnostic, linter, LintSource } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
 import { Extension } from '@codemirror/state';
-import {
-  stateExtension,
-  StateNetLogo,
-} from '../../codemirror/extension-state-netlogo';
+import { stateExtension, StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { LintContext, PreprocessContext } from '../classes/contexts';
 import { GalapagosEditor, Localized } from '../../editor';
 
@@ -17,21 +14,13 @@ type Linter = (
 ) => Diagnostic[];
 
 /** buildLinter: Builds a linter extension from a linter function. */
-const buildLinter = function (
-  Source: Linter,
-  Editor: GalapagosEditor
-): Extension {
+const buildLinter = function (Source: Linter, Editor: GalapagosEditor): Extension {
   var LastVersion = -1;
   var Cached: Diagnostic[] = [];
   var BuiltSource: LintSource = (view) => {
     if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
       var state = view.state.field(stateExtension);
-      Cached = Source(
-        view,
-        Editor.PreprocessContext,
-        Editor.LintContext,
-        state
-      );
+      Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
       LastVersion = Editor.GetVersion();
     }
     return Cached;
@@ -72,10 +61,7 @@ export const getDiagnostic = function (
 };
 
 /** getNodeTo: Returns the proper end of a node. */
-export const getNodeTo = function (
-  node: { from: number; to: number },
-  view: EditorView
-) {
+export const getNodeTo = function (node: { from: number; to: number }, view: EditorView) {
   let val = view.state.sliceDoc(node.from, node.to);
   val = val.trimEnd();
   return node.from + val.length;

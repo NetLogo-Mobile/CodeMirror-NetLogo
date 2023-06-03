@@ -17,9 +17,10 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
   let breedDefined: string[] = [];
   // Reserved keywords
   let reserved = ['turtles', 'turtle', 'patches', 'patch', 'links', 'link'];
-  reserved.push(...turtleVars);
-  reserved.push(...patchVars);
-  reserved.push(...linkVars);
+  let reservedVars: string[] = [];
+  reservedVars.push(...turtleVars);
+  reservedVars.push(...patchVars);
+  reservedVars.push(...linkVars);
   for (let b of lintContext.Breeds.values()) {
     if (b.BreedType == BreedType.Turtle) {
       reserved.push('hatch-' + b.Plural);
@@ -53,29 +54,24 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
     }
   }
   // Used & reserved
-  var NameCheck = (
-    node: SyntaxNode | SyntaxNodeRef,
-    type: string,
-    extra?: string[],
-    isBreed: boolean = false
-  ) => {
+  var NameCheck = (node: SyntaxNode | SyntaxNodeRef, type: string, extra?: string[], isBreed: boolean = false) => {
     const value = view.state.sliceDoc(node.from, node.to).toLowerCase();
     // For breeds, we ignore other breed variables since you can re-define them in NetLogo
-    if (
-      defined.includes(value) ||
-      extra?.includes(value) ||
-      (!isBreed && breedDefined.includes(value))
-    ) {
+    if (defined.includes(value) || extra?.includes(value) || (!isBreed && breedDefined.includes(value))) {
+      diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
+    } else if (reservedVars.includes(value)) {
       diagnostics.push(
-        getDiagnostic(view, node, 'Term _ already used', 'error', value, type)
+        getDiagnostic(
+          view,
+          node,
+          type.includes('variable') ? 'Variable _ reserved' : 'Term _ reserved',
+          'error',
+          value,
+          type
+        )
       );
-    } else if (
-      reserved.includes(value) ||
-      primitives.GetNamedPrimitive(value)
-    ) {
-      diagnostics.push(
-        getDiagnostic(view, node, 'Term _ reserved', 'error', value, type)
-      );
+    } else if (reserved.includes(value) || primitives.GetNamedPrimitive(value)) {
+      diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
     } else {
       if (extra) extra.push(value);
       else {
@@ -89,24 +85,12 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
     .iterate((noderef) => {
       if (noderef.name == 'BreedSingular' || noderef.name == 'BreedPlural') {
         NameCheck(noderef, 'Breed');
-      } else if (
-        noderef.name == 'Identifier' &&
-        noderef.node.parent?.name == 'Globals'
-      ) {
+      } else if (noderef.name == 'Identifier' && noderef.node.parent?.name == 'Globals') {
         NameCheck(noderef, 'Global variable');
       } else if (noderef.name == 'ProcedureName') {
-        const value = view.state
-          .sliceDoc(noderef.from, noderef.to)
-          .toLowerCase();
+        const value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
         if (noderef.node.parent?.getChildren('To').length == 0) {
-          diagnostics.push(
-            getDiagnostic(
-              view,
-              noderef,
-              'Unrecognized global statement _',
-              'error'
-            )
-          );
+          diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized global statement _', 'error'));
         } else {
           NameCheck(noderef, 'Procedure');
         }
@@ -135,9 +119,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
         // Now, for each new variable declaration, we look back again
         // It would also solve the issue of arguments & local variables using the same name
         // Since the new variable definition is typically few, not a high priority
-        let child =
-          noderef.node.getChild('Identifier') ??
-          noderef.node.getChild('UnsupportedPrim');
+        let child = noderef.node.getChild('Identifier') ?? noderef.node.getChild('UnsupportedPrim');
         if (!child) return;
         let localvars = getLocalVars(child, view.state, lintContext);
         NameCheck(child, 'Local variable', localvars);
@@ -159,10 +141,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
 const isLinkBreed = (breedName: string, lintContext: LintContext) => {
   for (var [name, breed] of lintContext.Breeds) {
     if (breed.Plural.toLowerCase() == breedName.toLowerCase()) {
-      return (
-        breed.BreedType == BreedType.DirectedLink ||
-        breed.BreedType == BreedType.UndirectedLink
-      );
+      return breed.BreedType == BreedType.DirectedLink || breed.BreedType == BreedType.UndirectedLink;
     }
   }
   return null;

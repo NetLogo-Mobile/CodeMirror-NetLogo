@@ -42,9 +42,7 @@ export class EditingFeatures {
   Find(Keyword: string) {
     openSearchPanel(this.CodeMirror);
     let prevValue =
-      (<HTMLInputElement>(
-        this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
-      ))?.value ?? '';
+      (<HTMLInputElement>this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]'))?.value ?? '';
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(new SearchQuery({ search: Keyword })),
     });
@@ -58,13 +56,9 @@ export class EditingFeatures {
   Replace(Source: string, Target: string) {
     openSearchPanel(this.CodeMirror);
     let prevFind =
-      (<HTMLInputElement>(
-        this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
-      ))?.value ?? '';
+      (<HTMLInputElement>this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]'))?.value ?? '';
     let prevReplace =
-      (<HTMLInputElement>(
-        this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]')
-      ))?.value ?? '';
+      (<HTMLInputElement>this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]'))?.value ?? '';
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
@@ -89,9 +83,7 @@ export class EditingFeatures {
   FindAll(Source: string) {
     openSearchPanel(this.CodeMirror);
     let prevValue =
-      (<HTMLInputElement>(
-        this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
-      ))?.value ?? '';
+      (<HTMLInputElement>this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]'))?.value ?? '';
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(new SearchQuery({ search: Source })),
     });
@@ -105,13 +97,9 @@ export class EditingFeatures {
   ReplaceAll(Source: string, Target: string) {
     openSearchPanel(this.CodeMirror);
     let prevFind =
-      (<HTMLInputElement>(
-        this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]')
-      ))?.value ?? '';
+      (<HTMLInputElement>this.Parent.querySelector<HTMLElement>('.cm-textfield[name="search"]'))?.value ?? '';
     let prevReplace =
-      (<HTMLInputElement>(
-        this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]')
-      ))?.value ?? '';
+      (<HTMLInputElement>this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]'))?.value ?? '';
     this.CodeMirror.dispatch({
       effects: setSearchQuery.of(
         new SearchQuery({
@@ -134,9 +122,7 @@ export class EditingFeatures {
   /** JumpTo: Jump to a certain line. */
   JumpTo(Line: number) {
     const { state } = this.CodeMirror;
-    const docLine = state.doc.line(
-      Math.max(1, Math.min(state.doc.lines, Line))
-    );
+    const docLine = state.doc.line(Math.max(1, Math.min(state.doc.lines, Line)));
     this.CodeMirror.dispatch({
       selection: { anchor: docLine.from },
       scrollIntoView: true,
@@ -150,17 +136,11 @@ export class EditingFeatures {
     this.HideAll();
     openSearchPanel(this.CodeMirror);
     // hide inputs related to replace for find interface
-    const input = this.Parent.querySelector<HTMLElement>(
-      '.cm-textfield[name="replace"]'
-    );
+    const input = this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]');
     if (input) input.style.display = 'none';
-    const button1 = this.Parent.querySelector<HTMLElement>(
-      '.cm-button[name="replace"]'
-    );
+    const button1 = this.Parent.querySelector<HTMLElement>('.cm-button[name="replace"]');
     if (button1) button1.style.display = 'none';
-    const button2 = this.Parent.querySelector<HTMLElement>(
-      '.cm-button[name="replaceAll"]'
-    );
+    const button2 = this.Parent.querySelector<HTMLElement>('.cm-button[name="replaceAll"]');
     if (button2) button2.style.display = 'none';
   }
   /** ShowReplace: Show the replace interface. */
@@ -168,17 +148,11 @@ export class EditingFeatures {
     this.HideAll();
     openSearchPanel(this.CodeMirror);
     // show inputs related to replace
-    const input = this.Parent.querySelector<HTMLElement>(
-      '.cm-textfield[name="replace"]'
-    );
+    const input = this.Parent.querySelector<HTMLElement>('.cm-textfield[name="replace"]');
     if (input) input.style.display = 'inline-block';
-    const button1 = this.Parent.querySelector<HTMLElement>(
-      '.cm-button[name="replace"]'
-    );
+    const button1 = this.Parent.querySelector<HTMLElement>('.cm-button[name="replace"]');
     if (button1) button1.style.display = 'inline-block';
-    const button2 = this.Parent.querySelector<HTMLElement>(
-      '.cm-button[name="replaceAll"]'
-    );
+    const button2 = this.Parent.querySelector<HTMLElement>('.cm-button[name="replaceAll"]');
     if (button2) button2.style.display = 'inline-block';
   }
   /** ShowJumpTo: Show the jump-to-line interface. */

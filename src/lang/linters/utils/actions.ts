@@ -4,11 +4,7 @@ import { BreedType } from '../../classes/structures';
 import { CodeEditing } from '../../services/code-editing';
 
 /** AddBreedAction: Return an add a breed action. */
-export const AddBreedAction = function (
-  type: BreedType,
-  plural: string,
-  singular: string
-) {
+export const AddBreedAction = function (type: BreedType, plural: string, singular: string) {
   return {
     name: Localized.Get('Add'),
     apply(view: EditorView, from: number, to: number) {
@@ -18,10 +14,7 @@ export const AddBreedAction = function (
 };
 
 /** AddGlobalsAction: Return an add a global action. */
-export const AddGlobalsAction = function (
-  type: 'Globals' | 'Extensions',
-  items: string[]
-) {
+export const AddGlobalsAction = function (type: 'Globals' | 'Extensions', items: string[]) {
   return {
     name: Localized.Get('Add'),
     apply(view: EditorView, from: number, to: number) {

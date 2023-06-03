@@ -1,9 +1,5 @@
 import { GalapagosEditor } from '../../editor';
-import {
-  BuildSnapshot,
-  CodeSnapshot,
-  IntegrateSnapshot,
-} from './code-snapshot';
+import { BuildSnapshot, CodeSnapshot, IntegrateSnapshot } from './code-snapshot';
 import { getSingularName } from '../../codemirror/utils/breed-utils';
 import { syntaxTree } from '@codemirror/language';
 import { Log } from '../../codemirror/utils/debug-utils';
@@ -11,11 +7,7 @@ import { LintContext } from 'src/lang/classes/contexts';
 import { BreedType } from 'src/lang/classes/structures';
 
 /** FixGeneratedCode: Try to fix and prettify the generated code. */
-export function FixGeneratedCodeRegex(
-  Editor: GalapagosEditor,
-  Source: string,
-  Parent?: CodeSnapshot
-): string {
+export function FixGeneratedCodeRegex(Editor: GalapagosEditor, Source: string, Parent?: CodeSnapshot): string {
   Source = Source.trim();
   if (Source == '') return Source;
   // First pass: prettify the code
@@ -65,9 +57,7 @@ export function FixGeneratedCodeRegex(
       Line.endsWith(']')
     ) {
       // If the line is a breed declaration, try to get the name and fix the singular issue
-      var Match = Line.matchAll(
-        /([^\s]*)breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g
-      ).next().value;
+      var Match = Line.matchAll(/([^\s]*)breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g).next().value;
       if (Match) {
         var Plural = Match[2];
         var Singular = Match[3];
@@ -103,11 +93,7 @@ export function FixGeneratedCodeRegex(
   return Editor.GetCode().trim();
 }
 
-export function FixGeneratedCode(
-  Editor: GalapagosEditor,
-  Source: string,
-  Parent?: CodeSnapshot
-): string {
+export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent?: CodeSnapshot): string {
   Source = Source.trim();
   if (Source == '') return Source;
   // Remove the trailing semicolon
@@ -133,15 +119,9 @@ export function FixGeneratedCode(
       // check for misplaced non-global statements at the global level
       // Collect them into intoProcedure, and remove them from the code
       // I don't understand why the parser does not recognize `to test end test` as rouge statements.
-      if (
-        noderef.name == 'Misplaced' ||
-        (noderef.name == 'Procedure' &&
-          noderef.node.getChildren('To').length == 0)
-      ) {
+      if (noderef.name == 'Misplaced' || (noderef.name == 'Procedure' && noderef.node.getChildren('To').length == 0)) {
         Log(noderef.name, noderef.from, commentFrom, comments);
-        intoProcedure.push(
-          AddComments(state.sliceDoc(noderef.from, noderef.to), comments)
-        );
+        intoProcedure.push(AddComments(state.sliceDoc(noderef.from, noderef.to), comments));
         changes.push({
           from: commentsStart ?? noderef.from,
           to: Math.min(noderef.to + 1, state.doc.toString().length),
@@ -161,17 +141,13 @@ export function FixGeneratedCode(
         changes.push({
           from: 0,
           to: 0,
-          insert:
-            AddComments(state.sliceDoc(noderef.from, noderef.to), comments) +
-            '\n',
+          insert: AddComments(state.sliceDoc(noderef.from, noderef.to), comments) + '\n',
         });
         return false;
       }
       if (noderef.name == 'Breed') {
         let child = noderef.node.getChild('BreedPlural');
-        let value = child
-          ? state.sliceDoc(child.from, child.to).toLowerCase()
-          : '';
+        let value = child ? state.sliceDoc(child.from, child.to).toLowerCase() : '';
         if (value === 'turtles' || value === 'patches' || value === 'links') {
           changes.push({
             from: commentsStart ?? noderef.from,
@@ -205,16 +181,10 @@ export function FixGeneratedCode(
           }
         });
       }
-      if (
-        noderef.name == 'SpecialCommand0Args' &&
-        state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'setup'
-      ) {
+      if (noderef.name == 'SpecialCommand0Args' && state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'setup') {
         let procedure = noderef.node.parent?.parent?.parent;
         let name = procedure?.getChild('ProcedureName');
-        if (
-          procedure?.name == 'Procedure' &&
-          state.sliceDoc(name?.from, name?.to).toLowerCase() == 'go'
-        ) {
+        if (procedure?.name == 'Procedure' && state.sliceDoc(name?.from, name?.to).toLowerCase() == 'go') {
           changes.push({
             from: commentsStart ?? noderef.from,
             to: noderef.to + 1,
@@ -222,10 +192,7 @@ export function FixGeneratedCode(
           });
         }
       }
-      if (
-        noderef.name == 'Procedure' &&
-        noderef.node.getChildren('ProcedureContent').length == 1
-      ) {
+      if (noderef.name == 'Procedure' && noderef.node.getChildren('ProcedureContent').length == 1) {
         let child = noderef.node
           .getChild('ProcedureContent')
           ?.getChild('CommandStatement')
@@ -243,10 +210,7 @@ export function FixGeneratedCode(
             insert: '',
           });
         }
-      } else if (
-        noderef.name == 'Procedure' &&
-        noderef.node.getChildren('ProcedureContent').length == 0
-      ) {
+      } else if (noderef.name == 'Procedure' && noderef.node.getChildren('ProcedureContent').length == 0) {
         changes.push({ from: noderef.from, to: noderef.to, insert: '' });
       } else if (noderef.name == 'ProcedureName') {
         let name = state.sliceDoc(noderef.from, noderef.to).toLowerCase();
@@ -261,8 +225,7 @@ export function FixGeneratedCode(
         }
       }
       // Record the position of the first procedure to know where to add 'play'
-      if (!procedureStart && noderef.name == 'Procedure')
-        procedureStart = noderef.from;
+      if (!procedureStart && noderef.name == 'Procedure') procedureStart = noderef.from;
       // Record the position of the comments
       if (noderef.name == 'LineComment') {
         // take only the one preceding comment
@@ -275,11 +238,7 @@ export function FixGeneratedCode(
         // Record the position of what comes immediately after the comments
         // (this is in case of nesting, so we don't lose the comments)
         commentFrom = noderef.from;
-      } else if (
-        comments.length > 0 &&
-        commentFrom &&
-        noderef.from > commentFrom
-      ) {
+      } else if (comments.length > 0 && commentFrom && noderef.from > commentFrom) {
         // Discard the comment info when we move on to the next statement
         comments = [];
         commentFrom = null;

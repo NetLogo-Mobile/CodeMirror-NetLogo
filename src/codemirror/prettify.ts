@@ -1,9 +1,4 @@
-import {
-  getIndentation,
-  indentRange,
-  syntaxTree,
-  indentString,
-} from '@codemirror/language';
+import { getIndentation, indentRange, syntaxTree, indentString } from '@codemirror/language';
 import { EditorView } from 'codemirror';
 import { IterMode, SyntaxNode, Tree } from '@lezer/common';
 import { GalapagosEditor } from 'src/editor';
@@ -11,11 +6,7 @@ import { Log } from './utils/debug-utils';
 import { EditorState } from '@codemirror/state';
 
 /** prettify: Change selection to fit formatting standards. */
-export const prettify = function (
-  view: EditorView,
-  from: number | null = null,
-  to: number | null = null
-) {
+export const prettify = function (view: EditorView, from: number | null = null, to: number | null = null) {
   if (from && to) {
     view.dispatch({ selection: { anchor: from, head: to } });
   }
@@ -31,11 +22,7 @@ export const prettify = function (
 
   // add in new lines based on grammar
   view.dispatch({
-    changes: addSpacing(
-      view,
-      view.state.selection.main.from,
-      view.state.selection.main.to
-    ),
+    changes: addSpacing(view, view.state.selection.main.from, view.state.selection.main.to),
   });
 
   // ensure spacing is correct
@@ -47,20 +34,13 @@ export const prettify = function (
 
   // add indentation
   view.dispatch({
-    changes: indentRange(
-      view.state,
-      view.state.selection.main.from,
-      view.state.selection.main.to
-    ),
+    changes: indentRange(view.state, view.state.selection.main.from, view.state.selection.main.to),
   });
   return view.state.selection.main.to;
 };
 
 /** prettifyAll: Make whole code file follow formatting standards. */
-export const prettifyAll = function (
-  view: EditorView,
-  Editor: GalapagosEditor
-) {
+export const prettifyAll = function (view: EditorView, Editor: GalapagosEditor) {
   let doc = view.state.doc.toString();
 
   // eliminate extra spacing
@@ -210,20 +190,15 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
     .iterate((node) => {
       if (node.from >= from && node.to <= to) {
         if (
-          ((node.node.parent?.name == 'Program' &&
-            node.name != 'LineComment') ||
+          ((node.node.parent?.name == 'Program' && node.name != 'LineComment') ||
             node.name == 'To' ||
             node.name == 'End' ||
-            (node.name == 'ProcedureContent' &&
-              node.node.parent?.name != 'CodeBlock')) &&
+            (node.name == 'ProcedureContent' && node.node.parent?.name != 'CodeBlock')) &&
           node.from > 0 &&
           doc[node.from - 1] != '\n'
         ) {
           changes.push({ from: node.from, to: node.from, insert: '\n' });
-        } else if (
-          node.name == 'CodeBlock' &&
-          checkBlock(node.node, 'ProcedureContent', doc)
-        ) {
+        } else if (node.name == 'CodeBlock' && checkBlock(node.node, 'ProcedureContent', doc)) {
           for (var name of ['ProcedureContent', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               if (doc[child.from - 1] != '\n') {
@@ -235,10 +210,7 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
               }
             });
           }
-        } else if (
-          node.name == 'ReporterBlock' &&
-          checkBlock(node.node, 'ReporterContent', doc)
-        ) {
+        } else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterContent', doc)) {
           for (var name of ['ReporterContent', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               if (doc[child.from - 1] != '\n') {
@@ -252,15 +224,10 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
           }
         } else if (
           node.name == 'AnonymousProcedure' &&
-          (checkBlock(node.node, 'ReporterContent', doc) ||
-            checkBlock(node.node, 'ProcedureContent', doc))
+          (checkBlock(node.node, 'ReporterContent', doc) || checkBlock(node.node, 'ProcedureContent', doc))
         ) {
           // console.log(changes.length);
-          for (var name of [
-            'ProcedureContent',
-            'ReporterContent',
-            'CloseBracket',
-          ]) {
+          for (var name of ['ProcedureContent', 'ReporterContent', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               if (doc[child.from - 1] != '\n') {
                 changes.push({
@@ -273,15 +240,10 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
           }
         } else if (
           node.name == 'OpenParen' &&
-          ![' ', '(', '\n'].includes(
-            view.state.sliceDoc(node.from - 1, node.from)
-          )
+          ![' ', '(', '\n'].includes(view.state.sliceDoc(node.from - 1, node.from))
         ) {
           changes.push({ from: node.from, to: node.to, insert: ' (' });
-        } else if (
-          node.name == 'CloseParen' &&
-          ![' ', '\n', ')'].includes(view.state.sliceDoc(node.to, node.to + 1))
-        ) {
+        } else if (node.name == 'CloseParen' && ![' ', '\n', ')'].includes(view.state.sliceDoc(node.to, node.to + 1))) {
           changes.push({ from: node.from, to: node.to, insert: ') ' });
         } else if (node.name == 'OpenBracket') {
           let bracket = '';
@@ -289,9 +251,7 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
             bracket += ' ';
           }
           bracket += '[';
-          if (
-            ![' ', '\n'].includes(view.state.sliceDoc(node.to, node.to + 1))
-          ) {
+          if (![' ', '\n'].includes(view.state.sliceDoc(node.to, node.to + 1))) {
             bracket += ' ';
           }
           changes.push({ from: node.from, to: node.to, insert: bracket });
@@ -301,9 +261,7 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
             bracket += ' ';
           }
           bracket += ']';
-          if (
-            ![' ', '\n'].includes(view.state.sliceDoc(node.to, node.to + 1))
-          ) {
+          if (![' ', '\n'].includes(view.state.sliceDoc(node.to, node.to + 1))) {
             bracket += ' ';
           }
           changes.push({ from: node.from, to: node.to, insert: bracket });

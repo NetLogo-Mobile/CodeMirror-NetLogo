@@ -2,26 +2,14 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter, getDiagnostic } from './linter-builder';
-import {
-  checkBreedLike,
-  getBreedName,
-  getPluralName,
-  getSingularName,
-} from '../../codemirror/utils/breed-utils';
-import {
-  checkValidIdentifier,
-  getCheckContext,
-} from './utils/check-identifier';
+import { checkBreedLike, getBreedName, getPluralName, getSingularName } from '../../codemirror/utils/breed-utils';
+import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
 import { Log } from '../../codemirror/utils/debug-utils';
 import { AddBreedAction } from './utils/actions';
 import { BreedType } from '../classes/structures';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
-export const IdentifierLinter: Linter = (
-  view,
-  preprocessContext,
-  lintContext
-) => {
+export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
   const context = getCheckContext(view, lintContext, preprocessContext);
   syntaxTree(view.state)
@@ -36,9 +24,7 @@ export const IdentifierLinter: Linter = (
           let result = checkBreedLike(value);
           if (!result.found) {
             // console.log(value, noderef.name, noderef.node.parent?.name);
-            diagnostics.push(
-              getDiagnostic(view, noderef, 'Unrecognized identifier _')
-            );
+            diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
           } else {
             // pull out name of possible intended breed
             let breedinfo = getBreedName(value);
@@ -55,22 +41,13 @@ export const IdentifierLinter: Linter = (
                 plural = getPluralName(breedinfo.breed);
               }
               actions.push(
-                AddBreedAction(
-                  breedinfo.isLink
-                    ? BreedType.UndirectedLink
-                    : BreedType.Turtle,
-                  plural,
-                  singular
-                )
+                AddBreedAction(breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular)
               );
               diagnostics.push({
                 from: noderef.from,
                 to: noderef.to,
                 severity: 'error',
-                message: Localized.Get(
-                  'Unrecognized breed name _',
-                  breedinfo.breed
-                ),
+                message: Localized.Get('Unrecognized breed name _', breedinfo.breed),
                 actions: actions,
               });
             }

@@ -18,22 +18,14 @@
     },
     {
       "name": "compose",
-      "argTypes": [
-        "reporter",
-        "reporter",
-        { "type": "reporter", "isRepeatable": true }
-      ],
+      "argTypes": ["reporter", "reporter", { "type": "reporter", "isRepeatable": true }],
       "returnType": "reporter",
       "defaultArgCount": 2,
       "minimumArgCount": 2
     },
     {
       "name": "pipe",
-      "argTypes": [
-        "reporter",
-        "reporter",
-        { "type": "reporter", "isRepeatable": true }
-      ],
+      "argTypes": ["reporter", "reporter", { "type": "reporter", "isRepeatable": true }],
       "returnType": "reporter",
       "defaultArgCount": 2,
       "minimumArgCount": 2

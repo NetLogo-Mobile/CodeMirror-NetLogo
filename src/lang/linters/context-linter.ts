@@ -3,10 +3,7 @@ import { Localized } from '../../editor';
 import { Linter, getDiagnostic } from './linter-builder';
 import { Procedure, CodeBlock, AgentContexts } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
-import {
-  combineContexts,
-  noContext,
-} from '../../codemirror/utils/context-utils';
+import { combineContexts, noContext } from '../../codemirror/utils/context-utils';
 import { stateExtension } from '../../codemirror/extension-state-netlogo';
 
 // ContextLinter: Checks if procedures and code blocks have a valid context
@@ -50,10 +47,7 @@ const contextToString = function (context: AgentContexts) {
 };
 
 // checkProcedureContents: Checks contents of procedures and codeblocks for valid context
-const checkProcedureContents = function (
-  p: Procedure | CodeBlock,
-  lintContext: LintContext
-) {
+const checkProcedureContents = function (p: Procedure | CodeBlock, lintContext: LintContext) {
   let diagnostics: Diagnostic[] = [];
   // checks if current procedure/code block has at least one valid context
   if (noContext(p.Context)) {
@@ -61,10 +55,7 @@ const checkProcedureContents = function (
       from: p.PositionStart,
       to: p.PositionEnd,
       severity: 'error',
-      message: Localized.Get(
-        'Invalid context _.',
-        p instanceof Procedure ? 'procedure' : 'code block'
-      ),
+      message: Localized.Get('Invalid context _.', p instanceof Procedure ? 'procedure' : 'code block'),
     });
   } else {
     // checks nested anonymous procedures and codeblocks for valid context
@@ -73,10 +64,7 @@ const checkProcedureContents = function (
     }
     for (let c of p.CodeBlocks) {
       diagnostics.push(...checkProcedureContents(c, lintContext));
-      if (
-        c.InheritParentContext &&
-        noContext(combineContexts(c.Context, p.Context))
-      ) {
+      if (c.InheritParentContext && noContext(combineContexts(c.Context, p.Context))) {
         diagnostics.push({
           from: c.PositionStart,
           to: c.PositionEnd,

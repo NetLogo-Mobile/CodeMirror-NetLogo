@@ -53,10 +53,7 @@ const importFiles = function () {
   models = [];
   getFilesRecursively(autofixPath);
   models.forEach((current) => {
-    var model = File.readFileSync(current, 'utf8')
-      .toString()
-      .replace(/\r/g, '')
-      .split('\n===\n');
+    var model = File.readFileSync(current, 'utf8').toString().replace(/\r/g, '').split('\n===\n');
     //console.log(model)
     autofixModels.push({ pre: model[0], post: model[1] });
   });
@@ -64,21 +61,11 @@ const importFiles = function () {
 
 // Export into Tests.js under the dist folder
 const exportFiles = function () {
-  File.writeFileSync(
-    './dist/editor.tests.js',
-    `const GalapagoTests = ${JSON.stringify(parsedModels)}`
-  );
-  File.writeFileSync(
-    './dist/editor.autofixtests.js',
-    `const AutoFixTests = ${JSON.stringify(autofixModels)}`
-  );
+  File.writeFileSync('./dist/editor.tests.js', `const GalapagoTests = ${JSON.stringify(parsedModels)}`);
+  File.writeFileSync('./dist/editor.autofixtests.js', `const AutoFixTests = ${JSON.stringify(autofixModels)}`);
 };
 
 importFiles();
 exportFiles();
 
-console.log(
-  'Successfully exported: ',
-  parsedModels.length,
-  autofixModels.length
-);
+console.log('Successfully exported: ', parsedModels.length, autofixModels.length);

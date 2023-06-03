@@ -23,11 +23,7 @@
     },
     {
       "name": "copy-to-shape",
-      "argTypes": [
-        "wildcard",
-        "string",
-        { "type": "boolean", "isRepeatable": true }
-      ],
+      "argTypes": ["wildcard", "string", { "type": "boolean", "isRepeatable": true }],
       "defaultArgCount": 2,
       "returnType": "unit"
     },

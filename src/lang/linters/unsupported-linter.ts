@@ -3,20 +3,13 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 import { unsupported } from '../keywords';
-import {
-  checkValidIdentifier,
-  getCheckContext,
-} from './utils/check-identifier';
+import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
 
 // UnsupportedLinter: Checks for unsupported primitives
 // Important note: anything with a colon and no supported extension is tokenized as
 // 'UnsupportedPrim', so acceptable uses of variable names that include colons need
 // to be filtered out here
-export const UnsupportedLinter: Linter = (
-  view,
-  preprocessContext,
-  lintContext
-) => {
+export const UnsupportedLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
   const context = getCheckContext(view, lintContext, preprocessContext);
   let indices: number[] = [];
