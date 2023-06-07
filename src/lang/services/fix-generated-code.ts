@@ -1,10 +1,13 @@
 import { GalapagosEditor } from '../../editor';
 import { BuildSnapshot, CodeSnapshot, IntegrateSnapshot } from './code-snapshot';
-import { getSingularName } from '../../codemirror/utils/breed-utils';
+import { getSingularName, getPluralName } from '../../codemirror/utils/breed-utils';
 import { syntaxTree } from '@codemirror/language';
 import { Log } from '../../codemirror/utils/debug-utils';
 import { LintContext } from 'src/lang/classes/contexts';
 import { BreedType } from 'src/lang/classes/structures';
+import { SyntaxNode } from '@lezer/common';
+import { EditorState } from '@codemirror/state';
+import { constants, linkVars, patchVars, turtleVars } from '../keywords';
 
 /** FixGeneratedCode: Try to fix and prettify the generated code. */
 export function FixGeneratedCodeRegex(Editor: GalapagosEditor, Source: string, Parent?: CodeSnapshot): string {
@@ -111,6 +114,10 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
   let commentFrom: null | number = null;
   let procedureStart: null | number = null;
   let reserved = GetReserved(Editor.LintContext);
+  let breeds: string[] = [];
+  let globals: string[] = [];
+  let extensions: string[] = [];
+  let reservedVars = [...turtleVars, ...patchVars, ...linkVars, ...constants];
   // Go over the syntax tree
   syntaxTree(state)
     .cursor()
@@ -144,19 +151,76 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
           insert: AddComments(state.sliceDoc(noderef.from, noderef.to), comments) + '\n',
         });
         return false;
-      }
-      if (noderef.name == 'Breed') {
-        let child = noderef.node.getChild('BreedPlural');
-        let value = child ? state.sliceDoc(child.from, child.to).toLowerCase() : '';
-        if (value === 'turtles' || value === 'patches' || value === 'links') {
+      } else if (noderef.name == 'Globals') {
+        let len = noderef.node.getChildren('Identifier').length;
+        let deleted = 0;
+        let temp_changes: { from: number; insert: string; to?: number }[] = [];
+        noderef.node.getChildren('Identifier').map((child) => {
+          let value = state.sliceDoc(child.from, child.to);
+          if (globals.includes(value.toLowerCase()) || reservedVars.includes(value.toLowerCase())) {
+            temp_changes.push({
+              from: child.from,
+              to: child.to,
+              insert: '',
+            });
+            deleted += 1;
+          }
+          globals.push(value.toLowerCase());
+        });
+        if (deleted == len || len == 0) {
           changes.push({
             from: commentsStart ?? noderef.from,
-            to: noderef.to,
+            to: noderef.to + 1,
             insert: '',
           });
+        } else {
+          changes = changes.concat(temp_changes);
         }
-      }
-      if (noderef.name == 'Extensions') {
+      } else if (noderef.name == 'BreedsOwn') {
+        let vars: string[] = [];
+        let len = noderef.node.getChildren('Identifier').length;
+        let deleted = 0;
+        let temp_changes: { from: number; insert: string; to?: number }[] = [];
+        noderef.node.getChildren('Identifier').map((child) => {
+          let value = state.sliceDoc(child.from, child.to);
+          if (vars.includes(value.toLowerCase()) || reservedVars.includes(value.toLowerCase())) {
+            temp_changes.push({
+              from: child.from,
+              to: child.to,
+              insert: '',
+            });
+            deleted += 1;
+          }
+          vars.push(value.toLowerCase());
+        });
+        if (deleted == len || len == 0) {
+          changes.push({
+            from: commentsStart ?? noderef.from,
+            to: noderef.to + 1,
+            insert: '',
+          });
+        } else {
+          changes = changes.concat(temp_changes);
+        }
+      } else if (noderef.name == 'Breed') {
+        let change = FixBreed(noderef.node, state, breeds);
+        if (change != null) {
+          changes.push({
+            from: commentsStart ?? change.from,
+            to: change.to,
+            insert: change.insert,
+          });
+        }
+        let plural = noderef.node.getChild('BreedPlural');
+        let singular = noderef.node.getChild('BreedSingular');
+        if (plural && singular) {
+          breeds.push(state.sliceDoc(plural.from, plural.to).toLowerCase());
+          breeds.push(state.sliceDoc(singular.from, singular.to).toLowerCase());
+        }
+      } else if (noderef.name == 'Extensions') {
+        let len = noderef.node.getChildren('Identifier').length;
+        let deleted = 0;
+        let temp_changes: { from: number; insert: string; to?: number }[] = [];
         noderef.node.getChildren('Identifier').map((child) => {
           let value = state.sliceDoc(child.from, child.to);
           if (
@@ -171,17 +235,31 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
             state.doc
               .toString()
               .toLowerCase()
-              .includes('\n' + value.toLowerCase() + ':')
+              .includes('\n' + value.toLowerCase() + ':') ||
+            extensions.includes(value.toLowerCase())
           ) {
-            changes.push({
+            temp_changes.push({
               from: child.from,
               to: child.to,
               insert: '',
             });
+            deleted += 1;
           }
+          extensions.push(value.toLowerCase());
         });
-      }
-      if (noderef.name == 'SpecialCommand0Args' && state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'setup') {
+        if (deleted == len || len == 0) {
+          changes.push({
+            from: commentsStart ?? noderef.from,
+            to: noderef.to + 1,
+            insert: '',
+          });
+        } else {
+          changes = changes.concat(temp_changes);
+        }
+      } else if (
+        noderef.name == 'SpecialCommand0Args' &&
+        state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'setup'
+      ) {
         let procedure = noderef.node.parent?.parent?.parent;
         let name = procedure?.getChild('ProcedureName');
         if (procedure?.name == 'Procedure' && state.sliceDoc(name?.from, name?.to).toLowerCase() == 'go') {
@@ -262,6 +340,38 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
   // Final pass: prettify the code once again
   Editor.Semantics.PrettifyAll();
   return Editor.GetCode().trim();
+}
+
+function FixBreed(node: SyntaxNode, state: EditorState, breeds: string[]) {
+  let singular = node.getChild('BreedSingular');
+  let plural = node.getChild('BreedPlural');
+  let invalid_sing = ['turtle', 'link', 'patch', ...breeds].includes(
+    state.sliceDoc(singular?.from, singular?.to).toLowerCase()
+  );
+  let invalid_plur = ['turtles', 'links', 'patches', ...breeds].includes(
+    state.sliceDoc(plural?.from, plural?.to).toLowerCase()
+  );
+  if (singular && plural && invalid_sing && invalid_plur) {
+    return {
+      from: node.from,
+      to: node.to,
+      insert: '',
+    };
+  } else if (singular && invalid_sing) {
+    return {
+      from: singular?.from,
+      to: singular?.to,
+      insert: getSingularName(state.sliceDoc(plural?.from, plural?.to)),
+    };
+  } else if (plural && invalid_plur) {
+    return {
+      from: plural?.from,
+      to: plural?.to,
+      insert: getPluralName(state.sliceDoc(singular?.from, singular?.to)),
+    };
+  } else {
+    return null;
+  }
 }
 
 /** AddComments: Add comments to the beginning of the string.*/
