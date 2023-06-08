@@ -1,8 +1,8 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { Log } from '../../codemirror/utils/debug-utils';
+import { Log } from '../../utils/debug-utils';
 import { Linter, getDiagnostic } from './linter-builder';
-import { checkBreedLike } from '../../codemirror/utils/breed-utils';
+import { checkBreedLike } from '../../utils/breed-utils';
 import { reserved } from '../keywords';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar

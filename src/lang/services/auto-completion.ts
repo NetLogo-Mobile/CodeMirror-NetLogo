@@ -6,7 +6,7 @@ import { getLocalVars } from '../linters/utils/check-identifier';
 import { GalapagosEditor } from '../../editor';
 import { BreedType } from '../classes/structures';
 import { ParseMode } from '../../editor-config';
-import { Log } from '../../codemirror/utils/debug-utils';
+import { Log } from '../../utils/debug-utils';
 import { LintContext } from '../classes/contexts';
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */

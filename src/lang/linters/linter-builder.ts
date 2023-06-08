@@ -1,6 +1,6 @@
 import { Diagnostic, linter, LintSource } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
-import { Extension } from '@codemirror/state';
+import { Extension, EditorState } from '@codemirror/state';
 import { stateExtension, StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { LintContext, PreprocessContext } from '../classes/contexts';
 import { GalapagosEditor, Localized } from '../../editor';
@@ -37,9 +37,20 @@ const buildLinter = function (Source: Linter, Editor: GalapagosEditor): Extensio
   // });
   var Extension = linter(BuiltSource) as any;
   Extension.Source = BuiltSource;
-  console.log(Extension);
+  // Remove the default tooltip of linting. We will provide our own.
+  if (Extension[2].length == 4) {
+    lintState = Extension[2][0];
+    Extension[2].splice(2, 1);
+    console.log(Extension);
+  }
   return Extension;
 };
+
+var lintState: any;
+/** getLintState: Returns the internal CodeMirror lint state. */
+export const getLintState = function(state: EditorState): any {
+  return state.field(lintState);
+}
 
 /** getDiagnostic: Returns a diagnostic object from a node and message. */
 export const getDiagnostic = function (

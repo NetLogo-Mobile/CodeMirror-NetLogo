@@ -9,13 +9,13 @@ import {
   ContextError,
   BreedType,
 } from '../lang/classes/structures';
-import { combineContexts, noContext } from './utils/context-utils';
-import { getBreedName } from './utils/breed-utils';
+import { combineContexts, noContext } from '../utils/context-utils';
+import { getBreedName } from '../utils/breed-utils';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
 import { ParseMode } from '../editor-config';
-import { Log } from './utils/debug-utils';
+import { Log } from '../utils/debug-utils';
 import { GetCursorUntilMode } from '../lang/linters/utils/cursors';
 
 let primitives = PrimitiveManager;

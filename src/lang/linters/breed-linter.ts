@@ -5,7 +5,7 @@ import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 import { Breed, BreedType } from '../classes/structures';
 import { CheckContext, checkValidIdentifier, getCheckContext } from './utils/check-identifier';
-import { getBreedName, getPluralName, getSingularName } from '../../codemirror/utils/breed-utils';
+import { getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
 import { AddBreedAction } from './utils/actions';
 
 // BreedLinter: To check breed commands/reporters for valid breed names

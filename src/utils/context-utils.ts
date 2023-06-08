@@ -1,4 +1,4 @@
-import { AgentContexts } from '../../lang/classes/structures';
+import { AgentContexts } from '../lang/classes/structures';
 
 /** combineContexts: Identify contexts acceptable to both of two different contexts. */
 export const combineContexts = function (c1: AgentContexts, c2: AgentContexts) {

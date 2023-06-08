@@ -7,7 +7,7 @@ import { NetLogoType } from '../classes/structures';
 import { Linter, getDiagnostic } from './linter-builder';
 import { Localized } from '../../editor';
 import { PreprocessContext } from '../classes/contexts';
-import { Log } from '../../codemirror/utils/debug-utils';
+import { Log } from '../../utils/debug-utils';
 import { EditorView } from 'codemirror';
 
 let primitives = PrimitiveManager;

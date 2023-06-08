@@ -2,9 +2,9 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter, getDiagnostic } from './linter-builder';
-import { checkBreedLike, getBreedName, getPluralName, getSingularName } from '../../codemirror/utils/breed-utils';
+import { checkBreedLike, getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
 import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
-import { Log } from '../../codemirror/utils/debug-utils';
+import { Log } from '../../utils/debug-utils';
 import { AddBreedAction } from './utils/actions';
 import { BreedType } from '../classes/structures';
 

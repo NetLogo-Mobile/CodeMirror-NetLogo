@@ -1,7 +1,7 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
 import { PreprocessContext } from '../lang/classes/contexts';
 import { GalapagosEditor, Localized } from '../editor';
-import { Log } from './utils/debug-utils';
+import { Log } from '../utils/debug-utils';
 
 /** StatePreprocess: The first-pass state for the NetLogo Language. */
 export class StatePreprocess {

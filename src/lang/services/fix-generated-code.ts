@@ -1,8 +1,8 @@
 import { GalapagosEditor } from '../../editor';
 import { BuildSnapshot, CodeSnapshot, IntegrateSnapshot } from './code-snapshot';
-import { getSingularName, getPluralName } from '../../codemirror/utils/breed-utils';
+import { getSingularName, getPluralName } from '../../utils/breed-utils';
 import { syntaxTree } from '@codemirror/language';
-import { Log } from '../../codemirror/utils/debug-utils';
+import { Log } from '../../utils/debug-utils';
 import { LintContext } from 'src/lang/classes/contexts';
 import { BreedType } from 'src/lang/classes/structures';
 import { SyntaxNode } from '@lezer/common';

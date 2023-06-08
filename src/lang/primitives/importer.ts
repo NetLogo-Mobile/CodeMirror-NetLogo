@@ -3,7 +3,7 @@ import path from 'path';
 // Thanks to the stupidity of TypeScript
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
-import { Log } from '../../codemirror/utils/debug-utils.ts';
+import { Log } from '../../utils/debug-utils.js';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import { Primitive, NetLogoType, AgentContexts, Argument } from '../classes/structures.js';

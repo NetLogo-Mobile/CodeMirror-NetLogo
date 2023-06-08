@@ -3,7 +3,7 @@ import { Localized } from '../../editor';
 import { Linter, getDiagnostic } from './linter-builder';
 import { Procedure, CodeBlock, AgentContexts } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
-import { combineContexts, noContext } from '../../codemirror/utils/context-utils';
+import { combineContexts, noContext } from '../../utils/context-utils';
 import { stateExtension } from '../../codemirror/extension-state-netlogo';
 
 // ContextLinter: Checks if procedures and code blocks have a valid context

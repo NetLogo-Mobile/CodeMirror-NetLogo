@@ -2,7 +2,7 @@ import { getIndentation, indentRange, syntaxTree, indentString } from '@codemirr
 import { EditorView } from 'codemirror';
 import { IterMode, SyntaxNode, Tree } from '@lezer/common';
 import { GalapagosEditor } from 'src/editor';
-import { Log } from './utils/debug-utils';
+import { Log } from '../utils/debug-utils';
 import { EditorState } from '@codemirror/state';
 
 /** prettify: Change selection to fit formatting standards. */
