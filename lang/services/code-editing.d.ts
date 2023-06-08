@@ -10,8 +10,8 @@ export declare class CodeEditing {
     Galapagos: GalapagosEditor;
     /** Constructor: Create a new code editing service. */
     constructor(View: EditorView);
-    /** InsertCode: Insert code snippets into the editor. */
-    InsertCode(Changes: ChangeSpec): void;
+    /** ChangeCode: Send a changeset into the editor. */
+    ChangeCode(Changes: ChangeSpec): void;
     /** GetSlice: Get a slice of the code. */
     private GetSlice;
     /** FindFirstChild: Find the first child that matches a condition. */

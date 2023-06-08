@@ -30168,8 +30168,8 @@ if(!String.prototype.matchAll) {
             this.View = View;
             this.Galapagos = View.state.field(preprocessStateExtension).Editor;
         }
-        /** InsertCode: Insert code snippets into the editor. */
-        InsertCode(Changes) {
+        /** ChangeCode: Send a changeset into the editor. */
+        ChangeCode(Changes) {
             this.View.dispatch({ changes: Changes });
         }
         /** GetSlice: Get a slice of the code. */
@@ -30197,12 +30197,12 @@ if(!String.prototype.matchAll) {
             var From = this.FindFirstChild(Node, 'CloseBracket').from;
             // Insert the contents
             for (let Content of Contents.reverse()) {
-                this.InsertCode({
+                this.ChangeCode({
                     from: From,
                     to: From,
                     insert: Content + Seperator,
                 });
-                this.InsertCode(indentRange(this.View.state, From, From + 1 + Content.length));
+                this.ChangeCode(indentRange(this.View.state, From, From + 1 + Content.length));
             }
             return true;
         }
@@ -30222,7 +30222,7 @@ if(!String.prototype.matchAll) {
                     return this.AddTermToBracket(Items, Statement);
             }
             // If not found, append a new global statement
-            this.InsertCode({
+            this.ChangeCode({
                 from: 0,
                 to: 0,
                 insert: `${Field.toLowerCase()} [ ${Items.join(' ')} ]\n`,
@@ -30247,7 +30247,7 @@ if(!String.prototype.matchAll) {
                 Name = 'directed-link-breed';
             if (Type == BreedType.UndirectedLink)
                 Name = 'undirected-link-breed';
-            this.InsertCode({
+            this.ChangeCode({
                 from: 0,
                 to: 0,
                 insert: `${Name} [ ${Plural} ${Singular} ]\n`,
@@ -30277,7 +30277,7 @@ if(!String.prototype.matchAll) {
             }
             // TODO: Find the most appropriate place to insert the breed
             // If not found, append a new statement
-            this.InsertCode({
+            this.ChangeCode({
                 from: 0,
                 to: 0,
                 insert: `${Plural.toLowerCase()}-own [ ${Variables.join(' ')} ]\n`,
@@ -30303,23 +30303,27 @@ if(!String.prototype.matchAll) {
         }
     }
 
-    /** AddBreedAction: Return an add a breed action. */
-    const AddBreedAction = function (type, plural, singular) {
-        return {
-            name: Localized.Get('Add'),
-            apply(view, from, to) {
-                new CodeEditing(view).AppendBreed(type, plural, singular);
-            },
-        };
+    /** addBreedAction: Add an adding a breed action. */
+    const addBreedAction = function (diagnostic, type, plural, singular) {
+        var _a;
+        diagnostic.actions = [...(_a = diagnostic.actions) !== null && _a !== void 0 ? _a : [], {
+                name: Localized.Get('Add'),
+                apply(view, from, to) {
+                    new CodeEditing(view).AppendBreed(type, plural, singular);
+                },
+            }];
+        return diagnostic;
     };
-    /** AddGlobalsAction: Return an add a global action. */
-    const AddGlobalsAction = function (type, items) {
-        return {
-            name: Localized.Get('Add'),
-            apply(view, from, to) {
-                new CodeEditing(view).AppendGlobals(type, items);
-            },
-        };
+    /** addGlobalsAction: Add an adding global variables action. */
+    const addGlobalsAction = function (diagnostic, type, items) {
+        var _a;
+        diagnostic.actions = [...(_a = diagnostic.actions) !== null && _a !== void 0 ? _a : [], {
+                name: Localized.Get('Add'),
+                apply(view, from, to) {
+                    new CodeEditing(view).AppendGlobals(type, items);
+                },
+            }];
+        return diagnostic;
     };
 
     // IdentifierLinter: Checks anything labelled 'Identifier'
@@ -30346,9 +30350,9 @@ if(!String.prototype.matchAll) {
                         let breedinfo = getBreedName(value);
                         Log(breedinfo);
                         if (!context.breedNames.includes(breedinfo.breed)) {
-                            let actions = [];
                             let plural = '';
                             let singular = '';
+                            let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', breedinfo.breed);
                             if (breedinfo.isPlural) {
                                 plural = breedinfo.breed;
                                 singular = getSingularName(breedinfo.breed);
@@ -30357,14 +30361,7 @@ if(!String.prototype.matchAll) {
                                 singular = breedinfo.breed;
                                 plural = getPluralName(breedinfo.breed);
                             }
-                            actions.push(AddBreedAction(breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular));
-                            diagnostics.push({
-                                from: noderef.from,
-                                to: noderef.to,
-                                severity: 'error',
-                                message: Localized.Get('Unrecognized breed name _', breedinfo.breed),
-                                actions: actions,
-                            });
+                            addBreedAction(diagnostic, breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
                         }
                     }
                 }
@@ -30472,7 +30469,7 @@ if(!String.prototype.matchAll) {
                 let result = checkValidBreed(Node, value, context, breeds);
                 if (!result.isValid) {
                     let breed_result = getBreedName(value);
-                    let actions = [];
+                    let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', value);
                     if (result.make_new_breed) {
                         let plural = '';
                         let singular = '';
@@ -30484,15 +30481,8 @@ if(!String.prototype.matchAll) {
                             singular = breed_result.breed;
                             plural = getPluralName(breed_result.breed);
                         }
-                        actions.push(AddBreedAction(result.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular));
+                        addBreedAction(diagnostic, result.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
                     }
-                    diagnostics.push({
-                        from: noderef.from,
-                        to: noderef.to,
-                        severity: 'error',
-                        message: Localized.Get('Unrecognized breed name _', value),
-                        actions: actions,
-                    });
                 }
             }
         });
@@ -30966,15 +30956,9 @@ if(!String.prototype.matchAll) {
                 let vals = value.split(':');
                 if (vals.length <= 1 || lintContext.Extensions.has(vals[0]))
                     return;
-                diagnostics.push({
-                    from: noderef.from,
-                    to: noderef.to,
-                    severity: 'error',
-                    message: !noderef.name.includes('Unsupported')
-                        ? Localized.Get('Missing extension _', vals[0])
-                        : Localized.Get('Unsupported missing extension _', vals[0]),
-                    actions: [AddGlobalsAction('Extensions', [vals[0]])],
-                });
+                diagnostics.push(addGlobalsAction(getDiagnostic(view, noderef, !noderef.name.includes('Unsupported')
+                    ? 'Missing extension _'
+                    : 'Unsupported missing extension _', "error", vals[0]), "Extensions", [vals[0]]));
             }
         });
         return diagnostics;
@@ -32347,7 +32331,7 @@ if(!String.prototype.matchAll) {
         }
         // Log("CHANGES",changes)
         // Send in the changes
-        Editor.Operations.InsertCode(changes);
+        Editor.Operations.ChangeCode(changes);
         // Third pass: re-introduce the snapshot
         IntegrateSnapshot(Editor, Snapshot);
         if (Parent)
