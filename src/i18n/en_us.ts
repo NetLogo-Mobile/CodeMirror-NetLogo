@@ -40,6 +40,8 @@ const en_us: Record<string, Function> = {
     ]().toLowerCase()} in the code.`,
   'Invalid breed procedure _': (Name: string) =>
     `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
+  'Missing command _': () => 
+    `Every NetLogo statement has to start with a command.`,
   'Missing command before _': (Name: string) =>
     `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
   'Improperly placed procedure _': (Name: string) =>

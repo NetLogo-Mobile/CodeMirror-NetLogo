@@ -30,6 +30,8 @@ const zh_cn: Record<string, Function> = {
   'Improperly placed procedure _': (Name: string) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
   'Unmatched item _': (Current: string, Expected: string) => `"${Current}" 需要对应的 ${Expected}。`,
   'Unsupported extension _': (Name: string) => `这个编辑器不支持扩展 "${Name}"。`,
+  'Missing command _': () => 
+    `这里需要增加一个命令。`,
   'Missing extension _': (Name: string) => `你需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
   'Unsupported missing extension _': (Name: string) =>
     `你需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
