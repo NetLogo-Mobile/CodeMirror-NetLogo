@@ -27942,26 +27942,12 @@ if(!String.prototype.matchAll) {
     };
 
     /** buildToolTips: Extension for displaying language-specific tooltips. */
-    const buildToolTips = function (Editor) {
-        let tooltipExtension = StateField.define({
-            create: (State) => getSelectionTooltips(State, Editor),
-            update(tooltips, tr) {
-                if (!tr.docChanged && !tr.selection)
-                    return tooltips;
-                return getSelectionTooltips(tr.state, Editor);
-            },
-            provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
+    const buildToolTips = (Editor) => {
+        return hoverTooltip((view, pos, side) => {
+            return getTooltip(pos, pos, view.state, Editor);
         });
-        return tooltipExtension;
     };
-    // getSelectionTooltips: Get the tooltips for the current selection
-    function getSelectionTooltips(state, Editor) {
-        var ranges = state.selection.ranges.filter((range) => !range.empty && state.doc.lineAt(range.from).number == state.doc.lineAt(range.to).number);
-        if (ranges.length != 1)
-            return [];
-        return [getTooltip(ranges[0].from, ranges[0].to, state, Editor)];
-    }
-    // getTooltip: Get the tooltip for the given range
+    /** getTooltip: Get the tooltip for the given range. */
     function getTooltip(from, to, state, editor) {
         var NLState = editor.LintContext;
         // Check what to display & if the selected range covers more than one token
@@ -30071,6 +30057,7 @@ if(!String.prototype.matchAll) {
         // });
         var Extension = linter(BuiltSource);
         Extension.Source = BuiltSource;
+        console.log(Extension);
         return Extension;
     };
     /** getDiagnostic: Returns a diagnostic object from a node and message. */
@@ -31003,7 +30990,7 @@ if(!String.prototype.matchAll) {
                 breedName = breedName.substring(0, breedName.length - 4);
                 noderef.node.getChildren('Identifier').map((child) => {
                     if (breedName == 'turtles') {
-                        NameCheck(child, 'Breed variable');
+                        NameCheck(child, 'Turtle variable');
                     }
                     else if (breedName == 'links') {
                         NameCheck(child, 'Link variable');
