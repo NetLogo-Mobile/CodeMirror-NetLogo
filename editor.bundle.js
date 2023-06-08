@@ -28342,21 +28342,11 @@ if(!String.prototype.matchAll) {
             fontSize: '0.9em',
             padding: '0.3em 0.5em',
         },
-        '.cm-tooltip.cm-tooltip-extendable': {
-            cursor: 'pointer',
+        '.cm-tooltip-extendable': {
+            cursor: 'pointer'
         },
-        '.cm-tooltip.cm-tooltip-explain': {
-            fontSize: '0.9em',
-            backgroundColor: '#FFFFF0',
-            padding: '0.3em 0.5em',
-            '& .cm-tooltip-arrow:before': {
-                borderTopColor: '#FFFFF0',
-                backgroundColor: '#FFFFF0',
-            },
-            '& .cm-tooltip-arrow:after': {
-                borderTopColor: 'transparent',
-                borderBottomColor: '#FFFFF0',
-            },
+        '.cm-tooltip-extendable:hover': {
+            textDecoration: 'underline'
         },
         '.cm-editor.cm-focused': {
             outline: 'none',
@@ -31311,6 +31301,7 @@ if(!String.prototype.matchAll) {
         'Term _ reserved': (Name, Type) => `"${Name}" is a reserved keyword in NetLogo. Try a different ${en_us[Type]().toLowerCase()} name.`,
         'Variable _ reserved': (Name, Type) => `"${Name}" is a built-in variable in NetLogo. There is no need to define this ${en_us[Type]().toLowerCase()} in the code.`,
         'Invalid breed procedure _': (Name) => `It seems that you forgot to declare "${Name}" as a breed. Do you want to do that now?`,
+        'Missing command _': () => `Every NetLogo statement has to start with a command.`,
         'Missing command before _': (Name) => `The statement "${Name}" needs to start with a command. What do you want to do with it?`,
         'Improperly placed procedure _': (Name) => `The procedure "${Name}" cannot be written prior to global statements. Do you want to move the procedure?`,
         'Unmatched item _': (Current, Expected) => `This "${Current}" needs a matching ${Expected}.`,
@@ -31452,6 +31443,7 @@ if(!String.prototype.matchAll) {
         'Improperly placed procedure _': (Name) => `过程或函数 "${Name}" 必须放在模型声明的后面。想移动它吗？`,
         'Unmatched item _': (Current, Expected) => `"${Current}" 需要对应的 ${Expected}。`,
         'Unsupported extension _': (Name) => `这个编辑器不支持扩展 "${Name}"。`,
+        'Missing command _': () => `这里需要增加一个命令。`,
         'Missing extension _': (Name) => `你需要将扩展 "${Name}" 放进 "extensions" 中。想现在试试吗？`,
         'Unsupported missing extension _': (Name) => `你需要将扩展 "${Name}" 放进 "extensions" 中，但是这个编辑器不支持它。`,
         'Invalid context _': (Prior, New, Primitive) => `根据之前的语句，这段代码中只能使用 "${Prior}" 语句，但 "${Primitive}" 却只能用于 "${New}"。`,
