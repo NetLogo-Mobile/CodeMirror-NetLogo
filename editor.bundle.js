@@ -22869,7 +22869,7 @@ if(!String.prototype.matchAll) {
     ];
     const completionKeymapExt = /*@__PURE__*/Prec.highest(/*@__PURE__*/keymap.computeN([completionConfig], state => state.facet(completionConfig).defaultKeymap ? [completionKeymap] : []));
 
-    class SelectedDiagnostic {
+    class SelectedDiagnostic$1 {
         constructor(from, to, diagnostic) {
             this.from = from;
             this.to = to;
@@ -22900,15 +22900,15 @@ if(!String.prototype.matchAll) {
                         diagnostic: d
                     }).range(d.from, d.to);
             }), true);
-            return new LintState(ranges, panel, findDiagnostic(ranges));
+            return new LintState(ranges, panel, findDiagnostic$1(ranges));
         }
     }
-    function findDiagnostic(diagnostics, diagnostic = null, after = 0) {
+    function findDiagnostic$1(diagnostics, diagnostic = null, after = 0) {
         let found = null;
         diagnostics.between(after, 1e9, (from, to, { spec }) => {
             if (diagnostic && spec.diagnostic != diagnostic)
                 return;
-            found = new SelectedDiagnostic(from, to, spec.diagnostic);
+            found = new SelectedDiagnostic$1(from, to, spec.diagnostic);
             return false;
         });
         return found;
@@ -22918,7 +22918,7 @@ if(!String.prototype.matchAll) {
         return !!(tr.effects.some(e => e.is(setDiagnosticsEffect)) || tr.changes.touchesRange(line.from, line.to));
     }
     function maybeEnableLint(state, effects) {
-        return state.field(lintState, false) ? effects : effects.concat(StateEffect.appendConfig.of(lintExtensions));
+        return state.field(lintState$1, false) ? effects : effects.concat(StateEffect.appendConfig.of(lintExtensions));
     }
     /**
     Returns a transaction spec which updates the current set of
@@ -22937,7 +22937,7 @@ if(!String.prototype.matchAll) {
     const setDiagnosticsEffect = /*@__PURE__*/StateEffect.define();
     const togglePanel = /*@__PURE__*/StateEffect.define();
     const movePanelSelection = /*@__PURE__*/StateEffect.define();
-    const lintState = /*@__PURE__*/StateField.define({
+    const lintState$1 = /*@__PURE__*/StateField.define({
         create() {
             return new LintState(Decoration.none, null, null);
         },
@@ -22946,7 +22946,7 @@ if(!String.prototype.matchAll) {
                 let mapped = value.diagnostics.map(tr.changes), selected = null;
                 if (value.selected) {
                     let selPos = tr.changes.mapPos(value.selected.from, 1);
-                    selected = findDiagnostic(mapped, value.selected.diagnostic, selPos) || findDiagnostic(mapped, null, selPos);
+                    selected = findDiagnostic$1(mapped, value.selected.diagnostic, selPos) || findDiagnostic$1(mapped, null, selPos);
                 }
                 value = new LintState(mapped, value.panel, selected);
             }
@@ -22968,7 +22968,7 @@ if(!String.prototype.matchAll) {
     });
     const activeMark = /*@__PURE__*/Decoration.mark({ class: "cm-lintRange cm-lintRange-active" });
     function lintTooltip(view, pos, side) {
-        let { diagnostics } = view.state.field(lintState);
+        let { diagnostics } = view.state.field(lintState$1);
         let found = [], stackStart = 2e8, stackEnd = 0;
         diagnostics.between(pos - (side < 0 ? 1 : 0), pos + (side > 0 ? 1 : 0), (from, to, { spec }) => {
             if (pos >= from && pos <= to &&
@@ -22988,18 +22988,18 @@ if(!String.prototype.matchAll) {
             end: stackEnd,
             above: view.state.doc.lineAt(stackStart).to < stackEnd,
             create() {
-                return { dom: diagnosticsTooltip(view, found) };
+                return { dom: diagnosticsTooltip$1(view, found) };
             }
         };
     }
-    function diagnosticsTooltip(view, diagnostics) {
-        return crelt("ul", { class: "cm-tooltip-lint" }, diagnostics.map(d => renderDiagnostic(view, d, false)));
+    function diagnosticsTooltip$1(view, diagnostics) {
+        return crelt("ul", { class: "cm-tooltip-lint" }, diagnostics.map(d => renderDiagnostic$1(view, d, false)));
     }
     /**
     Command to open and focus the lint panel.
     */
     const openLintPanel = (view) => {
-        let field = view.state.field(lintState, false);
+        let field = view.state.field(lintState$1, false);
         if (!field || !field.panel)
             view.dispatch({ effects: maybeEnableLint(view.state, [togglePanel.of(true)]) });
         let panel = getPanel(view, LintPanel.open);
@@ -23011,7 +23011,7 @@ if(!String.prototype.matchAll) {
     Command to close the lint panel, when open.
     */
     const closeLintPanel = (view) => {
-        let field = view.state.field(lintState, false);
+        let field = view.state.field(lintState$1, false);
         if (!field || !field.panel)
             return false;
         view.dispatch({ effects: togglePanel.of(false) });
@@ -23021,7 +23021,7 @@ if(!String.prototype.matchAll) {
     Move the selection to the next diagnostic.
     */
     const nextDiagnostic = (view) => {
-        let field = view.state.field(lintState, false);
+        let field = view.state.field(lintState$1, false);
         if (!field)
             return false;
         let sel = view.state.selection.main, next = field.diagnostics.iter(sel.to + 1);
@@ -23113,7 +23113,7 @@ if(!String.prototype.matchAll) {
             lintExtensions
         ];
     }
-    function assignKeys(actions) {
+    function assignKeys$1(actions) {
         let assigned = [];
         if (actions)
             actions: for (let { name } of actions) {
@@ -23128,16 +23128,16 @@ if(!String.prototype.matchAll) {
             }
         return assigned;
     }
-    function renderDiagnostic(view, diagnostic, inPanel) {
+    function renderDiagnostic$1(view, diagnostic, inPanel) {
         var _a;
-        let keys = inPanel ? assignKeys(diagnostic.actions) : [];
+        let keys = inPanel ? assignKeys$1(diagnostic.actions) : [];
         return crelt("li", { class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity }, crelt("span", { class: "cm-diagnosticText" }, diagnostic.renderMessage ? diagnostic.renderMessage() : diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
             let fired = false, click = (e) => {
                 e.preventDefault();
                 if (fired)
                     return;
                 fired = true;
-                let found = findDiagnostic(view.state.field(lintState).diagnostics, diagnostic);
+                let found = findDiagnostic$1(view.state.field(lintState$1).diagnostics, diagnostic);
                 if (found)
                     action.apply(view, found.from, found.to);
             };
@@ -23168,7 +23168,7 @@ if(!String.prototype.matchAll) {
         constructor(view, diagnostic) {
             this.diagnostic = diagnostic;
             this.id = "item_" + Math.floor(Math.random() * 0xffffffff).toString(16);
-            this.dom = renderDiagnostic(view, diagnostic, true);
+            this.dom = renderDiagnostic$1(view, diagnostic, true);
             this.dom.id = this.id;
             this.dom.setAttribute("role", "option");
         }
@@ -23198,10 +23198,10 @@ if(!String.prototype.matchAll) {
                     this.view.focus();
                 }
                 else if (event.keyCode >= 65 && event.keyCode <= 90 && this.selectedIndex >= 0) { // A-Z
-                    let { diagnostic } = this.items[this.selectedIndex], keys = assignKeys(diagnostic.actions);
+                    let { diagnostic } = this.items[this.selectedIndex], keys = assignKeys$1(diagnostic.actions);
                     for (let i = 0; i < keys.length; i++)
                         if (keys[i].toUpperCase().charCodeAt(0) == event.keyCode) {
-                            let found = findDiagnostic(this.view.state.field(lintState).diagnostics, diagnostic);
+                            let found = findDiagnostic$1(this.view.state.field(lintState$1).diagnostics, diagnostic);
                             if (found)
                                 diagnostic.actions[i].apply(view, found.from, found.to);
                         }
@@ -23233,7 +23233,7 @@ if(!String.prototype.matchAll) {
             this.update();
         }
         get selectedIndex() {
-            let selected = this.view.state.field(lintState).selected;
+            let selected = this.view.state.field(lintState$1).selected;
             if (!selected)
                 return -1;
             for (let i = 0; i < this.items.length; i++)
@@ -23242,7 +23242,7 @@ if(!String.prototype.matchAll) {
             return -1;
         }
         update() {
-            let { diagnostics, selected } = this.view.state.field(lintState);
+            let { diagnostics, selected } = this.view.state.field(lintState$1);
             let i = 0, needsSync = false, newSelectedItem = null;
             diagnostics.between(0, this.view.state.doc.length, (_start, _end, { spec }) => {
                 let found = -1, item;
@@ -23328,8 +23328,8 @@ if(!String.prototype.matchAll) {
         moveSelection(selectedIndex) {
             if (this.selectedIndex < 0)
                 return;
-            let field = this.view.state.field(lintState);
-            let selection = findDiagnostic(field.diagnostics, this.items[selectedIndex].diagnostic);
+            let field = this.view.state.field(lintState$1);
+            let selection = findDiagnostic$1(field.diagnostics, this.items[selectedIndex].diagnostic);
             if (!selection)
                 return;
             this.view.dispatch({
@@ -23433,9 +23433,9 @@ if(!String.prototype.matchAll) {
         }
     });
     const lintExtensions = [
-        lintState,
-        /*@__PURE__*/EditorView.decorations.compute([lintState], state => {
-            let { selected, panel } = state.field(lintState);
+        lintState$1,
+        /*@__PURE__*/EditorView.decorations.compute([lintState$1], state => {
+            let { selected, panel } = state.field(lintState$1);
             return !selected || !panel || selected.from == selected.to ? Decoration.none : Decoration.set([
                 activeMark.range(selected.from, selected.to)
             ]);
@@ -23451,7 +23451,7 @@ if(!String.prototype.matchAll) {
     arguments hold the diagnostic's current position.
     */
     function forEachDiagnostic(state, f) {
-        let lState = state.field(lintState, false);
+        let lState = state.field(lintState$1, false);
         if (lState && lState.diagnostics.size)
             for (let iter = RangeSet.iter([lState.diagnostics]); iter.value; iter.next())
                 f(iter.value.spec.diagnostic, iter.from, iter.to);
@@ -27809,6 +27809,59 @@ if(!String.prototype.matchAll) {
         },
     });
 
+    /** buildLinter: Builds a linter extension from a linter function. */
+    const buildLinter = function (Source, Editor) {
+        var LastVersion = -1;
+        var Cached = [];
+        var BuiltSource = (view) => {
+            if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
+                var state = view.state.field(stateExtension);
+                Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
+                LastVersion = Editor.GetVersion();
+            }
+            return Cached;
+            // return Cached.filter(
+            //   (d) =>
+            //     d.to < view.state.selection.main.from ||
+            //     d.from > view.state.selection.main.to
+            // );
+        };
+        // var Extension = linter(BuiltSource, {
+        //   needsRefresh: (update) =>
+        //     update.docChanged ||
+        //     update.startState.selection.main != update.state.selection.main,
+        // });
+        var Extension = linter(BuiltSource);
+        Extension.Source = BuiltSource;
+        // Remove the default tooltip of linting. We will provide our own.
+        if (Extension[2].length == 4) {
+            lintState = Extension[2][0];
+            Extension[2].splice(2, 1);
+            console.log(Extension);
+        }
+        return Extension;
+    };
+    var lintState;
+    /** getLintState: Returns the internal CodeMirror lint state. */
+    const getLintState = function (state) {
+        return state.field(lintState);
+    };
+    /** getDiagnostic: Returns a diagnostic object from a node and message. */
+    const getDiagnostic = function (view, node, message, severity = 'error', ...values) {
+        var value = view.state.sliceDoc(node.from, node.to).trim();
+        // Cut short the value if it's too long
+        if (value.length >= 20)
+            value = value.substring(0, 17) + '...';
+        if (values.length == 0)
+            values.push(value);
+        return {
+            from: node.from,
+            to: node.from + value.length,
+            severity: severity,
+            message: Localized.Get(message, ...values),
+        };
+    };
+
     /** DictionaryManager: Dictionary support. */
     class DictionaryManager {
         constructor() {
@@ -27941,31 +27994,23 @@ if(!String.prototype.matchAll) {
         return linkData;
     };
 
-    /** buildToolTips: Extension for displaying language-specific tooltips. */
-    const buildToolTips = (Editor) => {
-        return hoverTooltip((view, pos, side) => {
-            return getTooltip(pos, pos, view.state, Editor);
-        });
-    };
-    /** getTooltip: Get the tooltip for the given range. */
-    function getTooltip(from, to, state, editor) {
+    /** getTooltip: Get the tooltip for the given range as a pseudo Diagnostic. */
+    function getTooltip(view, from, to, editor) {
         var NLState = editor.LintContext;
-        // Check what to display & if the selected range covers more than one token
-        var multipleTokens = false;
         var lastFrom = 0;
         var lastTo = 0;
         var closestTerm = '';
         var parentName = '';
         var secondTerm = null;
         /* Iterate inside the tree to find node with best tooltip */
-        syntaxTree(state).iterate({
+        syntaxTree(view.state).iterate({
             enter: (ref) => {
                 if (ref.from == ref.to || to == ref.from)
                     return true;
                 lastFrom = ref.from;
                 lastTo = ref.to;
                 // Reporters & Commands are very special
-                //classify all types of reporters/commands as 'breed','custom', or builtin
+                // Classify all types of reporters/commands as 'breed', 'custom', or builtin
                 var name = classifyPrimitive(ref.name);
                 // Check the category name to see if a valid closest term has been found
                 if (closestTerm == '~BreedSingular' || closestTerm == '~Arguments' || closestTerm == '~ProcedureName') ;
@@ -27981,61 +28026,60 @@ if(!String.prototype.matchAll) {
             to: to,
         });
         // If so, we won't display tips - that's unnecessary.
-        if (lastFrom == lastTo || multipleTokens)
-            return getEmptyTooltip();
+        if (lastFrom == lastTo)
+            return;
         /* Search for better tooltip depending on selected text */
         // Check if we can directly recognize the youngest children's full-word
-        const term = state.sliceDoc(lastFrom, lastTo);
+        const term = view.state.sliceDoc(lastFrom, lastTo);
         // check primitive dictionary
         if (Dictionary.Check(term)) {
             closestTerm = term;
         }
-        // check if term is a global variable
         else if (NLState.Globals.has(term)) {
+            // check if term is a global variable
             closestTerm = '~Globals/Identifier';
         }
-        //check if term is a widget global variable
         else if (NLState.WidgetGlobals.has(term)) {
+            // check if term is a widget global variable
             closestTerm = '~WidgetGlobal';
         }
-        //check if term is the name of a breed
         else if (NLState.GetBreedNames().includes(term)) {
+            // check if term is the name of a breed
             closestTerm = classifyBreedName(term, NLState.GetBreeds());
         }
-        //otherwise check if term is a breed variable
         else {
+            // therwise check if term is a breed variable
             secondTerm = NLState.GetBreedFromVariable(term);
             if (secondTerm != null) {
                 closestTerm = '~BreedVariable';
             }
             else {
-                //if term is not a breed variable, check if it is a local variable for a procedure
+                // if term is not a breed variable, check if it is a local variable for a procedure
                 if (closestTerm == '~VariableName' || (parentName == 'Identifier' && closestTerm == '')) {
                     secondTerm = NLState.GetProcedureFromVariable(term, lastFrom, lastTo);
-                    //if procedure cannot be identified, term is an unidentified local variable
+                    // if procedure cannot be identified, term is an unidentified local variable
                     if (secondTerm != null)
                         closestTerm = '~LocalVariable';
                 }
             }
         }
-        //get breed name from breed commands and reporters (e.g. 'create-____')
-        if (closestTerm == '~BreedReporter' || closestTerm == '~BreedCommand') {
+        // get breed name from breed commands and reporters (e.g. 'create-____')
+        if (closestTerm == '~BreedReporter' || closestTerm == '~BreedCommand')
             secondTerm = NLState.GetBreedFromProcedure(term);
-        }
         Log('Term: ' + term, closestTerm, parentName);
         if (closestTerm == '')
-            return getEmptyTooltip();
+            return;
         // Check if there is an internal link for the tooltip
         // (e.g. first mention of a variable, or a procedure name)
-        let result = getInternalLink(term, closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '', state, NLState);
+        let result = getInternalLink(term, closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '', view.state, NLState);
         // Return the tooltip
         return {
-            pos: from,
-            above: false,
-            strictSide: true,
-            arrow: true,
-            create: (view) => {
-                const dom = document.createElement('div');
+            from: lastFrom,
+            to: lastTo,
+            severity: "info",
+            message: "",
+            renderMessage: () => {
+                const dom = document.createElement('span');
                 // get message from dictionary/localized
                 var message = Dictionary.Get(closestTerm, secondTerm !== null && secondTerm !== void 0 ? secondTerm : '');
                 if (Dictionary.ClickHandler != null && !closestTerm.startsWith('~')) {
@@ -28052,22 +28096,8 @@ if(!String.prototype.matchAll) {
                     }));
                     dom.classList.add('cm-tooltip-extendable');
                 }
-                dom.classList.add('cm-tooltip-explain');
                 dom.innerText = message;
-                return { dom };
-            },
-        };
-    }
-    /** getEmptyTooltip: Get an empty tooltip. */
-    function getEmptyTooltip() {
-        return {
-            pos: 0,
-            above: false,
-            strictSide: true,
-            arrow: false,
-            create: (view) => {
-                const dom = document.createElement('div');
-                return { dom };
+                return dom;
             },
         };
     }
@@ -28202,6 +28232,104 @@ if(!String.prototype.matchAll) {
             }
         }
         return linkData;
+    }
+
+    /** buildToolTips: Extension for displaying language-specific & linting tooltips. */
+    const buildToolTips = (Editor) => {
+        return hoverTooltip((view, pos, side) => {
+            return getTooltips(view, pos, side, Editor);
+        });
+    };
+    /** getTooltips: Build the tooltip for both linting and language tips.  */
+    function getTooltips(view, pos, side, editor) {
+        var diagnostics = getLintState(view.state).diagnostics;
+        let found = [], stackStart = 2e8, stackEnd = 0;
+        diagnostics.between(pos - (side < 0 ? 1 : 0), pos + (side > 0 ? 1 : 0), (from, to, { spec }) => {
+            if (pos >= from && pos <= to &&
+                (from == to || ((pos > from || side > 0) && (pos < to || side < 0)))) {
+                found.push(spec.diagnostic);
+                stackStart = Math.min(from, stackStart);
+                stackEnd = Math.max(to, stackEnd);
+            }
+        });
+        if (found.length == 0) {
+            var tooltip = getTooltip(view, pos, pos, editor);
+            if (!tooltip)
+                return null;
+            stackStart = tooltip.from;
+            stackEnd = tooltip.to;
+            found.push(tooltip);
+        }
+        return {
+            pos: stackStart,
+            end: stackEnd,
+            above: view.state.doc.lineAt(stackStart).to < stackEnd,
+            create() {
+                return { dom: diagnosticsTooltip(view, found) };
+            }
+        };
+    }
+    // The following code is copied from CodeMirror, as they do not allow us to go deeper into diagnostics generation.
+    function diagnosticsTooltip(view, diagnostics) {
+        return crelt("ul", { class: "cm-tooltip-lint" }, diagnostics.map(d => renderDiagnostic(view, d, false)));
+    }
+    function assignKeys(actions) {
+        let assigned = [];
+        if (actions)
+            actions: for (let { name } of actions) {
+                for (let i = 0; i < name.length; i++) {
+                    let ch = name[i];
+                    if (/[a-zA-Z]/.test(ch) && !assigned.some(c => c.toLowerCase() == ch.toLowerCase())) {
+                        assigned.push(ch);
+                        continue actions;
+                    }
+                }
+                assigned.push("");
+            }
+        return assigned;
+    }
+    function renderDiagnostic(view, diagnostic, inPanel) {
+        var _a;
+        let keys = inPanel ? assignKeys(diagnostic.actions) : [];
+        return crelt("li", { class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity }, crelt("span", { class: "cm-diagnosticText" }, diagnostic.renderMessage ? diagnostic.renderMessage() : diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
+            let fired = false, click = (e) => {
+                e.preventDefault();
+                if (fired)
+                    return;
+                fired = true;
+                let found = findDiagnostic(getLintState(view.state).diagnostics, diagnostic);
+                if (found)
+                    action.apply(view, found.from, found.to);
+            };
+            let { name } = action, keyIndex = keys[i] ? name.indexOf(keys[i]) : -1;
+            let nameElt = keyIndex < 0 ? name : [name.slice(0, keyIndex),
+                crelt("u", name.slice(keyIndex, keyIndex + 1)),
+                name.slice(keyIndex + 1)];
+            return crelt("button", {
+                type: "button",
+                class: "cm-diagnosticAction",
+                onclick: click,
+                onmousedown: click,
+                "aria-label": ` Action: ${name}${keyIndex < 0 ? "" : ` (access key "${keys[i]})"`}.`
+            }, nameElt);
+        }), diagnostic.source && crelt("div", { class: "cm-diagnosticSource" }, diagnostic.source));
+    }
+    function findDiagnostic(diagnostics, diagnostic = null, after = 0) {
+        let found = null;
+        diagnostics.between(after, 1e9, (from, to, { spec }) => {
+            if (diagnostic && spec.diagnostic != diagnostic)
+                return;
+            found = new SelectedDiagnostic(from, to, spec.diagnostic);
+            return false;
+        });
+        return found;
+    }
+    class SelectedDiagnostic {
+        constructor(from, to, diagnostic) {
+            this.from = from;
+            this.to = to;
+            this.diagnostic = diagnostic;
+        }
     }
 
     const lightTheme = EditorView.theme({
@@ -30032,49 +30160,6 @@ if(!String.prototype.matchAll) {
         view.dispatch(changes, { userEvent: "input.type", scrollIntoView: true });
         return true;
     });
-
-    /** buildLinter: Builds a linter extension from a linter function. */
-    const buildLinter = function (Source, Editor) {
-        var LastVersion = -1;
-        var Cached = [];
-        var BuiltSource = (view) => {
-            if (Editor.UpdateContext() || Editor.GetVersion() > LastVersion) {
-                var state = view.state.field(stateExtension);
-                Cached = Source(view, Editor.PreprocessContext, Editor.LintContext, state);
-                LastVersion = Editor.GetVersion();
-            }
-            return Cached;
-            // return Cached.filter(
-            //   (d) =>
-            //     d.to < view.state.selection.main.from ||
-            //     d.from > view.state.selection.main.to
-            // );
-        };
-        // var Extension = linter(BuiltSource, {
-        //   needsRefresh: (update) =>
-        //     update.docChanged ||
-        //     update.startState.selection.main != update.state.selection.main,
-        // });
-        var Extension = linter(BuiltSource);
-        Extension.Source = BuiltSource;
-        console.log(Extension);
-        return Extension;
-    };
-    /** getDiagnostic: Returns a diagnostic object from a node and message. */
-    const getDiagnostic = function (view, node, message, severity = 'error', ...values) {
-        var value = view.state.sliceDoc(node.from, node.to).trim();
-        // Cut short the value if it's too long
-        if (value.length >= 20)
-            value = value.substring(0, 17) + '...';
-        if (values.length == 0)
-            values.push(value);
-        return {
-            from: node.from,
-            to: node.from + value.length,
-            severity: severity,
-            message: Localized.Get(message, ...values),
-        };
-    };
 
     /** CodeEditing: Functions for editing code. */
     class CodeEditing {

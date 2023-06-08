@@ -1,4 +1,4 @@
-import { Breed } from '../../lang/classes/structures';
+import { Breed } from '../lang/classes/structures';
 import { EditorState } from '@codemirror/state';
 /** classifyPrimitive: Identify type of reporter/command for appropriate tooltip. */
 export declare const classifyPrimitive: (name: string) => string;
