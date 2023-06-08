@@ -102,7 +102,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
         breedName = breedName.substring(0, breedName.length - 4);
         noderef.node.getChildren('Identifier').map((child) => {
           if (breedName == 'turtles') {
-            NameCheck(child, 'Breed variable');
+            NameCheck(child, 'Turtle variable');
           } else if (breedName == 'links') {
             NameCheck(child, 'Link variable');
           } else if (breedName == 'patches') {

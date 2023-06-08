@@ -1,5 +1,5 @@
-import { Tooltip, showTooltip } from '@codemirror/view';
-import { StateField, EditorState, EditorSelection } from '@codemirror/state';
+import { Tooltip, hoverTooltip, showTooltip } from '@codemirror/view';
+import { EditorState, EditorSelection } from '@codemirror/state';
 import { EditorView } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { Dictionary } from '../i18n/dictionary';
@@ -9,30 +9,22 @@ import { Log } from './utils/debug-utils';
 import { LintContext } from '../lang/classes/contexts';
 
 /** buildToolTips: Extension for displaying language-specific tooltips. */
-export const buildToolTips = function (Editor: GalapagosEditor) {
-  let tooltipExtension = StateField.define<readonly Tooltip[]>({
-    create: (State) => getSelectionTooltips(State, Editor),
-
-    update(tooltips, tr) {
-      if (!tr.docChanged && !tr.selection) return tooltips;
-      return getSelectionTooltips(tr.state, Editor);
-    },
-
-    provide: (f) => showTooltip.computeN([f], (state) => state.field(f)),
+export const buildToolTips = (Editor: GalapagosEditor) => {
+  return hoverTooltip((view, pos, side) => {
+    return getTooltip(pos, pos, view.state, Editor);
   });
-  return tooltipExtension;
 };
 
-// getSelectionTooltips: Get the tooltips for the current selection
-function getSelectionTooltips(state: EditorState, Editor: GalapagosEditor): readonly Tooltip[] {
+/** getSelectionTooltip: Get the tooltips for the current selection. */
+function getSelectionTooltip(state: EditorState, Editor: GalapagosEditor): Tooltip {
   var ranges = state.selection.ranges.filter(
     (range) => !range.empty && state.doc.lineAt(range.from).number == state.doc.lineAt(range.to).number
   );
-  if (ranges.length != 1) return [];
-  return [getTooltip(ranges[0].from, ranges[0].to, state, Editor)];
+  if (ranges.length != 1) return getEmptyTooltip();
+  return getTooltip(ranges[0].from, ranges[0].to, state, Editor);
 }
 
-// getTooltip: Get the tooltip for the given range
+/** getTooltip: Get the tooltip for the given range. */
 function getTooltip(from: number, to: number, state: EditorState, editor: GalapagosEditor): Tooltip {
   var NLState = editor.LintContext;
   // Check what to display & if the selected range covers more than one token

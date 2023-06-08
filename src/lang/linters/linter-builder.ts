@@ -35,8 +35,9 @@ const buildLinter = function (Source: Linter, Editor: GalapagosEditor): Extensio
   //     update.docChanged ||
   //     update.startState.selection.main != update.state.selection.main,
   // });
-  var Extension = linter(BuiltSource);
-  (Extension as any).Source = BuiltSource;
+  var Extension = linter(BuiltSource) as any;
+  Extension.Source = BuiltSource;
+  console.log(Extension);
   return Extension;
 };
 
