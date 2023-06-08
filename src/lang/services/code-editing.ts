@@ -21,8 +21,8 @@ export class CodeEditing {
     this.View = View;
     this.Galapagos = View.state.field(preprocessStateExtension).Editor!;
   }
-  /** InsertCode: Insert code snippets into the editor. */
-  public InsertCode(Changes: ChangeSpec) {
+  /** ChangeCode: Send a changeset into the editor. */
+  public ChangeCode(Changes: ChangeSpec) {
     this.View.dispatch({ changes: Changes });
   }
   /** GetSlice: Get a slice of the code. */
@@ -51,12 +51,12 @@ export class CodeEditing {
     var From = this.FindFirstChild(Node, 'CloseBracket')!.from;
     // Insert the contents
     for (let Content of Contents.reverse()) {
-      this.InsertCode({
+      this.ChangeCode({
         from: From,
         to: From,
         insert: Content + Seperator,
       });
-      this.InsertCode(indentRange(this.View.state, From, From + 1 + Content.length));
+      this.ChangeCode(indentRange(this.View.state, From, From + 1 + Content.length));
     }
     return true;
   }
@@ -75,7 +75,7 @@ export class CodeEditing {
       if (Statement) return this.AddTermToBracket(Items, Statement);
     }
     // If not found, append a new global statement
-    this.InsertCode({
+    this.ChangeCode({
       from: 0,
       to: 0,
       insert: `${Field.toLowerCase()} [ ${Items.join(' ')} ]\n`,
@@ -96,7 +96,7 @@ export class CodeEditing {
     var Name = 'breed';
     if (Type == BreedType.DirectedLink) Name = 'directed-link-breed';
     if (Type == BreedType.UndirectedLink) Name = 'undirected-link-breed';
-    this.InsertCode({
+    this.ChangeCode({
       from: 0,
       to: 0,
       insert: `${Name} [ ${Plural} ${Singular} ]\n`,
@@ -124,7 +124,7 @@ export class CodeEditing {
     }
     // TODO: Find the most appropriate place to insert the breed
     // If not found, append a new statement
-    this.InsertCode({
+    this.ChangeCode({
       from: 0,
       to: 0,
       insert: `${Plural.toLowerCase()}-own [ ${Variables.join(' ')} ]\n`,

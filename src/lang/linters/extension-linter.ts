@@ -5,7 +5,7 @@ import { Linter, getDiagnostic } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
 import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
 import { SyntaxNode } from '@lezer/common';
-import { AddGlobalsAction } from './utils/actions';
+import { addGlobalsAction } from './utils/actions';
 
 let primitives = PrimitiveManager;
 
@@ -44,15 +44,11 @@ export const ExtensionLinter: Linter = (view, preprocessContext, lintContext) =>
         const value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
         let vals = value.split(':');
         if (vals.length <= 1 || lintContext.Extensions.has(vals[0])) return;
-        diagnostics.push({
-          from: noderef.from,
-          to: noderef.to,
-          severity: 'error',
-          message: !noderef.name.includes('Unsupported')
-            ? Localized.Get('Missing extension _', vals[0])
-            : Localized.Get('Unsupported missing extension _', vals[0]),
-          actions: [AddGlobalsAction('Extensions', [vals[0]])],
-        });
+        diagnostics.push(
+          addGlobalsAction(
+            getDiagnostic(view, noderef, !noderef.name.includes('Unsupported')
+          ? 'Missing extension _'
+          : 'Unsupported missing extension _', "error", vals[0]), "Extensions", [vals[0]]));
       }
     });
   return diagnostics;

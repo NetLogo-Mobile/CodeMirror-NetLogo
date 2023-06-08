@@ -5,7 +5,7 @@ import { Linter, getDiagnostic } from './linter-builder';
 import { checkBreedLike, getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
 import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
 import { Log } from '../../utils/debug-utils';
-import { AddBreedAction } from './utils/actions';
+import { addBreedAction } from './utils/actions';
 import { BreedType } from '../classes/structures';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
@@ -33,6 +33,7 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
               let actions: any[] = [];
               let plural = '';
               let singular = '';
+              let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', breedinfo.breed);
               if (breedinfo.isPlural) {
                 plural = breedinfo.breed;
                 singular = getSingularName(breedinfo.breed);
@@ -40,16 +41,7 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
                 singular = breedinfo.breed;
                 plural = getPluralName(breedinfo.breed);
               }
-              actions.push(
-                AddBreedAction(breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular)
-              );
-              diagnostics.push({
-                from: noderef.from,
-                to: noderef.to,
-                severity: 'error',
-                message: Localized.Get('Unrecognized breed name _', breedinfo.breed),
-                actions: actions,
-              });
+              addBreedAction(diagnostic, breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
             }
           }
         }

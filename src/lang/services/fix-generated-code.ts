@@ -333,7 +333,7 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
   }
   // Log("CHANGES",changes)
   // Send in the changes
-  Editor.Operations.InsertCode(changes);
+  Editor.Operations.ChangeCode(changes);
   // Third pass: re-introduce the snapshot
   IntegrateSnapshot(Editor, Snapshot);
   if (Parent) IntegrateSnapshot(Editor, Parent);

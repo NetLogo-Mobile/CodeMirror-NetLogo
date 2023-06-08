@@ -1,12 +1,11 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
-import { Localized } from '../../editor';
-import { Linter } from './linter-builder';
+import { Linter, getDiagnostic } from './linter-builder';
 import { Breed, BreedType } from '../classes/structures';
 import { CheckContext, checkValidIdentifier, getCheckContext } from './utils/check-identifier';
 import { getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
-import { AddBreedAction } from './utils/actions';
+import { addBreedAction } from './utils/actions';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -34,7 +33,7 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
         let result = checkValidBreed(Node, value, context, breeds);
         if (!result.isValid) {
           let breed_result = getBreedName(value);
-          let actions: any[] = [];
+          let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', value);
           if (result.make_new_breed) {
             let plural = '';
             let singular = '';
@@ -45,15 +44,8 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
               singular = breed_result.breed;
               plural = getPluralName(breed_result.breed);
             }
-            actions.push(AddBreedAction(result.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular));
+            addBreedAction(diagnostic, result.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
           }
-          diagnostics.push({
-            from: noderef.from,
-            to: noderef.to,
-            severity: 'error',
-            message: Localized.Get('Unrecognized breed name _', value),
-            actions: actions,
-          });
         }
       }
     });
