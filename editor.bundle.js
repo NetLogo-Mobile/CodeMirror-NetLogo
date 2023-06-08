@@ -28076,8 +28076,8 @@ if(!String.prototype.matchAll) {
         return {
             from: lastFrom,
             to: lastTo,
-            severity: "info",
-            message: "",
+            severity: 'info',
+            message: '',
             renderMessage: () => {
                 const dom = document.createElement('span');
                 // get message from dictionary/localized
@@ -28245,8 +28245,7 @@ if(!String.prototype.matchAll) {
         var diagnostics = getLintState(view.state).diagnostics;
         let found = [], stackStart = 2e8, stackEnd = 0;
         diagnostics.between(pos - (side < 0 ? 1 : 0), pos + (side > 0 ? 1 : 0), (from, to, { spec }) => {
-            if (pos >= from && pos <= to &&
-                (from == to || ((pos > from || side > 0) && (pos < to || side < 0)))) {
+            if (pos >= from && pos <= to && (from == to || ((pos > from || side > 0) && (pos < to || side < 0)))) {
                 found.push(spec.diagnostic);
                 stackStart = Math.min(from, stackStart);
                 stackEnd = Math.max(to, stackEnd);
@@ -28266,12 +28265,12 @@ if(!String.prototype.matchAll) {
             above: view.state.doc.lineAt(stackStart).to < stackEnd,
             create() {
                 return { dom: diagnosticsTooltip(view, found) };
-            }
+            },
         };
     }
     // The following code is copied from CodeMirror, as they do not allow us to go deeper into diagnostics generation.
     function diagnosticsTooltip(view, diagnostics) {
-        return crelt("ul", { class: "cm-tooltip-lint" }, diagnostics.map(d => renderDiagnostic(view, d, false)));
+        return crelt('ul', { class: 'cm-tooltip-lint' }, diagnostics.map((d) => renderDiagnostic(view, d, false)));
     }
     function assignKeys(actions) {
         let assigned = [];
@@ -28279,19 +28278,19 @@ if(!String.prototype.matchAll) {
             actions: for (let { name } of actions) {
                 for (let i = 0; i < name.length; i++) {
                     let ch = name[i];
-                    if (/[a-zA-Z]/.test(ch) && !assigned.some(c => c.toLowerCase() == ch.toLowerCase())) {
+                    if (/[a-zA-Z]/.test(ch) && !assigned.some((c) => c.toLowerCase() == ch.toLowerCase())) {
                         assigned.push(ch);
                         continue actions;
                     }
                 }
-                assigned.push("");
+                assigned.push('');
             }
         return assigned;
     }
     function renderDiagnostic(view, diagnostic, inPanel) {
         var _a;
         let keys = inPanel ? assignKeys(diagnostic.actions) : [];
-        return crelt("li", { class: "cm-diagnostic cm-diagnostic-" + diagnostic.severity }, crelt("span", { class: "cm-diagnosticText" }, diagnostic.renderMessage ? diagnostic.renderMessage() : diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
+        return crelt('li', { class: 'cm-diagnostic cm-diagnostic-' + diagnostic.severity }, crelt('span', { class: 'cm-diagnosticText' }, diagnostic.renderMessage ? diagnostic.renderMessage() : diagnostic.message), (_a = diagnostic.actions) === null || _a === void 0 ? void 0 : _a.map((action, i) => {
             let fired = false, click = (e) => {
                 e.preventDefault();
                 if (fired)
@@ -28302,17 +28301,17 @@ if(!String.prototype.matchAll) {
                     action.apply(view, found.from, found.to);
             };
             let { name } = action, keyIndex = keys[i] ? name.indexOf(keys[i]) : -1;
-            let nameElt = keyIndex < 0 ? name : [name.slice(0, keyIndex),
-                crelt("u", name.slice(keyIndex, keyIndex + 1)),
-                name.slice(keyIndex + 1)];
-            return crelt("button", {
-                type: "button",
-                class: "cm-diagnosticAction",
+            let nameElt = keyIndex < 0
+                ? name
+                : [name.slice(0, keyIndex), crelt('u', name.slice(keyIndex, keyIndex + 1)), name.slice(keyIndex + 1)];
+            return crelt('button', {
+                type: 'button',
+                class: 'cm-diagnosticAction',
                 onclick: click,
                 onmousedown: click,
-                "aria-label": ` Action: ${name}${keyIndex < 0 ? "" : ` (access key "${keys[i]})"`}.`
+                'aria-label': ` Action: ${name}${keyIndex < 0 ? '' : ` (access key "${keys[i]})"`}.`,
             }, nameElt);
-        }), diagnostic.source && crelt("div", { class: "cm-diagnosticSource" }, diagnostic.source));
+        }), diagnostic.source && crelt('div', { class: 'cm-diagnosticSource' }, diagnostic.source));
     }
     function findDiagnostic(diagnostics, diagnostic = null, after = 0) {
         let found = null;
@@ -30306,23 +30305,43 @@ if(!String.prototype.matchAll) {
     /** addBreedAction: Add an adding a breed action. */
     const addBreedAction = function (diagnostic, type, plural, singular) {
         var _a;
-        diagnostic.actions = [...(_a = diagnostic.actions) !== null && _a !== void 0 ? _a : [], {
+        diagnostic.actions = [
+            ...((_a = diagnostic.actions) !== null && _a !== void 0 ? _a : []),
+            {
                 name: Localized.Get('Add'),
                 apply(view, from, to) {
                     new CodeEditing(view).AppendBreed(type, plural, singular);
                 },
-            }];
+            },
+        ];
         return diagnostic;
     };
     /** addGlobalsAction: Add an adding global variables action. */
     const addGlobalsAction = function (diagnostic, type, items) {
         var _a;
-        diagnostic.actions = [...(_a = diagnostic.actions) !== null && _a !== void 0 ? _a : [], {
+        diagnostic.actions = [
+            ...((_a = diagnostic.actions) !== null && _a !== void 0 ? _a : []),
+            {
                 name: Localized.Get('Add'),
                 apply(view, from, to) {
                     new CodeEditing(view).AppendGlobals(type, items);
                 },
-            }];
+            },
+        ];
+        return diagnostic;
+    };
+    /** RemoveAction: Add an removing the snippet action. */
+    const removeAction = function (diagnostic) {
+        var _a;
+        diagnostic.actions = [
+            ...((_a = diagnostic.actions) !== null && _a !== void 0 ? _a : []),
+            {
+                name: Localized.Get('Remove'),
+                apply(view, from, to) {
+                    view.dispatch({ changes: { from, to, insert: '' } });
+                },
+            },
+        ];
         return diagnostic;
     };
 
@@ -30956,9 +30975,7 @@ if(!String.prototype.matchAll) {
                 let vals = value.split(':');
                 if (vals.length <= 1 || lintContext.Extensions.has(vals[0]))
                     return;
-                diagnostics.push(addGlobalsAction(getDiagnostic(view, noderef, !noderef.name.includes('Unsupported')
-                    ? 'Missing extension _'
-                    : 'Unsupported missing extension _', "error", vals[0]), "Extensions", [vals[0]]));
+                diagnostics.push(addGlobalsAction(getDiagnostic(view, noderef, !noderef.name.includes('Unsupported') ? 'Missing extension _' : 'Unsupported missing extension _', 'error', vals[0]), 'Extensions', [vals[0]]));
             }
         });
         return diagnostics;
@@ -31017,7 +31034,12 @@ if(!String.prototype.matchAll) {
                 diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
             }
             else if (reservedVars.includes(value)) {
-                diagnostics.push(getDiagnostic(view, node, type.includes('variable') ? 'Variable _ reserved' : 'Term _ reserved', 'error', value, type));
+                if (type.includes('variable')) {
+                    diagnostics.push(removeAction(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type)));
+                }
+                else {
+                    diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
+                }
             }
             else if (reserved.includes(value) || primitives.GetNamedPrimitive(value)) {
                 diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
