@@ -7,6 +7,7 @@ import { getLocalVars } from './utils/check-identifier';
 import { PrimitiveManager } from '../primitives/primitives';
 import { turtleVars, patchVars, linkVars } from '../keywords';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
+import { removeAction } from './utils/actions';
 
 let primitives = PrimitiveManager;
 
@@ -60,16 +61,11 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
     if (defined.includes(value) || extra?.includes(value) || (!isBreed && breedDefined.includes(value))) {
       diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
     } else if (reservedVars.includes(value)) {
-      diagnostics.push(
-        getDiagnostic(
-          view,
-          node,
-          type.includes('variable') ? 'Variable _ reserved' : 'Term _ reserved',
-          'error',
-          value,
-          type
-        )
-      );
+      if (type.includes('variable')) {
+        diagnostics.push(removeAction(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type)));
+      } else {
+        diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
+      }
     } else if (reserved.includes(value) || primitives.GetNamedPrimitive(value)) {
       diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
     } else {

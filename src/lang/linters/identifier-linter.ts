@@ -41,7 +41,12 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
                 singular = breedinfo.breed;
                 plural = getPluralName(breedinfo.breed);
               }
-              addBreedAction(diagnostic, breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
+              addBreedAction(
+                diagnostic,
+                breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle,
+                plural,
+                singular
+              );
             }
           }
         }

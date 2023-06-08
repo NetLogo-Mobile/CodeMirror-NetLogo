@@ -10,7 +10,12 @@ import { LintContext } from '../lang/classes/contexts';
 import { Log } from '../utils/debug-utils';
 
 /** getTooltip: Get the tooltip for the given range as a pseudo Diagnostic. */
-export function getTooltip(view: EditorView, from: number, to: number, editor: GalapagosEditor): Diagnostic | undefined {
+export function getTooltip(
+  view: EditorView,
+  from: number,
+  to: number,
+  editor: GalapagosEditor
+): Diagnostic | undefined {
   var NLState = editor.LintContext;
   var lastFrom = 0;
   var lastTo = 0;
@@ -36,7 +41,8 @@ export function getTooltip(view: EditorView, from: number, to: number, editor: G
       } else if (
         Dictionary.Check(`~${parentName}/${name}`) ||
         Localized.Get(`~${parentName}/${name}`) != `~${parentName}/${name}`
-      ) closestTerm = `~${parentName}/${name}`;
+      )
+        closestTerm = `~${parentName}/${name}`;
 
       parentName = name;
     },
@@ -55,17 +61,14 @@ export function getTooltip(view: EditorView, from: number, to: number, editor: G
   } else if (NLState.Globals.has(term)) {
     // check if term is a global variable
     closestTerm = '~Globals/Identifier';
-  }
-  else if (NLState.WidgetGlobals.has(term)) {
-  // check if term is a widget global variable
+  } else if (NLState.WidgetGlobals.has(term)) {
+    // check if term is a widget global variable
     closestTerm = '~WidgetGlobal';
-  }
-  else if (NLState.GetBreedNames().includes(term)) {
-  // check if term is the name of a breed
+  } else if (NLState.GetBreedNames().includes(term)) {
+    // check if term is the name of a breed
     closestTerm = classifyBreedName(term, NLState.GetBreeds());
-  }
-  else {
-  // therwise check if term is a breed variable
+  } else {
+    // therwise check if term is a breed variable
     secondTerm = NLState.GetBreedFromVariable(term);
     if (secondTerm != null) {
       closestTerm = '~BreedVariable';
@@ -93,8 +96,8 @@ export function getTooltip(view: EditorView, from: number, to: number, editor: G
   return {
     from: lastFrom,
     to: lastTo,
-    severity: "info",
-    message: "",
+    severity: 'info',
+    message: '',
     renderMessage: () => {
       const dom = document.createElement('span');
       // get message from dictionary/localized

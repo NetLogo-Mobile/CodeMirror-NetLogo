@@ -48,9 +48,9 @@ const buildLinter = function (Source: Linter, Editor: GalapagosEditor): Extensio
 
 var lintState: any;
 /** getLintState: Returns the internal CodeMirror lint state. */
-export const getLintState = function(state: EditorState): any {
+export const getLintState = function (state: EditorState): any {
   return state.field(lintState);
-}
+};
 
 /** getDiagnostic: Returns a diagnostic object from a node and message. */
 export const getDiagnostic = function (

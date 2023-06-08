@@ -46,9 +46,17 @@ export const ExtensionLinter: Linter = (view, preprocessContext, lintContext) =>
         if (vals.length <= 1 || lintContext.Extensions.has(vals[0])) return;
         diagnostics.push(
           addGlobalsAction(
-            getDiagnostic(view, noderef, !noderef.name.includes('Unsupported')
-          ? 'Missing extension _'
-          : 'Unsupported missing extension _', "error", vals[0]), "Extensions", [vals[0]]));
+            getDiagnostic(
+              view,
+              noderef,
+              !noderef.name.includes('Unsupported') ? 'Missing extension _' : 'Unsupported missing extension _',
+              'error',
+              vals[0]
+            ),
+            'Extensions',
+            [vals[0]]
+          )
+        );
       }
     });
   return diagnostics;
