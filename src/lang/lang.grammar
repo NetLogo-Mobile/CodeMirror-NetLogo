@@ -9,7 +9,9 @@
   exponent @right,
   times @left,
   plus @left,
-  comparative @left
+  comparative @left,
+  block
+  unknown
 }
 
 @top Program { 
@@ -136,7 +138,6 @@ SetVariable {
   Set VariableName ReporterStatement
 }
 
-
 VariableName {
   Identifier ~statement | 
   PatchVar | 
@@ -152,8 +153,9 @@ Value {
   Constant ~statement |
   VariableName |
   List ~statement |
-  Numeric ~statement|
-  AnonymousProcedure ~statement
+  Numeric ~statement |
+  AnonymousProcedure ~statement |
+  Bracketed ~statement
 }
 
 Literal {
@@ -162,12 +164,16 @@ Literal {
   Constant ~statement
 }
 
+Bracketed {
+  !unknown OpenBracket (Literal | List| Identifier | ProcedureContent | Bracketed)* ~statement CloseBracket
+}
+
 List {
-  OpenBracket (Literal | List | Identifier)* ~statement CloseBracket ~statement
+  !block OpenBracket (Literal | List | Identifier)* ~statement CloseBracket ~statement
 }
 
 CodeBlock {
-  OpenBracket ProcedureContent* CloseBracket ~statement
+  !block OpenBracket ~bracket ProcedureContent* ~statement CloseBracket ~statement
 }
 
 ReporterBlock {
