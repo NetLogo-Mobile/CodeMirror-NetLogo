@@ -97,7 +97,7 @@ ProcedureName {
 }
 
 Arguments {
-  OpenBracket (Identifier|UnsupportedPrim)* ~statement CloseBracket 
+  !block OpenBracket (Identifier|UnsupportedPrim)* ~statement CloseBracket 
 }
 
 ProcedureContent {
