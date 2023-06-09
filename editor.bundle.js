@@ -26967,10 +26967,10 @@ if(!String.prototype.matchAll) {
                     //   console.log(context)
                     //   return context.column(context.pos)
                     // },
-                    ReporterContent: delimitedIndent({ closing: '[', align: true }),
-                    ReporterStatement: delimitedIndent({ closing: '[', align: true }),
-                    CommandStatement: delimitedIndent({ closing: '[', align: true }),
-                    ProcedureContent: delimitedIndent({ closing: '[' }),
+                    ReporterContent: delimitedIndent({ closing: '[\n', align: true }),
+                    ReporterStatement: delimitedIndent({ closing: '[\n', align: true }),
+                    CommandStatement: delimitedIndent({ closing: '[\n', align: true }),
+                    ProcedureContent: delimitedIndent({ closing: '[\n' }),
                     CodeBlock: delimitedIndent({ closing: ']' }),
                     AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
                     Extensions: delimitedIndent({ closing: ']', align: false }),
@@ -27834,7 +27834,7 @@ if(!String.prototype.matchAll) {
         var Extension = linter(BuiltSource);
         Extension.Source = BuiltSource;
         // Remove the default tooltip of linting. We will provide our own.
-        if (Extension[2].length == 4) {
+        if (Extension.length > 2 && Extension[2].length == 4) {
             lintState = Extension[2][0];
             Extension[2].splice(2, 1);
             console.log(Extension);
@@ -28343,10 +28343,10 @@ if(!String.prototype.matchAll) {
             padding: '0.3em 0.5em',
         },
         '.cm-tooltip-extendable': {
-            cursor: 'pointer'
+            cursor: 'pointer',
         },
         '.cm-tooltip-extendable:hover': {
-            textDecoration: 'underline'
+            textDecoration: 'underline',
         },
         '.cm-editor.cm-focused': {
             outline: 'none',
@@ -31102,7 +31102,11 @@ if(!String.prototype.matchAll) {
             else if (noderef.name == 'Arguments') {
                 let current = [];
                 if (((_d = noderef.node.parent) === null || _d === void 0 ? void 0 : _d.name) == 'AnonArguments') {
-                    current = getLocalVars(noderef.node, view.state, lintContext);
+                    let parent = noderef.node.parent.parent;
+                    if (parent) {
+                        let prev_node = parent === null || parent === void 0 ? void 0 : parent.cursor().moveTo(parent.from - 2).node;
+                        current = getLocalVars(prev_node, view.state, lintContext);
+                    }
                 }
                 for (var key of ['Identifier', 'UnsupportedPrim']) {
                     noderef.node.getChildren(key).map((child) => {
@@ -31812,7 +31816,7 @@ if(!String.prototype.matchAll) {
         view.dispatch({ selection: { anchor: from, head: from + new_doc.length } });
         // add in new lines based on grammar
         view.dispatch({
-            changes: addSpacing(view, view.state.selection.main.from, view.state.selection.main.to),
+            changes: addSpacing(view, view.state.selection.main.from, view.state.selection.main.to, 100),
         });
         // ensure spacing is correct
         from = view.state.selection.main.from;
@@ -31833,17 +31837,21 @@ if(!String.prototype.matchAll) {
         let new_doc = removeSpacing(syntaxTree(view.state), doc);
         view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
         Editor.ForceParse();
+        // console.log(view.state.doc.toString());
         // give certain nodes their own lines
         view.dispatch({
-            changes: addSpacing(view, 0, new_doc.length),
+            changes: addSpacing(view, 0, new_doc.length, Editor.LineWidth),
         });
-        doc = view.state.doc.toString();
+        new_doc = finalSpacing(view.state.doc.toString());
+        view.dispatch({ changes: { from: 0, to: view.state.doc.toString().length, insert: new_doc } });
+        // doc = view.state.doc.toString();
         Editor.ForceParse();
         //console.log(view.state.doc.toString())
         // ensure spacing is correct
         // doc = view.state.doc.toString();
         // new_doc = avoidStrings(doc, finalSpacing).trim();
         // view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+        // console.log(view.state.doc.toString());
         // add indentation
         view.dispatch({
             changes: indentRange(view.state, 0, view.state.doc.toString().length), //indent(view.state.doc.toString(),view.state)
@@ -31925,12 +31933,13 @@ if(!String.prototype.matchAll) {
         new_doc = new_doc.replace(/[ ]+\n/g, '\n');
         new_doc = new_doc.replace(/\n\n+/g, '\n\n');
         new_doc = new_doc.replace(/ +/g, ' ');
+        new_doc = new_doc.replace(/^\s+/g, '');
         new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
         new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
         return new_doc;
     };
     /** addSpacing: Give certain types of nodes their own lines. */
-    const addSpacing = function (view, from, to) {
+    const addSpacing = function (view, from, to, lineWidth) {
         let changes = [];
         let doc = view.state.doc.toString();
         syntaxTree(view.state)
@@ -31938,6 +31947,7 @@ if(!String.prototype.matchAll) {
             .iterate((node) => {
             var _a, _b;
             if (node.from >= from && node.to <= to) {
+                // console.log(node.name)
                 if (((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' && node.name != 'LineComment') ||
                     node.name == 'To' ||
                     node.name == 'End' ||
@@ -31946,7 +31956,8 @@ if(!String.prototype.matchAll) {
                     doc[node.from - 1] != '\n') {
                     changes.push({ from: node.from, to: node.from, insert: '\n' });
                 }
-                else if (node.name == 'CodeBlock' && checkBlock(node.node, 'ProcedureContent', doc)) {
+                else if (node.name == 'CodeBlock' && checkBlock(node.node, 'ProcedureContent', doc, lineWidth)) {
+                    console.log('HERE');
                     for (var name of ['ProcedureContent', 'CloseBracket']) {
                         node.node.getChildren(name).map((child) => {
                             if (doc[child.from - 1] != '\n') {
@@ -31959,7 +31970,7 @@ if(!String.prototype.matchAll) {
                         });
                     }
                 }
-                else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterContent', doc)) {
+                else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterContent', doc, lineWidth)) {
                     for (var name of ['ReporterContent', 'CloseBracket']) {
                         node.node.getChildren(name).map((child) => {
                             if (doc[child.from - 1] != '\n') {
@@ -31972,8 +31983,41 @@ if(!String.prototype.matchAll) {
                         });
                     }
                 }
+                else if (node.name == 'CommandStatement' || node.name == 'ReporterStatement') {
+                    let cursor = node.node.cursor();
+                    if (cursor.firstChild()) {
+                        while (cursor.node.name == 'LineComment') {
+                            cursor.nextSibling();
+                        }
+                    }
+                    let startPos = cursor.from;
+                    let lastPos = cursor.to;
+                    console.log('FOUND', lastPos);
+                    node.node.getChildren('Arg').map((child) => {
+                        if (doc.substring(lastPos, child.from).includes('\n') &&
+                            doc.substring(node.from, child.to).length < lineWidth) {
+                            console.log('found');
+                            changes.push({
+                                from: lastPos,
+                                to: child.from,
+                                insert: ' ',
+                            });
+                        }
+                        else if (doc.substring(startPos, child.to).length > lineWidth &&
+                            !doc.substring(lastPos, child.to).includes('\n')) {
+                            console.log(doc.substring(lastPos, child.from), doc.substring(startPos, child.to), doc.substring(startPos, child.to).length);
+                            changes.push({
+                                from: child.from,
+                                to: child.from,
+                                insert: '\n',
+                            });
+                        }
+                        lastPos = child.to;
+                    });
+                }
                 else if (node.name == 'AnonymousProcedure' &&
-                    (checkBlock(node.node, 'ReporterContent', doc) || checkBlock(node.node, 'ProcedureContent', doc))) {
+                    (checkBlock(node.node, 'ReporterContent', doc, lineWidth) ||
+                        checkBlock(node.node, 'ProcedureContent', doc, lineWidth))) {
                     // console.log(changes.length);
                     for (var name of ['ProcedureContent', 'ReporterContent', 'CloseBracket']) {
                         node.node.getChildren(name).map((child) => {
@@ -32040,13 +32084,16 @@ if(!String.prototype.matchAll) {
         return changes;
     };
     /** checkBlock: checks if code block needs to be multiline. */
-    const checkBlock = function (node, childName, doc) {
+    const checkBlock = function (node, childName, doc, lineWidth) {
         let count = 0;
-        let multiline = false;
+        let multiline = doc.substring(node.from, node.to).includes('[\n');
         let multilineChildren = false;
         node.node.getChildren(childName).map((child) => {
             count += 1;
-            multiline = doc.substring(child.from, child.to).includes('\n');
+            multiline =
+                doc.substring(child.from, child.to).includes('\n') ||
+                    doc.substring(child.from, child.to).length > lineWidth ||
+                    multiline;
             child.getChildren('CommandStatement').map((node) => {
                 node.getChildren('Arg').map((subnode) => {
                     if (subnode.getChildren('CodeBlock').length > 0) {
@@ -32058,6 +32105,7 @@ if(!String.prototype.matchAll) {
                 });
             });
         });
+        // console.log(count,multiline,multilineChildren)
         return ((multiline || multilineChildren) && count == 1) || count > 1;
     };
 
@@ -32128,14 +32176,23 @@ if(!String.prototype.matchAll) {
         syntaxTree(state)
             .cursor()
             .iterate((noderef) => {
-            var _a, _b, _c, _d;
+            var _a, _b, _c, _d, _e;
             // Log(noderef.name, comments);
             // check for misplaced non-global statements at the global level
             // Collect them into intoProcedure, and remove them from the code
             // I don't understand why the parser does not recognize `to test end test` as rouge statements.
             if (noderef.name == 'Misplaced' || (noderef.name == 'Procedure' && noderef.node.getChildren('To').length == 0)) {
+                let skip = false;
                 Log(noderef.name, noderef.from, commentFrom, comments);
-                intoProcedure.push(AddComments(state.sliceDoc(noderef.from, noderef.to), comments));
+                if (noderef.name == 'Misplaced') {
+                    let grandchild = (_a = noderef.node.firstChild) === null || _a === void 0 ? void 0 : _a.firstChild;
+                    if (grandchild && grandchild.name.includes('0Args')) {
+                        skip = true;
+                    }
+                }
+                if (!skip) {
+                    intoProcedure.push(AddComments(state.sliceDoc(noderef.from, noderef.to), comments));
+                }
                 changes.push({
                     from: commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from,
                     to: Math.min(noderef.to + 1, state.doc.toString().length),
@@ -32271,7 +32328,7 @@ if(!String.prototype.matchAll) {
             }
             else if (noderef.name == 'SpecialCommand0Args' &&
                 state.sliceDoc(noderef.from, noderef.to).toLowerCase() == 'setup') {
-                let procedure = (_b = (_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.parent) === null || _b === void 0 ? void 0 : _b.parent;
+                let procedure = (_c = (_b = noderef.node.parent) === null || _b === void 0 ? void 0 : _b.parent) === null || _c === void 0 ? void 0 : _c.parent;
                 let name = procedure === null || procedure === void 0 ? void 0 : procedure.getChild('ProcedureName');
                 if ((procedure === null || procedure === void 0 ? void 0 : procedure.name) == 'Procedure' && state.sliceDoc(name === null || name === void 0 ? void 0 : name.from, name === null || name === void 0 ? void 0 : name.to).toLowerCase() == 'go') {
                     changes.push({
@@ -32282,8 +32339,8 @@ if(!String.prototype.matchAll) {
                 }
             }
             if (noderef.name == 'Procedure' && noderef.node.getChildren('ProcedureContent').length == 1) {
-                let child = (_d = (_c = noderef.node
-                    .getChild('ProcedureContent')) === null || _c === void 0 ? void 0 : _c.getChild('CommandStatement')) === null || _d === void 0 ? void 0 : _d.getChild('SpecialCommand0Args');
+                let child = (_e = (_d = noderef.node
+                    .getChild('ProcedureContent')) === null || _d === void 0 ? void 0 : _d.getChild('CommandStatement')) === null || _e === void 0 ? void 0 : _e.getChild('SpecialCommand0Args');
                 if (child &&
                     state.doc
                         .toString()
@@ -32536,6 +32593,8 @@ if(!String.prototype.matchAll) {
             var _a, _b;
             /** Linters: The linters used in this instance. */
             this.Linters = [];
+            /** LineWidth: The width of the line, used for prettying. */
+            this.LineWidth = 50;
             /** IsReadOnly: Whether the editor is readonly. */
             this.IsReadOnly = false;
             // #endregion

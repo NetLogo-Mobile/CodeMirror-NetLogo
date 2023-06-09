@@ -36,6 +36,8 @@ export declare class GalapagosEditor {
     readonly Operations: CodeEditing;
     /** DebugEnabled: Whether the debug output is enabled. */
     static DebugEnabled: boolean;
+    /** LineWidth: The width of the line, used for prettying. */
+    readonly LineWidth: number;
     /** Constructor: Create an editor instance. */
     constructor(Parent: HTMLElement, Options: EditorConfig);
     /** GetState: Get the current parser state of the NetLogo code. */
