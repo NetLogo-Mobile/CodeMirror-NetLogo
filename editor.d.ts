@@ -1,17 +1,17 @@
-import { EditorView } from 'codemirror';
+import { EditorView } from '@codemirror/view';
 import { LanguageSupport } from '@codemirror/language';
+import { Diagnostic } from '@codemirror/lint';
 import { Extension } from '@codemirror/state';
+import { LocalizationManager } from './i18n/localized';
 import { EditorConfig, ParseMode } from './editor-config';
 import { StateNetLogo } from './codemirror/extension-state-netlogo';
-import { StatePreprocess } from './codemirror/extension-state-preprocess.js';
-import { RuntimeError } from './lang/linters/runtime-linter.js';
-import { Diagnostic } from '@codemirror/lint';
-import { LocalizationManager } from './i18n/localized.js';
-import { PreprocessContext, LintContext } from './lang/classes/contexts.js';
-import { EditingFeatures } from './features/editing.js';
-import { SelectionFeatures } from './features/selection.js';
-import { SemanticFeatures } from './features/semantics.js';
-import { CodeEditing } from './lang/services/code-editing.js';
+import { StatePreprocess } from './codemirror/extension-state-preprocess';
+import { RuntimeError } from './lang/linters/runtime-linter';
+import { PreprocessContext, LintContext } from './lang/classes/contexts';
+import { EditingFeatures } from './features/editing';
+import { SelectionFeatures } from './features/selection';
+import { SemanticFeatures } from './features/semantics';
+import { CodeEditing } from './lang/services/code-editing';
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export declare class GalapagosEditor {
     /** CodeMirror: The CodeMirror 6 component. */
