@@ -10,7 +10,7 @@
   times @left,
   plus @left,
   comparative @left,
-  block
+  block @cut
   unknown
 }
 
@@ -116,11 +116,11 @@ AnonArguments {
 }
 
 AnonymousProcedure {
-  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) CloseBracket
+  !block OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) CloseBracket
 }
 
 ShortAnonymousProcedure {
-  OpenBracket (ProcedureContent*|ReporterContent*|Value) CloseBracket ~statement
+  !block OpenBracket (ProcedureContent*|ReporterContent*|Value) CloseBracket ~statement
 }
 
 VariableDeclaration {
@@ -165,7 +165,7 @@ Literal {
 }
 
 Bracketed {
-  !unknown OpenBracket (Literal | List| Identifier | ProcedureContent | Bracketed)* ~statement CloseBracket
+  !unknown OpenBracket (Literal | List | Identifier | ProcedureContent | Bracketed)* ~statement CloseBracket
 }
 
 List {
@@ -177,12 +177,12 @@ CodeBlock {
 }
 
 ReporterBlock {
-  OpenBracket ReporterContent !close CloseBracket |
-  OpenBracket Value !close CloseBracket
+  !block OpenBracket ReporterContent !close CloseBracket |
+  !block OpenBracket Value !close CloseBracket
 }
 
 Property {
-  OpenBracket VariableName !close CloseBracket
+  !block OpenBracket VariableName !close CloseBracket
 }
 
 ReporterStatement { 
