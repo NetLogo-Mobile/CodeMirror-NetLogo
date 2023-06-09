@@ -195,9 +195,9 @@ export class StateNetLogo {
   }
 
   /** getContext: Identify context of a block by looking at primitives and variable names. */
-  private getContext(node: SyntaxNode, state: EditorState) {
+  private getContext(node: SyntaxNode, state: EditorState, priorContext_param?: AgentContexts): AgentContexts {
     let context = new AgentContexts();
-    let priorContext = new AgentContexts();
+    let priorContext = priorContext_param ?? new AgentContexts();
     let newContext = context;
     node.getChildren('ProcedureContent').map((node2) => {
       node2.getChildren('CommandStatement').map((node3) => {
@@ -366,10 +366,8 @@ export class StateNetLogo {
             block.PositionStart = child.from;
             block.PositionEnd = child.to;
             block.InheritParentContext = prim.inheritParentContext;
-            block.Context = combineContexts(
-              this.getContext(child, state),
-              noContext(prim.context) ? parentContext : prim.context
-            );
+            let originalContext = noContext(prim.context) ? parentContext : prim.context;
+            block.Context = this.getContext(child, state, originalContext);
             // if (noContext(block.Context)) {
             //   console.log(
             //     parentContext,
@@ -411,12 +409,15 @@ export class StateNetLogo {
           ask = true;
         }
       }
-      while (cursor.nextSibling() && prim.name == '') {
+      while (cursor.nextSibling() && (prim.name == '' || ask)) {
         if (!['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(cursor.node.name)) {
           prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
           prim.type = cursor.node.name;
         } else if (cursor.node.name == 'Arg' && ask) {
-          prim.breed = state.sliceDoc(cursor.node.from, cursor.node.to);
+          let plurals = [...state.field(stateExtension).Breeds.values()].map((b) => b.Plural);
+          if (plurals.includes(state.sliceDoc(cursor.node.from, cursor.node.to).toLowerCase().trim())) {
+            prim.breed = state.sliceDoc(cursor.node.from, cursor.node.to);
+          }
           ask = false;
         }
       }
