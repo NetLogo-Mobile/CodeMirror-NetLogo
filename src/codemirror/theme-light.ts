@@ -20,6 +20,24 @@ const lightTheme = EditorView.theme({
   '.cm-editor.cm-focused': {
     outline: 'none',
   },
+  '.cm-gutter-lint': {
+    width: '3px',
+  },
+  '.cm-gutter-lint .cm-gutterElement': {
+    padding: '0',
+  },
+  '.cm-lint-marker': {
+    width: '100%',
+    height: '100%',
+  },
+  '.cm-lint-marker-error': {
+    background: '#cc2200',
+    content: 'none',
+  },
+  '.cm-lint-marker-warning': {
+    background: '#FAD842',
+    content: 'none',
+  },
 });
 
 export { lightTheme };

@@ -1,31 +1,34 @@
-import { EditorView, basicSetup } from 'codemirror';
+import { basicSetup } from 'codemirror';
+import { EditorView, ViewUpdate, keymap, placeholder } from '@codemirror/view';
 import { closeCompletion, acceptCompletion } from '@codemirror/autocomplete';
 import { forceParsing, LanguageSupport } from '@codemirror/language';
+import { Diagnostic, linter, lintGutter } from '@codemirror/lint';
 import { Prec, Compartment, EditorState, Extension, TransactionSpec } from '@codemirror/state';
-import { ViewUpdate, keymap, placeholder } from '@codemirror/view';
-import { NetLogo } from './lang/netlogo.js';
+import { indentWithTab } from '@codemirror/commands';
+import { html } from '@codemirror/lang-html';
+import { css } from '@codemirror/lang-css';
+import { javascript } from '@codemirror/lang-javascript';
+
+import { LocalizationManager } from './i18n/localized';
+import { Dictionary } from './i18n/dictionary';
 import { EditorConfig, EditorLanguage, ParseMode } from './editor-config';
 import { highlight } from './codemirror/style-highlight';
 import { updateExtension } from './codemirror/extension-update';
 import { stateExtension, StateNetLogo } from './codemirror/extension-state-netlogo';
-import { preprocessStateExtension, StatePreprocess } from './codemirror/extension-state-preprocess.js';
+import { preprocessStateExtension, StatePreprocess } from './codemirror/extension-state-preprocess';
 import { buildToolTips } from './codemirror/extension-tooltip';
 import { lightTheme } from './codemirror/theme-light';
-import { javascript } from '@codemirror/lang-javascript';
-import { html } from '@codemirror/lang-html';
-import { css } from '@codemirror/lang-css';
+
+import { NetLogo } from './lang/netlogo.js';
 import { netlogoLinters } from './lang/linters/linters';
-import { CompilerLinter, RuntimeError, RuntimeLinter } from './lang/linters/runtime-linter.js';
-import { Dictionary } from './i18n/dictionary.js';
-import { Diagnostic, linter } from '@codemirror/lint';
-import { LocalizationManager } from './i18n/localized.js';
-import { buildLinter } from './lang/linters/linter-builder.js';
-import { PreprocessContext, LintContext } from './lang/classes/contexts.js';
-import { indentWithTab } from '@codemirror/commands';
-import { EditingFeatures } from './features/editing.js';
-import { SelectionFeatures } from './features/selection.js';
-import { SemanticFeatures } from './features/semantics.js';
-import { CodeEditing } from './lang/services/code-editing.js';
+import { buildLinter } from './lang/linters/linter-builder';
+import { CompilerLinter, RuntimeError, RuntimeLinter } from './lang/linters/runtime-linter';
+import { PreprocessContext, LintContext } from './lang/classes/contexts';
+
+import { EditingFeatures } from './features/editing';
+import { SelectionFeatures } from './features/selection';
+import { SemanticFeatures } from './features/semantics';
+import { CodeEditing } from './lang/services/code-editing';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -99,6 +102,7 @@ export class GalapagosEditor {
         Extensions.push(...this.Linters);
         Extensions.push(linter(CompilerLinter));
         Extensions.push(linter(RuntimeLinter));
+        Extensions.push(lintGutter());
     }
     Extensions.push(this.Language);
     // DOM handlers
