@@ -51,6 +51,8 @@ export class GalapagosEditor {
   public readonly Operations: CodeEditing;
   /** DebugEnabled: Whether the debug output is enabled. */
   public static DebugEnabled: boolean;
+  /** LineWidth: The width of the line, used for prettying. */
+  public readonly LineWidth: number = 50;
 
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {

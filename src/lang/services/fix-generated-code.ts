@@ -127,8 +127,17 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
       // Collect them into intoProcedure, and remove them from the code
       // I don't understand why the parser does not recognize `to test end test` as rouge statements.
       if (noderef.name == 'Misplaced' || (noderef.name == 'Procedure' && noderef.node.getChildren('To').length == 0)) {
+        let skip = false;
         Log(noderef.name, noderef.from, commentFrom, comments);
-        intoProcedure.push(AddComments(state.sliceDoc(noderef.from, noderef.to), comments));
+        if (noderef.name == 'Misplaced') {
+          let grandchild = noderef.node.firstChild?.firstChild;
+          if (grandchild && grandchild.name.includes('0Args')) {
+            skip = true;
+          }
+        }
+        if (!skip) {
+          intoProcedure.push(AddComments(state.sliceDoc(noderef.from, noderef.to), comments));
+        }
         changes.push({
           from: commentsStart ?? noderef.from,
           to: Math.min(noderef.to + 1, state.doc.toString().length),

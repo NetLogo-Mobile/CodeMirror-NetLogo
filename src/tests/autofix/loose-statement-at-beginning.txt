@@ -15,7 +15,7 @@ to make-grid
   ask patches [
     ; Set the color of each patch based on its coordinates
     ifelse (pxcor + pycor) mod 2 = 0
-      [ set pcolor white ]
-      [ set pcolor black ]
+          [ set pcolor white ]
+          [ set pcolor black ]
   ]
 end

@@ -12,10 +12,10 @@ const lightTheme = EditorView.theme({
     padding: '0.3em 0.5em',
   },
   '.cm-tooltip-extendable': {
-    cursor: 'pointer'
+    cursor: 'pointer',
   },
   '.cm-tooltip-extendable:hover': {
-    textDecoration: 'underline'
+    textDecoration: 'underline',
   },
   '.cm-editor.cm-focused': {
     outline: 'none',

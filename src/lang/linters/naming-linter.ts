@@ -122,7 +122,11 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
       } else if (noderef.name == 'Arguments') {
         let current: string[] = [];
         if (noderef.node.parent?.name == 'AnonArguments') {
-          current = getLocalVars(noderef.node, view.state, lintContext);
+          let parent = noderef.node.parent.parent;
+          if (parent) {
+            let prev_node = parent?.cursor().moveTo(parent.from - 2).node;
+            current = getLocalVars(prev_node, view.state, lintContext);
+          }
         }
         for (var key of ['Identifier', 'UnsupportedPrim']) {
           noderef.node.getChildren(key).map((child) => {

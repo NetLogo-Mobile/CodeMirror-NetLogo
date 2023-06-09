@@ -10,9 +10,8 @@ end
 ===
 to setup-turtles
   ; Create 10 turtles using the breed name "turtles"
-  create-turtles
-    10 [
-      ; Set the turtle"s position to a random location
-      setxy random-xcor random-ycor
-    ]
+  create-turtles 10 [
+    ; Set the turtle"s position to a random location
+    setxy random-xcor random-ycor
+  ]
 end

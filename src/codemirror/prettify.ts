@@ -22,7 +22,7 @@ export const prettify = function (view: EditorView, from: number | null = null, 
 
   // add in new lines based on grammar
   view.dispatch({
-    changes: addSpacing(view, view.state.selection.main.from, view.state.selection.main.to),
+    changes: addSpacing(view, view.state.selection.main.from, view.state.selection.main.to, 100),
   });
 
   // ensure spacing is correct
@@ -47,18 +47,21 @@ export const prettifyAll = function (view: EditorView, Editor: GalapagosEditor) 
   let new_doc = removeSpacing(syntaxTree(view.state), doc);
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
   Editor.ForceParse();
+  // console.log(view.state.doc.toString());
   // give certain nodes their own lines
   view.dispatch({
-    changes: addSpacing(view, 0, new_doc.length),
+    changes: addSpacing(view, 0, new_doc.length, Editor.LineWidth),
   });
-  doc = view.state.doc.toString();
+  new_doc = finalSpacing(view.state.doc.toString());
+  view.dispatch({ changes: { from: 0, to: view.state.doc.toString().length, insert: new_doc } });
+  // doc = view.state.doc.toString();
   Editor.ForceParse();
   //console.log(view.state.doc.toString())
   // ensure spacing is correct
   // doc = view.state.doc.toString();
   // new_doc = avoidStrings(doc, finalSpacing).trim();
   // view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
-
+  // console.log(view.state.doc.toString());
   // add indentation
   view.dispatch({
     changes: indentRange(view.state, 0, view.state.doc.toString().length), //indent(view.state.doc.toString(),view.state)
@@ -161,6 +164,7 @@ const finalSpacing = function (doc: string) {
   new_doc = new_doc.replace(/[ ]+\n/g, '\n');
   new_doc = new_doc.replace(/\n\n+/g, '\n\n');
   new_doc = new_doc.replace(/ +/g, ' ');
+  new_doc = new_doc.replace(/^\s+/g, '');
   new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
   new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
   return new_doc;
@@ -182,13 +186,14 @@ const avoidStrings = function (doc: string, func: Function) {
 };
 
 /** addSpacing: Give certain types of nodes their own lines. */
-const addSpacing = function (view: EditorView, from: number, to: number) {
+const addSpacing = function (view: EditorView, from: number, to: number, lineWidth: number) {
   let changes: { from: number; insert: string; to?: number }[] = [];
   let doc = view.state.doc.toString();
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
       if (node.from >= from && node.to <= to) {
+        // console.log(node.name)
         if (
           ((node.node.parent?.name == 'Program' && node.name != 'LineComment') ||
             node.name == 'To' ||
@@ -198,7 +203,8 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
           doc[node.from - 1] != '\n'
         ) {
           changes.push({ from: node.from, to: node.from, insert: '\n' });
-        } else if (node.name == 'CodeBlock' && checkBlock(node.node, 'ProcedureContent', doc)) {
+        } else if (node.name == 'CodeBlock' && checkBlock(node.node, 'ProcedureContent', doc, lineWidth)) {
+          console.log('HERE');
           for (var name of ['ProcedureContent', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               if (doc[child.from - 1] != '\n') {
@@ -210,7 +216,7 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
               }
             });
           }
-        } else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterContent', doc)) {
+        } else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterContent', doc, lineWidth)) {
           for (var name of ['ReporterContent', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               if (doc[child.from - 1] != '\n') {
@@ -222,9 +228,48 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
               }
             });
           }
+        } else if (node.name == 'CommandStatement' || node.name == 'ReporterStatement') {
+          let cursor = node.node.cursor();
+          if (cursor.firstChild()) {
+            while (cursor.node.name == 'LineComment') {
+              cursor.nextSibling();
+            }
+          }
+          let startPos = cursor.from;
+          let lastPos = cursor.to;
+          console.log('FOUND', lastPos);
+          node.node.getChildren('Arg').map((child) => {
+            if (
+              doc.substring(lastPos, child.from).includes('\n') &&
+              doc.substring(node.from, child.to).length < lineWidth
+            ) {
+              console.log('found');
+              changes.push({
+                from: lastPos,
+                to: child.from,
+                insert: ' ',
+              });
+            } else if (
+              doc.substring(startPos, child.to).length > lineWidth &&
+              !doc.substring(lastPos, child.to).includes('\n')
+            ) {
+              console.log(
+                doc.substring(lastPos, child.from),
+                doc.substring(startPos, child.to),
+                doc.substring(startPos, child.to).length
+              );
+              changes.push({
+                from: child.from,
+                to: child.from,
+                insert: '\n',
+              });
+            }
+            lastPos = child.to;
+          });
         } else if (
           node.name == 'AnonymousProcedure' &&
-          (checkBlock(node.node, 'ReporterContent', doc) || checkBlock(node.node, 'ProcedureContent', doc))
+          (checkBlock(node.node, 'ReporterContent', doc, lineWidth) ||
+            checkBlock(node.node, 'ProcedureContent', doc, lineWidth))
         ) {
           // console.log(changes.length);
           for (var name of ['ProcedureContent', 'ReporterContent', 'CloseBracket']) {
@@ -291,13 +336,16 @@ const addSpacing = function (view: EditorView, from: number, to: number) {
 };
 
 /** checkBlock: checks if code block needs to be multiline. */
-const checkBlock = function (node: SyntaxNode, childName: string, doc: string) {
+const checkBlock = function (node: SyntaxNode, childName: string, doc: string, lineWidth: number) {
   let count = 0;
-  let multiline = false;
+  let multiline = doc.substring(node.from, node.to).includes('[\n');
   let multilineChildren = false;
   node.node.getChildren(childName).map((child) => {
     count += 1;
-    multiline = doc.substring(child.from, child.to).includes('\n');
+    multiline =
+      doc.substring(child.from, child.to).includes('\n') ||
+      doc.substring(child.from, child.to).length > lineWidth ||
+      multiline;
 
     child.getChildren('CommandStatement').map((node) => {
       node.getChildren('Arg').map((subnode) => {
@@ -309,5 +357,6 @@ const checkBlock = function (node: SyntaxNode, childName: string, doc: string) {
       });
     });
   });
+  // console.log(count,multiline,multilineChildren)
   return ((multiline || multilineChildren) && count == 1) || count > 1;
 };

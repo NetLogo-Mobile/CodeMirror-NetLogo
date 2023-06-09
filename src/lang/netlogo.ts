@@ -128,10 +128,10 @@ export const NetLogoLanguage = LRLanguage.define({
         //   console.log(context)
         //   return context.column(context.pos)
         // },
-        ReporterContent: delimitedIndent({ closing: '[', align: true }),
-        ReporterStatement: delimitedIndent({ closing: '[', align: true }),
-        CommandStatement: delimitedIndent({ closing: '[', align: true }),
-        ProcedureContent: delimitedIndent({ closing: '[' }),
+        ReporterContent: delimitedIndent({ closing: '[\n', align: true }),
+        ReporterStatement: delimitedIndent({ closing: '[\n', align: true }),
+        CommandStatement: delimitedIndent({ closing: '[\n', align: true }),
+        ProcedureContent: delimitedIndent({ closing: '[\n' }),
         CodeBlock: delimitedIndent({ closing: ']' }),
         AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
         Extensions: delimitedIndent({ closing: ']', align: false }),

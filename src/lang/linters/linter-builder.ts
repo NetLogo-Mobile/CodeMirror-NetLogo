@@ -38,7 +38,7 @@ const buildLinter = function (Source: Linter, Editor: GalapagosEditor): Extensio
   var Extension = linter(BuiltSource) as any;
   Extension.Source = BuiltSource;
   // Remove the default tooltip of linting. We will provide our own.
-  if (Extension[2].length == 4) {
+  if (Extension.length > 2 && Extension[2].length == 4) {
     lintState = Extension[2][0];
     Extension[2].splice(2, 1);
     console.log(Extension);
