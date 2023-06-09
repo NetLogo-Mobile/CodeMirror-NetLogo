@@ -90,7 +90,6 @@ function indent(doc: String, state: EditorState) {
     } else if (start && doc[pos] != ' ' && doc[pos] != ';') {
       end = pos;
       let indent = getIndentation(state, pos) ?? 0;
-      //console.log(indent,doc.substring(end,end+3))
       if (indent % 2 != 0) {
         indent++;
       }
@@ -100,7 +99,6 @@ function indent(doc: String, state: EditorState) {
       start = null;
     }
   }
-  //console.log(changes.length)
   return changes;
 }
 
@@ -193,7 +191,6 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
     .cursor()
     .iterate((node) => {
       if (node.from >= from && node.to <= to) {
-        // console.log(node.name)
         if (
           ((node.node.parent?.name == 'Program' && node.name != 'LineComment') ||
             node.name == 'To' ||
@@ -204,7 +201,6 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
         ) {
           changes.push({ from: node.from, to: node.from, insert: '\n' });
         } else if (node.name == 'CodeBlock' && checkBlock(node.node, 'ProcedureContent', doc, lineWidth)) {
-          console.log('HERE');
           for (var name of ['ProcedureContent', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               if (doc[child.from - 1] != '\n') {
@@ -237,13 +233,11 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
           }
           let startPos = cursor.from;
           let lastPos = cursor.to;
-          console.log('FOUND', lastPos);
           node.node.getChildren('Arg').map((child) => {
             if (
               doc.substring(lastPos, child.from).includes('\n') &&
               doc.substring(node.from, child.to).length < lineWidth
             ) {
-              console.log('found');
               changes.push({
                 from: lastPos,
                 to: child.from,
@@ -253,11 +247,6 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
               doc.substring(startPos, child.to).length > lineWidth &&
               !doc.substring(lastPos, child.to).includes('\n')
             ) {
-              console.log(
-                doc.substring(lastPos, child.from),
-                doc.substring(startPos, child.to),
-                doc.substring(startPos, child.to).length
-              );
               changes.push({
                 from: child.from,
                 to: child.from,
@@ -271,7 +260,6 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
           (checkBlock(node.node, 'ReporterContent', doc, lineWidth) ||
             checkBlock(node.node, 'ProcedureContent', doc, lineWidth))
         ) {
-          // console.log(changes.length);
           for (var name of ['ProcedureContent', 'ReporterContent', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               if (doc[child.from - 1] != '\n') {
@@ -357,6 +345,5 @@ const checkBlock = function (node: SyntaxNode, childName: string, doc: string, l
       });
     });
   });
-  // console.log(count,multiline,multilineChildren)
   return ((multiline || multilineChildren) && count == 1) || count > 1;
 };
