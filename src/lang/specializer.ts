@@ -183,9 +183,9 @@ const specializeSpecialReporter = function (token: string) {
 const specializeCommand = function (token: string) {
   token = token.toLowerCase();
 
-  if (token == 'ifelse' || token == 'if-else') {
-    return Command3ArgsVar2;
-  }
+  if (token == 'ifelse' || token == 'if-else') return Command3ArgsVar2;
+  if (token == 'create-turtles') return SpecialCommandCreateTurtle;
+  if (token == 'create-links') return SpecialCommandCreateLink;
 
   let commands = primitives.GetPrimitive('', token);
   if (commands) {

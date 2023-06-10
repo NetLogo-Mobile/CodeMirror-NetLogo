@@ -9,9 +9,7 @@
   exponent @right,
   times @left,
   plus @left,
-  comparative @left,
-  block @cut
-  unknown
+  comparative @left
 }
 
 @top Program { 
@@ -96,10 +94,6 @@ ProcedureName {
   Identifier
 }
 
-Arguments {
-  !block OpenBracket (Identifier|UnsupportedPrim)* ~statement CloseBracket 
-}
-
 ProcedureContent {
   CommandStatement |
   OpenParen CommandStatement CloseParen |
@@ -109,18 +103,6 @@ ProcedureContent {
 ReporterContent {
   ReporterStatement ~statement |
   OpenParen ReporterStatement !close CloseParen
-}
-
-AnonArguments {
-  Arguments | (Identifier|UnsupportedPrim)* ~statement
-}
-
-AnonymousProcedure {
-  !block OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) CloseBracket
-}
-
-ShortAnonymousProcedure {
-  !block OpenBracket (ProcedureContent*|ReporterContent*|Value) CloseBracket ~statement
 }
 
 VariableDeclaration {
@@ -154,8 +136,7 @@ Value {
   VariableName |
   List ~statement |
   Numeric ~statement |
-  AnonymousProcedure ~statement |
-  Bracketed ~statement
+  AnonymousProcedure ~statement
 }
 
 Literal {
@@ -164,25 +145,37 @@ Literal {
   Constant ~statement
 }
 
-Bracketed {
-  !unknown OpenBracket (Literal | List | Identifier | ProcedureContent | Bracketed)* ~statement CloseBracket
+Arguments {
+  OpenBracket (Identifier|UnsupportedPrim)* ~bebracket CloseBracket ~endbracket
+}
+
+AnonArguments {
+  Arguments | (Identifier|UnsupportedPrim)* ~bebracket
 }
 
 List {
-  !block OpenBracket (Literal | List | Identifier)* ~statement CloseBracket ~statement
+  OpenBracket (Literal | List | Identifier | ProcedureContent)* ~bebracket CloseBracket ~endbracket
 }
 
-CodeBlock {
-  !block OpenBracket ~bracket ProcedureContent* ~statement CloseBracket ~statement
+CodeBlock[@dynamicPrecedence=10] {
+  OpenBracket ProcedureContent* ~bebracket CloseBracket ~endbracket
 }
 
 ReporterBlock {
-  !block OpenBracket ReporterContent !close CloseBracket |
-  !block OpenBracket Value !close CloseBracket
+  OpenBracket ReporterContent !close ~bebracket CloseBracket ~endbracket |
+  OpenBracket Value !close ~bebracket CloseBracket ~endbracket
 }
 
 Property {
-  !block OpenBracket VariableName !close CloseBracket
+  OpenBracket VariableName !close ~bebracket CloseBracket ~endbracket
+}
+
+AnonymousProcedure {
+  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
+}
+
+ShortAnonymousProcedure {
+  OpenBracket (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
 }
 
 ReporterStatement { 
@@ -220,8 +213,8 @@ CommandStatement {
   (Command4Args | SpecialCommand4Args) Arg Arg Arg !lastArgs Arg |
   (Command5Args | SpecialCommand5Args) Arg Arg Arg Arg !lastArgs Arg |
   (Command6Args | SpecialCommand6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
-  SpecialCommandCreateTurtle Arg? !lastArgs Arg |
-  SpecialCommandCreateLink Arg? !lastArgs Arg |
+  SpecialCommandCreateTurtle Arg !lastArgs CodeBlock? |
+  SpecialCommandCreateLink Arg !lastArgs CodeBlock? |
   Command0ArgsVar !lastArgs Arg* ~statement |
   Command1ArgsVar !lastArgs Arg+ |
   Command2ArgsVar Arg !lastArgs Arg+ |

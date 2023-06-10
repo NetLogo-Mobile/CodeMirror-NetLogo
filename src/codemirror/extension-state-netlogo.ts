@@ -149,7 +149,7 @@ export class StateNetLogo {
         }
         // get procedures
         else if (Cursor.node.name == 'Procedure') {
-          let procedure = this.getProcedure(Cursor.node, State);
+          let procedure = this.processProcedure(Cursor.node, State);
           this.Procedures.set(procedure.Name, procedure);
         }
         if (!Cursor.nextSibling()) return this;
@@ -160,20 +160,8 @@ export class StateNetLogo {
     return this;
   }
 
-  private parseCommand(State: EditorState, node: SyntaxNode): Procedure {
-    let procedure = new Procedure();
-    procedure.PositionStart = node.from;
-    procedure.PositionEnd = node.to;
-    procedure.IsCommand = true;
-    procedure.Name = '⚠EmbeddedMode⚠';
-    procedure.Arguments = [];
-    procedure.Variables = this.getLocalVarsCommand(node, State);
-
-    return procedure;
-  }
-
-  /** getProcedure: Gather all information about a procedure. */
-  private getProcedure(node: SyntaxNode, State: EditorState): Procedure {
+  /** processProcedure: Gather all information about a procedure. */
+  private processProcedure(node: SyntaxNode, State: EditorState): Procedure {
     let procedure = new Procedure();
     procedure.PositionStart = node.from;
     procedure.PositionEnd = node.to;
@@ -457,6 +445,7 @@ export class StateNetLogo {
     return prim;
   }
 
+  /** getBreedContext: Get the context for a given breed. */
   private getBreedContext(breed: Breed) {
     if (breed.BreedType == BreedType.DirectedLink || breed.BreedType == BreedType.UndirectedLink) {
       return new AgentContexts('---L');
@@ -538,6 +527,7 @@ export class StateNetLogo {
     return localVars;
   }
 
+  /** getLocalVarsCommand: Collect local variables within a command statement. */
   private getLocalVarsCommand(Node: SyntaxNode, State: EditorState, isAnon?: Boolean): LocalVariable[] {
     let localVars: LocalVariable[] = [];
     Node.getChildren('CommandStatement').map((node2) => {
