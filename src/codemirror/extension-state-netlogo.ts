@@ -424,21 +424,11 @@ export class StateNetLogo {
     if (prim.breed != '') {
       prim.context = new AgentContexts('null');
       if (prim.breed != '') {
-        let breed = null;
         for (let b of this.Breeds.values()) {
           if (prim.breed.toLowerCase() == b.Singular || prim.breed.toLowerCase() == b.Plural) {
-            breed = b;
+            prim.context = this.getBreedContext(b);
+            break;
           }
-        }
-        if (breed) {
-          prim.context = this.getBreedContext(breed);
-          // if (breed.IsLinkBreed) {
-          //   prim.context = new AgentContexts('---L');
-          // } else if (breed.Singular == 'patch') {
-          //   prim.context = new AgentContexts('-TP-');
-          // } else {
-          //   prim.context = new AgentContexts('-T--');
-          // }
         }
       }
     } else {
@@ -455,7 +445,7 @@ export class StateNetLogo {
     if (breed.BreedType == BreedType.DirectedLink || breed.BreedType == BreedType.UndirectedLink) {
       return new AgentContexts('---L');
     } else if (breed.Singular == 'patch') {
-      return new AgentContexts('-TP-');
+      return new AgentContexts('--P-');
     } else {
       return new AgentContexts('-T--');
     }
