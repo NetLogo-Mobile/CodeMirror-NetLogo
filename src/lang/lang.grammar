@@ -177,11 +177,11 @@ Property {
 }
 
 AnonymousProcedure {
-  OpenBracket ~opbracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
+  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
 }
 
 ShortAnonymousProcedure {
-  OpenBracket ~opbracket (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
+  OpenBracket (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
 }
 
 ReporterStatement { 

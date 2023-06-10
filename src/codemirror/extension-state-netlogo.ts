@@ -446,9 +446,7 @@ export class StateNetLogo {
       prim.context = primitive?.BlockContext ?? new AgentContexts('null');
       prim.inheritParentContext = primitive?.InheritParentContext ?? false;
     }
-    if (noContext(prim.context)) {
-      Log('No available context: ' + JSON.stringify(prim));
-    }
+    if (noContext(prim.context)) Log('No available context: ' + prim.name);
     return prim;
   }
 
