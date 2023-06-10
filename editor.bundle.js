@@ -28491,9 +28491,8 @@ if(!String.prototype.matchAll) {
                 prim.context = (_d = primitive === null || primitive === void 0 ? void 0 : primitive.BlockContext) !== null && _d !== void 0 ? _d : new AgentContexts('null');
                 prim.inheritParentContext = (_e = primitive === null || primitive === void 0 ? void 0 : primitive.InheritParentContext) !== null && _e !== void 0 ? _e : false;
             }
-            if (noContext(prim.context)) {
-                Log('No available context: ' + JSON.stringify(prim));
-            }
+            if (noContext(prim.context))
+                Log('No available context: ' + prim.name);
             return prim;
         }
         /** getBreedContext: Get the context for a given breed. */
