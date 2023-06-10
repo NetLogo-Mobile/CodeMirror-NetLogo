@@ -32,27 +32,25 @@ export declare class StateNetLogo {
     GetDirty(): boolean;
     /** ParseState: Parse the state from an editor state. */
     ParseState(State: EditorState): StateNetLogo;
-    /** processProcedure: Gather all information about a procedure. */
-    private processProcedure;
+    /** gatherProcedure: Gather all information about a procedure. */
+    private gatherProcedure;
     /** getContext: Identify context of a block by looking at primitives and variable names. */
     private getContext;
     private getContextCommandStatement;
     /** getPrimitiveContext: Identify context for a builtin primitive. */
     private getPrimitiveContext;
-    /** getCodeBlocks: Gather all information about a given code block. */
-    private getCodeBlocks;
+    /** gatherCodeBlocks: Gather all information about a given code block. */
+    private gatherCodeBlocks;
     /** getPrimitive: Gather information about the primitive whose argument is a code block. */
     private getPrimitive;
     /** getBreedContext: Get the context for a given breed. */
     private getBreedContext;
     /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */
-    private searchAnonProcedure;
+    private gatherAnonProcedures;
     /** checkRanges: Identify whether a node is inside the set of procedures or code blocks. */
     private checkRanges;
-    /** getAnonProcedure: Gather information about the anonymous procedure. */
-    private getAnonProcedure;
-    /** getText: Get text for a given node. */
-    private getText;
+    /** getAnonProcedure: Gather information about an anonymous procedure. */
+    private gatherAnonProcedure;
     /** getLocalVars: Collect local variables within a node. */
     private getLocalVars;
     /** getLocalVarsCommand: Collect local variables within a command statement. */

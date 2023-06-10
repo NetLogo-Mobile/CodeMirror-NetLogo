@@ -1,8 +1,8 @@
 import { EditorView } from '@codemirror/view';
-import { StateNetLogo } from '../../../codemirror/extension-state-netlogo';
+import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { EditorState } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
-import { LintContext, PreprocessContext } from '../../classes/contexts';
+import { LintContext, PreprocessContext } from '../classes/contexts';
 /** CheckContext: The context of the current check. */
 export interface CheckContext {
     state: EditorState;
@@ -14,5 +14,5 @@ export interface CheckContext {
 export declare const getCheckContext: (view: EditorView, lintContext: LintContext, preprocessContext: PreprocessContext) => CheckContext;
 export declare const acceptableIdentifiers: string[];
 export declare const checkValidIdentifier: (Node: SyntaxNode, value: string, context: CheckContext) => boolean;
-export declare const getLocalVars: (Node: SyntaxNode, state: EditorState, parseState: LintContext | StateNetLogo) => string[];
+export declare const getLocalVariables: (Node: SyntaxNode, State: EditorState, parseState: LintContext | StateNetLogo) => string[];
 //# sourceMappingURL=check-identifier.d.ts.map
