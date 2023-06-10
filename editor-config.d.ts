@@ -23,6 +23,8 @@ export interface EditorConfig {
     OnFocused?: (View: EditorView) => void;
     /** OnBlurred: Handle the blurred event. */
     OnBlurred?: (View: EditorView) => void;
+    /** OnExplain: Triggers when a linting tooltip needs explanation. */
+    OnExplain?: (Message: string, Context: string) => void;
     /** OnDictionaryClick: Triggers when a dictionary tooltip is clicked. */
     OnDictionaryClick?: (Key: string) => void;
 }

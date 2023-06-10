@@ -1,3 +1,6 @@
 /** Log: Log to console if debug is enabled. */
-export declare function Log(...args: any[]): void;
+export declare const Log: {
+    (...data: any[]): void;
+    (message?: any, ...optionalParams: any[]): void;
+};
 //# sourceMappingURL=debug-utils.d.ts.map

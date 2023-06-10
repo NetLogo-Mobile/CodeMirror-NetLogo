@@ -34,8 +34,6 @@ export declare class GalapagosEditor {
     readonly Semantics: SemanticFeatures;
     /** Operations: The code editing features of this editor. */
     readonly Operations: CodeEditing;
-    /** DebugEnabled: Whether the debug output is enabled. */
-    static DebugEnabled: boolean;
     /** LineWidth: The width of the line, used for prettying. */
     readonly LineWidth: number;
     /** Constructor: Create an editor instance. */

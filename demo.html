@@ -15,6 +15,9 @@
           OnUpdate: (Changed, Update) => {
             if (Changed) console.log(Update);
           },
+          OnExplain: (Message, Context) => {
+            console.log(Message, Context);
+          },
         });
         EditorDictionary.Initialize({});
         Editor.SetWidgetVariables([
