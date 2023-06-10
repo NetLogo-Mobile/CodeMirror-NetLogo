@@ -135,6 +135,7 @@ Value {
   Constant ~statement |
   VariableName |
   List ~statement |
+  Bracketed ~statement |
   Numeric ~statement |
   AnonymousProcedure ~statement
 }
@@ -153,8 +154,12 @@ AnonArguments {
   Arguments | (Identifier|UnsupportedPrim)* ~bebracket
 }
 
-List {
-  OpenBracket (Literal | List | Identifier | ProcedureContent)* ~bebracket CloseBracket ~endbracket
+Bracketed {
+  OpenBracket (List | Literal | Identifier | ProcedureContent | Bracketed)* ~bebracket CloseBracket ~endbracket
+}
+
+List[@dynamicPrecedence=10] {
+  OpenBracket (List | Literal | Identifier)* ~bebracket CloseBracket ~endbracket
 }
 
 CodeBlock[@dynamicPrecedence=10] {
