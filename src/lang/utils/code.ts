@@ -3,9 +3,8 @@ import { EditorState } from '@codemirror/state';
 
 /* getNodeContext: Gets the context code snippet of the node. */
 export const getNodeContext = function (State: EditorState, Node: SyntaxNode) {
-  let curr_node = Node;
-  while (curr_node.parent) {
-    curr_node = curr_node.parent;
+  let curr_node: SyntaxNode | null = Node;
+  while (curr_node) {
     // We consider a procedure or a global statement as a proper context scope.
     if (
       curr_node.name == 'Procedure' ||
@@ -15,6 +14,7 @@ export const getNodeContext = function (State: EditorState, Node: SyntaxNode) {
       curr_node.name == 'BreedsOwn'
     )
       return State.sliceDoc(curr_node.from, curr_node.to);
+    curr_node = curr_node.parent;
   }
   return State.sliceDoc(Node.from, Node.to);
 };

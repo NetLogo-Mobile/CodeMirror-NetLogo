@@ -14,13 +14,13 @@
 
 @top Program { 
   Normal {
-    (globalStatement | Misplaced ~statement | Procedure)*
+    (globalStatement | Misplaced | Procedure)* ~global
   } |
   OnelineReporter {
-    ReporterStatement | Value
+    (ReporterStatement | Value) ~global
   } |
   Embedded {
-    (CommandStatement ~statement | OpenParen CommandStatement CloseParen)+
+    (CommandStatement | OpenParen CommandStatement CloseParen | ReporterStatement | Value)+ ~global
   }
 }
 
