@@ -28770,14 +28770,16 @@ if(!String.prototype.matchAll) {
     /** getDiagnostic: Returns a diagnostic object from a node and message. */
     const getDiagnostic = function (view, node, message, severity = 'error', ...values) {
         var value = view.state.sliceDoc(node.from, node.to).trim();
-        // Cut short the value if it's too long
-        if (value.length >= 20)
-            value = value.substring(0, 17) + '...';
-        if (values.length == 0)
+        var length = value.length;
+        if (values.length == 0) {
+            // Cut short the value if it's too long
+            if (value.length >= 20)
+                value = value.substring(0, 17) + '...';
             values.push(value);
+        }
         return {
             from: node.from,
-            to: node.from + value.length,
+            to: node.from + length,
             severity: severity,
             message: Localized.Get(message, ...values),
         };
