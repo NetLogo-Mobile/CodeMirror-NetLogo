@@ -337,7 +337,7 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
     changes.push({
       from: procedureStart ?? state.doc.toString().length,
       to: procedureStart ?? state.doc.toString().length,
-      insert: 'to play\n' + intoProcedure.join('\n') + '\nend\n\n',
+      insert: '\nto play\n' + intoProcedure.join('\n') + '\nend\n\n',
     });
   }
   // Log("CHANGES",changes)
