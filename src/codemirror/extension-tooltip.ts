@@ -5,6 +5,7 @@ import { GalapagosEditor, Localized } from '../editor';
 import { getLintState } from '../lang/linters/linter-builder';
 import elt from 'crelt';
 import { getTooltip } from '../lang/tooltip';
+import { explainAction } from '../lang/utils/actions';
 
 /** buildToolTips: Extension for displaying language-specific & linting tooltips. */
 export const buildToolTips = (Editor: GalapagosEditor) => {
@@ -19,15 +20,19 @@ function getTooltips(view: EditorView, pos: number, side: -1 | 1, editor: Galapa
   let found: Diagnostic[] = [],
     stackStart = 2e8,
     stackEnd = 0;
-
+  // Find all diagnostics that touch this point
   diagnostics.between(pos - (side < 0 ? 1 : 0), pos + (side > 0 ? 1 : 0), (from, to, { spec }) => {
     if (pos >= from && pos <= to && (from == to || ((pos > from || side > 0) && (pos < to || side < 0)))) {
-      found.push(spec.diagnostic);
+      var diagnostic = spec.diagnostic as Diagnostic;
+      diagnostic.actions = diagnostic.actions ?? [];
+      if (diagnostic.actions.length === 0 && editor.Options.OnExplain)
+        explainAction(diagnostic, editor.Options.OnExplain);
+      found.push(diagnostic);
       stackStart = Math.min(from, stackStart);
       stackEnd = Math.max(to, stackEnd);
     }
   });
-
+  // If there are none, try to find a proper tooltip
   if (found.length == 0) {
     var tooltip = getTooltip(view, pos, pos, editor);
     if (!tooltip) return null;
@@ -35,7 +40,7 @@ function getTooltips(view: EditorView, pos: number, side: -1 | 1, editor: Galapa
     stackEnd = tooltip.to;
     found.push(tooltip);
   }
-
+  // Build up the tooltip DOM element
   return {
     pos: stackStart,
     end: stackEnd,

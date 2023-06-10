@@ -29,6 +29,7 @@ import { EditingFeatures } from './features/editing';
 import { SelectionFeatures } from './features/selection';
 import { SemanticFeatures } from './features/semantics';
 import { CodeEditing } from './lang/services/code-editing';
+import { Log } from './utils/debug-utils';
 
 /** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
@@ -52,8 +53,6 @@ export class GalapagosEditor {
   public readonly Semantics: SemanticFeatures;
   /** Operations: The code editing features of this editor. */
   public readonly Operations: CodeEditing;
-  /** DebugEnabled: Whether the debug output is enabled. */
-  public static DebugEnabled: boolean;
   /** LineWidth: The width of the line, used for prettying. */
   public readonly LineWidth: number = 50;
 

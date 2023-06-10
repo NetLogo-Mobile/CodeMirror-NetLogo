@@ -129,19 +129,26 @@ VariableName {
   UnsupportedPrim ~statement
 }
 
+Arg {  
+  Value ~statement |
+  ReporterContent ~statement |
+  ReporterBlock |
+  Property
+}
+
 Value {
   OpenParen !open Value !close CloseParen |
+  List |
+  CodeBlock |
   VariableName |
-  List ~statement |
-  Bracketed ~statement |
   Literal |
-  AnonymousProcedure ~statement
+  AnonymousProcedure
 }
 
 Literal {
-  Numeric ~statement |
-  String ~statement |
-  Constant ~statement
+  Numeric ~literal |
+  String ~literal |
+  Constant ~literal
 }
 
 Arguments {
@@ -152,16 +159,12 @@ AnonArguments {
   Arguments | (Identifier|UnsupportedPrim)* ~bebracket
 }
 
-Bracketed {
-  OpenBracket (List | Literal | Identifier | ProcedureContent | Bracketed)* ~bebracket CloseBracket ~endbracket
-}
-
-List[@dynamicPrecedence=10] {
+List { 
   OpenBracket (List | Literal | Identifier)* ~bebracket CloseBracket ~endbracket
 }
 
-CodeBlock[@dynamicPrecedence=10] {
-  OpenBracket ProcedureContent* ~bebracket CloseBracket ~endbracket
+CodeBlock[@dynamicPrecedence=-1] { 
+  OpenBracket (List | CodeBlock | ProcedureContent | Literal | Identifier)* ~bebracket CloseBracket ~endbracket
 }
 
 ReporterBlock {
@@ -174,11 +177,11 @@ Property {
 }
 
 AnonymousProcedure {
-  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
+  OpenBracket ~opbracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
 }
 
 ShortAnonymousProcedure {
-  OpenBracket (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
+  OpenBracket ~opbracket (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
 }
 
 ReporterStatement { 
@@ -216,8 +219,8 @@ CommandStatement {
   (Command4Args | SpecialCommand4Args) Arg Arg Arg !lastArgs Arg |
   (Command5Args | SpecialCommand5Args) Arg Arg Arg Arg !lastArgs Arg |
   (Command6Args | SpecialCommand6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
-  SpecialCommandCreateTurtle Arg !lastArgs Arg? |
-  SpecialCommandCreateLink Arg !lastArgs Arg? |
+  Turtle[@dynamicPrecedence=10] { SpecialCommandCreateTurtle Arg !lastArgs Arg? } |
+  Link[@dynamicPrecedence=10] { SpecialCommandCreateLink Arg !lastArgs Arg? } |
   Command0ArgsVar !lastArgs Arg* ~statement |
   Command1ArgsVar !lastArgs Arg+ |
   Command2ArgsVar Arg !lastArgs Arg+ |
@@ -228,14 +231,6 @@ CommandStatement {
   VariableDeclaration |
   Unsupported |
   APCommand !leftArgs Arg+ !lastArgs Commands
-}
-
-Arg {  
-  CodeBlock | 
-  Value ~statement |
-  ReporterContent ~statement |
-  ReporterBlock |
-  Property
 }
 
 Commands {

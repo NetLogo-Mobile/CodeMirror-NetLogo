@@ -6,6 +6,7 @@ import { Breed, BreedType } from '../classes/structures';
 import { CheckContext, checkValidIdentifier, getCheckContext } from '../utils/check-identifier';
 import { getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
 import { addBreedAction } from '../utils/actions';
+import { getCodeName } from '../utils/code';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -28,13 +29,13 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
         noderef.name == 'Own'
       ) {
         //console.log(lintContext)
-        const Node = noderef.node;
-        const value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
-        let result = checkValidBreed(Node, value, context, breeds);
+        const node = noderef.node;
+        const value = getCodeName(view.state, node);
+        let result = checkValidBreed(node, value, context, breeds);
         if (!result.isValid) {
           let breed_result = getBreedName(value);
           let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', value);
-          if (result.make_new_breed) {
+          if (result.newBreed) {
             let plural = '';
             let singular = '';
             if (result.isPlural) {
@@ -46,6 +47,7 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
             }
             addBreedAction(diagnostic, result.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
           }
+          diagnostics.push(diagnostic);
         }
       }
     });
@@ -60,7 +62,7 @@ const checkValidBreed = function (node: SyntaxNode, value: string, context: Chec
     isValid: true,
     isPlural: false,
     isLink: false,
-    make_new_breed: true,
+    newBreed: true,
   };
   //console.log(breeds)
   //collect possible breed names in the correct categories
@@ -109,7 +111,7 @@ const checkValidBreed = function (node: SyntaxNode, value: string, context: Chec
     result.isLink = true;
     result.isPlural = true;
   } else {
-    result.make_new_breed = false;
+    result.newBreed = false;
   }
   // some procedure names I've come across accidentally use the structure of a
   // breed command/reporter, e.g. ___-with, so this makes sure it's not a procedure name

@@ -3,6 +3,8 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { BreedType } from '../classes/structures';
 import { CodeEditing } from '../services/code-editing';
+import { getNodeContext } from './code';
+import { syntaxTree } from '@codemirror/language';
 
 /** addBreedAction: Add an adding a breed action. */
 export const addBreedAction = function (
@@ -41,7 +43,7 @@ export const addGlobalsAction = function (
   return diagnostic;
 };
 
-/** RemoveAction: Add an removing the snippet action. */
+/** removeAction: Add an removing the snippet action. */
 export const removeAction = function (diagnostic: Diagnostic): Diagnostic {
   diagnostic.actions = [
     ...(diagnostic.actions ?? []),
@@ -49,6 +51,24 @@ export const removeAction = function (diagnostic: Diagnostic): Diagnostic {
       name: Localized.Get('Remove'),
       apply(view: EditorView, from: number, to: number) {
         view.dispatch({ changes: { from, to, insert: '' } });
+      },
+    },
+  ];
+  return diagnostic;
+};
+
+/** explainAction: Add an explain the linting message action. */
+export const explainAction = function (
+  diagnostic: Diagnostic,
+  callback: (Message: string, Context: string) => void
+): Diagnostic {
+  diagnostic.actions = [
+    ...(diagnostic.actions ?? []),
+    {
+      name: Localized.Get('Explain'),
+      apply(view: EditorView, from: number, to: number) {
+        var node = syntaxTree(view.state).resolve(from, -1);
+        callback(diagnostic.message, getNodeContext(view.state, node)!);
       },
     },
   ];

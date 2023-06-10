@@ -30,7 +30,6 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
             let breedinfo = getBreedName(value);
             Log(breedinfo);
             if (!context.breedNames.includes(breedinfo.breed)) {
-              let actions: any[] = [];
               let plural = '';
               let singular = '';
               let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', breedinfo.breed);
@@ -47,6 +46,7 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
                 plural,
                 singular
               );
+              diagnostics.push(diagnostic);
             }
           }
         }

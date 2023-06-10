@@ -330,7 +330,7 @@ export class StateNetLogo {
     return prim_data?.AgentContext;
   }
 
-  /** gatherCodeBlocks: Gather all information about a given code block. */
+  /** gatherCodeBlocks: Gather all information about code blocks inside a given node. */
   private gatherCodeBlocks(
     node: SyntaxNode,
     state: EditorState,
@@ -338,46 +338,49 @@ export class StateNetLogo {
     vars: LocalVariable[],
     args: string[]
   ) {
-    let blocks: CodeBlock[] = [];
+    var blocks: CodeBlock[] = [];
     node.cursor().iterate((noderef) => {
-      if (noderef.node.to > node.to) {
-        return false;
-      }
-      if (noderef.name == 'Arg') {
+      if (noderef.node.to > node.to) return false;
+      if (noderef.name == 'Value')
         noderef.node.getChildren('CodeBlock').map((child) => {
-          if (!this.checkRanges(blocks, child)) {
-            let block = new CodeBlock();
-            let prim = this.getPrimitive(noderef.node, state);
-            block.Primitive = prim.name;
-            block.PositionStart = child.from;
-            block.PositionEnd = child.to;
-            block.InheritParentContext = prim.inheritParentContext;
-            let originalContext = noContext(prim.context) ? parentContext : prim.context;
-            block.Context = this.getContext(child, state, originalContext);
-            // if (noContext(block.Context)) {
-            //   console.log(
-            //     parentContext,
-            //     prim.context,
-            //     noContext(prim.context) ? parentContext : prim.context,
-            //     this.getContext(child, state)
-            //   );
-            // }
-            block.Variables = vars.concat(this.getLocalVars(child.node, state, true));
-            block.Arguments = args;
-            block.CodeBlocks = this.gatherCodeBlocks(
-              child.node,
-              state,
-              block.Context,
-              block.Variables,
-              block.Arguments
-            );
-            block.Breed = prim.breed;
-            blocks.push(block);
-          }
+          this.gatherCodeBlock(child, state, blocks, parentContext, vars, args);
         });
-      }
     });
     return blocks;
+  }
+
+  /** gatherCodeBlocks: Gather all information about a given code block. */
+  private gatherCodeBlock(
+    node: SyntaxNode,
+    state: EditorState,
+    blocks: CodeBlock[],
+    parentContext: AgentContexts,
+    vars: LocalVariable[],
+    args: string[]
+  ) {
+    if (this.checkRanges(blocks, node)) return;
+    let block = new CodeBlock();
+    // Now it looks like Args/Value/CodeBlock
+    let prim = this.getPrimitive(node.parent!.node.parent!.node, state);
+    block.Primitive = prim.name;
+    block.PositionStart = node.from;
+    block.PositionEnd = node.to;
+    block.InheritParentContext = prim.inheritParentContext;
+    let originalContext = noContext(prim.context) ? parentContext : prim.context;
+    block.Context = this.getContext(node, state, originalContext);
+    // if (noContext(block.Context)) {
+    //   console.log(
+    //     parentContext,
+    //     prim.context,
+    //     noContext(prim.context) ? parentContext : prim.context,
+    //     this.getContext(child, state)
+    //   );
+    // }
+    block.Variables = vars.concat(this.getLocalVars(node.node, state, true));
+    block.Arguments = args;
+    block.Breed = prim.breed;
+    block.CodeBlocks = this.gatherCodeBlocks(node, state, block.Context, block.Variables, block.Arguments);
+    blocks.push(block);
   }
 
   /** getPrimitive: Gather information about the primitive whose argument is a code block. */
@@ -444,7 +447,7 @@ export class StateNetLogo {
       prim.inheritParentContext = primitive?.InheritParentContext ?? false;
     }
     if (noContext(prim.context)) {
-      Log('No available context: ' + prim);
+      Log('No available context: ' + JSON.stringify(prim));
     }
     return prim;
   }
