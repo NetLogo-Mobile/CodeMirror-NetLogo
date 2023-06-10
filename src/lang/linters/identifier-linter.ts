@@ -3,9 +3,9 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter, getDiagnostic } from './linter-builder';
 import { checkBreedLike, getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
-import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
+import { checkValidIdentifier, getCheckContext } from '../utils/check-identifier';
 import { Log } from '../../utils/debug-utils';
-import { addBreedAction } from './utils/actions';
+import { addBreedAction } from '../utils/actions';
 import { BreedType } from '../classes/structures';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'

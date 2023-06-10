@@ -2,7 +2,7 @@ import { directives, turtleVars, patchVars, linkVars, constants } from '../keywo
 import { Completion, CompletionSource, CompletionContext, CompletionResult } from '@codemirror/autocomplete';
 import { syntaxTree } from '@codemirror/language';
 import { PrimitiveManager } from '../primitives/primitives';
-import { getLocalVars } from '../linters/utils/check-identifier';
+import { getLocalVariables } from '../utils/check-identifier';
 import { GalapagosEditor } from '../../editor';
 import { BreedType } from '../classes/structures';
 import { ParseMode } from '../../editor-config';
@@ -217,7 +217,7 @@ export class AutoCompletion {
         });
       }
       // Valid local variables
-      results.push(...this.KeywordsToCompletions(getLocalVars(node, Context.state, context), 'Variable-Local'));
+      results.push(...this.KeywordsToCompletions(getLocalVariables(node, Context.state, context), 'Variable-Local'));
       return { from, options: results };
     }
 

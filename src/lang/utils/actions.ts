@@ -1,8 +1,8 @@
 import { EditorView } from '@codemirror/view';
 import { Diagnostic } from '@codemirror/lint';
-import { Localized } from '../../../editor';
-import { BreedType } from '../../classes/structures';
-import { CodeEditing } from '../../services/code-editing';
+import { Localized } from '../../editor';
+import { BreedType } from '../classes/structures';
+import { CodeEditing } from '../services/code-editing';
 
 /** addBreedAction: Add an adding a breed action. */
 export const addBreedAction = function (

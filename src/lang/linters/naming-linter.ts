@@ -3,11 +3,11 @@ import { Diagnostic } from '@codemirror/lint';
 import { Linter, getDiagnostic } from './linter-builder';
 import { BreedType } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
-import { getLocalVars } from './utils/check-identifier';
+import { getLocalVariables } from '../utils/check-identifier';
 import { PrimitiveManager } from '../primitives/primitives';
 import { turtleVars, patchVars, linkVars } from '../keywords';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
-import { removeAction } from './utils/actions';
+import { removeAction } from '../utils/actions';
 
 let primitives = PrimitiveManager;
 
@@ -117,7 +117,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
         // Since the new variable definition is typically few, not a high priority
         let child = noderef.node.getChild('Identifier') ?? noderef.node.getChild('UnsupportedPrim');
         if (!child) return;
-        let localvars = getLocalVars(child, view.state, lintContext);
+        let localvars = getLocalVariables(child, view.state, lintContext);
         NameCheck(child, 'Local variable', localvars);
       } else if (noderef.name == 'Arguments') {
         let current: string[] = [];
@@ -125,7 +125,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
           let parent = noderef.node.parent.parent;
           if (parent) {
             let prev_node = parent?.cursor().moveTo(parent.from - 2).node;
-            current = getLocalVars(prev_node, view.state, lintContext);
+            current = getLocalVariables(prev_node, view.state, lintContext);
           }
         }
         for (var key of ['Identifier', 'UnsupportedPrim']) {

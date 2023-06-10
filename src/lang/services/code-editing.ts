@@ -3,7 +3,7 @@ import { EditorView } from '@codemirror/view';
 import { ChangeSpec } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
 import { BreedType } from '../classes/structures';
-import { GetCursorInsideMode, GetCursorUntilMode } from '../linters/utils/cursors';
+import { GetCursorInsideMode, GetCursorUntilMode } from '../utils/cursors';
 import { GalapagosEditor } from '../../editor';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 import { getSingularName } from '../../utils/breed-utils';

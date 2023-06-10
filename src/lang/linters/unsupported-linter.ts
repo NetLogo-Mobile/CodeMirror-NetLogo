@@ -3,7 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
 import { unsupported } from '../keywords';
-import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
+import { checkValidIdentifier, getCheckContext } from '../utils/check-identifier';
 
 // UnsupportedLinter: Checks for unsupported primitives
 // Important note: anything with a colon and no supported extension is tokenized as

@@ -3,9 +3,9 @@ import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
 import { Linter, getDiagnostic } from './linter-builder';
 import { Breed, BreedType } from '../classes/structures';
-import { CheckContext, checkValidIdentifier, getCheckContext } from './utils/check-identifier';
+import { CheckContext, checkValidIdentifier, getCheckContext } from '../utils/check-identifier';
 import { getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
-import { addBreedAction } from './utils/actions';
+import { addBreedAction } from '../utils/actions';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
 export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {

@@ -216,8 +216,8 @@ CommandStatement {
   (Command4Args | SpecialCommand4Args) Arg Arg Arg !lastArgs Arg |
   (Command5Args | SpecialCommand5Args) Arg Arg Arg Arg !lastArgs Arg |
   (Command6Args | SpecialCommand6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
-  SpecialCommandCreateTurtle Arg !lastArgs CodeBlock? |
-  SpecialCommandCreateLink Arg !lastArgs CodeBlock? |
+  SpecialCommandCreateTurtle Arg !lastArgs Arg? |
+  SpecialCommandCreateLink Arg !lastArgs Arg? |
   Command0ArgsVar !lastArgs Arg* ~statement |
   Command1ArgsVar !lastArgs Arg+ |
   Command2ArgsVar Arg !lastArgs Arg+ |

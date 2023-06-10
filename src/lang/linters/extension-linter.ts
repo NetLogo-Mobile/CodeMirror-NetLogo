@@ -3,9 +3,9 @@ import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter, getDiagnostic } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
-import { checkValidIdentifier, getCheckContext } from './utils/check-identifier';
+import { checkValidIdentifier, getCheckContext } from '../utils/check-identifier';
 import { SyntaxNode } from '@lezer/common';
-import { addGlobalsAction } from './utils/actions';
+import { addGlobalsAction } from '../utils/actions';
 
 let primitives = PrimitiveManager;
 
