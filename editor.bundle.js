@@ -32575,7 +32575,7 @@ if(!String.prototype.matchAll) {
             changes.push({
                 from: procedureStart !== null && procedureStart !== void 0 ? procedureStart : state.doc.toString().length,
                 to: procedureStart !== null && procedureStart !== void 0 ? procedureStart : state.doc.toString().length,
-                insert: 'to play\n' + intoProcedure.join('\n') + '\nend\n\n',
+                insert: '\nto play\n' + intoProcedure.join('\n') + '\nend\n\n',
             });
         }
         // Log("CHANGES",changes)
