@@ -131,18 +131,16 @@ VariableName {
 
 Value {
   OpenParen !open Value !close CloseParen |
-  String ~statement |
-  Constant ~statement |
   VariableName |
   List ~statement |
   Bracketed ~statement |
-  Numeric ~statement |
+  Literal |
   AnonymousProcedure ~statement
 }
 
 Literal {
-  Numeric ~statement|
-  String ~statement|
+  Numeric ~statement |
+  String ~statement |
   Constant ~statement
 }
 
