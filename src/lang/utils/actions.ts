@@ -60,7 +60,7 @@ export const removeAction = function (diagnostic: Diagnostic): Diagnostic {
 /** explainAction: Add an explain the linting message action. */
 export const explainAction = function (
   diagnostic: Diagnostic,
-  callback: (Message: string, Context: string) => void
+  callback: (Diagnostic: Diagnostic, Context: string) => void
 ): Diagnostic {
   diagnostic.actions = [
     ...(diagnostic.actions ?? []),
@@ -68,7 +68,7 @@ export const explainAction = function (
       name: Localized.Get('Explain'),
       apply(view: EditorView, from: number, to: number) {
         var node = syntaxTree(view.state).resolve(from, -1);
-        callback(diagnostic.message, getNodeContext(view.state, node)!);
+        callback(diagnostic, getNodeContext(view.state, node)!);
       },
     },
   ];
