@@ -29409,7 +29409,7 @@ if(!String.prototype.matchAll) {
                 name: Localized.Get('Explain'),
                 apply(view, from, to) {
                     var node = syntaxTree(view.state).resolve(from, -1);
-                    callback(diagnostic.message, getNodeContext(view.state, node));
+                    callback(diagnostic, getNodeContext(view.state, node));
                 },
             },
         ];

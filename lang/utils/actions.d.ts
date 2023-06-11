@@ -7,5 +7,5 @@ export declare const addGlobalsAction: (diagnostic: Diagnostic, type: 'Globals' 
 /** removeAction: Add an removing the snippet action. */
 export declare const removeAction: (diagnostic: Diagnostic) => Diagnostic;
 /** explainAction: Add an explain the linting message action. */
-export declare const explainAction: (diagnostic: Diagnostic, callback: (Message: string, Context: string) => void) => Diagnostic;
+export declare const explainAction: (diagnostic: Diagnostic, callback: (Diagnostic: Diagnostic, Context: string) => void) => Diagnostic;
 //# sourceMappingURL=actions.d.ts.map
