@@ -40,6 +40,8 @@ const zh_cn: Record<string, Function> = {
   'Infinite loop _': (Name: string) => `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
   'Argument is reserved _': (Name: string) => `参数名称 "${Name}" 和 NetLogo 的关键字重复了。你想换一个名字吗？`,
   'Argument is invalid _': (Name: string) => `参数名称 "${Name}" 不可用。你想换一个名字吗？`,
+  'Inconsistent code block type _': (Prior: string, New: string) =>
+    `The code block type "${New}" does not match the preceding code block type "${Prior}".`,
 
   // Agent types and basic names
   Observer: () => '观察者',

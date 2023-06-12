@@ -55,6 +55,8 @@ const en_us: Record<string, Function> = {
   'Argument is reserved _': (Name: string) =>
     `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
   'Argument is invalid _': (Name: string) => `The argument "${Name}" is invalid. Do you want to replace it?`,
+  'Inconsistent code block type _': (Prior: string, New: string) =>
+    `The code block type "${New}" does not match the preceding code block type "${Prior}".`,
 
   // Agent types and basic names
   Observer: () => 'Observer',

@@ -9,6 +9,7 @@ import { NamingLinter } from './naming-linter';
 import { BracketLinter } from './bracket-linter';
 import { ModeLinter } from './mode-linter';
 import { ContextLinter } from './context-linter';
+import { CodeBlockLinter } from './codeblock-linter';
 
 export const netlogoLinters = [
   UnrecognizedLinter,
@@ -22,4 +23,5 @@ export const netlogoLinters = [
   BracketLinter,
   ModeLinter,
   ContextLinter,
+  CodeBlockLinter,
 ];
