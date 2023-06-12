@@ -7,6 +7,7 @@ import { checkValidIdentifier, getCheckContext } from '../utils/check-identifier
 import { Log } from '../../utils/debug-utils';
 import { addBreedAction } from '../utils/actions';
 import { BreedType } from '../classes/structures';
+import { stateExtension } from 'dist/codemirror/extension-state-netlogo';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) => {

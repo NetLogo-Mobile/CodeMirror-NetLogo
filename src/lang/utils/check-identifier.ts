@@ -1,5 +1,5 @@
 import { EditorView } from '@codemirror/view';
-import { StateNetLogo } from '../../codemirror/extension-state-netlogo';
+import { stateExtension, StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { EditorState } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
 import { CodeBlock, Procedure } from '../classes/structures';
@@ -76,11 +76,21 @@ export const getLocalVariables = function (
   parseState: LintContext | StateNetLogo
 ) {
   let procedureVars: string[] = [];
+  let procedure = null;
   // get the procedure name
   var procedureName = getParentProcedure(State, Node)!;
-  if (!procedureName) return [];
+  if (procedureName) {
+    procedure = parseState.Procedures.get(procedureName.toLowerCase());
+  }
+
+  if (State.field(stateExtension).EditorID != 0) {
+    for (var p of parseState.Procedures.values()) {
+      if (p.EditorID == State.field(stateExtension).EditorID) {
+        procedure = p;
+      }
+    }
+  }
   // gets list of procedure variables from own procedure, as well as list of all procedure names
-  let procedure = parseState.Procedures.get(procedureName.toLowerCase());
   if (!procedure) return procedureVars;
   procedure.Variables.map((variable) => {
     // makes sure the variable has already been created

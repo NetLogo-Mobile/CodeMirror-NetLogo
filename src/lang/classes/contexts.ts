@@ -50,6 +50,7 @@ export class LintContext {
     this.Procedures.clear();
     return this;
   }
+
   /** GetBreedNames: Get names related to breeds. */
   public GetBreedNames(): string[] {
     var breedNames: string[] = [];

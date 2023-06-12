@@ -46,6 +46,8 @@ export class StateNetLogo {
   public RecognizedMode: 'Unknown' | 'Model' | 'Command' | 'Reporter' = 'Unknown';
   /** ContextErrors: Context errors detected during processing. */
   public ContextErrors: ContextError[] = [];
+  /** EditorID: The id of the editor. */
+  public EditorID: number = 0;
   // #endregion
 
   // #region "Version Control"
@@ -58,6 +60,10 @@ export class StateNetLogo {
     return this.IsDirty;
   }
   // #endregion
+
+  public setID(id: number) {
+    this.EditorID = id;
+  }
 
   // #region "Parsing"
   /** ParseState: Parse the state from an editor state. */
@@ -156,9 +162,33 @@ export class StateNetLogo {
         if (!Cursor.nextSibling()) return this;
       }
     } else if (this.RecognizedMode == 'Command') {
-      let procedure = [];
+      let procedure = this.gatherEmbeddedProcedure(Cursor.node, State);
+      this.Procedures.set(procedure.Name, procedure);
     }
     return this;
+  }
+
+  /** gatherProcedure: Gather all information about a procedure in embedded mode. */
+  private gatherEmbeddedProcedure(node: SyntaxNode, State: EditorState): Procedure {
+    let procedure = new Procedure();
+    procedure.PositionStart = node.from;
+    procedure.PositionEnd = node.to;
+
+    procedure.IsCommand = true;
+    procedure.Name = '⚠EmbeddedProcedure⚠';
+
+    procedure.Arguments = [];
+    procedure.Variables = this.getLocalVarsCommand(node, State, false);
+    procedure.AnonymousProcedures = this.gatherAnonProcedures(node, State, procedure);
+    procedure.Context = this.getContext(node, State);
+    procedure.CodeBlocks = this.gatherCodeBlocks(
+      node,
+      State,
+      procedure.Context,
+      procedure.Variables,
+      procedure.Arguments
+    );
+    return procedure;
   }
 
   /** gatherProcedure: Gather all information about a procedure. */

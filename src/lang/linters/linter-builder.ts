@@ -38,7 +38,7 @@ const buildLinter = function (Source: Linter, Editor: GalapagosEditor): Extensio
   var Extension = linter(BuiltSource) as any;
   Extension.Source = BuiltSource;
   // Remove the default tooltip of linting. We will provide our own.
-  if (Extension.length > 2 && Extension[2].length == 4) {
+  if (Extension[2].length == 4) {
     lintState = Extension[2][0];
     Extension[2].splice(2, 1);
     console.log(Extension);
@@ -61,15 +61,12 @@ export const getDiagnostic = function (
   ...values: string[]
 ): Diagnostic {
   var value = view.state.sliceDoc(node.from, node.to).trim();
-  var length = value.length;
-  if (values.length == 0) {
-    // Cut short the value if it's too long
-    if (value.length >= 20) value = value.substring(0, 17) + '...';
-    values.push(value);
-  }
+  // Cut short the value if it's too long
+  if (value.length >= 20) value = value.substring(0, 17) + '...';
+  if (values.length == 0) values.push(value);
   return {
     from: node.from,
-    to: node.from + length,
+    to: node.from + value.length,
     severity: severity,
     message: Localized.Get(message, ...values),
   };

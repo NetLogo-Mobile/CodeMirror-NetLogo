@@ -199,6 +199,7 @@ export class GalapagosEditor {
     this.Children.push(Child);
     Child.ID = this.Children.length;
     Child.ParentEditor = this;
+    Child.CodeMirror.state.field(stateExtension).setID(Child.ID);
     // Generative editors are sort of independent
     if (Child.Options.ParseMode !== ParseMode.Generative) {
       Child.LintContext = this.LintContext;
@@ -355,26 +356,26 @@ export class GalapagosEditor {
   private UpdateSharedContext() {
     var mainLint = this.LintContext.Clear();
     for (var child of this.GetChildren()) {
-      if (child.Options.ParseMode == ParseMode.Normal || child == this) {
-        let state = child.CodeMirror.state.field(stateExtension);
-        for (var name of state.Extensions) mainLint.Extensions.set(name, child.ID);
-        for (var name of state.Globals) mainLint.Globals.set(name, child.ID);
-        for (var name of state.WidgetGlobals) mainLint.WidgetGlobals.set(name, child.ID);
-        for (var [name, procedure] of state.Procedures) {
-          procedure.EditorID = child.ID;
-          mainLint.Procedures.set(name, procedure);
+      //if (child.Options.ParseMode == ParseMode.Normal || child == this) {
+      let state = child.CodeMirror.state.field(stateExtension);
+      for (var name of state.Extensions) mainLint.Extensions.set(name, child.ID);
+      for (var name of state.Globals) mainLint.Globals.set(name, child.ID);
+      for (var name of state.WidgetGlobals) mainLint.WidgetGlobals.set(name, child.ID);
+      for (var [name, procedure] of state.Procedures) {
+        procedure.EditorID = child.ID;
+        mainLint.Procedures.set(name, procedure);
+      }
+      for (var [name, breed] of state.Breeds) {
+        breed.EditorID = child.ID;
+        if (mainLint.Breeds.has(name)) {
+          var variables = mainLint.Breeds.get(name)!.Variables;
+          breed.Variables.forEach((variable) => {
+            if (!variables.includes(variable)) variables.push(variable);
+          });
+        } else {
+          mainLint.Breeds.set(name, breed);
         }
-        for (var [name, breed] of state.Breeds) {
-          breed.EditorID = child.ID;
-          if (mainLint.Breeds.has(name)) {
-            var variables = mainLint.Breeds.get(name)!.Variables;
-            breed.Variables.forEach((variable) => {
-              if (!variables.includes(variable)) variables.push(variable);
-            });
-          } else {
-            mainLint.Breeds.set(name, breed);
-          }
-        }
+        //}
       }
     }
     this.RefreshContexts();
