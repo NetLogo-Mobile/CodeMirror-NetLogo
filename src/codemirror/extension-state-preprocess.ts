@@ -28,7 +28,9 @@ export class StatePreprocess {
     let doc = State.doc.toString();
     // Breeds
     let globals = doc.replace(/(^|\n)([^;\n]+[ ]+)?to\s+[\s\S]*\s+end/gi, '');
-    let breeds = globals.matchAll(/breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g);
+    let breeds = globals.matchAll(
+      /(^|\n)([^;\n]+[ ]+)?(directed-link-|undirected-link-)?breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g
+    );
     let processedBreeds = this.processBreeds(breeds);
     this.SingularBreeds = processedBreeds[0];
     this.PluralBreeds = processedBreeds[1];
@@ -80,8 +82,8 @@ export class StatePreprocess {
     let pluralmatches: string[] = ['patches', 'turtles', 'links'];
     let count = 3;
     for (var match of breeds) {
-      pluralmatches[count] = match[1];
-      singularmatches[count] = match[2];
+      pluralmatches[count] = match[4];
+      singularmatches[count] = match[5];
       count++;
     }
     return [singularmatches, pluralmatches];

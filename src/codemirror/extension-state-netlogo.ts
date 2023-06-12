@@ -235,7 +235,7 @@ export class StateNetLogo {
               c = new AgentContexts('---L');
             } else if (n) {
               for (let breed of this.Breeds.values()) {
-                if (breed.Variables.includes(name)) c = this.getBreedContext(breed);
+                if (breed.Variables.includes(name)) c = this.getBreedContext(breed, true);
               }
             }
             newContext = combineContexts(c, priorContext);
@@ -441,11 +441,15 @@ export class StateNetLogo {
   }
 
   /** getBreedContext: Get the context for a given breed. */
-  private getBreedContext(breed: Breed) {
+  private getBreedContext(breed: Breed, isVar: boolean = false) {
     if (breed.BreedType == BreedType.DirectedLink || breed.BreedType == BreedType.UndirectedLink) {
       return new AgentContexts('---L');
     } else if (breed.Singular == 'patch') {
-      return new AgentContexts('--P-');
+      if (isVar) {
+        return new AgentContexts('-TP-');
+      } else {
+        return new AgentContexts('--P-');
+      }
     } else {
       return new AgentContexts('-T--');
     }

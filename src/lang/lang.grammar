@@ -219,8 +219,8 @@ CommandStatement {
   (Command4Args | SpecialCommand4Args) Arg Arg Arg !lastArgs Arg |
   (Command5Args | SpecialCommand5Args) Arg Arg Arg Arg !lastArgs Arg |
   (Command6Args | SpecialCommand6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
-  Turtle[@dynamicPrecedence=10] { SpecialCommandCreateTurtle Arg !lastArgs Arg? } |
-  Link[@dynamicPrecedence=10] { SpecialCommandCreateLink Arg !lastArgs Arg? } |
+  turtle[@dynamicPrecedence=10] { SpecialCommandCreateTurtle Arg !lastArgs Arg? } |
+  link[@dynamicPrecedence=10] { SpecialCommandCreateLink Arg !lastArgs Arg? } |
   Command0ArgsVar !lastArgs Arg* ~statement |
   Command1ArgsVar !lastArgs Arg+ |
   Command2ArgsVar Arg !lastArgs Arg+ |
