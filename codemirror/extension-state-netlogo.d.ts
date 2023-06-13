@@ -26,12 +26,17 @@ export declare class StateNetLogo {
     RecognizedMode: 'Unknown' | 'Model' | 'Command' | 'Reporter';
     /** ContextErrors: Context errors detected during processing. */
     ContextErrors: ContextError[];
+    /** EditorID: The id of the editor. */
+    EditorID: number;
     /** SetDirty: Make the state dirty. */
     SetDirty(): void;
     /** GetDirty: Gets if the state is dirty. */
     GetDirty(): boolean;
+    setID(id: number): void;
     /** ParseState: Parse the state from an editor state. */
     ParseState(State: EditorState): StateNetLogo;
+    /** gatherProcedure: Gather all information about a procedure in embedded mode. */
+    private gatherEmbeddedProcedure;
     /** gatherProcedure: Gather all information about a procedure. */
     private gatherProcedure;
     /** getContext: Identify context of a block by looking at primitives and variable names. */

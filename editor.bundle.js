@@ -28140,6 +28140,8 @@ if(!String.prototype.matchAll) {
             this.RecognizedMode = 'Unknown';
             /** ContextErrors: Context errors detected during processing. */
             this.ContextErrors = [];
+            /** EditorID: The id of the editor. */
+            this.EditorID = 0;
             // #endregion
         }
         // #endregion
@@ -28153,6 +28155,9 @@ if(!String.prototype.matchAll) {
             return this.IsDirty;
         }
         // #endregion
+        setID(id) {
+            this.EditorID = id;
+        }
         // #region "Parsing"
         /** ParseState: Parse the state from an editor state. */
         ParseState(State) {
@@ -28256,8 +28261,25 @@ if(!String.prototype.matchAll) {
                         return this;
                 }
             }
-            else if (this.RecognizedMode == 'Command') ;
+            else if (this.RecognizedMode == 'Command') {
+                let procedure = this.gatherEmbeddedProcedure(Cursor.node, State);
+                this.Procedures.set(procedure.Name, procedure);
+            }
             return this;
+        }
+        /** gatherProcedure: Gather all information about a procedure in embedded mode. */
+        gatherEmbeddedProcedure(node, State) {
+            let procedure = new Procedure();
+            procedure.PositionStart = node.from;
+            procedure.PositionEnd = node.to;
+            procedure.IsCommand = true;
+            procedure.Name = '⚠EmbeddedProcedure⚠';
+            procedure.Arguments = [];
+            procedure.Variables = this.getLocalVarsCommand(node, State, false);
+            procedure.AnonymousProcedures = this.gatherAnonProcedures(node, State, procedure);
+            procedure.Context = this.getContext(node, State);
+            procedure.CodeBlocks = this.gatherCodeBlocks(node, State, procedure.Context, procedure.Variables, procedure.Arguments);
+            return procedure;
         }
         /** gatherProcedure: Gather all information about a procedure. */
         gatherProcedure(node, State) {
@@ -28788,7 +28810,7 @@ if(!String.prototype.matchAll) {
         var Extension = linter(BuiltSource);
         Extension.Source = BuiltSource;
         // Remove the default tooltip of linting. We will provide our own.
-        if (Extension.length > 2 && Extension[2].length == 4) {
+        if (Extension[2].length == 4) {
             lintState = Extension[2][0];
             Extension[2].splice(2, 1);
             console.log(Extension);
@@ -28803,16 +28825,14 @@ if(!String.prototype.matchAll) {
     /** getDiagnostic: Returns a diagnostic object from a node and message. */
     const getDiagnostic = function (view, node, message, severity = 'error', ...values) {
         var value = view.state.sliceDoc(node.from, node.to).trim();
-        var length = value.length;
-        if (values.length == 0) {
-            // Cut short the value if it's too long
-            if (value.length >= 20)
-                value = value.substring(0, 17) + '...';
+        // Cut short the value if it's too long
+        if (value.length >= 20)
+            value = value.substring(0, 17) + '...';
+        if (values.length == 0)
             values.push(value);
-        }
         return {
             from: node.from,
-            to: node.from + length,
+            to: node.from + value.length,
             severity: severity,
             message: Localized.Get(message, ...values),
         };
@@ -30337,12 +30357,19 @@ if(!String.prototype.matchAll) {
     /* getLocalVariables: collects list of valid local variables for given position. */
     const getLocalVariables = function (Node, State, parseState) {
         let procedureVars = [];
+        let procedure = null;
         // get the procedure name
         var procedureName = getParentProcedure(State, Node);
-        if (!procedureName)
-            return [];
+        if (procedureName)
+            procedure = parseState.Procedures.get(procedureName.toLowerCase());
+        // If the procedure is not found, it is likely an anonymous procedure
+        if (!procedure && !procedureName && State.field(stateExtension).EditorID != 0) {
+            for (var p of parseState.Procedures.values()) {
+                if (p.EditorID == State.field(stateExtension).EditorID)
+                    procedure = p;
+            }
+        }
         // gets list of procedure variables from own procedure, as well as list of all procedure names
-        let procedure = parseState.Procedures.get(procedureName.toLowerCase());
         if (!procedure)
             return procedureVars;
         procedure.Variables.map((variable) => {
@@ -31578,79 +31605,106 @@ if(!String.prototype.matchAll) {
                 }
             }
         };
-        // Go through the syntax tree
-        syntaxTree(view.state)
-            .cursor()
-            .iterate((noderef) => {
-            var _a, _b, _c, _d;
-            if (noderef.name == 'BreedSingular' || noderef.name == 'BreedPlural') {
-                NameCheck(noderef, 'Breed');
-            }
-            else if (noderef.name == 'Identifier' && ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Globals') {
-                NameCheck(noderef, 'Global variable');
-            }
-            else if (noderef.name == 'ProcedureName') {
-                view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
-                if (((_b = noderef.node.parent) === null || _b === void 0 ? void 0 : _b.getChildren('To').length) == 0) {
-                    diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized global statement _', 'error'));
+        if (view.state.field(stateExtension).EditorID != 0) {
+            syntaxTree(view.state)
+                .cursor()
+                .iterate((noderef) => {
+                var _a;
+                if (noderef.name == 'NewVariableDeclaration') {
+                    // TODO: Optimize it so that whenever we see a procedure, we check the local variables
+                    // Now, for each new variable declaration, we look back again
+                    // It would also solve the issue of arguments & local variables using the same name
+                    // Since the new variable definition is typically few, not a high priority
+                    let child = (_a = noderef.node.getChild('Identifier')) !== null && _a !== void 0 ? _a : noderef.node.getChild('UnsupportedPrim');
+                    if (!child)
+                        return;
+                    let localvars = [
+                        ...lintContext.Globals.keys(),
+                        ...lintContext.WidgetGlobals.keys(),
+                        ...lintContext.Procedures.keys(),
+                        ...lintContext.Breeds.keys(),
+                        ...lintContext.Extensions.keys(),
+                        ...getLocalVariables(child, view.state, lintContext),
+                    ];
+                    NameCheck(child, 'Local variable', localvars);
                 }
-                else {
-                    NameCheck(noderef, 'Procedure');
+            });
+        }
+        else {
+            // Go through the syntax tree
+            syntaxTree(view.state)
+                .cursor()
+                .iterate((noderef) => {
+                var _a, _b, _c, _d;
+                if (noderef.name == 'BreedSingular' || noderef.name == 'BreedPlural') {
+                    NameCheck(noderef, 'Breed');
                 }
-            }
-            else if (noderef.name == 'BreedsOwn') {
-                let own = noderef.node.getChild('Own');
-                let breedvars = [];
-                if (!own)
-                    return;
-                let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
-                breedName = breedName.substring(0, breedName.length - 4);
-                noderef.node.getChildren('Identifier').map((child) => {
-                    if (breedName == 'turtles') {
-                        NameCheck(child, 'Turtle variable');
-                    }
-                    else if (breedName == 'links') {
-                        NameCheck(child, 'Link variable');
-                    }
-                    else if (breedName == 'patches') {
-                        NameCheck(child, 'Patch variable');
-                    }
-                    else if (isLinkBreed(breedName, lintContext)) {
-                        NameCheck(child, 'Link variable', breedvars, true);
+                else if (noderef.name == 'Identifier' && ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Globals') {
+                    NameCheck(noderef, 'Global variable');
+                }
+                else if (noderef.name == 'ProcedureName') {
+                    view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+                    if (((_b = noderef.node.parent) === null || _b === void 0 ? void 0 : _b.getChildren('To').length) == 0) {
+                        diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized global statement _', 'error'));
                     }
                     else {
-                        NameCheck(child, 'Turtle variable', breedvars, true);
-                    }
-                });
-                breedDefined.push(...breedvars);
-            }
-            else if (noderef.name == 'NewVariableDeclaration') {
-                // TODO: Optimize it so that whenever we see a procedure, we check the local variables
-                // Now, for each new variable declaration, we look back again
-                // It would also solve the issue of arguments & local variables using the same name
-                // Since the new variable definition is typically few, not a high priority
-                let child = (_c = noderef.node.getChild('Identifier')) !== null && _c !== void 0 ? _c : noderef.node.getChild('UnsupportedPrim');
-                if (!child)
-                    return;
-                let localvars = getLocalVariables(child, view.state, lintContext);
-                NameCheck(child, 'Local variable', localvars);
-            }
-            else if (noderef.name == 'Arguments') {
-                let current = [];
-                if (((_d = noderef.node.parent) === null || _d === void 0 ? void 0 : _d.name) == 'AnonArguments') {
-                    let parent = noderef.node.parent.parent;
-                    if (parent) {
-                        let prev_node = parent === null || parent === void 0 ? void 0 : parent.cursor().moveTo(parent.from - 2).node;
-                        current = getLocalVariables(prev_node, view.state, lintContext);
+                        NameCheck(noderef, 'Procedure');
                     }
                 }
-                for (var key of ['Identifier', 'UnsupportedPrim']) {
-                    noderef.node.getChildren(key).map((child) => {
-                        NameCheck(child, 'Argument', current);
+                else if (noderef.name == 'BreedsOwn') {
+                    let own = noderef.node.getChild('Own');
+                    let breedvars = [];
+                    if (!own)
+                        return;
+                    let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
+                    breedName = breedName.substring(0, breedName.length - 4);
+                    noderef.node.getChildren('Identifier').map((child) => {
+                        if (breedName == 'turtles') {
+                            NameCheck(child, 'Turtle variable');
+                        }
+                        else if (breedName == 'links') {
+                            NameCheck(child, 'Link variable');
+                        }
+                        else if (breedName == 'patches') {
+                            NameCheck(child, 'Patch variable');
+                        }
+                        else if (isLinkBreed(breedName, lintContext)) {
+                            NameCheck(child, 'Link variable', breedvars, true);
+                        }
+                        else {
+                            NameCheck(child, 'Turtle variable', breedvars, true);
+                        }
                     });
+                    breedDefined.push(...breedvars);
                 }
-            }
-        });
+                else if (noderef.name == 'NewVariableDeclaration') {
+                    // TODO: Optimize it so that whenever we see a procedure, we check the local variables
+                    // Now, for each new variable declaration, we look back again
+                    // It would also solve the issue of arguments & local variables using the same name
+                    // Since the new variable definition is typically few, not a high priority
+                    let child = (_c = noderef.node.getChild('Identifier')) !== null && _c !== void 0 ? _c : noderef.node.getChild('UnsupportedPrim');
+                    if (!child)
+                        return;
+                    let localvars = getLocalVariables(child, view.state, lintContext);
+                    NameCheck(child, 'Local variable', localvars);
+                }
+                else if (noderef.name == 'Arguments') {
+                    let current = [];
+                    if (((_d = noderef.node.parent) === null || _d === void 0 ? void 0 : _d.name) == 'AnonArguments') {
+                        let parent = noderef.node.parent.parent;
+                        if (parent) {
+                            let prev_node = parent === null || parent === void 0 ? void 0 : parent.cursor().moveTo(parent.from - 2).node;
+                            current = getLocalVariables(prev_node, view.state, lintContext);
+                        }
+                    }
+                    for (var key of ['Identifier', 'UnsupportedPrim']) {
+                        noderef.node.getChildren(key).map((child) => {
+                            NameCheck(child, 'Argument', current);
+                        });
+                    }
+                }
+            });
+        }
         return diagnostics;
     };
     const isLinkBreed = (breedName, lintContext) => {
@@ -32996,6 +33050,7 @@ if(!String.prototype.matchAll) {
             this.Children.push(Child);
             Child.ID = this.Children.length;
             Child.ParentEditor = this;
+            Child.CodeMirror.state.field(stateExtension).setID(Child.ID);
             // Generative editors are sort of independent
             if (Child.Options.ParseMode !== ParseMode.Generative) {
                 Child.LintContext = this.LintContext;
@@ -33151,31 +33206,31 @@ if(!String.prototype.matchAll) {
         UpdateSharedContext() {
             var mainLint = this.LintContext.Clear();
             for (var child of this.GetChildren()) {
-                if (child.Options.ParseMode == ParseMode.Normal || child == this) {
-                    let state = child.CodeMirror.state.field(stateExtension);
-                    for (var name of state.Extensions)
-                        mainLint.Extensions.set(name, child.ID);
-                    for (var name of state.Globals)
-                        mainLint.Globals.set(name, child.ID);
-                    for (var name of state.WidgetGlobals)
-                        mainLint.WidgetGlobals.set(name, child.ID);
-                    for (var [name, procedure] of state.Procedures) {
-                        procedure.EditorID = child.ID;
-                        mainLint.Procedures.set(name, procedure);
+                //if (child.Options.ParseMode == ParseMode.Normal || child == this) {
+                let state = child.CodeMirror.state.field(stateExtension);
+                for (var name of state.Extensions)
+                    mainLint.Extensions.set(name, child.ID);
+                for (var name of state.Globals)
+                    mainLint.Globals.set(name, child.ID);
+                for (var name of state.WidgetGlobals)
+                    mainLint.WidgetGlobals.set(name, child.ID);
+                for (var [name, procedure] of state.Procedures) {
+                    procedure.EditorID = child.ID;
+                    mainLint.Procedures.set(name, procedure);
+                }
+                for (var [name, breed] of state.Breeds) {
+                    breed.EditorID = child.ID;
+                    if (mainLint.Breeds.has(name)) {
+                        var variables = mainLint.Breeds.get(name).Variables;
+                        breed.Variables.forEach((variable) => {
+                            if (!variables.includes(variable))
+                                variables.push(variable);
+                        });
                     }
-                    for (var [name, breed] of state.Breeds) {
-                        breed.EditorID = child.ID;
-                        if (mainLint.Breeds.has(name)) {
-                            var variables = mainLint.Breeds.get(name).Variables;
-                            breed.Variables.forEach((variable) => {
-                                if (!variables.includes(variable))
-                                    variables.push(variable);
-                            });
-                        }
-                        else {
-                            mainLint.Breeds.set(name, breed);
-                        }
+                    else {
+                        mainLint.Breeds.set(name, breed);
                     }
+                    //}
                 }
             }
             this.RefreshContexts();

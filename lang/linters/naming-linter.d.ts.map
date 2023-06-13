@@ -1,1 +1,1 @@
-{"version":3,"file":"naming-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/naming-linter.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,MAAM,EAAiB,MAAM,kBAAkB,CAAC;AAYzD,eAAO,MAAM,YAAY,EAAE,MA4H1B,CAAC"}
+{"version":3,"file":"naming-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/naming-linter.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,MAAM,EAAiB,MAAM,kBAAkB,CAAC;AAazD,eAAO,MAAM,YAAY,EAAE,MAoJ1B,CAAC"}
