@@ -79,15 +79,11 @@ export const getLocalVariables = function (
   let procedure = null;
   // get the procedure name
   var procedureName = getParentProcedure(State, Node)!;
-  if (procedureName) {
-    procedure = parseState.Procedures.get(procedureName.toLowerCase());
-  }
-
-  if (State.field(stateExtension).EditorID != 0) {
+  if (procedureName) procedure = parseState.Procedures.get(procedureName.toLowerCase());
+  // If the procedure is not found, it is likely an anonymous procedure
+  if (!procedure && !procedureName && State.field(stateExtension).EditorID != 0) {
     for (var p of parseState.Procedures.values()) {
-      if (p.EditorID == State.field(stateExtension).EditorID) {
-        procedure = p;
-      }
+      if (p.EditorID == State.field(stateExtension).EditorID) procedure = p;
     }
   }
   // gets list of procedure variables from own procedure, as well as list of all procedure names
