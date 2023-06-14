@@ -81,7 +81,7 @@ export const getLocalVariables = function (
   var procedureName = getParentProcedure(State, Node)!;
   if (procedureName) procedure = parseState.Procedures.get(procedureName.toLowerCase());
   // If the procedure is not found, it is likely an anonymous procedure
-  if (!procedure && !procedureName && State.field(stateExtension).EditorID != 0) {
+  if (!procedure && !procedureName && State.field(stateExtension).RecognizedMode != 'Model') {
     for (var p of parseState.Procedures.values()) {
       if (p.EditorID == State.field(stateExtension).EditorID) procedure = p;
     }

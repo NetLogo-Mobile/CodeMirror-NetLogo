@@ -334,6 +334,9 @@ export class GalapagosEditor {
     // For the generative mode, it takes the context from its parent but does not contribute to it
     if (this.Options.ParseMode == ParseMode.Generative) return [this.ParentEditor!, this];
     if (this.Options.ParseMode == ParseMode.Normal) return [...this.Children, this];
+    else {
+      return [this];
+    }
     return [];
   }
   /** UpdateContext: Try to update the context of this editor. */
