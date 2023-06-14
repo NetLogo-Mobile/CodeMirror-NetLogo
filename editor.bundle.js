@@ -11033,15 +11033,16 @@ if(!String.prototype.matchAll) {
             if (flush)
                 this.observer.forceFlush();
             let updated = null;
-            let sDOM = this.scrollDOM, { scrollAnchorPos, scrollAnchorHeight } = this.viewState;
+            let sDOM = this.scrollDOM, { scrollTop } = sDOM;
+            let { scrollAnchorPos, scrollAnchorHeight } = this.viewState;
             this.viewState.scrollAnchorHeight = -1;
-            if (scrollAnchorHeight < 0 || sDOM.scrollTop != this.viewState.scrollTop) {
-                if (sDOM.scrollTop > sDOM.scrollHeight - sDOM.clientHeight - 4) {
+            if (scrollAnchorHeight < 0 || scrollTop != this.viewState.scrollTop) {
+                if (scrollTop > sDOM.scrollHeight - sDOM.clientHeight - 4) {
                     scrollAnchorPos = -1;
                     scrollAnchorHeight = this.viewState.heightMap.height;
                 }
                 else {
-                    let block = this.viewState.lineBlockAtHeight(sDOM.scrollTop);
+                    let block = this.viewState.lineBlockAtHeight(scrollTop);
                     scrollAnchorPos = block.from;
                     scrollAnchorHeight = block.top;
                 }
@@ -11107,7 +11108,7 @@ if(!String.prototype.matchAll) {
                                 this.viewState.lineBlockAt(scrollAnchorPos).top;
                             let diff = newAnchorHeight - scrollAnchorHeight;
                             if (diff > 1 || diff < -1) {
-                                sDOM.scrollTop += diff;
+                                sDOM.scrollTop = scrollTop + diff;
                                 scrolled = true;
                             }
                         }
@@ -30363,7 +30364,7 @@ if(!String.prototype.matchAll) {
         if (procedureName)
             procedure = parseState.Procedures.get(procedureName.toLowerCase());
         // If the procedure is not found, it is likely an anonymous procedure
-        if (!procedure && !procedureName && State.field(stateExtension).EditorID != 0) {
+        if (!procedure && !procedureName && State.field(stateExtension).RecognizedMode != 'Model') {
             for (var p of parseState.Procedures.values()) {
                 if (p.EditorID == State.field(stateExtension).EditorID)
                     procedure = p;
@@ -33182,7 +33183,9 @@ if(!String.prototype.matchAll) {
                 return [this.ParentEditor, this];
             if (this.Options.ParseMode == ParseMode.Normal)
                 return [...this.Children, this];
-            return [];
+            else {
+                return [this];
+            }
         }
         /** UpdateContext: Try to update the context of this editor. */
         UpdateContext() {
