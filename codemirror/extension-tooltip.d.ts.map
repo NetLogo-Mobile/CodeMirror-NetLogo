@@ -1,1 +1,1 @@
-{"version":3,"file":"extension-tooltip.d.ts","sourceRoot":"","sources":["../../../src/codemirror/extension-tooltip.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,eAAe,EAAa,MAAM,WAAW,CAAC;AAMvD,oFAAoF;AACpF,eAAO,MAAM,aAAa,WAAY,eAAe,0CAIpD,CAAC"}
+{"version":3,"file":"extension-tooltip.d.ts","sourceRoot":"","sources":["../../../src/codemirror/extension-tooltip.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,eAAe,EAAE,MAAM,WAAW,CAAC;AAM5C,oFAAoF;AACpF,eAAO,MAAM,aAAa,WAAY,eAAe,0CAIpD,CAAC"}

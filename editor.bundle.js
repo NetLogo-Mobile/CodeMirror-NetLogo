@@ -32141,10 +32141,11 @@ if(!String.prototype.matchAll) {
     const prettifyAll = function (view, Editor) {
         let doc = view.state.doc.toString();
         // eliminate extra spacing
+        Editor.ForceParse();
         let new_doc = removeSpacing(syntaxTree(view.state), doc);
         view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+        // parse it again
         Editor.ForceParse();
-        // console.log(view.state.doc.toString());
         // give certain nodes their own lines
         view.dispatch({
             changes: addSpacing(view, 0, new_doc.length, Editor.LineWidth),
@@ -32153,19 +32154,12 @@ if(!String.prototype.matchAll) {
         view.dispatch({ changes: { from: 0, to: view.state.doc.toString().length, insert: new_doc } });
         // doc = view.state.doc.toString();
         Editor.ForceParse();
-        //console.log(view.state.doc.toString())
-        // ensure spacing is correct
-        // doc = view.state.doc.toString();
-        // new_doc = avoidStrings(doc, finalSpacing).trim();
-        // view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
-        // console.log(view.state.doc.toString());
         // add indentation
         view.dispatch({
             changes: indentRange(view.state, 0, view.state.doc.toString().length), //indent(view.state.doc.toString(),view.state)
         });
-        if (doc != view.state.doc.toString()) {
-            Log('made changes');
-        }
+        if (doc != view.state.doc.toString())
+            Log('Prettifier made changes');
     };
     const doubleLineBreaks = [
         // 'LineComment',
@@ -32855,7 +32849,6 @@ if(!String.prototype.matchAll) {
         }
         /** PrettifyAll: Prettify all the NetLogo code. */
         PrettifyAll() {
-            this.Galapagos.ForceParse();
             prettifyAll(this.CodeMirror, this.Galapagos);
         }
         /** PrettifyOrAll: Prettify the selected code. If no code is selected, prettify all. */
