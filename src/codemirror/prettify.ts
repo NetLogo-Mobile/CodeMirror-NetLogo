@@ -42,12 +42,12 @@ export const prettify = function (view: EditorView, from: number | null = null, 
 /** prettifyAll: Make whole code file follow formatting standards. */
 export const prettifyAll = function (view: EditorView, Editor: GalapagosEditor) {
   let doc = view.state.doc.toString();
-
   // eliminate extra spacing
+  Editor.ForceParse();
   let new_doc = removeSpacing(syntaxTree(view.state), doc);
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
+  // parse it again
   Editor.ForceParse();
-  // console.log(view.state.doc.toString());
   // give certain nodes their own lines
   view.dispatch({
     changes: addSpacing(view, 0, new_doc.length, Editor.LineWidth),
@@ -56,19 +56,12 @@ export const prettifyAll = function (view: EditorView, Editor: GalapagosEditor) 
   view.dispatch({ changes: { from: 0, to: view.state.doc.toString().length, insert: new_doc } });
   // doc = view.state.doc.toString();
   Editor.ForceParse();
-  //console.log(view.state.doc.toString())
-  // ensure spacing is correct
-  // doc = view.state.doc.toString();
-  // new_doc = avoidStrings(doc, finalSpacing).trim();
-  // view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
-  // console.log(view.state.doc.toString());
   // add indentation
   view.dispatch({
     changes: indentRange(view.state, 0, view.state.doc.toString().length), //indent(view.state.doc.toString(),view.state)
   });
-  if (doc != view.state.doc.toString()) {
-    Log('made changes');
-  }
+  if (doc != view.state.doc.toString())
+    Log('Prettifier made changes');
 };
 
 const doubleLineBreaks = [
@@ -79,28 +72,6 @@ const doubleLineBreaks = [
   'Own',
   'To',
 ];
-
-function indent(doc: String, state: EditorState) {
-  let changes = [];
-  let start: null | number = null;
-  let end = 0;
-  for (let pos = 0; pos < doc.length; pos++) {
-    if (doc[pos] == '\n') {
-      start = pos;
-    } else if (start && doc[pos] != ' ' && doc[pos] != ';') {
-      end = pos;
-      let indent = getIndentation(state, pos) ?? 0;
-      if (indent % 2 != 0) {
-        indent++;
-      }
-      changes.push({ from: start, to: end, insert: '\n' + ' '.repeat(indent) });
-      start = null;
-    } else if (doc[pos] == ';') {
-      start = null;
-    }
-  }
-  return changes;
-}
 
 /** removeSpacing: Make initial spacing adjustments. */
 function removeSpacing(tree: Tree, doc: string): string {
@@ -166,21 +137,6 @@ const finalSpacing = function (doc: string) {
   new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
   new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
   return new_doc;
-};
-
-const avoidStrings = function (doc: string, func: Function) {
-  let pieces = doc.split('"');
-  let index = 0;
-  let final_docs: string[] = [];
-  for (var piece of pieces) {
-    if (index % 2 == 0) {
-      final_docs.push(func(piece));
-    } else {
-      final_docs.push(piece);
-    }
-    index++;
-  }
-  return final_docs.join('"');
 };
 
 /** addSpacing: Give certain types of nodes their own lines. */

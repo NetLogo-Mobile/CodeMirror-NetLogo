@@ -1,7 +1,7 @@
-import { DecorationSet, Tooltip, hoverTooltip } from '@codemirror/view';
+import { DecorationSet, hoverTooltip } from '@codemirror/view';
 import { Diagnostic, Action } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
-import { GalapagosEditor, Localized } from '../editor';
+import { GalapagosEditor } from '../editor';
 import { getLintState } from '../lang/linters/linter-builder';
 import elt from 'crelt';
 import { getTooltip } from '../lang/tooltip';
