@@ -1,9 +1,8 @@
-import { getIndentation, indentRange, syntaxTree, indentString } from '@codemirror/language';
+import { indentRange, syntaxTree } from '@codemirror/language';
 import { EditorView } from 'codemirror';
 import { IterMode, SyntaxNode, Tree } from '@lezer/common';
 import { GalapagosEditor } from 'src/editor';
 import { Log } from '../utils/debug-utils';
-import { EditorState } from '@codemirror/state';
 
 /** prettify: Change selection to fit formatting standards. */
 export const prettify = function (view: EditorView, from: number | null = null, to: number | null = null) {
@@ -83,7 +82,6 @@ function removeSpacing(tree: Tree, doc: string): string {
   tree.iterate({
     enter: (noderef) => {
       if (noderef.node.firstChild != null) return;
-
       var content = doc.substring(noderef.from, noderef.to);
       // do minimum spacing
       if (previous !== '(' && content !== ')' && noderef.from > 0) {
