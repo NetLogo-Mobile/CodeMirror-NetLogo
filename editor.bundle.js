@@ -30965,8 +30965,7 @@ if(!String.prototype.matchAll) {
     /** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
     const UnrecognizedSuggestions = {
         else: 'if-else',
-        'set-patch-size': 'set size',
-        'set-patch-color': 'set color',
+        'set-patch-color': 'set pcolor',
     };
 
     // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
