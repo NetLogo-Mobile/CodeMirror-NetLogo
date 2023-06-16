@@ -27230,11 +27230,11 @@ if(!String.prototype.matchAll) {
         Add: () => 'Add',
         // Linting messages
         'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
-        'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you forget to define it?`,
-        'Unrecognized identifier with replacement _': (Name, Suggested) => `Nothing called "${Name}" was found. Did you mean "${Suggested}"?`,
+        'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was defined or reserved by NetLogo. Did you forget to define it?`,
+        'Unrecognized identifier with replacement _': (Name, Suggested) => `Nothing called "${Name}" was defined or reserved by NetLogo. Maybe try "${Suggested}"?`,
         'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
         'Unrecognized statement _': (Name) => `"${Name}" is out of place. Did you put it in the correct place?`,
-        'Unrecognized statement with replacement _': (Name, Suggested) => `"${Name}" is out of place. Consider using "${Suggested}" instead.`,
+        'Unrecognized statement with replacement _': (Name, Suggested) => `"${Name}" is out of place. Maybe try "${Suggested}"？`,
         'Invalid content for code block _': (Name) => `"${Name}" is out of place in the surrounding code block.`,
         'Invalid content for list _': (Name) => `"${Name}" is out of place in the surrounding list.`,
         'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
@@ -27375,8 +27375,8 @@ if(!String.prototype.matchAll) {
         Add: () => '添加',
         // Linting messages
         'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
-        'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。是否忘记定义它了？`,
-        'Unrecognized identifier with replacement _': (Name, Suggested) => `未能识别 "${Name}"。也许你想用的是 "${Suggested}"？`,
+        'Unrecognized identifier _': (Name) => `"${Name}" 既没有被定义，也不是 NetLogo 的关键字。`,
+        'Unrecognized identifier with replacement _': (Name, Suggested) => `"${Name}" 既没有被定义，也不是 NetLogo 的关键字。也许你想用的是 "${Suggested}"？`,
         'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
         'Unrecognized statement _': (Name) => `"${Name}" 不是合理的 NetLogo 代码。`,
         'Unrecognized statement with replacement _': (Name, Suggested) => `"${Name}" 不是合理的 NetLogo 代码。试试 "${Suggested}"。`,
@@ -30411,6 +30411,28 @@ if(!String.prototype.matchAll) {
             }
         });
     };
+    /** checkBreed: Checks if the term in the structure of a breed command/reporter and push lint messages */
+    function checkBreed(diagnostics, context, view, noderef) {
+        // pull out name of possible intended breed
+        let value = getCodeName(view.state, noderef);
+        let breedinfo = getBreedName(value);
+        // if the breed name is not recognized, add the lint message
+        if (breedinfo.breed !== '' && !context.breedNames.includes(breedinfo.breed)) {
+            let plural = '';
+            let singular = '';
+            let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', breedinfo.breed);
+            if (breedinfo.isPlural) {
+                plural = breedinfo.breed;
+                singular = getSingularName(breedinfo.breed);
+            }
+            else {
+                singular = breedinfo.breed;
+                plural = getPluralName(breedinfo.breed);
+            }
+            addBreedAction(diagnostic, breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
+            diagnostics.push(diagnostic);
+        }
+    }
 
     /** AutoCompletion: Auto completion service for a NetLogo model. */
     /* Possible Types of Autocompletion Tokens:
@@ -30918,64 +30940,33 @@ if(!String.prototype.matchAll) {
             .iterate((noderef) => {
             var _a;
             if (noderef.name == 'Identifier' && ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) != '⚠') {
-                const Node = noderef.node;
-                const value = view.state.sliceDoc(noderef.from, noderef.to);
-                //check if it meets some initial criteria for validity
-                if (!checkValidIdentifier(Node, value, context)) {
-                    //check if the identifier looks like a breed procedure (e.g. "create-___")
-                    let result = checkBreedLike(value);
-                    if (!result.found) {
-                        // console.log(value, noderef.name, noderef.node.parent?.name);
-                        diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
+                const node = noderef.node;
+                const value = getCodeName(view.state, node);
+                // check if it meets some initial criteria for validity
+                if (checkValidIdentifier(node, value, context))
+                    return;
+                // check if the identifier looks like a breed procedure (e.g. "create-___")
+                let result = checkBreedLike(value);
+                if (!result.found) {
+                    if (UnrecognizedSuggestions.hasOwnProperty(value)) {
+                        diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier with replacement _', 'error', value, UnrecognizedSuggestions[value]));
                     }
                     else {
-                        // pull out name of possible intended breed
-                        let breedinfo = getBreedName(value);
-                        Log(breedinfo);
-                        if (!context.breedNames.includes(breedinfo.breed)) {
-                            let plural = '';
-                            let singular = '';
-                            let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', breedinfo.breed);
-                            if (breedinfo.isPlural) {
-                                plural = breedinfo.breed;
-                                singular = getSingularName(breedinfo.breed);
-                            }
-                            else {
-                                singular = breedinfo.breed;
-                                plural = getPluralName(breedinfo.breed);
-                            }
-                            addBreedAction(diagnostic, breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
-                            diagnostics.push(diagnostic);
-                        }
+                        diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
                     }
                 }
+                else {
+                    checkBreed(diagnostics, context, view, node);
+                }
             }
-            // else if (
-            //   noderef.name == 'Arg' &&
-            //   noderef.node.prevSibling &&
-            //   view.state
-            //     .sliceDoc(noderef.node.prevSibling.from, noderef.node.prevSibling.to)
-            //     .toLowerCase() == 'ask'
-            // ) {
-            //   let value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
-            //   if (!lintContext.GetPluralBreedNames().includes(value)) {
-            //     let plural = value;
-            //     let singular = otherBreedName(value, true);
-            //     let breed_type = 'breed';
-            //     diagnostics.push({
-            //       from: noderef.from,
-            //       to: noderef.to,
-            //       severity: 'error',
-            //       message: Localized.Get('Unrecognized breed name _', value),
-            //       actions: [
-            //         getAction(noderef.node, value, breed_type, plural, singular),
-            //       ],
-            //     });
-            //   }
-            //   return false;
-            // }
         });
         return diagnostics;
+    };
+    /** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
+    const UnrecognizedSuggestions = {
+        else: 'if-else',
+        'set-patch-size': 'set size',
+        'set-patch-color': 'set color',
     };
 
     // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
@@ -31051,24 +31042,9 @@ if(!String.prototype.matchAll) {
                 const node = noderef.node;
                 const value = getCodeName(view.state, node);
                 let result = checkValidBreed(node, value, context, breeds);
-                if (!result.isValid) {
-                    let breed_result = getBreedName(value);
-                    let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', value);
-                    if (result.newBreed) {
-                        let plural = '';
-                        let singular = '';
-                        if (result.isPlural) {
-                            plural = breed_result.breed;
-                            singular = getSingularName(breed_result.breed);
-                        }
-                        else {
-                            singular = breed_result.breed;
-                            plural = getPluralName(breed_result.breed);
-                        }
-                        addBreedAction(diagnostic, result.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
-                    }
-                    diagnostics.push(diagnostic);
-                }
+                // JC: Honestly, I don't understand why we check breed in 2 places - I tried to merge the code, but there might be new problems
+                if (!result.isValid)
+                    checkBreed(diagnostics, context, view, node);
             }
         });
         return diagnostics;
@@ -31176,9 +31152,10 @@ if(!String.prototype.matchAll) {
                     parents.push(curr.parent.name);
                     curr = curr.parent;
                 }
-                const value = view.state.sliceDoc(node.from, node.to);
+                const value = view.state.sliceDoc(node.from, node.to).toLowerCase().trim();
                 Log(value, node.name, parents);
                 if (((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Arguments') {
+                    // Arguments should not be reserved words or command/reporter names
                     let child = node.node.firstChild;
                     if (reserved.includes(value) ||
                         (child && (child.name.startsWith('Command') || child.name.startsWith('Reporter')))) {
@@ -31189,6 +31166,7 @@ if(!String.prototype.matchAll) {
                     }
                 }
                 else if (!['[', ']', ')', '(', '"'].includes(value) && !checkBreedLike(value).found) {
+                    // Anything else could be an unrecognized statement
                     if (((_b = node.node.parent) === null || _b === void 0 ? void 0 : _b.name) == 'Normal') {
                         diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));
                     }
