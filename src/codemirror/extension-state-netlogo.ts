@@ -48,8 +48,11 @@ export class StateNetLogo {
   public ContextErrors: ContextError[] = [];
   /** EditorID: The id of the editor. */
   public EditorID: number = 0;
+  public Context: string = 'observer';
   // #endregion
-
+  public SetContext(context: string) {
+    this.Context = context;
+  }
   // #region "Version Control"
   /** SetDirty: Make the state dirty. */
   public SetDirty() {
@@ -88,7 +91,7 @@ export class StateNetLogo {
       case 'Embedded':
         this.RecognizedMode = 'Command';
         break;
-      case 'OnelineReporter':
+      case 'OnelineReporter' || 'Oneline':
         this.RecognizedMode = 'Reporter';
         break;
       case 'Normal':
@@ -164,11 +167,14 @@ export class StateNetLogo {
     } else if (this.RecognizedMode == 'Command') {
       let procedure = this.gatherEmbeddedProcedure(Cursor.node, State);
       this.Procedures.set(procedure.Name, procedure);
+    } else if (this.RecognizedMode == 'Reporter') {
+      let procedure = this.gatherOnelineProcedure(Cursor.node, State);
+      this.Procedures.set(procedure.Name, procedure);
     }
     return this;
   }
 
-  /** gatherProcedure: Gather all information about a procedure in embedded mode. */
+  /** gatherEmbeddedProcedure: Gather all information about a procedure in embedded mode. */
   private gatherEmbeddedProcedure(Node: SyntaxNode, State: EditorState): Procedure {
     let procedure = new Procedure();
     procedure.PositionStart = Node.from;
@@ -177,6 +183,20 @@ export class StateNetLogo {
     procedure.IsCommand = true;
     procedure.Name = '⚠EmbeddedProcedure⚠';
 
+    procedure.Arguments = [];
+    procedure.Variables = this.getLocalVarsCommand(Node, State, false);
+    procedure.AnonymousProcedures = this.gatherAnonProcedures(Node, State, procedure);
+    procedure.Context = this.getContext(Node, State);
+    return procedure;
+  }
+
+  /** gatherOnelineProcedure: Gather all information about a procedure in embedded mode. */
+  private gatherOnelineProcedure(Node: SyntaxNode, State: EditorState): Procedure {
+    let procedure = new Procedure();
+    procedure.PositionStart = Node.from;
+    procedure.PositionEnd = Node.to;
+    procedure.IsCommand = false;
+    procedure.Name = '⚠OnelineReporter⚠';
     procedure.Arguments = [];
     procedure.Variables = this.getLocalVarsCommand(Node, State, false);
     procedure.AnonymousProcedures = this.gatherAnonProcedures(Node, State, procedure);
@@ -226,58 +246,61 @@ export class StateNetLogo {
     let newContext = context;
     node.getChildren('ProcedureContent').map((node2) => {
       node2.getChildren('CommandStatement').map((node3) => {
-        let cursor = node3.cursor();
-        let child = cursor.firstChild();
-        while (child) {
-          if (
-            cursor.node.name.includes('Command') &&
-            !cursor.node.name.includes('Commands') &&
-            !cursor.node.name.includes('Special')
-          ) {
-            let name = getCodeName(state, cursor.node);
-            let context = this.getPrimitiveContext(state, cursor.node, name);
-            if (context) {
-              newContext = combineContexts(context, priorContext);
-              if (!noContext(newContext)) {
-                priorContext = newContext;
-              } else {
-                this.ContextErrors.push(
-                  new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name)
-                );
-              }
-            }
-          } else if (cursor.node.name == 'VariableDeclaration') {
-            let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
-            if (n) {
-              let context = new AgentContexts();
-              let name = getCodeName(state, n);
-              if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
-                context = new AgentContexts('-T-L');
-              } else if (n?.getChild('PatchVar')) {
-                context = new AgentContexts('-TP-');
-              } else if (n?.getChild('TurtleVar')) {
-                context = new AgentContexts('-T--');
-              } else if (n?.getChild('LinkVar')) {
-                context = new AgentContexts('---L');
-              } else {
-                for (let breed of this.Breeds.values())
-                  if (breed.Variables.includes(name)) context = this.getBreedContext(breed, true);
-              }
-              newContext = combineContexts(context, priorContext);
-              if (!noContext(newContext)) {
-                priorContext = newContext;
-              } else {
-                this.ContextErrors.push(
-                  new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name)
-                );
-              }
-            }
-          }
-          child = cursor.nextSibling();
-        }
+        [priorContext, newContext] = this.getNewContext(node3, priorContext, state, newContext);
       });
     });
     return priorContext;
+  }
+
+  public getNewContext(node3: SyntaxNode, priorContext: AgentContexts, state: EditorState, newContext: AgentContexts) {
+    let cursor = node3.cursor();
+    let child = cursor.firstChild();
+    let initial = this.ContextErrors.length;
+    while (child) {
+      if (
+        (cursor.node.name.includes('Command') || cursor.node.name.includes('Reporter')) &&
+        !cursor.node.name.includes('Commands') &&
+        !cursor.node.name.includes('Reporters') &&
+        !cursor.node.name.includes('Special')
+      ) {
+        let name = getCodeName(state, cursor.node);
+        let context = this.getPrimitiveContext(state, cursor.node, name);
+        if (context) {
+          newContext = combineContexts(context, priorContext);
+          if (!noContext(newContext)) {
+            priorContext = newContext;
+          } else {
+            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+          }
+        }
+      } else if (cursor.node.name == 'VariableDeclaration') {
+        let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
+        if (n) {
+          let context = new AgentContexts();
+          let name = getCodeName(state, n);
+          if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
+            context = new AgentContexts('-T-L');
+          } else if (n?.getChild('PatchVar')) {
+            context = new AgentContexts('-TP-');
+          } else if (n?.getChild('TurtleVar')) {
+            context = new AgentContexts('-T--');
+          } else if (n?.getChild('LinkVar')) {
+            context = new AgentContexts('---L');
+          } else {
+            for (let breed of this.Breeds.values())
+              if (breed.Variables.includes(name)) context = this.getBreedContext(breed, true);
+          }
+          newContext = combineContexts(context, priorContext);
+          if (!noContext(newContext)) {
+            priorContext = newContext;
+          } else {
+            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+          }
+        }
+      }
+      child = cursor.nextSibling();
+    }
+    return [priorContext, newContext];
   }
 
   /** getPrimitiveContext: Identify context for a builtin primitive. */
@@ -417,6 +440,8 @@ export class StateNetLogo {
         reporters.push(b.Singular + '-at-heading-and-distance');
         reporters.push(b.Singular + '-left-and-ahead');
         reporters.push(b.Singular + '-right-and-ahead');
+        reporters.push('neighbors');
+        reporters.push('neighbors4');
         if (reporters.includes(str.split(' ')[0].trim())) {
           return b.Plural;
         }
@@ -454,7 +479,7 @@ export class StateNetLogo {
   }
 
   /** getBreedContext: Get the context for a given breed. */
-  private getBreedContext(breed: Breed, isVar: boolean = false) {
+  public getBreedContext(breed: Breed, isVar: boolean = false) {
     if (breed.BreedType == BreedType.DirectedLink || breed.BreedType == BreedType.UndirectedLink) {
       return new AgentContexts('---L');
     } else if (breed.Singular == 'patch') {

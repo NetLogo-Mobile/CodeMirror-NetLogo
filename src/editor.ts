@@ -315,6 +315,18 @@ export class GalapagosEditor {
   private Version: number = 0;
   /** IsVisible: Whether this editor is visible. */
   public IsVisible: boolean = true;
+
+  public SetContext(context: string) {
+    if (
+      (this.Options.ParseMode == ParseMode.Oneline || this.Options.ParseMode == ParseMode.OnelineReporter) &&
+      context != 'observer'
+    ) {
+      this.CodeMirror.state.field(stateExtension).SetContext(context);
+      this.ForceParse();
+      this.ForceLint();
+    }
+  }
+
   /** GetID: Get ID of the editor. */
   public GetID(): number {
     return this.ID;
