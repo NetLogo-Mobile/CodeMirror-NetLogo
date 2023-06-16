@@ -6,7 +6,7 @@ import { LintContext } from '../classes/contexts';
 import { combineContexts, noContext } from '../../utils/context-utils';
 import { stateExtension } from '../../codemirror/extension-state-netlogo';
 
-// ContextLinter: Checks if procedures and code blocks have a valid context
+/** ContextLinter: Checks if procedures and code blocks have a valid context. */
 export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
   // for (let p of lintContext.Procedures.values()) {
@@ -29,20 +29,13 @@ export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
   return diagnostics;
 };
 
+// contextToString: Converts context to string
 const contextToString = function (context: AgentContexts) {
   let contexts: string[] = [];
-  if (context.Observer) {
-    contexts.push(Localized.Get('Observer'));
-  }
-  if (context.Turtle) {
-    contexts.push(Localized.Get('Turtle'));
-  }
-  if (context.Patch) {
-    contexts.push(Localized.Get('Patch'));
-  }
-  if (context.Link) {
-    contexts.push(Localized.Get('Link'));
-  }
+  if (context.Observer) contexts.push(Localized.Get('Observer'));
+  if (context.Turtle) contexts.push(Localized.Get('Turtle'));
+  if (context.Patch) contexts.push(Localized.Get('Patch'));
+  if (context.Link) contexts.push(Localized.Get('Link'));
   return contexts.join('/');
 };
 

@@ -169,21 +169,21 @@ export class StateNetLogo {
   }
 
   /** gatherProcedure: Gather all information about a procedure in embedded mode. */
-  private gatherEmbeddedProcedure(node: SyntaxNode, State: EditorState): Procedure {
+  private gatherEmbeddedProcedure(Node: SyntaxNode, State: EditorState): Procedure {
     let procedure = new Procedure();
-    procedure.PositionStart = node.from;
-    procedure.PositionEnd = node.to;
+    procedure.PositionStart = Node.from;
+    procedure.PositionEnd = Node.to;
 
     procedure.IsCommand = true;
     procedure.Name = '⚠EmbeddedProcedure⚠';
 
     procedure.Arguments = [];
-    procedure.Variables = this.getLocalVarsCommand(node, State, false);
-    procedure.AnonymousProcedures = this.gatherAnonProcedures(node, State, procedure);
-    procedure.Context = this.getContext(node, State);
+    procedure.Variables = this.getLocalVarsCommand(Node, State, false);
+    procedure.AnonymousProcedures = this.gatherAnonProcedures(Node, State, procedure);
+    procedure.Context = this.getContext(Node, State);
     procedure.CodeBlocks = this.gatherCodeBlocks(
-      node,
       State,
+      Node,
       procedure.Context,
       procedure.Variables,
       procedure.Arguments
@@ -192,26 +192,26 @@ export class StateNetLogo {
   }
 
   /** gatherProcedure: Gather all information about a procedure. */
-  private gatherProcedure(node: SyntaxNode, State: EditorState): Procedure {
+  private gatherProcedure(Node: SyntaxNode, State: EditorState): Procedure {
     let procedure = new Procedure();
-    procedure.PositionStart = node.from;
-    procedure.PositionEnd = node.to;
+    procedure.PositionStart = Node.from;
+    procedure.PositionEnd = Node.to;
 
     procedure.IsCommand = true;
-    if (node.getChild('To')) {
-      procedure.IsCommand = getCodeName(State, node.getChildren('To')[0].node).toLowerCase() == 'to';
+    if (Node.getChild('To')) {
+      procedure.IsCommand = getCodeName(State, Node.getChildren('To')[0].node).toLowerCase() == 'to';
     }
 
-    node.getChildren('ProcedureName').map((node) => {
-      procedure.Name = getCodeName(State, node);
+    Node.getChildren('ProcedureName').map((Children) => {
+      procedure.Name = getCodeName(State, Children);
     });
-    procedure.Arguments = this.getArgs(node, State);
-    procedure.Variables = this.getLocalVars(node, State, false);
-    procedure.AnonymousProcedures = this.gatherAnonProcedures(node, State, procedure);
-    procedure.Context = this.getContext(node, State);
+    procedure.Arguments = this.getArgs(Node, State);
+    procedure.Variables = this.getLocalVars(Node, State, false);
+    procedure.AnonymousProcedures = this.gatherAnonProcedures(Node, State, procedure);
+    procedure.Context = this.getContext(Node, State);
     procedure.CodeBlocks = this.gatherCodeBlocks(
-      node,
       State,
+      Node,
       procedure.Context,
       procedure.Variables,
       procedure.Arguments
@@ -234,47 +234,38 @@ export class StateNetLogo {
             !cursor.node.name.includes('Commands') &&
             !cursor.node.name.includes('Special')
           ) {
-            let c = this.getPrimitiveContext(cursor.node, state);
-            if (c) {
-              newContext = combineContexts(c, priorContext);
-              if (!noContext(newContext)) {
-                priorContext = newContext;
-              } else {
-                this.ContextErrors.push(
-                  new ContextError(
-                    cursor.node.from,
-                    cursor.node.to,
-                    priorContext,
-                    c,
-                    state.sliceDoc(cursor.node.from, cursor.node.to)
-                  )
-                );
-              }
-            }
-          } else if (cursor.node.name == 'VariableDeclaration') {
-            let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
-            let c = new AgentContexts();
-            let name = state.sliceDoc(n?.from, n?.to);
-            if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
-              c = new AgentContexts('-T-L');
-            } else if (n?.getChild('PatchVar')) {
-              c = new AgentContexts('-TP-');
-            } else if (n?.getChild('TurtleVar')) {
-              c = new AgentContexts('-T--');
-            } else if (n?.getChild('LinkVar')) {
-              c = new AgentContexts('---L');
-            } else if (n) {
-              for (let breed of this.Breeds.values()) {
-                if (breed.Variables.includes(name)) c = this.getBreedContext(breed, true);
-              }
-            }
-            newContext = combineContexts(c, priorContext);
+            let name = getCodeName(state, cursor.node);
+            let context = this.getPrimitiveContext(state, cursor.node, name);
+            if (!context) continue;
+            newContext = combineContexts(context, priorContext);
             if (!noContext(newContext)) {
               priorContext = newContext;
             } else {
-              this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, c, name));
+              this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
             }
-            //context = combineContexts(c, context);
+          } else if (cursor.node.name == 'VariableDeclaration') {
+            let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
+            if (!n) continue;
+            let context = new AgentContexts();
+            let name = getCodeName(state, n);
+            if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
+              context = new AgentContexts('-T-L');
+            } else if (n?.getChild('PatchVar')) {
+              context = new AgentContexts('-TP-');
+            } else if (n?.getChild('TurtleVar')) {
+              context = new AgentContexts('-T--');
+            } else if (n?.getChild('LinkVar')) {
+              context = new AgentContexts('---L');
+            } else {
+              for (let breed of this.Breeds.values())
+                if (breed.Variables.includes(name)) context = this.getBreedContext(breed, true);
+            }
+            newContext = combineContexts(context, priorContext);
+            if (!noContext(newContext)) {
+              priorContext = newContext;
+            } else {
+              this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+            }
           }
           child = cursor.nextSibling();
         }
@@ -283,87 +274,16 @@ export class StateNetLogo {
     return priorContext;
   }
 
-  private getContextCommandStatement(node: SyntaxNode, state: EditorState) {
-    let context = new AgentContexts();
-    let priorContext = new AgentContexts();
-    let newContext = context;
-    node.getChildren('CommandStatement').map((node3) => {
-      let cursor = node3.cursor();
-      let child = cursor.firstChild();
-      while (child) {
-        if (
-          cursor.node.name.includes('Command') &&
-          !cursor.node.name.includes('Commands') &&
-          !cursor.node.name.includes('Special')
-        ) {
-          let c = this.getPrimitiveContext(cursor.node, state);
-          if (c) {
-            newContext = combineContexts(c, priorContext);
-            if (!noContext(newContext)) {
-              priorContext = newContext;
-            } else {
-              this.ContextErrors.push(
-                new ContextError(
-                  cursor.node.from,
-                  cursor.node.to,
-                  priorContext,
-                  c,
-                  state.sliceDoc(cursor.node.from, cursor.node.to)
-                )
-              );
-            }
-          }
-        } else if (cursor.node.name == 'VariableDeclaration') {
-          let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
-          let c = new AgentContexts();
-          let name = state.sliceDoc(n?.from, n?.to);
-          if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
-            c = new AgentContexts('-T-L');
-          } else if (n?.getChild('PatchVar')) {
-            c = new AgentContexts('-TP-');
-          } else if (n?.getChild('TurtleVar')) {
-            c = new AgentContexts('-T--');
-          } else if (n?.getChild('LinkVar')) {
-            c = new AgentContexts('---L');
-          } else if (n) {
-            for (let breed of this.Breeds.values()) {
-              if (breed.Variables.includes(name)) {
-                c = this.getBreedContext(breed);
-                // if (breed.IsLinkBreed) {
-                //   c = new AgentContexts('---L');
-                // } else if (breed.Singular == 'patch') {
-                //   c = new AgentContexts('-TP-');
-                // } else {
-                //   c = new AgentContexts('-T--');
-                // }
-              }
-            }
-          }
-          newContext = combineContexts(c, priorContext);
-          if (!noContext(newContext)) {
-            priorContext = newContext;
-          } else {
-            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, c, name));
-          }
-          //context = combineContexts(c, context);
-        }
-        child = cursor.nextSibling();
-      }
-    });
-    return priorContext;
-  }
-
   /** getPrimitiveContext: Identify context for a builtin primitive. */
-  private getPrimitiveContext(node: SyntaxNode, state: EditorState) {
-    let prim = state.sliceDoc(node.from, node.to);
+  private getPrimitiveContext(state: EditorState, node: SyntaxNode, prim: string) {
     let prim_data = primitives.GetNamedPrimitive(prim);
     return prim_data?.AgentContext;
   }
 
   /** gatherCodeBlocks: Gather all information about code blocks inside a given node. */
   private gatherCodeBlocks(
-    node: SyntaxNode,
     state: EditorState,
+    node: SyntaxNode,
     parentContext: AgentContexts,
     vars: LocalVariable[],
     args: string[]
@@ -373,7 +293,7 @@ export class StateNetLogo {
       if (noderef.node.to > node.to) return false;
       if (noderef.name == 'Value')
         noderef.node.getChildren('CodeBlock').map((child) => {
-          this.gatherCodeBlock(child, state, blocks, parentContext, vars, args);
+          this.gatherCodeBlock(state, child, blocks, parentContext, vars, args);
         });
     });
     return blocks;
@@ -381,8 +301,8 @@ export class StateNetLogo {
 
   /** gatherCodeBlocks: Gather all information about a given code block. */
   private gatherCodeBlock(
-    node: SyntaxNode,
     state: EditorState,
+    node: SyntaxNode,
     blocks: CodeBlock[],
     parentContext: AgentContexts,
     vars: LocalVariable[],
@@ -409,7 +329,7 @@ export class StateNetLogo {
     block.Variables = vars.concat(this.getLocalVars(node.node, state, true));
     block.Arguments = args;
     block.Breed = prim.breed;
-    block.CodeBlocks = this.gatherCodeBlocks(node, state, block.Context, block.Variables, block.Arguments);
+    block.CodeBlocks = this.gatherCodeBlocks(state, node, block.Context, block.Variables, block.Arguments);
     blocks.push(block);
   }
 
