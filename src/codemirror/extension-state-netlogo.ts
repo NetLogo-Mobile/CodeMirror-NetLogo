@@ -322,7 +322,7 @@ export class StateNetLogo {
     block.PositionStart = node.from;
     block.PositionEnd = node.to;
     block.InheritParentContext = prim.inheritParentContext;
-    let originalContext = noContext(prim.context) ? parentContext : prim.context;
+    let originalContext = noContext(prim.context) || block.InheritParentContext ? parentContext : prim.context;
     block.Context = this.getContext(node, state, originalContext);
     // if (noContext(block.Context)) {
     //   console.log(
@@ -365,9 +365,9 @@ export class StateNetLogo {
           prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
           prim.type = cursor.node.name;
         } else if (cursor.node.name == 'Arg' && ask) {
-          let plurals = [...state.field(stateExtension).Breeds.values()].map((b) => b.Plural);
-          if (plurals.includes(state.sliceDoc(cursor.node.from, cursor.node.to).toLowerCase().trim())) {
-            prim.breed = state.sliceDoc(cursor.node.from, cursor.node.to);
+          let temp_breed = this.identifyBreed(cursor.node, state, [...state.field(stateExtension).Breeds.values()]);
+          if (temp_breed != '') {
+            prim.breed = temp_breed;
           }
           ask = false;
         }
@@ -394,6 +394,63 @@ export class StateNetLogo {
     }
     if (noContext(prim.context)) Log('No available context: ' + prim.name);
     return prim;
+  }
+
+  private identifyBreed(Node: SyntaxNode, state: EditorState, breeds: Breed[]) {
+    let plurals = breeds.map((b) => b.Plural);
+    let singulars = breeds.map((b) => b.Singular);
+    let str = state.sliceDoc(Node.from, Node.to).toLowerCase().trim();
+    let breed = '';
+    if (plurals.includes(str)) {
+      return str;
+    }
+    for (let b of breeds) {
+      let reporters: string[] = [];
+      if (b.BreedType == BreedType.Turtle) {
+        reporters.push(b.Plural + '-at');
+        reporters.push(b.Plural + '-here');
+        reporters.push(b.Plural + '-on');
+      } else if (b.BreedType == BreedType.Patch) {
+        reporters.push(b.Singular + '-at');
+        reporters.push(b.Singular + '-here');
+        reporters.push(b.Singular + '-ahead');
+        reporters.push(b.Singular + '-at-heading-and-distance');
+        reporters.push(b.Singular + '-left-and-ahead');
+        reporters.push(b.Singular + '-right-and-ahead');
+        if (reporters.includes(str.split(' ')[0].trim())) {
+          return b.Plural;
+        }
+      } else {
+        reporters.push('out-' + b.Singular + '-to');
+        reporters.push('in-' + b.Singular + '-from');
+        reporters.push('my-' + b.Plural);
+        reporters.push('my-in-' + b.Plural);
+        reporters.push('my-out-' + b.Plural);
+        reporters.push(b.Singular + '-with');
+        if (reporters.includes(str.split(' ')[0].trim())) {
+          return b.Plural;
+        }
+        reporters = [];
+        reporters.push('out-' + b.Singular + '-neighbors');
+        reporters.push('in-' + b.Singular + '-neighbors');
+        reporters.push(b.Singular + '-neighbors');
+        if (reporters.includes(str.split(' ')[0].trim())) {
+          return 'turtles';
+        }
+      }
+    }
+    Node.cursor().iterate((noderef) => {
+      if (breed != '') return false;
+      let str = state.sliceDoc(noderef.from, noderef.to).toLowerCase().trim();
+      if (str.startsWith('[')) {
+        return false;
+      }
+      if (plurals.includes(str) || singulars.includes(str)) {
+        breed = str;
+        return false;
+      }
+    });
+    return breed;
   }
 
   /** getBreedContext: Get the context for a given breed. */
