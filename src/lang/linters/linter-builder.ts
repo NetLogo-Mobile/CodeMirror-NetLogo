@@ -60,13 +60,18 @@ export const getDiagnostic = function (
   severity: 'error' | 'info' | 'warning' = 'error',
   ...values: string[]
 ): Diagnostic {
-  var value = view.state.sliceDoc(node.from, node.to).trim();
+  var value = view.state.sliceDoc(node.from, node.to);
+  var from = node.from + value.length - value.trimStart().length;
+  var to = node.to - value.length + value.trimEnd().length;
+  value = value.trim();
   // Cut short the value if it's too long
-  if (value.length >= 20) value = value.substring(0, 17) + '...';
+  if (value.length >= 20) value = value.replace('\n', ' ').substring(0, 17) + '...';
+  // Use the snippet if no parameters are provided
   if (values.length == 0) values.push(value);
+  // Build the diagnostic
   return {
-    from: node.from,
-    to: node.from + value.length,
+    from: from,
+    to: to,
     severity: severity,
     message: Localized.Get(message, ...values),
   };

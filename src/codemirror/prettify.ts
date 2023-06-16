@@ -59,8 +59,7 @@ export const prettifyAll = function (view: EditorView, Editor: GalapagosEditor) 
   view.dispatch({
     changes: indentRange(view.state, 0, view.state.doc.toString().length), //indent(view.state.doc.toString(),view.state)
   });
-  if (doc != view.state.doc.toString())
-    Log('Prettifier made changes');
+  if (doc != view.state.doc.toString()) Log('Prettifier made changes');
 };
 
 const doubleLineBreaks = [

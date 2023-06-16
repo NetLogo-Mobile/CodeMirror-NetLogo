@@ -6,8 +6,14 @@ const zh_cn: Record<string, Function> = {
   'Unrecognized breed name _': (Name: string) =>
     `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
   'Unrecognized identifier _': (Name: string) => `未能识别 "${Name}"。是否忘记定义它了？`,
+  'Unrecognized identifier with replacement _': (Name: string, Suggested: string) =>
+    `未能识别 "${Name}"。也许你想用的是 "${Suggested}"？`,
   'Unrecognized global statement _': (Name: string) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
-  'Unrecognized statement _': (Name: string) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
+  'Unrecognized statement _': (Name: string) => `"${Name}" 不是合理的 NetLogo 代码。`,
+  'Unrecognized statement with replacement _': (Name: string, Suggested: string) =>
+    `"${Name}" 不是合理的 NetLogo 代码。试试 "${Suggested}"。`,
+  'Invalid content for code block _': (Name: string) => `"${Name}" 不应存在于代码块之中。`,
+  'Invalid content for list _': (Name: string) => `"${Name}" 不应存在于列表之中`,
   'Unsupported statement _': (Name: string) => `此版本 NetLogo 不支持 "${Name}"。`,
   'Invalid for Normal mode _': (Value: string) => `此编辑器模式只用于编辑 NetLogo 模型。`,
   'Invalid for Embedded mode _': (Value: string) => `此编辑器模式只用于编辑 NetLogo 模型中的一小段代码。`,

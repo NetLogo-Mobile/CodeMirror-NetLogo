@@ -6,10 +6,15 @@ const en_us: Record<string, Function> = {
   'Unrecognized breed name _': (Name: string) =>
     `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
   'Unrecognized identifier _': (Name: string) => `Nothing called "${Name}" was found. Did you forget to define it?`,
+  'Unrecognized identifier with replacement _': (Name: string, Suggested: string) =>
+    `Nothing called "${Name}" was found. Did you mean "${Suggested}"?`,
   'Unrecognized global statement _': (Name: string) =>
     `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
-  'Unrecognized statement _': (Name: string) =>
-    `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
+  'Unrecognized statement _': (Name: string) => `"${Name}" is out of place. Did you put it in the correct place?`,
+  'Unrecognized statement with replacement _': (Name: string, Suggested: string) =>
+    `"${Name}" is out of place. Consider using "${Suggested}" instead.`,
+  'Invalid content for code block _': (Name: string) => `"${Name}" is out of place in the surrounding code block.`,
+  'Invalid content for list _': (Name: string) => `"${Name}" is out of place in the surrounding list.`,
   'Unsupported statement _': (Name: string) =>
     `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
   'Invalid for Normal mode _': (Value: string) => `This editor mode expects a full NetLogo model.`,
@@ -55,8 +60,6 @@ const en_us: Record<string, Function> = {
   'Argument is reserved _': (Name: string) =>
     `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
   'Argument is invalid _': (Name: string) => `The argument "${Name}" is invalid. Do you want to replace it?`,
-  'Inconsistent code block type _': (Prior: string, New: string) =>
-    `The code block type "${New}" does not match the preceding code block type "${Prior}".`,
 
   // Agent types and basic names
   Observer: () => 'Observer',
