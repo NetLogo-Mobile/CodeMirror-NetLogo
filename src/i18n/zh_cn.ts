@@ -5,9 +5,9 @@ const zh_cn: Record<string, Function> = {
   // Linting messages
   'Unrecognized breed name _': (Name: string) =>
     `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
-  'Unrecognized identifier _': (Name: string) => `未能识别 "${Name}"。是否忘记定义它了？`,
+  'Unrecognized identifier _': (Name: string) => `"${Name}" 既没有被定义，也不是 NetLogo 的关键字。`,
   'Unrecognized identifier with replacement _': (Name: string, Suggested: string) =>
-    `未能识别 "${Name}"。也许你想用的是 "${Suggested}"？`,
+    `"${Name}" 既没有被定义，也不是 NetLogo 的关键字。也许你想用的是 "${Suggested}"？`,
   'Unrecognized global statement _': (Name: string) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
   'Unrecognized statement _': (Name: string) => `"${Name}" 不是合理的 NetLogo 代码。`,
   'Unrecognized statement with replacement _': (Name: string, Suggested: string) =>

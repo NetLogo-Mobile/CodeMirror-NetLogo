@@ -1,11 +1,9 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { SyntaxNode } from '@lezer/common';
-import { Linter, getDiagnostic } from './linter-builder';
+import { Linter } from './linter-builder';
 import { Breed, BreedType } from '../classes/structures';
-import { CheckContext, checkValidIdentifier, getCheckContext } from '../utils/check-identifier';
-import { getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
-import { addBreedAction } from '../utils/actions';
+import { CheckContext, checkBreed, checkValidIdentifier, getCheckContext } from '../utils/check-identifier';
 import { getCodeName } from '../utils/code';
 
 // BreedLinter: To check breed commands/reporters for valid breed names
@@ -32,23 +30,8 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
         const node = noderef.node;
         const value = getCodeName(view.state, node);
         let result = checkValidBreed(node, value, context, breeds);
-        if (!result.isValid) {
-          let breed_result = getBreedName(value);
-          let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', value);
-          if (result.newBreed) {
-            let plural = '';
-            let singular = '';
-            if (result.isPlural) {
-              plural = breed_result.breed;
-              singular = getSingularName(breed_result.breed);
-            } else {
-              singular = breed_result.breed;
-              plural = getPluralName(breed_result.breed);
-            }
-            addBreedAction(diagnostic, result.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
-          }
-          diagnostics.push(diagnostic);
-        }
+        // JC: Honestly, I don't understand why we check breed in 2 places - I tried to merge the code, but there might be new problems
+        if (!result.isValid) checkBreed(diagnostics, context, view, node);
       }
     });
   return diagnostics;

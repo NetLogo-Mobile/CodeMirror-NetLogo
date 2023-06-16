@@ -5,14 +5,15 @@ const en_us: Record<string, Function> = {
   // Linting messages
   'Unrecognized breed name _': (Name: string) =>
     `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
-  'Unrecognized identifier _': (Name: string) => `Nothing called "${Name}" was found. Did you forget to define it?`,
+  'Unrecognized identifier _': (Name: string) =>
+    `Nothing called "${Name}" was defined or reserved by NetLogo. Did you forget to define it?`,
   'Unrecognized identifier with replacement _': (Name: string, Suggested: string) =>
-    `Nothing called "${Name}" was found. Did you mean "${Suggested}"?`,
+    `Nothing called "${Name}" was defined or reserved by NetLogo. Maybe try "${Suggested}"?`,
   'Unrecognized global statement _': (Name: string) =>
     `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
   'Unrecognized statement _': (Name: string) => `"${Name}" is out of place. Did you put it in the correct place?`,
   'Unrecognized statement with replacement _': (Name: string, Suggested: string) =>
-    `"${Name}" is out of place. Consider using "${Suggested}" instead.`,
+    `"${Name}" is out of place. Maybe try "${Suggested}"？`,
   'Invalid content for code block _': (Name: string) => `"${Name}" is out of place in the surrounding code block.`,
   'Invalid content for list _': (Name: string) => `"${Name}" is out of place in the surrounding list.`,
   'Unsupported statement _': (Name: string) =>

@@ -2,9 +2,13 @@ import { EditorView } from '@codemirror/view';
 import { stateExtension, StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { EditorState } from '@codemirror/state';
 import { SyntaxNode } from '@lezer/common';
-import { CodeBlock, Procedure } from '../classes/structures';
+import { BreedType, CodeBlock, Procedure } from '../classes/structures';
 import { LintContext, PreprocessContext } from '../classes/contexts';
-import { getParentProcedure } from './code';
+import { getCodeName, getParentProcedure } from './code';
+import { getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
+import { getDiagnostic } from '../linters/linter-builder';
+import { addBreedAction } from './actions';
+import { Diagnostic } from '@codemirror/lint';
 
 /** CheckContext: The context of the current check. */
 export interface CheckContext {
@@ -112,3 +116,25 @@ const gatherAnonymousVariables = function (Group: CodeBlock[] | Procedure[], Nod
     }
   });
 };
+
+/** checkBreed: Checks if the term in the structure of a breed command/reporter and push lint messages */
+export function checkBreed(diagnostics: Diagnostic[], context: CheckContext, view: EditorView, noderef: SyntaxNode) {
+  // pull out name of possible intended breed
+  let value = getCodeName(view.state, noderef);
+  let breedinfo = getBreedName(value);
+  // if the breed name is not recognized, add the lint message
+  if (breedinfo.breed !== '' && !context.breedNames.includes(breedinfo.breed)) {
+    let plural = '';
+    let singular = '';
+    let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', breedinfo.breed);
+    if (breedinfo.isPlural) {
+      plural = breedinfo.breed;
+      singular = getSingularName(breedinfo.breed);
+    } else {
+      singular = breedinfo.breed;
+      plural = getPluralName(breedinfo.breed);
+    }
+    addBreedAction(diagnostic, breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
+    diagnostics.push(diagnostic);
+  }
+}

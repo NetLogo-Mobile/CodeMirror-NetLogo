@@ -18,10 +18,10 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
           parents.push(curr.parent.name);
           curr = curr.parent;
         }
-
-        const value = view.state.sliceDoc(node.from, node.to);
+        const value = view.state.sliceDoc(node.from, node.to).toLowerCase().trim();
         Log(value, node.name, parents);
         if (node.node.parent?.name == 'Arguments') {
+          // Arguments should not be reserved words or command/reporter names
           let child = node.node.firstChild;
           if (
             reserved.includes(value) ||
@@ -32,6 +32,7 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
             diagnostics.push(getDiagnostic(view, node, 'Argument is invalid _'));
           }
         } else if (!['[', ']', ')', '(', '"'].includes(value) && !checkBreedLike(value).found) {
+          // Anything else could be an unrecognized statement
           if (node.node.parent?.name == 'Normal') {
             diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));
           } else {
