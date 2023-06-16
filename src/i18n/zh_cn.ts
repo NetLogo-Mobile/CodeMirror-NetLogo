@@ -97,6 +97,7 @@ const zh_cn: Record<string, Function> = {
   '~CustomCommand': (Name: string) => `代码中定义的一个过程。`,
 
   // Editor interfaces
+  ClickHere: () => '点击这里',
   MoreFeatures: () => '更多功能',
   SelectAll: () => '全选',
   Undo: () => '撤销',
@@ -121,9 +122,16 @@ const zh_cn: Record<string, Function> = {
   'Trying to add the code': () => `尝试将代码放入作品……`,
   PreviousVersion: () => `后退`,
   NextVersion: () => `前进`,
+  PreviousPage: () => `返回上一页`,
+  NextPage: () => `进入下一页`,
+  'Original version': () => `正在显示原文。`,
+  'Translated version': () => `正在显示 AI 翻译的内容。`,
+  'Switch to original': () => `显示原文。`,
+  'Switch to translated': () => `显示 AI 翻译的内容。`,
   Finish: () => `完成`,
   'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,
   FullText: () => `阅读全文`,
+  Acknowledgement: () => '致谢',
   SeeAlso: () => `参见`,
   OK: () => `确定`,
   Cancel: () => `取消`,
@@ -151,6 +159,7 @@ const zh_cn: Record<string, Function> = {
     `在执行 \`${Name}\` 之前，需要知道它的参数。`,
   'Please download Turtle Universe': () =>
     `功能在网页模式下不可用。请下载[海龟实验室](https://www.turtlesim.com/products/turtle-universe/index-cn.html)以获得更好的体验。`,
+  'Failed to retrieve knowledge': () => `抱歉，未能找到相应知识。`,
 
   // Options
   'Help me fix this code': () => `试试 AI 自动修复代码`,

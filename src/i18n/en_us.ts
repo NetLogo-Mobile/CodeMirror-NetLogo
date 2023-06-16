@@ -111,6 +111,7 @@ const en_us: Record<string, Function> = {
   '~CustomCommand': (Name: string) => `A user-defined command. `,
 
   // Chat and AI assistant
+  ClickHere: () => 'Click here',
   Reconnect: () => `Reconnect`,
   RunCode: () => `Run`,
   'Trying to run the code': () => `Trying to run the code...`,
@@ -121,9 +122,16 @@ const en_us: Record<string, Function> = {
   'Trying to add the code': () => `Trying to add the code to the project...`,
   PreviousVersion: () => `Back`,
   NextVersion: () => `Next`,
+  PreviousPage: () => `Previous page`,
+  NextPage: () => `Next page`,
+  'Original version': () => `Showing the original content.`,
+  'Translated version': () => `Showing the AI translated content.`,
+  'Switch to original': () => `switch to original.`,
+  'Switch to translated': () => `switch to AI translated.`,
   Finish: () => `Finish`,
   'Expand messages _': (Number: number) => `Expand ${Number} message` + (Number > 1 ? 's' : ''),
   FullText: () => `Read more`,
+  Acknowledgement: () => 'Acknowledgement',
   SeeAlso: () => `See also`,
   OK: () => `OK`,
   Cancel: () => `Cancel`,
@@ -166,6 +174,7 @@ const en_us: Record<string, Function> = {
     `The "${Name}" procedure needs argument${Arguments > 1 ? 's' : ''} to run. Please provide them.`,
   'Please download Turtle Universe': () =>
     `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
+  'Failed to retrieve knowledge': () => `Sorry, we did not find the specific knowledge.`,
 
   // Options
   'Help me fix this code': () => `Help me fix this code`,
