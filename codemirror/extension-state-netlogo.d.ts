@@ -49,6 +49,7 @@ export declare class StateNetLogo {
     private gatherCodeBlock;
     /** getPrimitive: Gather information about the primitive whose argument is a code block. */
     private getPrimitive;
+    private identifyBreed;
     /** getBreedContext: Get the context for a given breed. */
     private getBreedContext;
     /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */
