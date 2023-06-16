@@ -236,35 +236,41 @@ export class StateNetLogo {
           ) {
             let name = getCodeName(state, cursor.node);
             let context = this.getPrimitiveContext(state, cursor.node, name);
-            if (!context) continue;
-            newContext = combineContexts(context, priorContext);
-            if (!noContext(newContext)) {
-              priorContext = newContext;
-            } else {
-              this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+            if (context) {
+              newContext = combineContexts(context, priorContext);
+              if (!noContext(newContext)) {
+                priorContext = newContext;
+              } else {
+                this.ContextErrors.push(
+                  new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name)
+                );
+              }
             }
           } else if (cursor.node.name == 'VariableDeclaration') {
             let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
-            if (!n) continue;
-            let context = new AgentContexts();
-            let name = getCodeName(state, n);
-            if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
-              context = new AgentContexts('-T-L');
-            } else if (n?.getChild('PatchVar')) {
-              context = new AgentContexts('-TP-');
-            } else if (n?.getChild('TurtleVar')) {
-              context = new AgentContexts('-T--');
-            } else if (n?.getChild('LinkVar')) {
-              context = new AgentContexts('---L');
-            } else {
-              for (let breed of this.Breeds.values())
-                if (breed.Variables.includes(name)) context = this.getBreedContext(breed, true);
-            }
-            newContext = combineContexts(context, priorContext);
-            if (!noContext(newContext)) {
-              priorContext = newContext;
-            } else {
-              this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+            if (n) {
+              let context = new AgentContexts();
+              let name = getCodeName(state, n);
+              if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
+                context = new AgentContexts('-T-L');
+              } else if (n?.getChild('PatchVar')) {
+                context = new AgentContexts('-TP-');
+              } else if (n?.getChild('TurtleVar')) {
+                context = new AgentContexts('-T--');
+              } else if (n?.getChild('LinkVar')) {
+                context = new AgentContexts('---L');
+              } else {
+                for (let breed of this.Breeds.values())
+                  if (breed.Variables.includes(name)) context = this.getBreedContext(breed, true);
+              }
+              newContext = combineContexts(context, priorContext);
+              if (!noContext(newContext)) {
+                priorContext = newContext;
+              } else {
+                this.ContextErrors.push(
+                  new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name)
+                );
+              }
             }
           }
           child = cursor.nextSibling();
