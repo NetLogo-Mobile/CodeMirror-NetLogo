@@ -27231,8 +27231,12 @@ if(!String.prototype.matchAll) {
         // Linting messages
         'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
         'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was found. Did you forget to define it?`,
+        'Unrecognized identifier with replacement _': (Name, Suggested) => `Nothing called "${Name}" was found. Did you mean "${Suggested}"?`,
         'Unrecognized global statement _': (Name) => `Cannot recognize "${Name}" as a proper global statement here. Did you spell it correctly?`,
-        'Unrecognized statement _': (Name) => `Cannot recognize "${Name}" as a piece of NetLogo code. Did you put it in the correct place?`,
+        'Unrecognized statement _': (Name) => `"${Name}" is out of place. Did you put it in the correct place?`,
+        'Unrecognized statement with replacement _': (Name, Suggested) => `"${Name}" is out of place. Consider using "${Suggested}" instead.`,
+        'Invalid content for code block _': (Name) => `"${Name}" is out of place in the surrounding code block.`,
+        'Invalid content for list _': (Name) => `"${Name}" is out of place in the surrounding list.`,
         'Unsupported statement _': (Name) => `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
         'Invalid for Normal mode _': (Value) => `This editor mode expects a full NetLogo model.`,
         'Invalid for Embedded mode _': (Value) => `This editor mode expects a few command statements.`,
@@ -27258,7 +27262,6 @@ if(!String.prototype.matchAll) {
         'Infinite loop _': (Name) => `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
         'Argument is reserved _': (Name) => `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
         'Argument is invalid _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
-        'Inconsistent code block type _': (Prior, New) => `The code block type "${New}" does not match the preceding code block type "${Prior}".`,
         // Agent types and basic names
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -27373,8 +27376,12 @@ if(!String.prototype.matchAll) {
         // Linting messages
         'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
         'Unrecognized identifier _': (Name) => `未能识别 "${Name}"。是否忘记定义它了？`,
+        'Unrecognized identifier with replacement _': (Name, Suggested) => `未能识别 "${Name}"。也许你想用的是 "${Suggested}"？`,
         'Unrecognized global statement _': (Name) => `未能识别出名为 "${Name}" 的全局声明。请检查你的拼写是否正确。`,
-        'Unrecognized statement _': (Name) => `"${Name}" 似乎不是合理的 NetLogo 代码。`,
+        'Unrecognized statement _': (Name) => `"${Name}" 不是合理的 NetLogo 代码。`,
+        'Unrecognized statement with replacement _': (Name, Suggested) => `"${Name}" 不是合理的 NetLogo 代码。试试 "${Suggested}"。`,
+        'Invalid content for code block _': (Name) => `"${Name}" 不应存在于代码块之中。`,
+        'Invalid content for list _': (Name) => `"${Name}" 不应存在于列表之中`,
         'Unsupported statement _': (Name) => `此版本 NetLogo 不支持 "${Name}"。`,
         'Invalid for Normal mode _': (Value) => `此编辑器模式只用于编辑 NetLogo 模型。`,
         'Invalid for Embedded mode _': (Value) => `此编辑器模式只用于编辑 NetLogo 模型中的一小段代码。`,
@@ -28825,15 +28832,20 @@ if(!String.prototype.matchAll) {
     };
     /** getDiagnostic: Returns a diagnostic object from a node and message. */
     const getDiagnostic = function (view, node, message, severity = 'error', ...values) {
-        var value = view.state.sliceDoc(node.from, node.to).trim();
+        var value = view.state.sliceDoc(node.from, node.to);
+        var from = node.from + value.length - value.trimStart().length;
+        var to = node.to - value.length + value.trimEnd().length;
+        value = value.trim();
         // Cut short the value if it's too long
         if (value.length >= 20)
-            value = value.substring(0, 17) + '...';
+            value = value.replace('\n', ' ').substring(0, 17) + '...';
+        // Use the snippet if no parameters are provided
         if (values.length == 0)
             values.push(value);
+        // Build the diagnostic
         return {
-            from: node.from,
-            to: node.from + value.length,
+            from: from,
+            to: to,
             severity: severity,
             message: Localized.Get(message, ...values),
         };
@@ -31833,31 +31845,36 @@ if(!String.prototype.matchAll) {
         return contexts.join('/');
     };
 
-    // BracketLinter: Checks if all brackets/parentheses have matches
+    /** CodeBlockLinter: Linter for code blocks. */
     const CodeBlockLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
         syntaxTree(view.state)
             .cursor()
             .iterate((node) => {
-            if (node.name == 'CodeBlock') {
-                let c = node.node.cursor();
-                c.firstChild();
-                if (c) {
-                    let type = !['LineComment', 'OpenBracket', 'CloseBracket'].includes(c.name)
-                        ? c.name == 'ProcedureContent'
-                        : null;
-                    while (c.nextSibling()) {
-                        // console.log(c.name,type)
-                        if (!['LineComment', 'OpenBracket', 'CloseBracket'].includes(c.name) && type == null) {
-                            type = c.name == 'ProcedureContent';
-                        }
-                        if (type == true && !['LineComment', 'OpenBracket', 'CloseBracket', 'ProcedureContent'].includes(c.name)) {
-                            diagnostics.push(getDiagnostic(view, c, 'Inconsistent code block type _', 'error', 'procedure content', c.name));
-                        }
-                        else if (type == false && c.name == 'ProcedureContent') {
-                            diagnostics.push(getDiagnostic(view, c, 'Inconsistent code block type _', 'error', 'Non-procedure content', c.name));
-                        }
-                    }
+            if (node.name != 'CodeBlock' && node.name != 'Embedded')
+                return;
+            let cursor = node.node.cursor();
+            let isCodeBlock = null;
+            if (!cursor.firstChild())
+                return;
+            while (cursor.nextSibling()) {
+                var name = cursor.name;
+                // Use the first meaningful node to determine the type of the block.
+                if (isCodeBlock == null) {
+                    if (!['LineComment', 'OpenBracket', 'CloseBracket'].includes(name))
+                        isCodeBlock = cursor.name == 'ProcedureContent';
+                    else
+                        continue;
+                }
+                if (isCodeBlock && !['LineComment', 'OpenBracket', 'CloseBracket', 'ProcedureContent'].includes(name)) {
+                    // For code blocks, lint non-code-block content
+                    // Ignore identifiers: they are already linted
+                    if (name !== 'Identifier')
+                        diagnostics.push(getDiagnostic(view, cursor, 'Invalid content for code block _', 'error'));
+                }
+                else if (!isCodeBlock && cursor.name == 'ProcedureContent') {
+                    // For lists, lint code-block content
+                    diagnostics.push(getDiagnostic(view, cursor, 'Invalid content for list _', 'error'));
                 }
             }
         });

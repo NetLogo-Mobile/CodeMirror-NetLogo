@@ -1,1 +1,1 @@
-{"version":3,"file":"codeblock-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/codeblock-linter.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,MAAM,EAAiB,MAAM,kBAAkB,CAAC;AAGzD,eAAO,MAAM,eAAe,EAAE,MA+B7B,CAAC"}
+{"version":3,"file":"codeblock-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/codeblock-linter.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,MAAM,EAAiB,MAAM,kBAAkB,CAAC;AAEzD,+CAA+C;AAC/C,eAAO,MAAM,eAAe,EAAE,MA6B7B,CAAC"}
