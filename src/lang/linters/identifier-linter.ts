@@ -45,6 +45,5 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
 /** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
 export const UnrecognizedSuggestions: Record<string, string> = {
   else: 'if-else',
-  'set-patch-size': 'set size',
-  'set-patch-color': 'set color',
+  'set-patch-color': 'set pcolor',
 };
