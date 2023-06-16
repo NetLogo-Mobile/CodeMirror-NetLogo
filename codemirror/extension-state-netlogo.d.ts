@@ -41,7 +41,6 @@ export declare class StateNetLogo {
     private gatherProcedure;
     /** getContext: Identify context of a block by looking at primitives and variable names. */
     private getContext;
-    private getContextCommandStatement;
     /** getPrimitiveContext: Identify context for a builtin primitive. */
     private getPrimitiveContext;
     /** gatherCodeBlocks: Gather all information about code blocks inside a given node. */
