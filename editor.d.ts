@@ -86,6 +86,7 @@ export declare class GalapagosEditor {
     private Version;
     /** IsVisible: Whether this editor is visible. */
     IsVisible: boolean;
+    SetContext(context: string): void;
     /** GetID: Get ID of the editor. */
     GetID(): number;
     /** GetVersion: Get version of the state. */

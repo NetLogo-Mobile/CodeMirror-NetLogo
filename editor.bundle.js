@@ -28168,9 +28168,13 @@ if(!String.prototype.matchAll) {
             this.ContextErrors = [];
             /** EditorID: The id of the editor. */
             this.EditorID = 0;
+            this.Context = 'observer';
             // #endregion
         }
         // #endregion
+        SetContext(context) {
+            this.Context = context;
+        }
         // #region "Version Control"
         /** SetDirty: Make the state dirty. */
         SetDirty() {
@@ -28210,7 +28214,7 @@ if(!String.prototype.matchAll) {
                 case 'Embedded':
                     this.RecognizedMode = 'Command';
                     break;
-                case 'OnelineReporter':
+                case 'OnelineReporter' :
                     this.RecognizedMode = 'Reporter';
                     break;
                 case 'Normal':
@@ -28291,15 +28295,32 @@ if(!String.prototype.matchAll) {
                 let procedure = this.gatherEmbeddedProcedure(Cursor.node, State);
                 this.Procedures.set(procedure.Name, procedure);
             }
+            else if (this.RecognizedMode == 'Reporter') {
+                let procedure = this.gatherOnelineProcedure(Cursor.node, State);
+                this.Procedures.set(procedure.Name, procedure);
+            }
             return this;
         }
-        /** gatherProcedure: Gather all information about a procedure in embedded mode. */
+        /** gatherEmbeddedProcedure: Gather all information about a procedure in embedded mode. */
         gatherEmbeddedProcedure(Node, State) {
             let procedure = new Procedure();
             procedure.PositionStart = Node.from;
             procedure.PositionEnd = Node.to;
             procedure.IsCommand = true;
             procedure.Name = '⚠EmbeddedProcedure⚠';
+            procedure.Arguments = [];
+            procedure.Variables = this.getLocalVarsCommand(Node, State, false);
+            procedure.AnonymousProcedures = this.gatherAnonProcedures(Node, State, procedure);
+            procedure.Context = this.getContext(Node, State);
+            return procedure;
+        }
+        /** gatherOnelineProcedure: Gather all information about a procedure in embedded mode. */
+        gatherOnelineProcedure(Node, State) {
+            let procedure = new Procedure();
+            procedure.PositionStart = Node.from;
+            procedure.PositionEnd = Node.to;
+            procedure.IsCommand = false;
+            procedure.Name = '⚠OnelineReporter⚠';
             procedure.Arguments = [];
             procedure.Variables = this.getLocalVarsCommand(Node, State, false);
             procedure.AnonymousProcedures = this.gatherAnonProcedures(Node, State, procedure);
@@ -28333,61 +28354,67 @@ if(!String.prototype.matchAll) {
             let newContext = context;
             node.getChildren('ProcedureContent').map((node2) => {
                 node2.getChildren('CommandStatement').map((node3) => {
-                    var _a;
-                    let cursor = node3.cursor();
-                    let child = cursor.firstChild();
-                    while (child) {
-                        if (cursor.node.name.includes('Command') &&
-                            !cursor.node.name.includes('Commands') &&
-                            !cursor.node.name.includes('Special')) {
-                            let name = getCodeName(state, cursor.node);
-                            let context = this.getPrimitiveContext(state, cursor.node, name);
-                            if (context) {
-                                newContext = combineContexts(context, priorContext);
-                                if (!noContext(newContext)) {
-                                    priorContext = newContext;
-                                }
-                                else {
-                                    this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
-                                }
-                            }
-                        }
-                        else if (cursor.node.name == 'VariableDeclaration') {
-                            let n = (_a = cursor.node.getChild('SetVariable')) === null || _a === void 0 ? void 0 : _a.getChild('VariableName');
-                            if (n) {
-                                let context = new AgentContexts();
-                                let name = getCodeName(state, n);
-                                if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
-                                    context = new AgentContexts('-T-L');
-                                }
-                                else if (n === null || n === void 0 ? void 0 : n.getChild('PatchVar')) {
-                                    context = new AgentContexts('-TP-');
-                                }
-                                else if (n === null || n === void 0 ? void 0 : n.getChild('TurtleVar')) {
-                                    context = new AgentContexts('-T--');
-                                }
-                                else if (n === null || n === void 0 ? void 0 : n.getChild('LinkVar')) {
-                                    context = new AgentContexts('---L');
-                                }
-                                else {
-                                    for (let breed of this.Breeds.values())
-                                        if (breed.Variables.includes(name))
-                                            context = this.getBreedContext(breed, true);
-                                }
-                                newContext = combineContexts(context, priorContext);
-                                if (!noContext(newContext)) {
-                                    priorContext = newContext;
-                                }
-                                else {
-                                    this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
-                                }
-                            }
-                        }
-                        child = cursor.nextSibling();
-                    }
+                    [priorContext, newContext] = this.getNewContext(node3, priorContext, state, newContext);
                 });
             });
             return priorContext;
+        }
+        getNewContext(node3, priorContext, state, newContext) {
+            var _a;
+            let cursor = node3.cursor();
+            let child = cursor.firstChild();
+            this.ContextErrors.length;
+            while (child) {
+                if ((cursor.node.name.includes('Command') || cursor.node.name.includes('Reporter')) &&
+                    !cursor.node.name.includes('Commands') &&
+                    !cursor.node.name.includes('Reporters') &&
+                    !cursor.node.name.includes('Special')) {
+                    let name = getCodeName(state, cursor.node);
+                    let context = this.getPrimitiveContext(state, cursor.node, name);
+                    if (context) {
+                        newContext = combineContexts(context, priorContext);
+                        if (!noContext(newContext)) {
+                            priorContext = newContext;
+                        }
+                        else {
+                            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+                        }
+                    }
+                }
+                else if (cursor.node.name == 'VariableDeclaration') {
+                    let n = (_a = cursor.node.getChild('SetVariable')) === null || _a === void 0 ? void 0 : _a.getChild('VariableName');
+                    if (n) {
+                        let context = new AgentContexts();
+                        let name = getCodeName(state, n);
+                        if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
+                            context = new AgentContexts('-T-L');
+                        }
+                        else if (n === null || n === void 0 ? void 0 : n.getChild('PatchVar')) {
+                            context = new AgentContexts('-TP-');
+                        }
+                        else if (n === null || n === void 0 ? void 0 : n.getChild('TurtleVar')) {
+                            context = new AgentContexts('-T--');
+                        }
+                        else if (n === null || n === void 0 ? void 0 : n.getChild('LinkVar')) {
+                            context = new AgentContexts('---L');
+                        }
+                        else {
+                            for (let breed of this.Breeds.values())
+                                if (breed.Variables.includes(name))
+                                    context = this.getBreedContext(breed, true);
+                        }
+                        newContext = combineContexts(context, priorContext);
+                        if (!noContext(newContext)) {
+                            priorContext = newContext;
+                        }
+                        else {
+                            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+                        }
+                    }
+                }
+                child = cursor.nextSibling();
+            }
+            return [priorContext, newContext];
         }
         /** getPrimitiveContext: Identify context for a builtin primitive. */
         getPrimitiveContext(state, node, prim) {
@@ -28516,6 +28543,8 @@ if(!String.prototype.matchAll) {
                     reporters.push(b.Singular + '-at-heading-and-distance');
                     reporters.push(b.Singular + '-left-and-ahead');
                     reporters.push(b.Singular + '-right-and-ahead');
+                    reporters.push('neighbors');
+                    reporters.push('neighbors4');
                     if (reporters.includes(str.split(' ')[0].trim())) {
                         return b.Plural;
                     }
@@ -31805,11 +31834,21 @@ if(!String.prototype.matchAll) {
 
     /** ContextLinter: Checks if procedures and code blocks have a valid context. */
     const ContextLinter = (view, preprocessContext, lintContext) => {
+        var _a, _b;
         const diagnostics = [];
         // for (let p of lintContext.Procedures.values()) {
         //   diagnostics.push(...checkProcedureContents(p, lintContext));
         // }
         let stateNetLogo = view.state.field(stateExtension);
+        if (stateNetLogo.Mode == 'Oneline' || stateNetLogo.Mode == 'OnelineReporter') {
+            let context = new AgentContexts('O---');
+            for (var b of lintContext.Breeds.values()) {
+                if (b.Plural == stateNetLogo.Context) {
+                    context = stateNetLogo.getBreedContext(b);
+                }
+            }
+            stateNetLogo.getNewContext((_b = (_a = syntaxTree(view.state).cursor().node.firstChild) === null || _a === void 0 ? void 0 : _a.firstChild) !== null && _b !== void 0 ? _b : syntaxTree(view.state).cursor().node, context, view.state, new AgentContexts());
+        }
         for (let c of stateNetLogo.ContextErrors) {
             diagnostics.push(getDiagnostic(view, { from: c.From, to: c.To }, 'Invalid context _', 'error', contextToString(c.PriorContext), contextToString(c.ConflictingContext), c.Primitive));
         }
@@ -33153,6 +33192,14 @@ if(!String.prototype.matchAll) {
                     catch (_a) { }
                 }
             });
+        }
+        SetContext(context) {
+            if ((this.Options.ParseMode == ParseMode.Oneline || this.Options.ParseMode == ParseMode.OnelineReporter) &&
+                context != 'observer') {
+                this.CodeMirror.state.field(stateExtension).SetContext(context);
+                this.ForceParse();
+                this.ForceLint();
+            }
         }
         /** GetID: Get ID of the editor. */
         GetID() {

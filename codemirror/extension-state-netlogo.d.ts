@@ -1,5 +1,6 @@
 import { StateField, EditorState } from '@codemirror/state';
-import { Breed, Procedure, ContextError } from '../lang/classes/structures';
+import { Breed, Procedure, AgentContexts, ContextError } from '../lang/classes/structures';
+import { SyntaxNode } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { ParseMode } from '../editor-config';
 /** StateNetLogo: The second-pass editor state for the NetLogo Language. */
@@ -28,6 +29,8 @@ export declare class StateNetLogo {
     ContextErrors: ContextError[];
     /** EditorID: The id of the editor. */
     EditorID: number;
+    Context: string;
+    SetContext(context: string): void;
     /** SetDirty: Make the state dirty. */
     SetDirty(): void;
     /** GetDirty: Gets if the state is dirty. */
@@ -35,12 +38,15 @@ export declare class StateNetLogo {
     setID(id: number): void;
     /** ParseState: Parse the state from an editor state. */
     ParseState(State: EditorState): StateNetLogo;
-    /** gatherProcedure: Gather all information about a procedure in embedded mode. */
+    /** gatherEmbeddedProcedure: Gather all information about a procedure in embedded mode. */
     private gatherEmbeddedProcedure;
+    /** gatherOnelineProcedure: Gather all information about a procedure in embedded mode. */
+    private gatherOnelineProcedure;
     /** gatherProcedure: Gather all information about a procedure. */
     private gatherProcedure;
     /** getContext: Identify context of a block by looking at primitives and variable names. */
     private getContext;
+    getNewContext(node3: SyntaxNode, priorContext: AgentContexts, state: EditorState, newContext: AgentContexts): AgentContexts[];
     /** getPrimitiveContext: Identify context for a builtin primitive. */
     private getPrimitiveContext;
     /** gatherCodeBlocks: Gather all information about code blocks inside a given node. */
@@ -51,7 +57,7 @@ export declare class StateNetLogo {
     private getPrimitive;
     private identifyBreed;
     /** getBreedContext: Get the context for a given breed. */
-    private getBreedContext;
+    getBreedContext(breed: Breed, isVar?: boolean): AgentContexts;
     /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */
     private gatherAnonProcedures;
     /** checkRanges: Identify whether a node is inside the set of procedures or code blocks. */
