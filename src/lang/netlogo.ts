@@ -180,7 +180,7 @@ function bracketedAligned(context: TreeIndentContext) {
 }
 
 function delimitedStrategy(context: TreeIndentContext) {
-  console.log(context.node.name, context.node.firstChild?.name);
+  // console.log(context.node.name, context.node.firstChild?.name);
   let after = context.textAfter,
     space = after.match(/^\s*/)![0].length;
   let closing = '[\n',
@@ -188,9 +188,9 @@ function delimitedStrategy(context: TreeIndentContext) {
     units = 1;
   let closed = closing && after.slice(space, space + closing.length) == closing;
   let aligned = align ? bracketedAligned(context) : null;
-  console.log(aligned, closed, context.baseIndent);
+  // console.log(aligned, closed, context.baseIndent);
   if (context.node.parent?.parent?.parent?.name == 'CommandStatement') {
-    console.log('HERE', context.continue());
+    // console.log('HERE', context.continue());
     return context.continue();
   }
   if (aligned) return closed ? context.column(aligned.from) : context.column(aligned.to) + 1;

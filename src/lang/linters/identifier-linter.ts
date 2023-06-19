@@ -19,7 +19,6 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
         const value = getCodeName(view.state, node);
         // check if it meets some initial criteria for validity
         if (checkValidIdentifier(node, value, context)) return;
-        console.log(value, value.startsWith('-'), checkValidIdentifier(node, value.slice(1), context));
         if (value.startsWith('-') && checkValidIdentifier(node, value.slice(1), context)) {
           let d = getDiagnostic(view, noderef, 'Negation _');
           d.actions = [

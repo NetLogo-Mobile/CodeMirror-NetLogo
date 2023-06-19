@@ -3,6 +3,7 @@ import { EditorView } from 'codemirror';
 import { IterMode, SyntaxNode, Tree } from '@lezer/common';
 import { GalapagosEditor } from 'src/editor';
 import { Log } from '../utils/debug-utils';
+import { isContinueStatement } from 'typescript';
 
 /** prettify: Change selection to fit formatting standards. */
 export const prettify = function (view: EditorView, from: number | null = null, to: number | null = null) {
@@ -47,6 +48,7 @@ export const prettifyAll = function (view: EditorView, Editor: GalapagosEditor) 
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
   // parse it again
   Editor.ForceParse();
+  //addTooMuchSpacing(view)
   // give certain nodes their own lines
   view.dispatch({
     changes: addSpacing(view, 0, new_doc.length, Editor.LineWidth),
@@ -140,6 +142,7 @@ const finalSpacing = function (doc: string) {
 const addSpacing = function (view: EditorView, from: number, to: number, lineWidth: number) {
   let changes: { from: number; insert: string; to?: number }[] = [];
   let doc = view.state.doc.toString();
+  let lastInsertedSpace = 0;
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
@@ -153,17 +156,47 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
           doc[node.from - 1] != '\n'
         ) {
           changes.push({ from: node.from, to: node.from, insert: '\n' });
-        } else if (node.name == 'CodeBlock' && checkBlock(node.node, 'ProcedureContent', doc, lineWidth)) {
-          for (var name of ['ProcedureContent', 'CloseBracket']) {
-            node.node.getChildren(name).map((child) => {
-              if (doc[child.from - 1] != '\n') {
-                changes.push({
-                  from: child.from,
-                  to: child.from,
-                  insert: '\n',
-                });
-              }
-            });
+        } else if (node.name == 'CodeBlock') {
+          //console.log("CODEBLOCK",doc.substring(node.from,node.to))
+          if (doc.substring(node.from, node.to).match(/^\s*\[\s*[^\s]+\s*\]/g)) {
+            if (doc.substring(0, node.from).match(/\n[ ]*$/)) {
+              changes.push({
+                from: node.from,
+                to: node.to,
+                insert:
+                  '[ ' +
+                  doc
+                    .substring(node.from, node.to)
+                    .replace(/(\[|\]|\n)/g, '')
+                    .trim() +
+                  ' ]',
+              });
+            } else {
+              changes.push({
+                from: node.from,
+                to: node.to,
+                insert:
+                  '\n[ ' +
+                  doc
+                    .substring(node.from, node.to)
+                    .replace(/(\[|\]|\n)/g, '')
+                    .trim() +
+                  ' ]',
+              });
+            }
+            return false;
+          } else if (checkBlock(node.node, 'ProcedureContent', doc, lineWidth)) {
+            for (var name of ['ProcedureContent', 'CloseBracket']) {
+              node.node.getChildren(name).map((child) => {
+                if (doc[child.from - 1] != '\n') {
+                  changes.push({
+                    from: child.from,
+                    to: child.from,
+                    insert: '\n',
+                  });
+                }
+              });
+            }
           }
         } else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterContent', doc, lineWidth)) {
           for (var name of ['ReporterContent', 'CloseBracket']) {
@@ -183,37 +216,101 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
             while (cursor.node.name == 'LineComment') {
               cursor.nextSibling();
             }
-          }
-          let startPos = cursor.from;
-          let lastPos = cursor.to;
-          node.node.getChildren('Arg').map((child) => {
-            console.log(
-              doc.substring(lastPos, child.from),
-              doc.substring(node.from, child.to),
-              doc.substring(node.from, child.to).length,
-              lineWidth
-            );
+            let startPos = doc.substring(0, cursor.from).lastIndexOf('\n');
+            let startingSpaces = doc.substring(startPos, cursor.to).match(/^\s+/);
+            if (startingSpaces) {
+              startPos = startPos + startingSpaces[0].length;
+            }
+            startPos = Math.max(startPos, lastInsertedSpace);
+            let lastPos = cursor.to;
+            let removeFrom = cursor.to;
+            //if(cursor.node.name!='Arg'){ console.log("\'"+doc.substring(cursor.from, cursor.to)+"\'")}
             if (
-              doc.substring(lastPos, child.from).includes('\n') &&
-              doc.substring(node.from, child.to).split('\n')[0].length < lineWidth
+              cursor.node.name != 'Arg' &&
+              cursor.node.nextSibling?.name == 'Arg' &&
+              doc.substring(cursor.from, cursor.to).length < lineWidth &&
+              doc.substring(cursor.to, cursor.to + 1) == '\n'
             ) {
+              // console.log("1",cursor.node.name,cursor.node.nextSibling?.name)
+              // console.log(doc.substring(cursor.from, cursor.to))
               changes.push({
-                from: lastPos,
-                to: child.from,
+                from: cursor.to,
+                to: cursor.to + 1,
                 insert: ' ',
               });
-            } else if (
-              doc.substring(startPos, child.to).length > lineWidth &&
-              !doc.substring(lastPos, child.to).includes('\n')
-            ) {
-              changes.push({
-                from: child.from,
-                to: child.from,
-                insert: '\n',
-              });
+              removeFrom = cursor.to + 1;
             }
-            lastPos = child.to;
-          });
+            while (cursor.nextSibling()) {
+              // if(cursor.node.prevSibling?.name!='Arg'){
+              //   console.log(startPos,lastPos,cursor.from,cursor.to)
+              // }
+              if (cursor.node.name == 'LineComment') {
+                continue;
+              }
+              if (removeFrom > cursor.from) {
+                removeFrom = cursor.from;
+              }
+              if (cursor.node.name == 'Arg') {
+                // console.log(
+                //   doc.substring(lastPos, cursor.from),
+                //   doc.substring(node.from, cursor.to),
+                //   doc.substring(node.from, cursor.to).length,
+                //   lineWidth
+                // );
+                if (
+                  doc.substring(lastPos, cursor.from).includes('\n') &&
+                  doc.substring(startPos, cursor.to).replace(/\s+/g, ' ').length < lineWidth
+                ) {
+                  // console.log("2")
+                  changes.push({
+                    from: removeFrom,
+                    to: cursor.from,
+                    insert: ' ',
+                  });
+                } else if (
+                  doc.substring(startPos, cursor.to).length > lineWidth &&
+                  !doc.substring(lastPos, cursor.to).includes('\n')
+                ) {
+                  changes.push({
+                    from: removeFrom,
+                    to: cursor.from,
+                    insert: '\n',
+                  });
+                  lastInsertedSpace = cursor.from;
+                }
+                lastPos = cursor.to;
+              }
+              removeFrom = cursor.to;
+            }
+          }
+          // node.node.getChildren('Arg').map((child) => {
+          //   console.log(
+          //     doc.substring(lastPos, child.from),
+          //     doc.substring(node.from, child.to),
+          //     doc.substring(node.from, child.to).length,
+          //     lineWidth
+          //   );
+          //   if (
+          //     doc.substring(lastPos, child.from).includes('\n') &&
+          //     doc.substring(node.from, child.to).split('\n')[0].length < lineWidth
+          //   ) {
+          //     changes.push({
+          //       from: lastPos,
+          //       to: child.from,
+          //       insert: ' ',
+          //     });
+          //   } else if (
+          //     doc.substring(startPos, child.to).length > lineWidth &&
+          //     !doc.substring(lastPos, child.to).includes('\n')
+          //   ) {
+          //     changes.push({
+          //       from: child.from,
+          //       to: child.from,
+          //       insert: '\n',
+          //     });
+          //   }
+          //   lastPos = child.to;
+          // });
         } else if (
           node.name == 'AnonymousProcedure' &&
           (checkBlock(node.node, 'ReporterContent', doc, lineWidth) ||

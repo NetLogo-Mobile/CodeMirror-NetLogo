@@ -151,7 +151,10 @@ newVariableName {
   Command4ArgsVar |
   Command5ArgsVar |
   Command6ArgsVar |
-  Command3ArgsVar2
+  Command3ArgsVar2 |
+  PatchVar | 
+  TurtleVar | 
+  LinkVar
 }
 
 SetVariable {
