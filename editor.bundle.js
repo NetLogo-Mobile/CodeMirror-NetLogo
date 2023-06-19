@@ -17537,7 +17537,7 @@ if(!String.prototype.matchAll) {
         let first = tree.firstChild, close;
         if (first && (close = first.type.prop(NodeProp.closedBy))) {
             let last = tree.lastChild, closed = last && close.indexOf(last.name) > -1;
-            return cx => delimitedStrategy(cx, true, 1, undefined, closed && !ignoreClosed(cx) ? last.from : undefined);
+            return cx => delimitedStrategy$1(cx, true, 1, undefined, closed && !ignoreClosed(cx) ? last.from : undefined);
         }
         return tree.parent == null ? topIndent : null;
     }
@@ -17628,7 +17628,7 @@ if(!String.prototype.matchAll) {
     // Check whether a delimited node is aligned (meaning there are
     // non-skipped nodes on the same line as the opening delimiter). And
     // if so, return the opening token.
-    function bracketedAligned(context) {
+    function bracketedAligned$1(context) {
         let tree = context.node;
         let openToken = tree.childAfter(tree.from), last = tree.lastChild;
         if (!openToken)
@@ -17657,12 +17657,12 @@ if(!String.prototype.matchAll) {
             baz)
     */
     function delimitedIndent({ closing, align = true, units = 1 }) {
-        return (context) => delimitedStrategy(context, align, units, closing);
+        return (context) => delimitedStrategy$1(context, align, units, closing);
     }
-    function delimitedStrategy(context, align, units, closing, closedAt) {
+    function delimitedStrategy$1(context, align, units, closing, closedAt) {
         let after = context.textAfter, space = after.match(/^\s*/)[0].length;
         let closed = closing && after.slice(space, space + closing.length) == closing || closedAt == context.pos + space;
-        let aligned = align ? bracketedAligned(context) : null;
+        let aligned = align ? bracketedAligned$1(context) : null;
         if (aligned)
             return closed ? context.column(aligned.from) : context.column(aligned.to);
         return context.baseIndent + (closed ? 0 : context.unit * units);
@@ -27228,6 +27228,9 @@ if(!String.prototype.matchAll) {
     const en_us = {
         // Buttons
         Add: () => 'Add',
+        Remove: () => 'Remove',
+        Explain: () => 'Explain',
+        Fix: () => 'Fix',
         // Linting messages
         'Unrecognized breed name _': (Name) => `Cannot recognize the breed name "${Name}". Did you define it at the beginning?`,
         'Unrecognized identifier _': (Name) => `Nothing called "${Name}" was defined or reserved by NetLogo. Did you forget to define it?`,
@@ -27262,6 +27265,7 @@ if(!String.prototype.matchAll) {
         'Infinite loop _': (Name) => `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
         'Argument is reserved _': (Name) => `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
         'Argument is invalid _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
+        'Negation _': (Name) => `This looks like it is supposed to be a negation, but is not written correctly. Do you want to fix it?`,
         // Agent types and basic names
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -27382,6 +27386,9 @@ if(!String.prototype.matchAll) {
     const zh_cn = {
         // Buttons
         Add: () => '添加',
+        Remove: () => 'Remove',
+        Explain: () => 'Explain',
+        Fix: () => 'Fix',
         // Linting messages
         'Unrecognized breed name _': (Name) => `未能识别出名为 "${Name}" 的海龟种类。种类需要在代码的开头处进行定义。`,
         'Unrecognized identifier _': (Name) => `"${Name}" 既没有被定义，也不是 NetLogo 的关键字。`,
@@ -27417,6 +27424,7 @@ if(!String.prototype.matchAll) {
         'Argument is reserved _': (Name) => `参数名称 "${Name}" 和 NetLogo 的关键字重复了。你想换一个名字吗？`,
         'Argument is invalid _': (Name) => `参数名称 "${Name}" 不可用。你想换一个名字吗？`,
         'Inconsistent code block type _': (Prior, New) => `The code block type "${New}" does not match the preceding code block type "${Prior}".`,
+        'Negation _': (Name) => `This looks like it is supposed to be a negation, but is not written correctly. Do you want to fix it?`,
         // Agent types and basic names
         Observer: () => '观察者',
         Turtle: () => '海龟',
@@ -30909,9 +30917,10 @@ if(!String.prototype.matchAll) {
                     //   console.log(context)
                     //   return context.column(context.pos)
                     // },
-                    ReporterContent: delimitedIndent({ closing: '[\n', align: true }),
-                    ReporterStatement: delimitedIndent({ closing: '[\n', align: true }),
-                    CommandStatement: delimitedIndent({ closing: '[\n', align: true }),
+                    //ReporterContent: delimitedIndent({ closing: '[\n', align: true }),
+                    ReporterStatement: (context) => delimitedStrategy(context),
+                    // delimitedIndent({ closing: '[\n', align: true }),
+                    CommandStatement: (context) => delimitedStrategy(context),
                     ProcedureContent: delimitedIndent({ closing: '[\n' }),
                     CodeBlock: delimitedIndent({ closing: ']' }),
                     AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
@@ -30940,6 +30949,40 @@ if(!String.prototype.matchAll) {
             indentOnInput: /^\s*end$/i,
         },
     });
+    function bracketedAligned(context) {
+        let tree = context.node;
+        let openToken = tree.childAfter(tree.from), last = tree.lastChild;
+        if (!openToken)
+            return null;
+        //let sim = context.options.simulateBreak
+        let openLine = context.state.doc.lineAt(openToken.from);
+        let lineEnd = openLine.to;
+        //let lineEnd = sim == null || sim <= openLine.from ? openLine.to : Math.min(openLine.to, sim)
+        for (let pos = openToken.to;;) {
+            let next = tree.childAfter(pos);
+            if (!next || next == last)
+                return null;
+            if (!next.type.isSkipped)
+                return next.from < lineEnd ? openToken : null;
+            pos = next.to;
+        }
+    }
+    function delimitedStrategy(context) {
+        var _a, _b, _c, _d, _e;
+        console.log(context.node.name, (_a = context.node.firstChild) === null || _a === void 0 ? void 0 : _a.name);
+        let after = context.textAfter, space = after.match(/^\s*/)[0].length;
+        let closing = '[\n', align = ((_b = context.node.firstChild) === null || _b === void 0 ? void 0 : _b.name) != 'Arg', units = 1;
+        let closed = after.slice(space, space + closing.length) == closing;
+        let aligned = align ? bracketedAligned(context) : null;
+        console.log(aligned, closed, context.baseIndent);
+        if (((_e = (_d = (_c = context.node.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.parent) === null || _e === void 0 ? void 0 : _e.name) == 'CommandStatement') {
+            console.log('HERE', context.continue());
+            return context.continue();
+        }
+        if (aligned)
+            return closed ? context.column(aligned.from) : context.column(aligned.to) + 1;
+        return context.baseIndent + (closed ? 0 : context.unit * units);
+    }
     /// [Fold](#language.foldNodeProp) function that folds everything but
     /// the first and the last child of a syntax node. Useful for nodes
     /// that start and end with delimiters.
@@ -30984,6 +31027,20 @@ if(!String.prototype.matchAll) {
                 // check if it meets some initial criteria for validity
                 if (checkValidIdentifier(node, value, context))
                     return;
+                console.log(value, value.startsWith('-'), checkValidIdentifier(node, value.slice(1), context));
+                if (value.startsWith('-') && checkValidIdentifier(node, value.slice(1), context)) {
+                    let d = getDiagnostic(view, noderef, 'Negation _');
+                    d.actions = [
+                        {
+                            name: Localized.Get('Fix'),
+                            apply(view, from, to) {
+                                view.dispatch({ changes: { from, to, insert: '( - ' + value.slice(1) + ' )' } });
+                            },
+                        },
+                    ];
+                    diagnostics.push(d);
+                    return;
+                }
                 // check if the identifier looks like a breed procedure (e.g. "create-___")
                 let result = checkBreedLike(value);
                 if (!result.found) {
@@ -32360,8 +32417,9 @@ if(!String.prototype.matchAll) {
                     let startPos = cursor.from;
                     let lastPos = cursor.to;
                     node.node.getChildren('Arg').map((child) => {
+                        console.log(doc.substring(lastPos, child.from), doc.substring(node.from, child.to), doc.substring(node.from, child.to).length, lineWidth);
                         if (doc.substring(lastPos, child.from).includes('\n') &&
-                            doc.substring(node.from, child.to).length < lineWidth) {
+                            doc.substring(node.from, child.to).split('\n')[0].length < lineWidth) {
                             changes.push({
                                 from: lastPos,
                                 to: child.from,
