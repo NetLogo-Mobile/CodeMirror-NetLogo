@@ -111,8 +111,47 @@ VariableDeclaration {
 }
 
 NewVariableDeclaration {
-  Let (Identifier | UnsupportedPrim) Value |
-  Let (Identifier | UnsupportedPrim) ReporterStatement
+  Let newVariableName Value |
+  Let newVariableName ReporterStatement
+}
+
+newVariableName {
+  Identifier |
+  UnsupportedPrim |
+  Reporter0Args |
+  Reporter1Args |
+  Reporter2Args |
+  Reporter3Args |
+  Reporter4Args |
+  Reporter5Args |
+  Reporter6Args |
+  Reporter0ArgsVar |
+  Reporter1ArgsVar |
+  Reporter2ArgsVar |
+  Reporter3ArgsVar |
+  Reporter4ArgsVar |
+  Reporter5ArgsVar |
+  Reporter6ArgsVar |
+  Reporter2ArgsVar0 |
+  Reporter1ArgsVar0 |
+  ReporterLeft1ArgsOpt |
+  ReporterLeft1Args |
+  ReporterLeft2Args |
+  Command0Args |
+  Command1Args |
+  Command2Args |
+  Command3Args |
+  Command4Args |
+  Command5Args |
+  Command6Args |
+  Command0ArgsVar |
+  Command1ArgsVar |
+  Command2ArgsVar |
+  Command3ArgsVar |
+  Command4ArgsVar |
+  Command5ArgsVar |
+  Command6ArgsVar |
+  Command3ArgsVar2
 }
 
 SetVariable {

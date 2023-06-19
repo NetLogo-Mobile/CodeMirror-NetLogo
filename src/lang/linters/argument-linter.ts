@@ -29,23 +29,34 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
       ) {
         let func = noderef.name == 'SetVariable' ? 'Set' : 'Let';
         let expected = 2;
-        let actual =
-          noderef.name == 'SetVariable'
-            ? noderef.node.getChildren('VariableName').length + noderef.node.getChildren('Value').length
-            : noderef.node.getChildren('Identifier').length +
-              noderef.node.getChildren('UnsupportedPrim').length +
-              noderef.node.getChildren('Value').length;
-        diagnostics.push(
-          getDiagnostic(
-            view,
-            noderef.node,
-            'Too few right args for _. Expected _, found _.',
-            'error',
-            func,
-            expected.toString(),
-            actual.toString()
-          )
-        );
+        let child_count = 0;
+        let cursor = noderef.node.cursor();
+        if (cursor.firstChild()) {
+          while (cursor.nextSibling()) {
+            if (cursor.from != cursor.to) {
+              child_count++;
+            }
+          }
+        }
+        let actual = child_count;
+        // noderef.name == 'SetVariable'
+        //   ? noderef.node.getChildren('VariableName').length + noderef.node.getChildren('Value').length
+        //   : noderef.node.getChildren('Identifier').length +
+        //   noderef.node.getChildren('UnsupportedPrim').length +
+        //   noderef.node.getChildren('Value').length;
+        if (actual < expected) {
+          diagnostics.push(
+            getDiagnostic(
+              view,
+              noderef.node,
+              'Too few right args for _. Expected _, found _.',
+              'error',
+              func,
+              expected.toString(),
+              actual.toString()
+            )
+          );
+        }
       } else if (
         (noderef.name == 'ReporterStatement' || noderef.name == 'CommandStatement') &&
         noderef.node.getChildren('Arg')

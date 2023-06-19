@@ -31,6 +31,12 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
           } else {
             diagnostics.push(getDiagnostic(view, node, 'Argument is invalid _'));
           }
+        } else if (node.node.parent?.name == 'SetVariable') {
+          if (node.node.prevSibling?.name == 'Set') {
+            diagnostics.push(getDiagnostic(view, node.node, 'Term _ reserved', 'error', value, 'Local variable'));
+          } else {
+            diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
+          }
         } else if (!['[', ']', ')', '(', '"'].includes(value) && !checkBreedLike(value).found) {
           // Anything else could be an unrecognized statement
           if (node.node.parent?.name == 'Normal') {

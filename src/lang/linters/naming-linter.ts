@@ -9,6 +9,7 @@ import { turtleVars, patchVars, linkVars } from '../keywords';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { removeAction } from '../utils/actions';
 import { stateExtension } from 'src/codemirror/extension-state-netlogo';
+import { EditorView } from 'codemirror';
 
 let primitives = PrimitiveManager;
 
@@ -139,10 +140,17 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
           // Now, for each new variable declaration, we look back again
           // It would also solve the issue of arguments & local variables using the same name
           // Since the new variable definition is typically few, not a high priority
-          let child = noderef.node.getChild('Identifier') ?? noderef.node.getChild('UnsupportedPrim');
+          //let child = noderef.node.getChild('Identifier') ?? noderef.node.getChild('UnsupportedPrim');
+          // console.log(view.state.sliceDoc(noderef.from,noderef.to),getChildren(noderef.node,view))
+          let child = noderef.node.firstChild?.nextSibling;
           if (!child) return;
-          let localvars = getLocalVariables(child, view.state, lintContext);
-          NameCheck(child, 'Local variable', localvars);
+          if (child.name.includes('Reporter') || child.name.includes('Command')) {
+            const value = view.state.sliceDoc(child.from, child.to).toLowerCase();
+            diagnostics.push(getDiagnostic(view, child, 'Term _ reserved', 'error', value, 'Local variable'));
+          } else {
+            let localvars = getLocalVariables(child, view.state, lintContext);
+            NameCheck(child, 'Local variable', localvars);
+          }
         } else if (noderef.name == 'Arguments') {
           let current: string[] = [];
           if (noderef.node.parent?.name == 'AnonArguments') {
@@ -161,6 +169,21 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
       });
   }
   return diagnostics;
+};
+
+const getChildren = (node: SyntaxNode, view: EditorView) => {
+  let children: string[] = [];
+  let values: string[] = [];
+  let cursor = node.cursor();
+  if (cursor.firstChild()) {
+    children.push(cursor.node.name);
+    values.push(view.state.sliceDoc(cursor.from, cursor.to));
+    while (cursor.nextSibling()) {
+      children.push(cursor.node.name);
+      values.push(view.state.sliceDoc(cursor.from, cursor.to));
+    }
+  }
+  return [children, values];
 };
 
 const isLinkBreed = (breedName: string, lintContext: LintContext) => {
