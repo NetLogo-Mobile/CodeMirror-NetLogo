@@ -128,9 +128,10 @@ export const NetLogoLanguage = LRLanguage.define({
         //   console.log(context)
         //   return context.column(context.pos)
         // },
-        ReporterContent: delimitedIndent({ closing: '[\n', align: true }),
-        ReporterStatement: delimitedIndent({ closing: '[\n', align: true }),
-        CommandStatement: delimitedIndent({ closing: '[\n', align: true }),
+        //ReporterContent: delimitedIndent({ closing: '[\n', align: true }),
+        ReporterStatement: (context: TreeIndentContext) => delimitedStrategy(context),
+        // delimitedIndent({ closing: '[\n', align: true }),
+        CommandStatement: (context: TreeIndentContext) => delimitedStrategy(context),
         ProcedureContent: delimitedIndent({ closing: '[\n' }),
         CodeBlock: delimitedIndent({ closing: ']' }),
         AnonymousProcedure: delimitedIndent({ closing: ']', align: false }),
@@ -160,6 +161,41 @@ export const NetLogoLanguage = LRLanguage.define({
     indentOnInput: /^\s*end$/i,
   },
 });
+
+function bracketedAligned(context: TreeIndentContext) {
+  let tree = context.node;
+  let openToken = tree.childAfter(tree.from),
+    last = tree.lastChild;
+  if (!openToken) return null;
+  //let sim = context.options.simulateBreak
+  let openLine = context.state.doc.lineAt(openToken.from);
+  let lineEnd = openLine.to;
+  //let lineEnd = sim == null || sim <= openLine.from ? openLine.to : Math.min(openLine.to, sim)
+  for (let pos = openToken.to; ; ) {
+    let next = tree.childAfter(pos);
+    if (!next || next == last) return null;
+    if (!next.type.isSkipped) return next.from < lineEnd ? openToken : null;
+    pos = next.to;
+  }
+}
+
+function delimitedStrategy(context: TreeIndentContext) {
+  console.log(context.node.name, context.node.firstChild?.name);
+  let after = context.textAfter,
+    space = after.match(/^\s*/)![0].length;
+  let closing = '[\n',
+    align = context.node.firstChild?.name != 'Arg',
+    units = 1;
+  let closed = closing && after.slice(space, space + closing.length) == closing;
+  let aligned = align ? bracketedAligned(context) : null;
+  console.log(aligned, closed, context.baseIndent);
+  if (context.node.parent?.parent?.parent?.name == 'CommandStatement') {
+    console.log('HERE', context.continue());
+    return context.continue();
+  }
+  if (aligned) return closed ? context.column(aligned.from) : context.column(aligned.to) + 1;
+  return context.baseIndent + (closed ? 0 : context.unit * units);
+}
 
 function getUnits(context: TreeIndentContext) {
   if (/^\s*\[/.test(context.textAfter) || /^\s*\]/.test(context.textAfter)) {

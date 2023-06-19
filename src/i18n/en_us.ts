@@ -1,6 +1,9 @@
 const en_us: Record<string, Function> = {
   // Buttons
   Add: () => 'Add',
+  Remove: () => 'Remove',
+  Explain: () => 'Explain',
+  Fix: () => 'Fix',
 
   // Linting messages
   'Unrecognized breed name _': (Name: string) =>
@@ -61,6 +64,8 @@ const en_us: Record<string, Function> = {
   'Argument is reserved _': (Name: string) =>
     `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
   'Argument is invalid _': (Name: string) => `The argument "${Name}" is invalid. Do you want to replace it?`,
+  'Negation _': (Name: string) =>
+    `This looks like it is supposed to be a negation, but is not written correctly. Do you want to fix it?`,
 
   // Agent types and basic names
   Observer: () => 'Observer',

@@ -1,6 +1,9 @@
 const zh_cn: Record<string, Function> = {
   // Buttons
   Add: () => '添加',
+  Remove: () => 'Remove',
+  Explain: () => 'Explain',
+  Fix: () => 'Fix',
 
   // Linting messages
   'Unrecognized breed name _': (Name: string) =>
@@ -48,6 +51,8 @@ const zh_cn: Record<string, Function> = {
   'Argument is invalid _': (Name: string) => `参数名称 "${Name}" 不可用。你想换一个名字吗？`,
   'Inconsistent code block type _': (Prior: string, New: string) =>
     `The code block type "${New}" does not match the preceding code block type "${Prior}".`,
+  'Negation _': (Name: string) =>
+    `This looks like it is supposed to be a negation, but is not written correctly. Do you want to fix it?`,
 
   // Agent types and basic names
   Observer: () => '观察者',

@@ -4,6 +4,8 @@ import { Linter, getDiagnostic } from './linter-builder';
 import { checkBreedLike, getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
 import { checkValidIdentifier, getCheckContext, checkBreed } from '../utils/check-identifier';
 import { getCodeName } from '../utils/code';
+import { Localized } from 'src/editor';
+import { EditorView } from 'codemirror';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -17,6 +19,20 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
         const value = getCodeName(view.state, node);
         // check if it meets some initial criteria for validity
         if (checkValidIdentifier(node, value, context)) return;
+        console.log(value, value.startsWith('-'), checkValidIdentifier(node, value.slice(1), context));
+        if (value.startsWith('-') && checkValidIdentifier(node, value.slice(1), context)) {
+          let d = getDiagnostic(view, noderef, 'Negation _');
+          d.actions = [
+            {
+              name: Localized.Get('Fix'),
+              apply(view: EditorView, from: number, to: number) {
+                view.dispatch({ changes: { from, to, insert: '( - ' + value.slice(1) + ' )' } });
+              },
+            },
+          ];
+          diagnostics.push(d);
+          return;
+        }
         // check if the identifier looks like a breed procedure (e.g. "create-___")
         let result = checkBreedLike(value);
         if (!result.found) {

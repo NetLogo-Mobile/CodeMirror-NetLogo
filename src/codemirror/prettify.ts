@@ -187,9 +187,15 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
           let startPos = cursor.from;
           let lastPos = cursor.to;
           node.node.getChildren('Arg').map((child) => {
+            console.log(
+              doc.substring(lastPos, child.from),
+              doc.substring(node.from, child.to),
+              doc.substring(node.from, child.to).length,
+              lineWidth
+            );
             if (
               doc.substring(lastPos, child.from).includes('\n') &&
-              doc.substring(node.from, child.to).length < lineWidth
+              doc.substring(node.from, child.to).split('\n')[0].length < lineWidth
             ) {
               changes.push({
                 from: lastPos,
