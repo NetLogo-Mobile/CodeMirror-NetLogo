@@ -168,6 +168,7 @@ const en_us: Record<string, Function> = {
   'Successfully executed': () => `Successfully executed the code.`,
   'Successfully compiled': () => `Successfully compiled the code. We can run them now!`,
   'Runtime error _': (Error: string) => `Sorry, the code failed to run: ${Error}`,
+  'Runtime error in snippet _': (Number: number) => `Sorry, there are ${Number} errors during this run.`,
   'Compile error _': (Error: string) => `Sorry, I cannot understand the code: ${Error}`,
   'Compile error in snippet _': (Number: number) => `Sorry, there are still ${Number} errors in the code snippet.`,
   'Compile error unknown': (Number: number) => `Sorry, there is an unknown error. Please report it as a bug.`,
