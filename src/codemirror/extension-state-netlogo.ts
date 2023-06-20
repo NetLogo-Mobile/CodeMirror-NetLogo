@@ -187,6 +187,13 @@ export class StateNetLogo {
     procedure.Variables = this.getLocalVarsCommand(Node, State, false);
     procedure.AnonymousProcedures = this.gatherAnonProcedures(Node, State, procedure);
     procedure.Context = this.getContext(Node, State);
+    procedure.CodeBlocks = this.gatherCodeBlocks(
+      State,
+      Node,
+      procedure.Context,
+      procedure.Variables,
+      procedure.Arguments
+    );
     return procedure;
   }
 
