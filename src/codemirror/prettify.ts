@@ -133,8 +133,10 @@ const finalSpacing = function (doc: string) {
   new_doc = new_doc.replace(/\n\n+/g, '\n\n');
   new_doc = new_doc.replace(/ +/g, ' ');
   new_doc = new_doc.replace(/^\s+/g, '');
+  new_doc = new_doc.replace(/[ ]*\n[ ]*\[[ ]*\n/g, ' [\n');
   new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
   new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
+  new_doc = new_doc.replace(/[ ]+$/, '');
   return new_doc;
 };
 
@@ -159,29 +161,24 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
         } else if (node.name == 'CodeBlock') {
           //console.log("CODEBLOCK",doc.substring(node.from,node.to))
           if (doc.substring(node.from, node.to).match(/^\s*\[\s*[^\s]+\s*\]/g)) {
+            let replacement =
+              '[ ' +
+              doc
+                .substring(node.from, node.to)
+                .replace(/(\[|\]|\n)/g, '')
+                .trim() +
+              ' ]';
             if (doc.substring(0, node.from).match(/\n[ ]*$/)) {
               changes.push({
                 from: node.from,
                 to: node.to,
-                insert:
-                  '[ ' +
-                  doc
-                    .substring(node.from, node.to)
-                    .replace(/(\[|\]|\n)/g, '')
-                    .trim() +
-                  ' ]',
+                insert: replacement,
               });
             } else {
               changes.push({
                 from: node.from,
                 to: node.to,
-                insert:
-                  '\n[ ' +
-                  doc
-                    .substring(node.from, node.to)
-                    .replace(/(\[|\]|\n)/g, '')
-                    .trim() +
-                  ' ]',
+                insert: '\n' + replacement,
               });
             }
             return false;

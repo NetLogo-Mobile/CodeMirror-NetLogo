@@ -242,7 +242,9 @@ export class GalapagosEditor {
     if (Changed) {
       State.WidgetGlobals = Variables.map((str) => str.toLowerCase());
       State.SetDirty();
-      this.UpdateContext();
+      if (this.Options.ParseMode == ParseMode.Normal) this.UpdateContext();
+      else this.UpdateSharedContext();
+      // this.UpdateContext();
       if (ForceLint) this.ForceLint();
     }
   }
@@ -344,7 +346,7 @@ export class GalapagosEditor {
   /** GetChildren: Get the logical children of the editor. */
   private GetChildren(): GalapagosEditor[] {
     // For the generative mode, it takes the context from its parent but does not contribute to it
-    if (this.Options.ParseMode == ParseMode.Generative) return [this.ParentEditor!, this];
+    if (this.Options.ParseMode == ParseMode.Generative) return [this];
     if (this.Options.ParseMode == ParseMode.Normal) return [...this.Children, this];
     else {
       return [this];

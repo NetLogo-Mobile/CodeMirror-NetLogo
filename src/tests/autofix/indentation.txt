@@ -22,6 +22,7 @@ create-turtles 1 [
   set size 2
   setxy 0 0 ; place the turtle at the center of the world
 ]
+
 ; create 10 wabbits around the central turtle
 create-wabbits 10 [
   set color white

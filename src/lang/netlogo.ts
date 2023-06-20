@@ -186,7 +186,9 @@ function delimitedStrategy(context: TreeIndentContext) {
   let closing = '[\n',
     align = context.node.firstChild?.name != 'Arg',
     units = 1;
-  let closed = closing && after.slice(space, space + closing.length) == closing;
+  let next = after.slice(space, space + 2);
+  let closed = closing && (next == closing || next == '[');
+  console.log("'" + after.slice(space, space + 2) + "'", closing.length);
   let aligned = align ? bracketedAligned(context) : null;
   // console.log(aligned, closed, context.baseIndent);
   if (context.node.parent?.parent?.parent?.name == 'CommandStatement') {
