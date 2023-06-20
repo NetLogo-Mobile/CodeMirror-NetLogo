@@ -118,6 +118,13 @@ NewVariableDeclaration {
 newVariableName {
   Identifier |
   UnsupportedPrim |
+  PatchVar | 
+  TurtleVar | 
+  LinkVar |
+  builtinPrims
+}
+
+builtinPrims {
   Reporter0Args |
   Reporter1Args |
   Reporter2Args |
@@ -151,15 +158,12 @@ newVariableName {
   Command4ArgsVar |
   Command5ArgsVar |
   Command6ArgsVar |
-  Command3ArgsVar2 |
-  PatchVar | 
-  TurtleVar | 
-  LinkVar
+  Command3ArgsVar2
 }
 
 SetVariable {
-  Set VariableName Value |
-  Set VariableName ReporterStatement
+  Set (VariableName|builtinPrims) Value |
+  Set (VariableName|builtinPrims) ReporterStatement
 }
 
 VariableName {
@@ -168,7 +172,7 @@ VariableName {
   TurtleVar | 
   LinkVar |
   BreedToken |
-  UnsupportedPrim ~statement
+  UnsupportedPrim
 }
 
 Arg {  

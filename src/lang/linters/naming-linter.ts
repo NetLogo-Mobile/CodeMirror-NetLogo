@@ -135,7 +135,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
             }
           });
           breedDefined.push(...breedvars);
-        } else if (noderef.name == 'NewVariableDeclaration') {
+        } else if (noderef.name == 'NewVariableDeclaration' || noderef.name == 'SetVariable') {
           // TODO: Optimize it so that whenever we see a procedure, we check the local variables
           // Now, for each new variable declaration, we look back again
           // It would also solve the issue of arguments & local variables using the same name
@@ -147,7 +147,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
           if (child.name.includes('Reporter') || child.name.includes('Command')) {
             const value = view.state.sliceDoc(child.from, child.to).toLowerCase();
             diagnostics.push(getDiagnostic(view, child, 'Term _ reserved', 'error', value, 'Local variable'));
-          } else {
+          } else if (noderef.name == 'NewVariableDeclaration') {
             let localvars = getLocalVariables(child, view.state, lintContext);
             NameCheck(child, 'Local variable', localvars);
           }
