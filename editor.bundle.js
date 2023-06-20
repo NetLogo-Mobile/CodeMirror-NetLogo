@@ -30972,7 +30972,9 @@ if(!String.prototype.matchAll) {
         // console.log(context.node.name, context.node.firstChild?.name);
         let after = context.textAfter, space = after.match(/^\s*/)[0].length;
         let closing = '[\n', align = ((_a = context.node.firstChild) === null || _a === void 0 ? void 0 : _a.name) != 'Arg', units = 1;
-        let closed = after.slice(space, space + closing.length) == closing;
+        let next = after.slice(space, space + 2);
+        let closed = (next == closing || next == '[');
+        console.log("'" + after.slice(space, space + 2) + "'", closing.length);
         let aligned = align ? bracketedAligned(context) : null;
         // console.log(aligned, closed, context.baseIndent);
         if (((_d = (_c = (_b = context.node.parent) === null || _b === void 0 ? void 0 : _b.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.name) == 'CommandStatement') {
@@ -32360,8 +32362,10 @@ if(!String.prototype.matchAll) {
         new_doc = new_doc.replace(/\n\n+/g, '\n\n');
         new_doc = new_doc.replace(/ +/g, ' ');
         new_doc = new_doc.replace(/^\s+/g, '');
+        new_doc = new_doc.replace(/[ ]*\n[ ]*\[[ ]*\n/g, ' [\n');
         new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
         new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
+        new_doc = new_doc.replace(/[ ]+$/, '');
         return new_doc;
     };
     /** addSpacing: Give certain types of nodes their own lines. */
@@ -32385,28 +32389,24 @@ if(!String.prototype.matchAll) {
                 else if (node.name == 'CodeBlock') {
                     //console.log("CODEBLOCK",doc.substring(node.from,node.to))
                     if (doc.substring(node.from, node.to).match(/^\s*\[\s*[^\s]+\s*\]/g)) {
+                        let replacement = '[ ' +
+                            doc
+                                .substring(node.from, node.to)
+                                .replace(/(\[|\]|\n)/g, '')
+                                .trim() +
+                            ' ]';
                         if (doc.substring(0, node.from).match(/\n[ ]*$/)) {
                             changes.push({
                                 from: node.from,
                                 to: node.to,
-                                insert: '[ ' +
-                                    doc
-                                        .substring(node.from, node.to)
-                                        .replace(/(\[|\]|\n)/g, '')
-                                        .trim() +
-                                    ' ]',
+                                insert: replacement,
                             });
                         }
                         else {
                             changes.push({
                                 from: node.from,
                                 to: node.to,
-                                insert: '\n[ ' +
-                                    doc
-                                        .substring(node.from, node.to)
-                                        .replace(/(\[|\]|\n)/g, '')
-                                        .trim() +
-                                    ' ]',
+                                insert: '\n' + replacement,
                             });
                         }
                         return false;
@@ -33312,7 +33312,11 @@ if(!String.prototype.matchAll) {
             if (Changed) {
                 State.WidgetGlobals = Variables.map((str) => str.toLowerCase());
                 State.SetDirty();
-                this.UpdateContext();
+                if (this.Options.ParseMode == ParseMode.Normal)
+                    this.UpdateContext();
+                else
+                    this.UpdateSharedContext();
+                // this.UpdateContext();
                 if (ForceLint)
                     this.ForceLint();
             }
@@ -33405,7 +33409,7 @@ if(!String.prototype.matchAll) {
         GetChildren() {
             // For the generative mode, it takes the context from its parent but does not contribute to it
             if (this.Options.ParseMode == ParseMode.Generative)
-                return [this.ParentEditor, this];
+                return [this];
             if (this.Options.ParseMode == ParseMode.Normal)
                 return [...this.Children, this];
             else {
