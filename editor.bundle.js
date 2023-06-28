@@ -26930,13 +26930,20 @@ if(!String.prototype.matchAll) {
             this.ContextErrors = [];
             /** EditorID: The id of the editor. */
             this.EditorID = 0;
-            this.Context = 'observer';
+            /** Context: The context of the editor. */
+            this.Context = '';
             // #endregion
         }
-        // #endregion
-        SetContext(context) {
-            this.Context = context;
+        /** SetContext: Set the context of the editor. */
+        SetContext(Context) {
+            if (this.Context !== Context) {
+                this.Context = Context;
+                return true;
+            }
+            else
+                return false;
         }
+        // #endregion
         // #region "Version Control"
         /** SetDirty: Make the state dirty. */
         SetDirty() {
@@ -26947,9 +26954,6 @@ if(!String.prototype.matchAll) {
             return this.IsDirty;
         }
         // #endregion
-        setID(id) {
-            this.EditorID = id;
-        }
         // #region "Parsing"
         /** ParseState: Parse the state from an editor state. */
         ParseState(State) {
@@ -27122,11 +27126,11 @@ if(!String.prototype.matchAll) {
             });
             return priorContext;
         }
+        /** getNewContext: Identify context of a block by combining with the previous context. */
         getNewContext(node3, priorContext, state, newContext) {
             var _a;
             let cursor = node3.cursor();
             let child = cursor.firstChild();
-            this.ContextErrors.length;
             while (child) {
                 if ((cursor.node.name.includes('Command') || cursor.node.name.includes('Reporter')) &&
                     !cursor.node.name.includes('Commands') &&
@@ -30685,9 +30689,8 @@ if(!String.prototype.matchAll) {
         if (stateNetLogo.Mode == 'Oneline' || stateNetLogo.Mode == 'OnelineReporter') {
             let context = new AgentContexts('O---');
             for (var b of lintContext.Breeds.values()) {
-                if (b.Plural == stateNetLogo.Context) {
+                if (b.Plural == stateNetLogo.Context)
                     context = stateNetLogo.getBreedContext(b);
-                }
             }
             stateNetLogo.getNewContext((_b = (_a = syntaxTree(view.state).cursor().node.firstChild) === null || _a === void 0 ? void 0 : _a.firstChild) !== null && _b !== void 0 ? _b : syntaxTree(view.state).cursor().node, context, view.state, new AgentContexts());
         }
@@ -33183,13 +33186,11 @@ if(!String.prototype.matchAll) {
                     this.Language = NetLogo(this);
                     Extensions.push(preprocessStateExtension);
                     Extensions.push(stateExtension);
+                    Extensions.push(buildToolTips(this));
                     Dictionary.ClickHandler = (_a = Dictionary.ClickHandler) !== null && _a !== void 0 ? _a : Options.OnDictionaryClick;
                     this.Linters = netlogoLinters.map((linter) => buildLinter(linter, this));
                     // Special case: One-line mode
-                    if (!this.Options.OneLine) {
-                        Extensions.push(buildToolTips(this));
-                    }
-                    else {
+                    if (this.Options.OneLine) {
                         Extensions.unshift(Prec.highest(keymap.of([{ key: 'Enter', run: () => true }])));
                         Extensions.unshift(Prec.highest(keymap.of([{ key: 'Tab', run: acceptCompletion }])));
                     }
@@ -33290,7 +33291,7 @@ if(!String.prototype.matchAll) {
             this.Children.push(Child);
             Child.ID = this.Children.length;
             Child.ParentEditor = this;
-            Child.CodeMirror.state.field(stateExtension).setID(Child.ID);
+            Child.CodeMirror.state.field(stateExtension).EditorID = Child.ID;
             // Generative editors are sort of independent
             if (Child.Options.ParseMode !== ParseMode.Generative) {
                 Child.LintContext = this.LintContext;
@@ -33403,10 +33404,10 @@ if(!String.prototype.matchAll) {
                 }
             });
         }
+        /** SetContext: Set the context of the editor for one-line modes. */
         SetContext(context) {
             if ((this.Options.ParseMode == ParseMode.Oneline || this.Options.ParseMode == ParseMode.OnelineReporter) &&
-                context != 'observer') {
-                this.CodeMirror.state.field(stateExtension).SetContext(context);
+                this.GetState(false).SetContext(context)) {
                 this.ForceParse();
                 this.ForceLint();
             }

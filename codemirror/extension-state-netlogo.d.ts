@@ -29,13 +29,14 @@ export declare class StateNetLogo {
     ContextErrors: ContextError[];
     /** EditorID: The id of the editor. */
     EditorID: number;
+    /** Context: The context of the editor. */
     Context: string;
-    SetContext(context: string): void;
+    /** SetContext: Set the context of the editor. */
+    SetContext(Context: string): boolean;
     /** SetDirty: Make the state dirty. */
     SetDirty(): void;
     /** GetDirty: Gets if the state is dirty. */
     GetDirty(): boolean;
-    setID(id: number): void;
     /** ParseState: Parse the state from an editor state. */
     ParseState(State: EditorState): StateNetLogo;
     /** gatherEmbeddedProcedure: Gather all information about a procedure in embedded mode. */
@@ -46,6 +47,7 @@ export declare class StateNetLogo {
     private gatherProcedure;
     /** getContext: Identify context of a block by looking at primitives and variable names. */
     private getContext;
+    /** getNewContext: Identify context of a block by combining with the previous context. */
     getNewContext(node3: SyntaxNode, priorContext: AgentContexts, state: EditorState, newContext: AgentContexts): AgentContexts[];
     /** getPrimitiveContext: Identify context for a builtin primitive. */
     private getPrimitiveContext;
