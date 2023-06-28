@@ -479,9 +479,8 @@ export class GalapagosEditor {
   // #region "Event Handling"
   /** onUpdate: Handle the Update event. */
   private onUpdate(update: ViewUpdate) {
-    if (this.Options.OnUpdate != null) {
-      this.Options.OnUpdate(update.docChanged, update);
-    }
+    if (update.docChanged) this.SetCompilerErrors([]);
+    if (this.Options.OnUpdate != null) this.Options.OnUpdate(update.docChanged, update);
     if (update.focusChanged) {
       if (this.CodeMirror.hasFocus) {
         if (this.Options.OnFocused != null) this.Options.OnFocused(this.CodeMirror);
