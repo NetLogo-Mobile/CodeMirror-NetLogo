@@ -12,10 +12,12 @@ export class PreprocessContext {
   public PluralToSingulars: Map<string, string> = new Map<string, string>();
   /** SpecialReporters: Reporter-to-plural mappings in the model. */
   public SpecialReporters: Map<string, string> = new Map<string, string>();
-  /** BreedVars: Breed variables in the model. */
-  public BreedVars: Map<string, number> = new Map<string, number>();
   /** BreedTypes: Breed types in the model. */
   public BreedTypes: Map<string, BreedType> = new Map<string, BreedType>();
+  /** BreedVars: Breed variables in the model. */
+  public BreedVars: Map<string, number> = new Map<string, number>();
+  /** BreedVarToPlurals: Breed variable-plural mappings in the model. */
+  public BreedVarToPlurals: Map<string, string> = new Map<string, string>();
   /** Commands: Commands in the model with number of arguments. */
   public Commands: Map<string, number> = new Map<string, number>();
   /** Reporters: Reporters in the model with number of arguments. */
@@ -30,6 +32,7 @@ export class PreprocessContext {
     this.SingularBreeds.clear();
     this.BreedTypes.clear();
     this.BreedVars.clear();
+    this.BreedVarToPlurals.clear();
     this.Commands.clear();
     this.Reporters.clear();
     this.CommandsOrigin.clear();
@@ -52,6 +55,10 @@ export class PreprocessContext {
     } else {
       return new AgentContexts('-T--');
     }
+  }
+  /** GetBreedVariableContexts: Get the context for a breed variable. */
+  public GetBreedVariableContexts(Name: string): AgentContexts | undefined {
+    if (this.BreedVarToPlurals.has(Name)) return this.GetBreedContext(this.BreedVarToPlurals.get(Name)!, true);
   }
   /** GetReporterBreed: Get the breed for a reporter. */
   public GetReporterBreed(Name: string): string | undefined {

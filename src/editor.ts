@@ -340,12 +340,10 @@ export class GalapagosEditor {
   /** GetChildren: Get the logical children of the editor. */
   private GetChildren(): GalapagosEditor[] {
     // For the generative mode, it takes the context from its parent but does not contribute to it
-    if (this.Options.ParseMode == ParseMode.Generative) return [this];
-    if (this.Options.ParseMode == ParseMode.Normal) return [...this.Children, this];
-    else {
-      return [this];
-    }
-    return [];
+    if (this.Options.ParseMode == ParseMode.Generative) {
+      if (this.ParentEditor) return [this, this.ParentEditor];
+    } else if (this.Options.ParseMode == ParseMode.Normal) return [...this.Children, this];
+    return [this];
   }
   /** UpdateContext: Try to update the context of this editor. */
   public UpdateContext(): boolean {
@@ -430,7 +428,12 @@ export class GalapagosEditor {
           mainPreprocess.SingularToPlurals.set(Singular, Plural);
           mainPreprocess.BreedTypes.set(Plural, Type);
         }
-        for (var p of preprocess.BreedVars) mainPreprocess.BreedVars.set(p, child.ID);
+        for (var [p, vars] of preprocess.BreedVars) {
+          for (var variable of vars) {
+            mainPreprocess.BreedVars.set(variable, child.ID);
+            mainPreprocess.BreedVarToPlurals.set(variable, p);
+          }
+        }
         for (var [p, num_args] of preprocess.Commands) {
           mainPreprocess.Commands.set(p, num_args);
           mainPreprocess.CommandsOrigin.set(p, child.ID);

@@ -12,7 +12,7 @@ export class StatePreprocess {
   /** SingularBreeds: Breed types in the model. */
   public BreedTypes: BreedType[] = [];
   /** BreedVars: Breed variables in the model. */
-  public BreedVars: string[] = [];
+  public BreedVars: Map<string, string[]> = new Map<string, string[]>();
   /** Commands: Commands in the model. */
   public Commands: Map<string, number> = new Map<string, number>();
   /** Reporters: Reporters in the model. */
@@ -24,6 +24,7 @@ export class StatePreprocess {
   public ParseState(State: EditorState): StatePreprocess {
     this.Commands.clear();
     this.Reporters.clear();
+    this.BreedVars.clear();
     // Only leave the global variables
     let doc = State.doc.toString().toLowerCase();
     let globals = doc.replace(/(^|\n)([^;\n]+[ ]+)?to\s+[\s\S]*\s+end/gi, '');
@@ -33,8 +34,8 @@ export class StatePreprocess {
     );
     this.processBreeds(breeds);
     // Breed variables
-    let breedVars = globals.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
-    this.BreedVars = this.processBreedVars(breedVars);
+    let breedVars = globals.matchAll(/([^\s]+)-own\s*\[([^\]]+)/g);
+    this.processBreedVars(breedVars);
     // Commands
     let commands = doc.matchAll(/(^|\n)([^;\n]+[ ]+)?to\s+([^\s\[;]+)(\s*\[([^\];]*)\])?/g);
     this.Commands = this.processProcedures(commands);
@@ -50,15 +51,16 @@ export class StatePreprocess {
   }
 
   /** processBreedVars: Parse the code for breed variables. */
-  private processBreedVars(matches: IterableIterator<RegExpMatchArray>): string[] {
-    let vars: string[] = [];
+  private processBreedVars(matches: IterableIterator<RegExpMatchArray>) {
     for (var m of matches) {
-      let match = m[1];
-      match = match.replace(/;[^\n]*\n/g, '');
-      match = match.replace(/\n/g, ' ');
-      vars = vars.concat(match.split(' ').filter((v) => v != '' && v != '\n'));
+      let variables = m[2];
+      variables = variables.replace(/;[^\n]*\n/g, '');
+      variables = variables.replace(/\n/g, ' ');
+      this.BreedVars.set(
+        m[1],
+        variables.split(' ').filter((v) => v != '' && v != '\n')
+      );
     }
-    return vars;
   }
 
   /** processProcedures: Parse the code for procedure names. */

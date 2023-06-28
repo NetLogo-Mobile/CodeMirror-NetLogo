@@ -312,8 +312,7 @@ export class StateNetLogo {
           } else if (n?.getChild('LinkVar')) {
             context = new AgentContexts('---L');
           } else {
-            for (let breed of this.Breeds.values())
-              if (breed.Variables.includes(name)) context = this.Preprocess.GetBreedContext(breed.Plural, true);
+            context = this.Preprocess.GetBreedVariableContexts(name) ?? context;
           }
           newContext = combineContexts(context, priorContext);
           if (!noContext(newContext)) {
