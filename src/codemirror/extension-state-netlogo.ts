@@ -18,12 +18,16 @@ import { ParseMode } from '../editor-config';
 import { Log } from '../utils/debug-utils';
 import { GetCursorUntilMode } from '../lang/utils/cursors';
 import { getCodeName } from '../lang/utils/code';
+import { PreprocessContext } from '../lang/classes/contexts';
+import { syntaxTree } from '@codemirror/language';
 
 let primitives = PrimitiveManager;
 
 /** StateNetLogo: The second-pass editor state for the NetLogo Language. */
 export class StateNetLogo {
   // #region "Information"
+  /** Preprocess: Preprocess context from all editors in the first pass. */
+  public Preprocess: PreprocessContext = new PreprocessContext();
   /** Extensions: Extensions in the code. */
   public Extensions: string[] = [];
   /** Globals: Globals in the code. */
@@ -69,6 +73,7 @@ export class StateNetLogo {
     return this.IsDirty;
   }
   // #endregion
+
   // #region "Parsing"
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StateNetLogo {
@@ -82,6 +87,7 @@ export class StateNetLogo {
     this.Breeds.set('turtle', new Breed('turtle', 'turtles', [], BreedType.Turtle));
     this.Breeds.set('patch', new Breed('patch', 'patches', [], BreedType.Patch));
     this.Breeds.set('link', new Breed('link', 'links', [], BreedType.UndirectedLink));
+    // Cache for breed variables
     let tempBreedVars: Map<string, string[]> = new Map<string, string[]>();
     this.IsDirty = false;
     // Get the cursor
@@ -102,6 +108,7 @@ export class StateNetLogo {
         this.RecognizedMode = 'Unknown';
         break;
     }
+    // Parse the state
     if (this.RecognizedMode == 'Model') {
       if (!Cursor.firstChild()) return this;
       // Start parsing
@@ -154,9 +161,8 @@ export class StateNetLogo {
               found = true;
             }
           }
-          if (!found) {
-            tempBreedVars.set(breedName, breedVars);
-          }
+          // If no breed is found, temporarily put it in the cache
+          if (!found) tempBreedVars.set(breedName, breedVars);
         }
         // get procedures
         else if (Cursor.node.name == 'Procedure') {
@@ -171,6 +177,13 @@ export class StateNetLogo {
     } else if (this.RecognizedMode == 'Reporter') {
       let procedure = this.gatherOnelineProcedure(Cursor.node, State);
       this.Procedures.set(procedure.Name, procedure);
+      let context = this.Preprocess.GetBreedContext(this.Context, false);
+      this.combineContext(
+        syntaxTree(State).cursor().node.firstChild?.firstChild ?? syntaxTree(State).cursor().node,
+        State,
+        context,
+        new AgentContexts()
+      );
     }
     return this;
   }
@@ -254,15 +267,15 @@ export class StateNetLogo {
     let newContext = context;
     node.getChildren('ProcedureContent').map((node2) => {
       node2.getChildren('CommandStatement').map((node3) => {
-        [priorContext, newContext] = this.getNewContext(node3, priorContext, state, newContext);
+        [priorContext, newContext] = this.combineContext(node3, state, priorContext, newContext);
       });
     });
     return priorContext;
   }
 
-  /** getNewContext: Identify context of a block by combining with the previous context. */
-  public getNewContext(node3: SyntaxNode, priorContext: AgentContexts, state: EditorState, newContext: AgentContexts) {
-    let cursor = node3.cursor();
+  /** combineContext: Identify context of a block by combining with the previous context. */
+  public combineContext(node: SyntaxNode, state: EditorState, priorContext: AgentContexts, newContext: AgentContexts) {
+    let cursor = node.cursor();
     let child = cursor.firstChild();
     while (child) {
       if (
@@ -296,7 +309,7 @@ export class StateNetLogo {
             context = new AgentContexts('---L');
           } else {
             for (let breed of this.Breeds.values())
-              if (breed.Variables.includes(name)) context = this.getBreedContext(breed, true);
+              if (breed.Variables.includes(name)) context = this.Preprocess.GetBreedContext(breed.Plural, true);
           }
           newContext = combineContexts(context, priorContext);
           if (!noContext(newContext)) {
@@ -396,10 +409,7 @@ export class StateNetLogo {
           prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
           prim.type = cursor.node.name;
         } else if (cursor.node.name == 'Arg' && ask) {
-          let temp_breed = this.identifyBreed(cursor.node, state, [...state.field(stateExtension).Breeds.values()]);
-          if (temp_breed != '') {
-            prim.breed = temp_breed;
-          }
+          prim.breed = this.identifyBreed(cursor.node, state) ?? prim.breed;
           ask = false;
         }
       }
@@ -413,7 +423,7 @@ export class StateNetLogo {
       if (prim.breed != '') {
         for (let b of this.Breeds.values()) {
           if (prim.breed.toLowerCase() == b.Singular || prim.breed.toLowerCase() == b.Plural) {
-            prim.context = this.getBreedContext(b);
+            prim.context = this.Preprocess.GetBreedContext(b.Plural, false);
             break;
           }
         }
@@ -427,78 +437,27 @@ export class StateNetLogo {
     return prim;
   }
 
-  private identifyBreed(Node: SyntaxNode, state: EditorState, breeds: Breed[]) {
-    let plurals = breeds.map((b) => b.Plural);
-    let singulars = breeds.map((b) => b.Singular);
-    let str = state.sliceDoc(Node.from, Node.to).toLowerCase().trim();
-    let breed = '';
-    if (plurals.includes(str)) {
-      return str;
-    }
-    for (let b of breeds) {
-      let reporters: string[] = [];
-      if (b.BreedType == BreedType.Turtle) {
-        reporters.push(b.Plural + '-at');
-        reporters.push(b.Plural + '-here');
-        reporters.push(b.Plural + '-on');
-      } else if (b.BreedType == BreedType.Patch) {
-        reporters.push(b.Singular + '-at');
-        reporters.push(b.Singular + '-here');
-        reporters.push(b.Singular + '-ahead');
-        reporters.push(b.Singular + '-at-heading-and-distance');
-        reporters.push(b.Singular + '-left-and-ahead');
-        reporters.push(b.Singular + '-right-and-ahead');
-        reporters.push('neighbors');
-        reporters.push('neighbors4');
-        if (reporters.includes(str.split(' ')[0].trim())) {
-          return b.Plural;
-        }
-      } else {
-        reporters.push('out-' + b.Singular + '-to');
-        reporters.push('in-' + b.Singular + '-from');
-        reporters.push('my-' + b.Plural);
-        reporters.push('my-in-' + b.Plural);
-        reporters.push('my-out-' + b.Plural);
-        reporters.push(b.Singular + '-with');
-        if (reporters.includes(str.split(' ')[0].trim())) {
-          return b.Plural;
-        }
-        reporters = [];
-        reporters.push('out-' + b.Singular + '-neighbors');
-        reporters.push('in-' + b.Singular + '-neighbors');
-        reporters.push(b.Singular + '-neighbors');
-        if (reporters.includes(str.split(' ')[0].trim())) {
-          return 'turtles';
-        }
-      }
-    }
+  /** identifyBreed: Identify the breed context of a given node. */
+  private identifyBreed(Node: SyntaxNode, State: EditorState): string | undefined {
+    let str = getCodeName(State, Node);
+    if (this.Preprocess.PluralBreeds.has(str)) return str;
+    // If we find a special name, return it
+    var breed: string | undefined = this.Preprocess.GetReporterBreed(str.split(' ')[0].trim());
+    if (breed) return breed;
+    // If we find a breed name, return it
     Node.cursor().iterate((noderef) => {
       if (breed != '') return false;
-      let str = state.sliceDoc(noderef.from, noderef.to).toLowerCase().trim();
-      if (str.startsWith('[')) {
-        return false;
-      }
-      if (plurals.includes(str) || singulars.includes(str)) {
+      let str = getCodeName(State, noderef);
+      if (str.startsWith('[')) return false;
+      if (this.Preprocess.PluralBreeds.has(str)) {
         breed = str;
+        return false;
+      } else if (this.Preprocess.SingularBreeds.has(str)) {
+        breed = this.Preprocess.SingularToPlurals.get(str)!;
         return false;
       }
     });
     return breed;
-  }
-
-  /** getBreedContext: Get the context for a given breed. */
-  public getBreedContext(breed: Breed, isVar: boolean = false) {
-    if (breed.BreedType == BreedType.DirectedLink || breed.BreedType == BreedType.UndirectedLink) {
-      return new AgentContexts('---L');
-    } else if (breed.Singular == 'patch') {
-      if (isVar) {
-        return new AgentContexts('-TP-');
-      } else {
-        return new AgentContexts('--P-');
-      }
-    } else {
-      return new AgentContexts('-T--');
-    }
   }
 
   /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */

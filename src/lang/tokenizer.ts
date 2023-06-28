@@ -124,7 +124,7 @@ export const keyword = new ExternalTokenizer((input, stack) => {
       }
       offset++;
     }
-    if (seenBracket && [...GetContext().PluralBreeds.keys()].includes(nextToken)) {
+    if (seenBracket && [...GetContext().PluralBreeds.keys()].includes(nextToken.toLowerCase())) {
       input.acceptToken(BreedStr);
     } else {
       input.acceptToken(BreedToken);
@@ -161,6 +161,7 @@ export const keyword = new ExternalTokenizer((input, stack) => {
       input.acceptToken(match);
       return;
     }
+
     // Check if token is a custom procedure
     const customMatch = matchCustomProcedure(token);
     if (customMatch != 0) {
@@ -205,34 +206,34 @@ export function isValidKeyword(ch: number) {
 function matchBreed(token: string) {
   let tag = 0;
   let parseContext = GetContext();
-  let pluralBreedNames = parseContext.PluralBreeds;
-  let singularBreedNames = parseContext.SingularBreeds;
+  // Check breed variables
   let breedVars = parseContext.BreedVars;
-  if (breedVars.has(token.toLowerCase())) {
+  if (breedVars.has(token)) {
     tag = Identifier;
     return tag;
   }
+  // Check breed special reporters
+  let pluralBreedNames = parseContext.PluralBreeds;
+  let singularBreedNames = parseContext.SingularBreeds;
   let foundMatch = false;
   let matchedBreed = '';
   let isSingular = false;
   for (let [b] of pluralBreedNames) {
-    if (token.toLowerCase().includes(b.toLowerCase()) && b.length > matchedBreed.length) {
+    if (token.includes(b) && b.length > matchedBreed.length) {
       foundMatch = true;
       matchedBreed = b;
       isSingular = false;
     }
   }
   for (let [b] of singularBreedNames) {
-    if (token.toLowerCase().includes(b.toLowerCase()) && b.length > matchedBreed.length) {
+    if (token.includes(b) && b.length > matchedBreed.length) {
       foundMatch = true;
       matchedBreed = b;
       isSingular = true;
     }
   }
   // console.log(token,matchedBreed,breedNames)
-  if (!foundMatch) {
-    return tag;
-  }
+  if (!foundMatch) return tag;
   if (singularBreedNames.has(token)) {
     tag = SpecialReporter;
   } else if (token.match(new RegExp(`^${matchedBreed}-own$`, 'i')) && !isSingular) {

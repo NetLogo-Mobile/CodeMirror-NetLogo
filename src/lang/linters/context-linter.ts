@@ -10,22 +10,7 @@ import { syntaxTree } from '@codemirror/language';
 /** ContextLinter: Checks if procedures and code blocks have a valid context. */
 export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
-  // for (let p of lintContext.Procedures.values()) {
-  //   diagnostics.push(...checkProcedureContents(p, lintContext));
-  // }
   let stateNetLogo = view.state.field(stateExtension);
-  if (stateNetLogo.Mode == 'Oneline' || stateNetLogo.Mode == 'OnelineReporter') {
-    let context = new AgentContexts('O---');
-    for (var b of lintContext.Breeds.values()) {
-      if (b.Plural == stateNetLogo.Context) context = stateNetLogo.getBreedContext(b);
-    }
-    stateNetLogo.getNewContext(
-      syntaxTree(view.state).cursor().node.firstChild?.firstChild ?? syntaxTree(view.state).cursor().node,
-      context,
-      view.state,
-      new AgentContexts()
-    );
-  }
   for (let c of stateNetLogo.ContextErrors) {
     diagnostics.push(
       getDiagnostic(

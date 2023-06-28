@@ -1,4 +1,4 @@
-import { Breed, Procedure } from './structures';
+import { AgentContexts, Breed, BreedType, Procedure } from './structures';
 
 /** PreprocessContext: master context from preprocessing */
 export class PreprocessContext {
@@ -6,8 +6,16 @@ export class PreprocessContext {
   public PluralBreeds: Map<string, number> = new Map<string, number>();
   /** SingularBreeds: Singular breeds in the model. */
   public SingularBreeds: Map<string, number> = new Map<string, number>();
+  /** SingularToPlurals: Singular-to-plural mappings in the model. */
+  public SingularToPlurals: Map<string, string> = new Map<string, string>();
+  /** PluralToSingulars: Plural-to-singular mappings in the model. */
+  public PluralToSingulars: Map<string, string> = new Map<string, string>();
+  /** SpecialReporters: Reporter-to-plural mappings in the model. */
+  public SpecialReporters: Map<string, string> = new Map<string, string>();
   /** BreedVars: Breed variables in the model. */
   public BreedVars: Map<string, number> = new Map<string, number>();
+  /** BreedTypes: Breed types in the model. */
+  public BreedTypes: Map<string, BreedType> = new Map<string, BreedType>();
   /** Commands: Commands in the model with number of arguments. */
   public Commands: Map<string, number> = new Map<string, number>();
   /** Reporters: Reporters in the model with number of arguments. */
@@ -20,12 +28,73 @@ export class PreprocessContext {
   public Clear(): PreprocessContext {
     this.PluralBreeds.clear();
     this.SingularBreeds.clear();
+    this.BreedTypes.clear();
     this.BreedVars.clear();
     this.Commands.clear();
     this.Reporters.clear();
     this.CommandsOrigin.clear();
     this.ReportersOrigin.clear();
+    this.SpecialReporters.clear();
     return this;
+  }
+  /** GetBreedContext: Get the context for a breed. */
+  public GetBreedContext(Name: string, IsVariable: boolean): AgentContexts {
+    var Type = this.BreedTypes.get(Name);
+    if (typeof Type === 'undefined') return new AgentContexts('O---'); // Default to observer
+    if (Type == BreedType.DirectedLink || Type == BreedType.UndirectedLink) {
+      return new AgentContexts('---L');
+    } else if (Type == BreedType.Patch) {
+      if (IsVariable) {
+        return new AgentContexts('-TP-');
+      } else {
+        return new AgentContexts('--P-');
+      }
+    } else {
+      return new AgentContexts('-T--');
+    }
+  }
+  /** GetReporterBreed: Get the breed for a reporter. */
+  public GetReporterBreed(Name: string): string | undefined {
+    // Build the cache
+    if (this.SpecialReporters.size == 0) {
+      for (let [Plural, Type] of this.BreedTypes) {
+        switch (Type) {
+          case BreedType.Turtle:
+            this.SpecialReporters.set(Plural, Plural);
+            this.SpecialReporters.set(Plural + '-at', Plural);
+            this.SpecialReporters.set(Plural + '-here', Plural);
+            this.SpecialReporters.set(Plural + '-on', Plural);
+            break;
+          case BreedType.Patch:
+            this.SpecialReporters.set('patch-at', Plural);
+            this.SpecialReporters.set('patch-here', Plural);
+            this.SpecialReporters.set('patch-ahead', Plural);
+            this.SpecialReporters.set('patch-at-heading-and-distance', Plural);
+            this.SpecialReporters.set('patch-left-and-ahead', Plural);
+            this.SpecialReporters.set('patch-right-and-ahead', Plural);
+            this.SpecialReporters.set('neighbors', Plural);
+            this.SpecialReporters.set('neighbors4', Plural);
+            break;
+          case BreedType.UndirectedLink:
+          case BreedType.DirectedLink:
+            var Singular = this.PluralToSingulars.get(Plural)!;
+            this.SpecialReporters.set('link-at', Plural);
+            this.SpecialReporters.set('out-' + Singular + '-to', Plural);
+            this.SpecialReporters.set('in-' + Singular + '-from', Plural);
+            this.SpecialReporters.set('my-' + Plural, Plural);
+            this.SpecialReporters.set('my-in-' + Plural, Plural);
+            this.SpecialReporters.set('my-out-' + Plural, Plural);
+            this.SpecialReporters.set(Singular + '-with', Plural);
+            // Turtles
+            this.SpecialReporters.set('out-' + Singular + '-neighbors', 'turtles');
+            this.SpecialReporters.set('in-' + Singular + '-neighbors', 'turtles');
+            this.SpecialReporters.set(Singular + '-neighbors', 'turtles');
+            break;
+        }
+      }
+      // Find the reporter
+      return this.SpecialReporters.get(Name);
+    }
   }
 }
 

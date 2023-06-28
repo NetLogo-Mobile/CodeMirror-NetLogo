@@ -20,7 +20,7 @@ export const getNodeContext = function (State: EditorState, Node: SyntaxNode) {
 };
 
 /* getCodeName: Gets the lower-case, trimmed text (name) from a node. */
-export const getCodeName = function (State: EditorState, Node: SyntaxNode) {
+export const getCodeName = function (State: EditorState, Node: { from: number; to: number }) {
   return State.sliceDoc(Node.from, Node.to).trim().toLowerCase();
 };
 

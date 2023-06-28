@@ -139,10 +139,10 @@ export class GalapagosEditor {
       extensions: Extensions,
       parent: Parent,
     });
-    this.GetPreprocessState().Context = this.PreprocessContext;
     this.GetPreprocessState().SetEditor(this);
     this.Options.ParseMode = this.Options.ParseMode ?? ParseMode.Normal;
-    this.GetState().Mode = this.Options.ParseMode;
+    this.GetState(false).Mode = this.Options.ParseMode;
+    this.GetState(false).Preprocess = this.PreprocessContext;
     // Create features
     this.Editing = new EditingFeatures(this);
     this.Selection = new SelectionFeatures(this);
@@ -200,14 +200,14 @@ export class GalapagosEditor {
     if (Child.Options.ParseMode !== ParseMode.Generative) {
       Child.LintContext = this.LintContext;
       Child.PreprocessContext = this.PreprocessContext;
-      Child.GetPreprocessState().Context = this.PreprocessContext;
+      Child.GetState(false).Preprocess = this.PreprocessContext;
     }
   }
   /** SyncContext: Sync the context of the child editor. */
   SyncContext(Child: GalapagosEditor) {
     Child.LintContext = this.LintContext;
     Child.PreprocessContext = this.PreprocessContext;
-    Child.GetPreprocessState().Context = this.PreprocessContext;
+    Child.GetState(false).Preprocess = this.PreprocessContext;
   }
   /** Blur: Make the editor lose the focus (if any). */
   Blur() {
@@ -420,8 +420,16 @@ export class GalapagosEditor {
     for (var child of this.GetChildren()) {
       if (child.Options.ParseMode == ParseMode.Normal || child == this) {
         let preprocess = child.CodeMirror.state.field(preprocessStateExtension);
-        for (var p of preprocess.PluralBreeds) mainPreprocess.PluralBreeds.set(p, child.ID);
-        for (var p of preprocess.SingularBreeds) mainPreprocess.SingularBreeds.set(p, child.ID);
+        for (var I = 0; I < preprocess.PluralBreeds.length; I++) {
+          var Plural = preprocess.PluralBreeds[I];
+          var Singular = preprocess.SingularBreeds[I];
+          var Type = preprocess.BreedTypes[I];
+          mainPreprocess.PluralBreeds.set(Plural, child.ID);
+          mainPreprocess.SingularBreeds.set(Singular, child.ID);
+          mainPreprocess.PluralToSingulars.set(Plural, Singular);
+          mainPreprocess.SingularToPlurals.set(Singular, Plural);
+          mainPreprocess.BreedTypes.set(Plural, Type);
+        }
         for (var p of preprocess.BreedVars) mainPreprocess.BreedVars.set(p, child.ID);
         for (var [p, num_args] of preprocess.Commands) {
           mainPreprocess.Commands.set(p, num_args);

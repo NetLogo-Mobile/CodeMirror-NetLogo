@@ -243,6 +243,6 @@ const EmptyContext = new PreprocessContext();
 export function GetContext(): PreprocessContext {
   var Context = ParseContext.get()! as any;
   if (Context == null) return EmptyContext;
-  Context.Context = Context.Context ?? Context.state.field(preprocessStateExtension).Context;
+  Context.Context = Context.Context ?? Context.state.field(preprocessStateExtension).Editor.PreprocessContext;
   return Context.Context;
 }
