@@ -1,4 +1,4 @@
-import { basicSetup } from 'codemirror';
+import { basicSetup } from '@codemirror/basic-setup';
 import { EditorView, ViewUpdate, keymap, placeholder } from '@codemirror/view';
 import { closeCompletion, acceptCompletion } from '@codemirror/autocomplete';
 import { forceParsing, LanguageSupport } from '@codemirror/language';
@@ -29,9 +29,7 @@ import { EditingFeatures } from './features/editing';
 import { SelectionFeatures } from './features/selection';
 import { SemanticFeatures } from './features/semantics';
 import { CodeEditing } from './lang/services/code-editing';
-import { Log } from './utils/debug-utils';
 
-/** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export class GalapagosEditor {
   /** CodeMirror: The CodeMirror 6 component. */
   public readonly CodeMirror: EditorView;
@@ -39,7 +37,6 @@ export class GalapagosEditor {
   public readonly Options: EditorConfig;
   /** Editable: Compartment of the EditorView. */
   private readonly Editable: Compartment;
-  /** Language: Language of the EditorView. */
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
   public readonly Parent: HTMLElement;

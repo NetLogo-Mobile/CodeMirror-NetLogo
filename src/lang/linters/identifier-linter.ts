@@ -1,11 +1,11 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
+import { EditorView } from '@codemirror/view';
 import { Linter, getDiagnostic } from './linter-builder';
-import { checkBreedLike, getBreedName, getPluralName, getSingularName } from '../../utils/breed-utils';
+import { checkBreedLike } from '../../utils/breed-utils';
 import { checkValidIdentifier, getCheckContext, checkBreed } from '../utils/check-identifier';
 import { getCodeName } from '../utils/code';
 import { Localized } from 'src/editor';
-import { EditorView } from 'codemirror';
 
 // IdentifierLinter: Checks anything labelled 'Identifier'
 export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) => {

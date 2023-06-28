@@ -1,5 +1,6 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
+import { EditorView } from '@codemirror/view';
 import { Linter, getDiagnostic } from './linter-builder';
 import { BreedType } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
@@ -9,7 +10,6 @@ import { turtleVars, patchVars, linkVars } from '../keywords';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { removeAction } from '../utils/actions';
 import { stateExtension } from 'src/codemirror/extension-state-netlogo';
-import { EditorView } from 'codemirror';
 
 let primitives = PrimitiveManager;
 

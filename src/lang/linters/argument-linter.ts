@@ -1,14 +1,13 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { SyntaxNode } from '@lezer/common';
+import { EditorView } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
+import { SyntaxNode } from '@lezer/common';
 import { PrimitiveManager } from '../primitives/primitives';
 import { NetLogoType } from '../classes/structures';
 import { Linter, getDiagnostic } from './linter-builder';
-import { Localized } from '../../editor';
 import { PreprocessContext } from '../classes/contexts';
 import { Log } from '../../utils/debug-utils';
-import { EditorView } from 'codemirror';
 
 let primitives = PrimitiveManager;
 

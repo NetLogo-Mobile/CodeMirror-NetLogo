@@ -1,9 +1,8 @@
 import { indentRange, syntaxTree } from '@codemirror/language';
-import { EditorView } from 'codemirror';
+import { EditorView } from '@codemirror/view';
 import { IterMode, SyntaxNode, Tree } from '@lezer/common';
 import { GalapagosEditor } from 'src/editor';
 import { Log } from '../utils/debug-utils';
-import { isContinueStatement } from 'typescript';
 
 /** prettify: Change selection to fit formatting standards. */
 export const prettify = function (view: EditorView, from: number | null = null, to: number | null = null) {
