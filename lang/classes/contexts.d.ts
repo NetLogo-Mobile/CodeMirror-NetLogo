@@ -11,10 +11,12 @@ export declare class PreprocessContext {
     PluralToSingulars: Map<string, string>;
     /** SpecialReporters: Reporter-to-plural mappings in the model. */
     SpecialReporters: Map<string, string>;
-    /** BreedVars: Breed variables in the model. */
-    BreedVars: Map<string, number>;
     /** BreedTypes: Breed types in the model. */
     BreedTypes: Map<string, BreedType>;
+    /** BreedVars: Breed variables in the model. */
+    BreedVars: Map<string, number>;
+    /** BreedVarToPlurals: Breed variable-plural mappings in the model. */
+    BreedVarToPlurals: Map<string, string>;
     /** Commands: Commands in the model with number of arguments. */
     Commands: Map<string, number>;
     /** Reporters: Reporters in the model with number of arguments. */
@@ -27,6 +29,8 @@ export declare class PreprocessContext {
     Clear(): PreprocessContext;
     /** GetBreedContext: Get the context for a breed. */
     GetBreedContext(Name: string, IsVariable: boolean): AgentContexts;
+    /** GetBreedVariableContexts: Get the context for a breed variable. */
+    GetBreedVariableContexts(Name: string): AgentContexts | undefined;
     /** GetReporterBreed: Get the breed for a reporter. */
     GetReporterBreed(Name: string): string | undefined;
 }

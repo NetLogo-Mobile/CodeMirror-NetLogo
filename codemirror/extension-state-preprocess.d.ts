@@ -10,7 +10,7 @@ export declare class StatePreprocess {
     /** SingularBreeds: Breed types in the model. */
     BreedTypes: BreedType[];
     /** BreedVars: Breed variables in the model. */
-    BreedVars: string[];
+    BreedVars: Map<string, string[]>;
     /** Commands: Commands in the model. */
     Commands: Map<string, number>;
     /** Reporters: Reporters in the model. */

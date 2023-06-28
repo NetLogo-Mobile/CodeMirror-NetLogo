@@ -26914,10 +26914,12 @@ if(!String.prototype.matchAll) {
             this.PluralToSingulars = new Map();
             /** SpecialReporters: Reporter-to-plural mappings in the model. */
             this.SpecialReporters = new Map();
-            /** BreedVars: Breed variables in the model. */
-            this.BreedVars = new Map();
             /** BreedTypes: Breed types in the model. */
             this.BreedTypes = new Map();
+            /** BreedVars: Breed variables in the model. */
+            this.BreedVars = new Map();
+            /** BreedVarToPlurals: Breed variable-plural mappings in the model. */
+            this.BreedVarToPlurals = new Map();
             /** Commands: Commands in the model with number of arguments. */
             this.Commands = new Map();
             /** Reporters: Reporters in the model with number of arguments. */
@@ -26933,6 +26935,7 @@ if(!String.prototype.matchAll) {
             this.SingularBreeds.clear();
             this.BreedTypes.clear();
             this.BreedVars.clear();
+            this.BreedVarToPlurals.clear();
             this.Commands.clear();
             this.Reporters.clear();
             this.CommandsOrigin.clear();
@@ -26959,6 +26962,11 @@ if(!String.prototype.matchAll) {
             else {
                 return new AgentContexts('-T--');
             }
+        }
+        /** GetBreedVariableContexts: Get the context for a breed variable. */
+        GetBreedVariableContexts(Name) {
+            if (this.BreedVarToPlurals.has(Name))
+                return this.GetBreedContext(this.BreedVarToPlurals.get(Name), true);
         }
         /** GetReporterBreed: Get the breed for a reporter. */
         GetReporterBreed(Name) {
@@ -27344,7 +27352,7 @@ if(!String.prototype.matchAll) {
         }
         /** combineContext: Identify context of a block by combining with the previous context. */
         combineContext(node, state, priorContext, newContext) {
-            var _a;
+            var _a, _b;
             let cursor = node.cursor();
             let child = cursor.firstChild();
             while (child) {
@@ -27382,9 +27390,7 @@ if(!String.prototype.matchAll) {
                             context = new AgentContexts('---L');
                         }
                         else {
-                            for (let breed of this.Breeds.values())
-                                if (breed.Variables.includes(name))
-                                    context = this.Preprocess.GetBreedContext(breed.Plural, true);
+                            context = (_b = this.Preprocess.GetBreedVariableContexts(name)) !== null && _b !== void 0 ? _b : context;
                         }
                         newContext = combineContexts(context, priorContext);
                         if (!noContext(newContext)) {
@@ -27670,7 +27676,7 @@ if(!String.prototype.matchAll) {
             /** SingularBreeds: Breed types in the model. */
             this.BreedTypes = [];
             /** BreedVars: Breed variables in the model. */
-            this.BreedVars = [];
+            this.BreedVars = new Map();
             /** Commands: Commands in the model. */
             this.Commands = new Map();
             /** Reporters: Reporters in the model. */
@@ -27682,6 +27688,7 @@ if(!String.prototype.matchAll) {
         ParseState(State) {
             this.Commands.clear();
             this.Reporters.clear();
+            this.BreedVars.clear();
             // Only leave the global variables
             let doc = State.doc.toString().toLowerCase();
             let globals = doc.replace(/(^|\n)([^;\n]+[ ]+)?to\s+[\s\S]*\s+end/gi, '');
@@ -27689,8 +27696,8 @@ if(!String.prototype.matchAll) {
             let breeds = globals.matchAll(/(^|\n)([^;\n]+[ ]+)?(directed-link-|undirected-link-)?breed\s*\[\s*([^\s]+)\s+([^\s]+)\s*\]/g);
             this.processBreeds(breeds);
             // Breed variables
-            let breedVars = globals.matchAll(/[^\s]+-own\s*\[([^\]]+)/g);
-            this.BreedVars = this.processBreedVars(breedVars);
+            let breedVars = globals.matchAll(/([^\s]+)-own\s*\[([^\]]+)/g);
+            this.processBreedVars(breedVars);
             // Commands
             let commands = doc.matchAll(/(^|\n)([^;\n]+[ ]+)?to\s+([^\s\[;]+)(\s*\[([^\];]*)\])?/g);
             this.Commands = this.processProcedures(commands);
@@ -27705,14 +27712,12 @@ if(!String.prototype.matchAll) {
         }
         /** processBreedVars: Parse the code for breed variables. */
         processBreedVars(matches) {
-            let vars = [];
             for (var m of matches) {
-                let match = m[1];
-                match = match.replace(/;[^\n]*\n/g, '');
-                match = match.replace(/\n/g, ' ');
-                vars = vars.concat(match.split(' ').filter((v) => v != '' && v != '\n'));
+                let variables = m[2];
+                variables = variables.replace(/;[^\n]*\n/g, '');
+                variables = variables.replace(/\n/g, ' ');
+                this.BreedVars.set(m[1], variables.split(' ').filter((v) => v != '' && v != '\n'));
             }
-            return vars;
         }
         /** processProcedures: Parse the code for procedure names. */
         processProcedures(procedures) {
@@ -33450,13 +33455,13 @@ if(!String.prototype.matchAll) {
         /** GetChildren: Get the logical children of the editor. */
         GetChildren() {
             // For the generative mode, it takes the context from its parent but does not contribute to it
-            if (this.Options.ParseMode == ParseMode.Generative)
-                return [this];
-            if (this.Options.ParseMode == ParseMode.Normal)
-                return [...this.Children, this];
-            else {
-                return [this];
+            if (this.Options.ParseMode == ParseMode.Generative) {
+                if (this.ParentEditor)
+                    return [this, this.ParentEditor];
             }
+            else if (this.Options.ParseMode == ParseMode.Normal)
+                return [...this.Children, this];
+            return [this];
         }
         /** UpdateContext: Try to update the context of this editor. */
         UpdateContext() {
@@ -33549,8 +33554,12 @@ if(!String.prototype.matchAll) {
                         mainPreprocess.SingularToPlurals.set(Singular, Plural);
                         mainPreprocess.BreedTypes.set(Plural, Type);
                     }
-                    for (var p of preprocess.BreedVars)
-                        mainPreprocess.BreedVars.set(p, child.ID);
+                    for (var [p, vars] of preprocess.BreedVars) {
+                        for (var variable of vars) {
+                            mainPreprocess.BreedVars.set(variable, child.ID);
+                            mainPreprocess.BreedVarToPlurals.set(variable, p);
+                        }
+                    }
                     for (var [p, num_args] of preprocess.Commands) {
                         mainPreprocess.Commands.set(p, num_args);
                         mainPreprocess.CommandsOrigin.set(p, child.ID);
