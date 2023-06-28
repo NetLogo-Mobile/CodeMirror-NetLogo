@@ -1,4 +1,3 @@
-import { basicSetup } from '@codemirror/basic-setup';
 import { EditorView, ViewUpdate, keymap, placeholder } from '@codemirror/view';
 import { closeCompletion, acceptCompletion } from '@codemirror/autocomplete';
 import { forceParsing, LanguageSupport } from '@codemirror/language';
@@ -29,6 +28,7 @@ import { EditingFeatures } from './features/editing';
 import { SelectionFeatures } from './features/selection';
 import { SemanticFeatures } from './features/semantics';
 import { CodeEditing } from './lang/services/code-editing';
+import { basicSetup } from 'codemirror';
 
 export class GalapagosEditor {
   /** CodeMirror: The CodeMirror 6 component. */
