@@ -1,5 +1,5 @@
-import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
+import { SyntaxNode } from '@lezer/common';
 import { Linter } from './linter-builder';
 import { PreprocessContext } from '../classes/contexts';
 export declare const ArgumentLinter: Linter;

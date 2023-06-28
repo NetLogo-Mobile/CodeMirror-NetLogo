@@ -12,7 +12,6 @@ import { EditingFeatures } from './features/editing';
 import { SelectionFeatures } from './features/selection';
 import { SemanticFeatures } from './features/semantics';
 import { CodeEditing } from './lang/services/code-editing';
-/** GalapagosEditor: The editor component for NetLogo Web / Turtle Universe. */
 export declare class GalapagosEditor {
     /** CodeMirror: The CodeMirror 6 component. */
     readonly CodeMirror: EditorView;
@@ -20,7 +19,6 @@ export declare class GalapagosEditor {
     readonly Options: EditorConfig;
     /** Editable: Compartment of the EditorView. */
     private readonly Editable;
-    /** Language: Language of the EditorView. */
     readonly Language: LanguageSupport;
     /** Parent: Parent HTMLElement of the EditorView. */
     readonly Parent: HTMLElement;

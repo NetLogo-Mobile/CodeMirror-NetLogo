@@ -1,1 +1,1 @@
-{"version":3,"file":"extension-update.d.ts","sourceRoot":"","sources":["../../../src/codemirror/extension-update.ts"],"names":[],"mappings":"AACA,OAAO,EAAE,UAAU,EAAE,MAAM,kBAAkB,CAAC;AAE9C,sDAAsD;AACtD,QAAA,MAAM,eAAe,sBAAgC,UAAU,KAAK,IAAI,QAEvE,CAAC;AAEF,OAAO,EAAE,eAAe,EAAE,CAAC"}
+{"version":3,"file":"extension-update.d.ts","sourceRoot":"","sources":["../../../src/codemirror/extension-update.ts"],"names":[],"mappings":"AAAA,OAAO,EAAc,UAAU,EAAE,MAAM,kBAAkB,CAAC;AAE1D,sDAAsD;AACtD,QAAA,MAAM,eAAe,sBAAgC,UAAU,KAAK,IAAI,0CAEvE,CAAC;AAEF,OAAO,EAAE,eAAe,EAAE,CAAC"}
