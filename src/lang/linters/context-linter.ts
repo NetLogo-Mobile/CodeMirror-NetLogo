@@ -17,9 +17,7 @@ export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
   if (stateNetLogo.Mode == 'Oneline' || stateNetLogo.Mode == 'OnelineReporter') {
     let context = new AgentContexts('O---');
     for (var b of lintContext.Breeds.values()) {
-      if (b.Plural == stateNetLogo.Context) {
-        context = stateNetLogo.getBreedContext(b);
-      }
+      if (b.Plural == stateNetLogo.Context) context = stateNetLogo.getBreedContext(b);
     }
     stateNetLogo.getNewContext(
       syntaxTree(view.state).cursor().node.firstChild?.firstChild ?? syntaxTree(view.state).cursor().node,

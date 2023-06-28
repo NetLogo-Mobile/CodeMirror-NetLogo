@@ -6,7 +6,7 @@
   </head>
   <body>
     <select id="context" onchange="Editor.SetContext(this.value)">
-      <option value="observer">observer</option>
+      <option value="">observer</option>
     </select>
     <div id="Container" style="height: 100%"></div>
     <div id="Code"></div>
@@ -25,15 +25,14 @@
         EditorDictionary.Initialize({});
         Editor.SetWidgetVariables(['one', 'two', 'three']);
         Editor.SetCode('max (list one two three)');
-        var select = document.getElementById("context");
-        for(var b of Editor.LintContext.Breeds.values()){
-          var el = document.createElement("option");
+        var select = document.getElementById('context');
+        for (var b of Editor.LintContext.Breeds.values()) {
+          var el = document.createElement('option');
           el.textContent = b.Plural;
           el.value = b.Plural;
           select.appendChild(el);
         }
       });
-      
     </script>
   </body>
 </html>

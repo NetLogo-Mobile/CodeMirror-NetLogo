@@ -86,12 +86,11 @@ export class GalapagosEditor {
         this.Language = NetLogo(this);
         Extensions.push(preprocessStateExtension);
         Extensions.push(stateExtension);
+        Extensions.push(buildToolTips(this));
         Dictionary.ClickHandler = Dictionary.ClickHandler ?? Options.OnDictionaryClick;
         this.Linters = netlogoLinters.map((linter) => buildLinter(linter, this));
         // Special case: One-line mode
-        if (!this.Options.OneLine) {
-          Extensions.push(buildToolTips(this));
-        } else {
+        if (this.Options.OneLine) {
           Extensions.unshift(Prec.highest(keymap.of([{ key: 'Enter', run: () => true }])));
           Extensions.unshift(Prec.highest(keymap.of([{ key: 'Tab', run: acceptCompletion }])));
         }
@@ -196,7 +195,7 @@ export class GalapagosEditor {
     this.Children.push(Child);
     Child.ID = this.Children.length;
     Child.ParentEditor = this;
-    Child.CodeMirror.state.field(stateExtension).setID(Child.ID);
+    Child.CodeMirror.state.field(stateExtension).EditorID = Child.ID;
     // Generative editors are sort of independent
     if (Child.Options.ParseMode !== ParseMode.Generative) {
       Child.LintContext = this.LintContext;
@@ -314,18 +313,16 @@ export class GalapagosEditor {
   private Version: number = 0;
   /** IsVisible: Whether this editor is visible. */
   public IsVisible: boolean = true;
-
+  /** SetContext: Set the context of the editor for one-line modes. */
   public SetContext(context: string) {
     if (
       (this.Options.ParseMode == ParseMode.Oneline || this.Options.ParseMode == ParseMode.OnelineReporter) &&
-      context != 'observer'
+      this.GetState(false).SetContext(context)
     ) {
-      this.CodeMirror.state.field(stateExtension).SetContext(context);
       this.ForceParse();
       this.ForceLint();
     }
   }
-
   /** GetID: Get ID of the editor. */
   public GetID(): number {
     return this.ID;

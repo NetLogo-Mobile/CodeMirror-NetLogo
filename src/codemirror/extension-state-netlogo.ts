@@ -48,11 +48,17 @@ export class StateNetLogo {
   public ContextErrors: ContextError[] = [];
   /** EditorID: The id of the editor. */
   public EditorID: number = 0;
-  public Context: string = 'observer';
-  // #endregion
-  public SetContext(context: string) {
-    this.Context = context;
+  /** Context: The context of the editor. */
+  public Context: string = '';
+  /** SetContext: Set the context of the editor. */
+  public SetContext(Context: string): boolean {
+    if (this.Context !== Context) {
+      this.Context = Context;
+      return true;
+    } else return false;
   }
+  // #endregion
+
   // #region "Version Control"
   /** SetDirty: Make the state dirty. */
   public SetDirty() {
@@ -63,11 +69,6 @@ export class StateNetLogo {
     return this.IsDirty;
   }
   // #endregion
-
-  public setID(id: number) {
-    this.EditorID = id;
-  }
-
   // #region "Parsing"
   /** ParseState: Parse the state from an editor state. */
   public ParseState(State: EditorState): StateNetLogo {
@@ -259,10 +260,10 @@ export class StateNetLogo {
     return priorContext;
   }
 
+  /** getNewContext: Identify context of a block by combining with the previous context. */
   public getNewContext(node3: SyntaxNode, priorContext: AgentContexts, state: EditorState, newContext: AgentContexts) {
     let cursor = node3.cursor();
     let child = cursor.firstChild();
-    let initial = this.ContextErrors.length;
     while (child) {
       if (
         (cursor.node.name.includes('Command') || cursor.node.name.includes('Reporter')) &&
