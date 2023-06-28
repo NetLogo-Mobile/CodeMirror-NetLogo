@@ -98,7 +98,7 @@ export class StateNetLogo {
       case 'Embedded':
         this.RecognizedMode = 'Command';
         break;
-      case 'OnelineReporter' || 'Oneline':
+      case 'OnelineReporter':
         this.RecognizedMode = 'Reporter';
         break;
       case 'Normal':
@@ -171,12 +171,16 @@ export class StateNetLogo {
         }
         if (!Cursor.nextSibling()) return this;
       }
-    } else if (this.RecognizedMode == 'Command') {
-      let procedure = this.gatherEmbeddedProcedure(Cursor.node, State);
-      this.Procedures.set(procedure.Name, procedure);
-    } else if (this.RecognizedMode == 'Reporter') {
-      let procedure = this.gatherOnelineProcedure(Cursor.node, State);
-      this.Procedures.set(procedure.Name, procedure);
+    } else {
+      // Collect information of one-line things
+      if (this.RecognizedMode == 'Command') {
+        let procedure = this.gatherEmbeddedProcedure(Cursor.node, State);
+        this.Procedures.set(procedure.Name, procedure);
+      } else if (this.RecognizedMode == 'Reporter') {
+        let procedure = this.gatherOnelineProcedure(Cursor.node, State);
+        this.Procedures.set(procedure.Name, procedure);
+      }
+      // Handle the context of one-line things
       let context = this.Preprocess.GetBreedContext(this.Context, false);
       this.combineContext(
         syntaxTree(State).cursor().node.firstChild?.firstChild ?? syntaxTree(State).cursor().node,
