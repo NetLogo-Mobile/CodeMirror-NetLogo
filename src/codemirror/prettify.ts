@@ -44,7 +44,9 @@ export const prettifyAll = function (view: EditorView, Editor: GalapagosEditor) 
   let doc = view.state.doc.toString();
   // eliminate extra spacing
   Editor.ForceParse();
+  console.log('1', doc);
   let new_doc = removeSpacing(syntaxTree(view.state), doc);
+  console.log('2', new_doc);
   view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
   // parse it again
   Editor.ForceParse();
@@ -53,7 +55,9 @@ export const prettifyAll = function (view: EditorView, Editor: GalapagosEditor) 
   view.dispatch({
     changes: addSpacing(view, 0, new_doc.length, Editor.LineWidth),
   });
+  console.log('3', view.state.doc.toString());
   new_doc = finalSpacing(view.state.doc.toString());
+  console.log('4', new_doc);
   view.dispatch({ changes: { from: 0, to: view.state.doc.toString().length, insert: new_doc } });
   // doc = view.state.doc.toString();
   Editor.ForceParse();
@@ -133,7 +137,9 @@ const finalSpacing = function (doc: string) {
   new_doc = new_doc.replace(/\n\n+/g, '\n\n');
   new_doc = new_doc.replace(/ +/g, ' ');
   new_doc = new_doc.replace(/^\s+/g, '');
-  new_doc = new_doc.replace(/[ ]*\n[ ]*\[[ ]*\n/g, ' [\n');
+  console.log(new_doc);
+  new_doc = new_doc.replace(/(\n[^;\n]+)\n[ ]*\[[ ]*\n/g, '$1 [\n');
+  console.log(new_doc);
   new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
   new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
   new_doc = new_doc.replace(/[ ]+$/, '');
@@ -242,6 +248,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
               //   console.log(startPos,lastPos,cursor.from,cursor.to)
               // }
               if (cursor.node.name == 'LineComment') {
+                removeFrom = cursor.to + 1;
                 continue;
               }
               if (removeFrom > cursor.from) {
@@ -258,7 +265,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
                   doc.substring(lastPos, cursor.from).includes('\n') &&
                   doc.substring(startPos, cursor.to).replace(/\s+/g, ' ').length < lineWidth
                 ) {
-                  // console.log("2")
+                  console.log('here', doc.substring(cursor.from, cursor.to));
                   changes.push({
                     from: removeFrom,
                     to: cursor.from,

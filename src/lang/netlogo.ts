@@ -184,17 +184,17 @@ function delimitedStrategy(context: TreeIndentContext) {
   let after = context.textAfter,
     space = after.match(/^\s*/)![0].length;
   let closing = '[\n',
-    align = context.node.firstChild?.name != 'Arg',
+    align = context.node.firstChild?.name != 'Arg' && context.node.firstChild?.name != 'LineComment',
     units = 1;
   let next = after.slice(space, space + 2);
   let closed = closing && (next == closing || next == '[');
-  console.log("'" + after.slice(space, space + 2) + "'", closing.length);
+  // console.log("'" + after.slice(space, space + 2) + "'", closing.length);
   let aligned = align ? bracketedAligned(context) : null;
   // console.log(aligned, closed, context.baseIndent);
   if (context.node.parent?.parent?.parent?.name == 'CommandStatement') {
-    // console.log('HERE', context.continue());
     return context.continue();
   }
+  if (after.slice(space, space + 1) == ';') return context.baseIndent;
   if (aligned) return closed ? context.column(aligned.from) : context.column(aligned.to) + 1;
   return context.baseIndent + (closed ? 0 : context.unit * units);
 }
