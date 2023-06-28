@@ -26945,19 +26945,20 @@ if(!String.prototype.matchAll) {
         }
     }
     function delimitedStrategy(context) {
-        var _a, _b, _c, _d;
+        var _a, _b, _c, _d, _e;
         // console.log(context.node.name, context.node.firstChild?.name);
         let after = context.textAfter, space = after.match(/^\s*/)[0].length;
-        let closing = '[\n', align = ((_a = context.node.firstChild) === null || _a === void 0 ? void 0 : _a.name) != 'Arg', units = 1;
+        let closing = '[\n', align = ((_a = context.node.firstChild) === null || _a === void 0 ? void 0 : _a.name) != 'Arg' && ((_b = context.node.firstChild) === null || _b === void 0 ? void 0 : _b.name) != 'LineComment', units = 1;
         let next = after.slice(space, space + 2);
         let closed = (next == closing || next == '[');
-        console.log("'" + after.slice(space, space + 2) + "'", closing.length);
+        // console.log("'" + after.slice(space, space + 2) + "'", closing.length);
         let aligned = align ? bracketedAligned(context) : null;
         // console.log(aligned, closed, context.baseIndent);
-        if (((_d = (_c = (_b = context.node.parent) === null || _b === void 0 ? void 0 : _b.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.name) == 'CommandStatement') {
-            // console.log('HERE', context.continue());
+        if (((_e = (_d = (_c = context.node.parent) === null || _c === void 0 ? void 0 : _c.parent) === null || _d === void 0 ? void 0 : _d.parent) === null || _e === void 0 ? void 0 : _e.name) == 'CommandStatement') {
             return context.continue();
         }
+        if (after.slice(space, space + 1) == ';')
+            return context.baseIndent;
         if (aligned)
             return closed ? context.column(aligned.from) : context.column(aligned.to) + 1;
         return context.baseIndent + (closed ? 0 : context.unit * units);
@@ -29236,7 +29237,9 @@ if(!String.prototype.matchAll) {
         let doc = view.state.doc.toString();
         // eliminate extra spacing
         Editor.ForceParse();
+        console.log('1', doc);
         let new_doc = removeSpacing(syntaxTree(view.state), doc);
+        console.log('2', new_doc);
         view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
         // parse it again
         Editor.ForceParse();
@@ -29245,7 +29248,9 @@ if(!String.prototype.matchAll) {
         view.dispatch({
             changes: addSpacing(view, 0, new_doc.length, Editor.LineWidth),
         });
+        console.log('3', view.state.doc.toString());
         new_doc = finalSpacing(view.state.doc.toString());
+        console.log('4', new_doc);
         view.dispatch({ changes: { from: 0, to: view.state.doc.toString().length, insert: new_doc } });
         // doc = view.state.doc.toString();
         Editor.ForceParse();
@@ -29330,7 +29335,9 @@ if(!String.prototype.matchAll) {
         new_doc = new_doc.replace(/\n\n+/g, '\n\n');
         new_doc = new_doc.replace(/ +/g, ' ');
         new_doc = new_doc.replace(/^\s+/g, '');
-        new_doc = new_doc.replace(/[ ]*\n[ ]*\[[ ]*\n/g, ' [\n');
+        console.log(new_doc);
+        new_doc = new_doc.replace(/(\n[^;\n]+)\n[ ]*\[[ ]*\n/g, '$1 [\n');
+        console.log(new_doc);
         new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
         new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
         new_doc = new_doc.replace(/[ ]+$/, '');
@@ -29439,6 +29446,7 @@ if(!String.prototype.matchAll) {
                             //   console.log(startPos,lastPos,cursor.from,cursor.to)
                             // }
                             if (cursor.node.name == 'LineComment') {
+                                removeFrom = cursor.to + 1;
                                 continue;
                             }
                             if (removeFrom > cursor.from) {
@@ -29453,7 +29461,7 @@ if(!String.prototype.matchAll) {
                                 // );
                                 if (doc.substring(lastPos, cursor.from).includes('\n') &&
                                     doc.substring(startPos, cursor.to).replace(/\s+/g, ' ').length < lineWidth) {
-                                    // console.log("2")
+                                    console.log('here', doc.substring(cursor.from, cursor.to));
                                     changes.push({
                                         from: removeFrom,
                                         to: cursor.from,
