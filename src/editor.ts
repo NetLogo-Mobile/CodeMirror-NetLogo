@@ -29,6 +29,7 @@ import { SelectionFeatures } from './features/selection';
 import { SemanticFeatures } from './features/semantics';
 import { CodeEditing } from './lang/services/code-editing';
 import { basicSetup } from 'codemirror';
+import { Breed } from './lang/classes/structures';
 
 export class GalapagosEditor {
   /** CodeMirror: The CodeMirror 6 component. */
@@ -376,15 +377,17 @@ export class GalapagosEditor {
       }
       for (var [name, breed] of state.Breeds) {
         breed.EditorID = child.ID;
-        if (mainLint.Breeds.has(name)) {
-          var variables = mainLint.Breeds.get(name)!.Variables;
+        var current = mainLint.Breeds.get(name);
+        if (!current) {
+          // Here, we make a copy to avoid contamination
+          current = new Breed(breed.Singular, breed.Plural, [...breed.Variables], breed.BreedType);
+          mainLint.Breeds.set(name, current);
+        } else {
+          var variables = current.Variables;
           breed.Variables.forEach((variable) => {
             if (!variables.includes(variable)) variables.push(variable);
           });
-        } else {
-          mainLint.Breeds.set(name, breed);
         }
-        //}
       }
     }
     this.RefreshContexts();
