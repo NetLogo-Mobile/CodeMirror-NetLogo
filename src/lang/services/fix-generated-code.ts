@@ -8,6 +8,7 @@ import { BreedType } from 'src/lang/classes/structures';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { constants, linkVars, patchVars, turtleVars } from '../keywords';
+import { stat } from 'fs';
 
 /** FixGeneratedCode: Try to fix and prettify the generated code. */
 export function FixGeneratedCodeRegex(Editor: GalapagosEditor, Source: string, Parent?: CodeSnapshot): string {
@@ -354,12 +355,14 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
 function FixBreed(node: SyntaxNode, state: EditorState, breeds: string[]) {
   let singular = node.getChild('BreedSingular');
   let plural = node.getChild('BreedPlural');
-  let invalid_sing = ['turtle', 'link', 'patch', ...breeds].includes(
-    state.sliceDoc(singular?.from, singular?.to).toLowerCase()
-  );
+  let invalid_sing =
+    ['turtle', 'link', 'patch', ...breeds].includes(state.sliceDoc(singular?.from, singular?.to).toLowerCase()) ||
+    state.sliceDoc(singular?.from, singular?.to).toLowerCase() ==
+      state.sliceDoc(plural?.from, plural?.to).toLowerCase();
   let invalid_plur = ['turtles', 'links', 'patches', ...breeds].includes(
     state.sliceDoc(plural?.from, plural?.to).toLowerCase()
   );
+  console.log(singular, plural, invalid_sing, invalid_plur);
   if (singular && plural && invalid_sing && invalid_plur) {
     return {
       from: node.from,
