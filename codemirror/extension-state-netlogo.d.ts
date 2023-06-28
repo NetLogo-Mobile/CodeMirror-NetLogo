@@ -3,8 +3,11 @@ import { Breed, Procedure, AgentContexts, ContextError } from '../lang/classes/s
 import { SyntaxNode } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { ParseMode } from '../editor-config';
+import { PreprocessContext } from '../lang/classes/contexts';
 /** StateNetLogo: The second-pass editor state for the NetLogo Language. */
 export declare class StateNetLogo {
+    /** Preprocess: Preprocess context from all editors in the first pass. */
+    Preprocess: PreprocessContext;
     /** Extensions: Extensions in the code. */
     Extensions: string[];
     /** Globals: Globals in the code. */
@@ -47,8 +50,8 @@ export declare class StateNetLogo {
     private gatherProcedure;
     /** getContext: Identify context of a block by looking at primitives and variable names. */
     private getContext;
-    /** getNewContext: Identify context of a block by combining with the previous context. */
-    getNewContext(node3: SyntaxNode, priorContext: AgentContexts, state: EditorState, newContext: AgentContexts): AgentContexts[];
+    /** combineContext: Identify context of a block by combining with the previous context. */
+    combineContext(node: SyntaxNode, state: EditorState, priorContext: AgentContexts, newContext: AgentContexts): AgentContexts[];
     /** getPrimitiveContext: Identify context for a builtin primitive. */
     private getPrimitiveContext;
     /** gatherCodeBlocks: Gather all information about code blocks inside a given node. */
@@ -57,9 +60,8 @@ export declare class StateNetLogo {
     private gatherCodeBlock;
     /** getPrimitive: Gather information about the primitive whose argument is a code block. */
     private getPrimitive;
+    /** identifyBreed: Identify the breed context of a given node. */
     private identifyBreed;
-    /** getBreedContext: Get the context for a given breed. */
-    getBreedContext(breed: Breed, isVar?: boolean): AgentContexts;
     /** searchAnonProcedure: Look for nested anonymous procedures within a node and procedure. */
     private gatherAnonProcedures;
     /** checkRanges: Identify whether a node is inside the set of procedures or code blocks. */

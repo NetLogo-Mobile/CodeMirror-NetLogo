@@ -1,12 +1,20 @@
-import { Breed, Procedure } from './structures';
+import { AgentContexts, Breed, BreedType, Procedure } from './structures';
 /** PreprocessContext: master context from preprocessing */
 export declare class PreprocessContext {
     /** PluralBreeds: Breeds in the model. */
     PluralBreeds: Map<string, number>;
     /** SingularBreeds: Singular breeds in the model. */
     SingularBreeds: Map<string, number>;
+    /** SingularToPlurals: Singular-to-plural mappings in the model. */
+    SingularToPlurals: Map<string, string>;
+    /** PluralToSingulars: Plural-to-singular mappings in the model. */
+    PluralToSingulars: Map<string, string>;
+    /** SpecialReporters: Reporter-to-plural mappings in the model. */
+    SpecialReporters: Map<string, string>;
     /** BreedVars: Breed variables in the model. */
     BreedVars: Map<string, number>;
+    /** BreedTypes: Breed types in the model. */
+    BreedTypes: Map<string, BreedType>;
     /** Commands: Commands in the model with number of arguments. */
     Commands: Map<string, number>;
     /** Reporters: Reporters in the model with number of arguments. */
@@ -17,6 +25,10 @@ export declare class PreprocessContext {
     ReportersOrigin: Map<string, number>;
     /** Clear: Clear the context. */
     Clear(): PreprocessContext;
+    /** GetBreedContext: Get the context for a breed. */
+    GetBreedContext(Name: string, IsVariable: boolean): AgentContexts;
+    /** GetReporterBreed: Get the breed for a reporter. */
+    GetReporterBreed(Name: string): string | undefined;
 }
 /** LintPreprocessContext: master context from statenetlogo */
 export declare class LintContext {
