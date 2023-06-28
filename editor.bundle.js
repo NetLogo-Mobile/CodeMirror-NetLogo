@@ -27189,7 +27189,7 @@ if(!String.prototype.matchAll) {
                 case 'Embedded':
                     this.RecognizedMode = 'Command';
                     break;
-                case 'OnelineReporter' :
+                case 'OnelineReporter':
                     this.RecognizedMode = 'Reporter';
                     break;
                 case 'Normal':
@@ -27267,13 +27267,17 @@ if(!String.prototype.matchAll) {
                         return this;
                 }
             }
-            else if (this.RecognizedMode == 'Command') {
-                let procedure = this.gatherEmbeddedProcedure(Cursor.node, State);
-                this.Procedures.set(procedure.Name, procedure);
-            }
-            else if (this.RecognizedMode == 'Reporter') {
-                let procedure = this.gatherOnelineProcedure(Cursor.node, State);
-                this.Procedures.set(procedure.Name, procedure);
+            else {
+                // Collect information of one-line things
+                if (this.RecognizedMode == 'Command') {
+                    let procedure = this.gatherEmbeddedProcedure(Cursor.node, State);
+                    this.Procedures.set(procedure.Name, procedure);
+                }
+                else if (this.RecognizedMode == 'Reporter') {
+                    let procedure = this.gatherOnelineProcedure(Cursor.node, State);
+                    this.Procedures.set(procedure.Name, procedure);
+                }
+                // Handle the context of one-line things
                 let context = this.Preprocess.GetBreedContext(this.Context, false);
                 this.combineContext((_c = (_b = syntaxTree(State).cursor().node.firstChild) === null || _b === void 0 ? void 0 : _b.firstChild) !== null && _c !== void 0 ? _c : syntaxTree(State).cursor().node, State, context, new AgentContexts());
             }
