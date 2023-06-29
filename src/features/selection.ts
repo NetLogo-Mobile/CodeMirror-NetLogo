@@ -18,6 +18,7 @@ export class SelectionFeatures {
   /** SelectAll: Select all text in the editor. */
   SelectAll() {
     selectAll(this.CodeMirror);
+    this.CodeMirror.focus();
   }
   /** Select: Select and scroll to a given range in the editor. */
   Select(Start: number, End: number) {
@@ -28,6 +29,7 @@ export class SelectionFeatures {
       selection: { anchor: Start, head: End },
       scrollIntoView: true,
     });
+    this.CodeMirror.focus();
   }
   /** GetSelection: Returns an object of the start and end of
    *  a selection in the editor. */
