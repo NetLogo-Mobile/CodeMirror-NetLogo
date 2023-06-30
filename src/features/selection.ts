@@ -59,4 +59,11 @@ export class SelectionFeatures {
     this.SetCursorPosition(this.GetCursorPosition());
   }
   // #endregion
+
+  // #region "Highlighting Changes"
+  /** HighlightChanges: Highlight the changes in the editor. */
+  HighlightChanges(PreviousVersion: string) {
+    var CurrentVersion = this.Galapagos.GetCode();
+  }
+  // #endregion
 }

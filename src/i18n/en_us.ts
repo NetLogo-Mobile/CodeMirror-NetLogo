@@ -139,7 +139,7 @@ const en_us: Record<string, Function> = {
   'Expand messages _': (Number: number) => `Expand ${Number} message` + (Number > 1 ? 's' : ''),
   FullText: () => `Read more`,
   Acknowledgement: () => 'Acknowledgement',
-  SeeAlso: () => `See also`,
+  SeeAlso: () => `See Also`,
   OK: () => `OK`,
   Cancel: () => `Cancel`,
   'Run command': () => `Run command`,
@@ -161,6 +161,7 @@ const en_us: Record<string, Function> = {
   'Talk to the computer in NetLogo or natural languages': () => `Talk to the computer in NetLogo or natural languages`,
   'Press enter to execute again': () => `Press Enter will execute the code again.`,
   'Copied to clipboard': () => 'The item has been copied to clipboard.',
+  'Feature not supported': () => 'The feature is not supported yet. Stay tuned!',
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) => `Sorry, the connection to our server failed. Code ${Error}.`,

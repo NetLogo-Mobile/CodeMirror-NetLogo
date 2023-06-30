@@ -147,6 +147,7 @@ const zh_cn: Record<string, Function> = {
   'Execute the procedure': () => `开始执行这段程序`,
   'Press enter to execute again': () => `按回车键可以再次执行。`,
   'Copied to clipboard': () => `内容已复制到剪贴板。`,
+  'Feature not supported': () => '此功能尚未推出，敬请期待！',
 
   // Chat and execution messages
   'Connection to server failed _': (Error: string) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
