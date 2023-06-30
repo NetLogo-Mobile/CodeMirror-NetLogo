@@ -26084,7 +26084,7 @@ if(!String.prototype.matchAll) {
         'Expand messages _': (Number) => `Expand ${Number} message` + (Number > 1 ? 's' : ''),
         FullText: () => `Read more`,
         Acknowledgement: () => 'Acknowledgement',
-        SeeAlso: () => `See also`,
+        SeeAlso: () => `See Also`,
         OK: () => `OK`,
         Cancel: () => `Cancel`,
         'Run command': () => `Run command`,
@@ -26105,6 +26105,7 @@ if(!String.prototype.matchAll) {
         'Talk to the computer in NetLogo or natural languages': () => `Talk to the computer in NetLogo or natural languages`,
         'Press enter to execute again': () => `Press Enter will execute the code again.`,
         'Copied to clipboard': () => 'The item has been copied to clipboard.',
+        'Feature not supported': () => 'The feature is not supported yet. Stay tuned!',
         // Chat and execution messages
         'Connection to server failed _': (Error) => `Sorry, the connection to our server failed. Code ${Error}.`,
         'Summary of request': () => `Below is a summary of my request: `,
@@ -26267,6 +26268,7 @@ if(!String.prototype.matchAll) {
         'Execute the procedure': () => `开始执行这段程序`,
         'Press enter to execute again': () => `按回车键可以再次执行。`,
         'Copied to clipboard': () => `内容已复制到剪贴板。`,
+        'Feature not supported': () => '此功能尚未推出，敬请期待！',
         // Chat and execution messages
         'Connection to server failed _': (Error) => `抱歉，和服务器的连接中断了。代码 ${Error}。`,
         'Summary of request': () => `简单总结我的请求的要点：`,
@@ -32206,6 +32208,12 @@ if(!String.prototype.matchAll) {
         /** RefreshCursor: Refresh the cursor position. */
         RefreshCursor() {
             this.SetCursorPosition(this.GetCursorPosition());
+        }
+        // #endregion
+        // #region "Highlighting Changes"
+        /** HighlightChanges: Highlight the changes in the editor. */
+        HighlightChanges(PreviousVersion) {
+            this.Galapagos.GetCode();
         }
     }
 

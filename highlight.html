@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf8" />
+    <h1>New Code Editor for NetLogo Web & Derivatives</h1>
+  </head>
+  <body>
+    <!-- Make Editor #2 (new) highlight the new changes compared with Editor1's version (old) -->
+    <button name="NextTest" onclick="Editor2.Selection.HighlightChanges(Editor1.GetCode());">Highlight</button>
+    <div id="Container1" style="height: 40vh"></div>
+    <div id="Container2" style="height: 40vh"></div>
+    <script src="editor.bundle.js"></script>
+    <script>
+      var Editor1;
+      var Editor2;
+      window.addEventListener('load', function () {
+        GalapagosEditor.DebugEnabled = true;
+        Editor1 = new GalapagosEditor(document.getElementById('Container1'), {
+          ParseMode: 'Normal',
+        });
+        Editor2 = new GalapagosEditor(document.getElementById('Container2'), {
+          ParseMode: 'Normal',
+        });
+        EditorDictionary.Initialize({});
+        Editor1.SetCode('');
+        Editor2.SetCode('');
+      });
+    </script>
+  </body>
+</html>

@@ -26,5 +26,7 @@ export declare class SelectionFeatures {
     SetCursorPosition(position: number): void;
     /** RefreshCursor: Refresh the cursor position. */
     RefreshCursor(): void;
+    /** HighlightChanges: Highlight the changes in the editor. */
+    HighlightChanges(PreviousVersion: string): void;
 }
 //# sourceMappingURL=selection.d.ts.map
