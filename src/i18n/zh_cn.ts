@@ -137,6 +137,7 @@ const zh_cn: Record<string, Function> = {
   Finish: () => `完成`,
   'Expand options _': (Number: number) => `展开 ${Number} 个选项`,
   'Expand messages _': (Number: number) => `展开 ${Number} 条消息`,
+  'Code placeholder _': (Number: number) => `点击编辑 ${Number} 行代码`,
   FullText: () => `阅读全文`,
   Acknowledgement: () => '致谢',
   SeeAlso: () => `参见`,

@@ -1,5 +1,6 @@
 import { EditorView, ViewUpdate } from '@codemirror/view';
 import { Diagnostic } from '@codemirror/lint';
+import { GalapagosEditor } from './editor';
 
 /** Options: Options of an editor. */
 export interface EditorConfig {
@@ -19,9 +20,9 @@ export interface EditorConfig {
   /** OnUpdate: Handle the Update event. */
   OnUpdate?: (DocumentChanged: boolean, ViewUpdate: ViewUpdate) => void;
   /** OnKeyDown: Handle the KeyDown event. */
-  OnKeyDown?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
+  OnKeyDown?: (Event: KeyboardEvent, Editor: GalapagosEditor) => boolean | void;
   /** OnKeyUp: Handle the KeyUp event. */
-  OnKeyUp?: (Event: KeyboardEvent, View: EditorView) => boolean | void;
+  OnKeyUp?: (Event: KeyboardEvent, Editor: GalapagosEditor) => boolean | void;
   /** OnFocused: Handle the focused event. */
   OnFocused?: (View: EditorView) => void;
   /** OnBlurred: Handle the blurred event. */

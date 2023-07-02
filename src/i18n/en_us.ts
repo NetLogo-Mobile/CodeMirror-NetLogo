@@ -137,6 +137,7 @@ const en_us: Record<string, Function> = {
   Finish: () => `Finish`,
   'Expand options _': (Number: number) => `Expand ${Number} option` + (Number > 1 ? 's' : ''),
   'Expand messages _': (Number: number) => `Expand ${Number} message` + (Number > 1 ? 's' : ''),
+  'Code placeholder _': (Number: number) => `Click to work on ${Number} ${Number > 1 ? 'lines' : 'line'} of code`,
   FullText: () => `Read more`,
   Acknowledgement: () => 'Acknowledgement',
   SeeAlso: () => `See Also`,
