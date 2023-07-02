@@ -26121,7 +26121,7 @@ if(!String.prototype.matchAll) {
         'Compile error unknown': (Number) => `Sorry, there is an unknown error. Please report it as a bug.`,
         'Compile error in model': () => `Sorry, there are errors in the open project. Please fix the issue in the code tab first.`,
         'Showing full text help of _': (Name) => `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
-        'Arguments needed for execution _': (Name, Arguments) => `The "${Name}" procedure needs argument${Arguments > 1 ? 's' : ''} to run. Please provide them.`,
+        'Arguments needed for execution _': (Name, Arguments) => `The "${Name}" procedure needs ${Arguments > 1 ? '' : 'an '}argument${Arguments > 1 ? 's' : ''} to run. Please provide ${Arguments > 1 ? 'them' : 'it'}.`,
         'Please download Turtle Universe': () => `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
         'Failed to retrieve knowledge': () => `Sorry, we did not find the specific knowledge.`,
         // Options
@@ -26855,7 +26855,7 @@ if(!String.prototype.matchAll) {
     catch (error) { }
 
     /** Log: Log to console if debug is enabled. */
-    const Log = !globalThis.GalapagosSilent ? console.log : () => { };
+    const Log = !(globalThis !== null && globalThis !== void 0 ? globalThis : window).GalapagosSilent ? console.log : () => { };
 
     /** GetCursorUntilMode: Get the cursor until the "mode" node. */
     function GetCursorUntilMode(State) {
