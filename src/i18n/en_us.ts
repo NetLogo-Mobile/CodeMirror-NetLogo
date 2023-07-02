@@ -124,6 +124,7 @@ const en_us: Record<string, Function> = {
   FixCode: () => `Fix`,
   AskCode: () => `Ask`,
   AddCode: () => `Add to Code`,
+  CopyCode: () => `Copy Code`,
   'Trying to add the code': () => `Trying to add the code to the project...`,
   PreviousVersion: () => `Back`,
   NextVersion: () => `Next`,

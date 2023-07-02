@@ -124,6 +124,7 @@ const zh_cn: Record<string, Function> = {
   FixCode: () => `修复`,
   AskCode: () => `提问`,
   AddCode: () => `放入作品`,
+  CopyCode: () => `复制代码`,
   'Trying to add the code': () => `尝试将代码放入作品……`,
   PreviousVersion: () => `后退`,
   NextVersion: () => `前进`,
