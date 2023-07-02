@@ -26082,6 +26082,7 @@ if(!String.prototype.matchAll) {
         Finish: () => `Finish`,
         'Expand options _': (Number) => `Expand ${Number} option` + (Number > 1 ? 's' : ''),
         'Expand messages _': (Number) => `Expand ${Number} message` + (Number > 1 ? 's' : ''),
+        'Code placeholder _': (Number) => `Click to work on ${Number} ${Number > 1 ? 'lines' : 'line'} of code`,
         FullText: () => `Read more`,
         Acknowledgement: () => 'Acknowledgement',
         SeeAlso: () => `See Also`,
@@ -26258,6 +26259,7 @@ if(!String.prototype.matchAll) {
         Finish: () => `完成`,
         'Expand options _': (Number) => `展开 ${Number} 个选项`,
         'Expand messages _': (Number) => `展开 ${Number} 条消息`,
+        'Code placeholder _': (Number) => `点击编辑 ${Number} 行代码`,
         FullText: () => `阅读全文`,
         Acknowledgement: () => '致谢',
         SeeAlso: () => `参见`,
@@ -33236,8 +33238,8 @@ if(!String.prototype.matchAll) {
             Extensions.push(this.Language);
             // DOM handlers
             Extensions.push(EditorView.domEventHandlers({
-                keydown: Options.OnKeyDown,
-                keyup: Options.OnKeyUp,
+                keydown: (Event) => { var _a; return (_a = Options.OnKeyDown) === null || _a === void 0 ? void 0 : _a.call(Options, Event, this); },
+                keyup: (Event) => { var _a; return (_a = Options.OnKeyUp) === null || _a === void 0 ? void 0 : _a.call(Options, Event, this); },
             }));
             // One-line mode
             if (this.Options.OneLine) {
