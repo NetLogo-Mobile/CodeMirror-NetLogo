@@ -182,7 +182,9 @@ const en_us: Record<string, Function> = {
   'Showing full text help of _': (Name: string) =>
     `Here is the help information of [${Name}](<observer=help ${Name} -full>).`,
   'Arguments needed for execution _': (Name: string, Arguments: number) =>
-    `The "${Name}" procedure needs argument${Arguments > 1 ? 's' : ''} to run. Please provide them.`,
+    `The "${Name}" procedure needs ${Arguments > 1 ? '' : 'an '}argument${
+      Arguments > 1 ? 's' : ''
+    } to run. Please provide ${Arguments > 1 ? 'them' : 'it'}.`,
   'Please download Turtle Universe': () =>
     `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
   'Failed to retrieve knowledge': () => `Sorry, we did not find the specific knowledge.`,
