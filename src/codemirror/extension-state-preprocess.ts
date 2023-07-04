@@ -1,5 +1,5 @@
 import { StateField, Transaction, EditorState } from '@codemirror/state';
-import { GalapagosEditor, Localized } from '../editor';
+import { GalapagosEditor } from '../editor';
 import { Log } from '../utils/debug-utils';
 import { BreedType } from '../lang/classes/structures';
 
@@ -25,7 +25,7 @@ export class StatePreprocess {
     this.Commands.clear();
     this.Reporters.clear();
     this.BreedVars.clear();
-    // Only leave the global variables
+    // Only leave the global statements
     let doc = State.doc.toString().toLowerCase();
     let globals = doc.replace(/(^|\n)([^;\n]+[ ]+)?to\s+[\s\S]*\s+end/gi, '');
     // Breeds
@@ -34,7 +34,7 @@ export class StatePreprocess {
     );
     this.processBreeds(breeds);
     // Breed variables
-    let breedVars = globals.matchAll(/([^\s]+)-own\s*\[([^\]]+)/g);
+    let breedVars = globals.matchAll(/(^|\n)([^;\n]+[ ]+)?([^\s]+)-own\s*\[([^\]]+)/g);
     this.processBreedVars(breedVars);
     // Commands
     let commands = doc.matchAll(/(^|\n)([^;\n]+[ ]+)?to\s+([^\s\[;]+)(\s*\[([^\];]*)\])?/g);
@@ -53,7 +53,7 @@ export class StatePreprocess {
   /** processBreedVars: Parse the code for breed variables. */
   private processBreedVars(matches: IterableIterator<RegExpMatchArray>) {
     for (var m of matches) {
-      let variables = m[2];
+      let variables = m[4];
       variables = variables.replace(/;[^\n]*\n/g, '');
       variables = variables.replace(/\n/g, ' ');
       this.BreedVars.set(

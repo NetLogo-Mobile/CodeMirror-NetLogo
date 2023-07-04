@@ -25,7 +25,7 @@ const importFiles = function () {
   getFilesRecursively(modelPath);
   models.forEach((current) => {
     if (!current.endsWith('.nlogo')) return;
-    var model = File.readFileSync(current, 'utf8').toString().split('\n');
+    var model = File.readFileSync(current, 'utf8').split('\n');
     model = model.map((line) => line.trimEnd());
     var content = '';
     var i = 0;
