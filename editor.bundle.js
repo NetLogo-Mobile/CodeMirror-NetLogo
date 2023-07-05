@@ -27495,6 +27495,7 @@ if(!String.prototype.matchAll) {
                 inheritParentContext: false,
             };
             let cursor = (_b = node.parent) === null || _b === void 0 ? void 0 : _b.cursor();
+            // console.log(state.sliceDoc(cursor?.node.from,cursor?.node.to))
             let ask = false;
             if (cursor === null || cursor === void 0 ? void 0 : cursor.firstChild()) {
                 if (!['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(cursor.node.name)) {
@@ -27505,6 +27506,7 @@ if(!String.prototype.matchAll) {
                     }
                 }
                 while (cursor.nextSibling() && (prim.name == '' || ask)) {
+                    // console.log(prim.name,cursor.node.name,state.sliceDoc(cursor.node.from,cursor.node.to))
                     if (!['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(cursor.node.name)) {
                         prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
                         prim.type = cursor.node.name;
@@ -27515,6 +27517,7 @@ if(!String.prototype.matchAll) {
                     }
                 }
             }
+            // console.log(prim.name,state.sliceDoc(node.from,node.to))
             if (prim.type.includes('Special')) {
                 prim.isSpecial = true;
                 prim.breed = (_d = getBreedName(prim.name).breed) !== null && _d !== void 0 ? _d : '';
@@ -28858,8 +28861,8 @@ if(!String.prototype.matchAll) {
             }
             // Check if token is a breed reporter/command
             const match = matchBreed(token);
-            if (match != 0) {
-                input.acceptToken(match);
+            if (match.tag != 0 && match.valid) {
+                input.acceptToken(match.tag);
                 return;
             }
             // Check if token is a custom procedure
@@ -28867,6 +28870,9 @@ if(!String.prototype.matchAll) {
             if (customMatch != 0) {
                 input.acceptToken(customMatch);
                 return;
+            }
+            else if (match.tag != 0 && !match.valid) {
+                input.acceptToken(match.tag);
             }
             else {
                 input.acceptToken(Identifier);
@@ -28907,7 +28913,7 @@ if(!String.prototype.matchAll) {
         let breedVars = parseContext.BreedVars;
         if (breedVars.has(token)) {
             tag = Identifier;
-            return tag;
+            return { tag: tag, valid: false };
         }
         // Check breed special reporters
         let pluralBreedNames = parseContext.PluralBreeds;
@@ -28930,42 +28936,42 @@ if(!String.prototype.matchAll) {
             }
         }
         // console.log(token,matchedBreed,breedNames)
-        if (!foundMatch)
-            return tag;
         if (singularBreedNames.has(token)) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^${matchedBreed}-own$`, 'i')) && !isSingular) {
+        else if (token.match(new RegExp(`^[^\s]+-own$`, 'i')) && !isSingular) {
             tag = Own;
         }
-        else if (token.match(new RegExp(`^${matchedBreed}-(at|here|on)$`, 'i')) && !isSingular) {
+        else if (token.match(new RegExp(`^[^\s]+-(at|here|on)$`, 'i')) && !isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^${matchedBreed}-(with|neighbor\\?|neighbors)$`, 'i')) && isSingular) {
+        else if (token.match(new RegExp(`^[^\s]+-(with|neighbor\\?|neighbors)$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^(my-in|my-out)-${matchedBreed}$`, 'i')) && !isSingular) {
+        else if (token.match(new RegExp(`^(my-in|my-out)-[^\s]+$`, 'i')) && !isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^(hatch|sprout|create|create-ordered)-${matchedBreed}$`, 'i')) && !isSingular) {
+        else if (token.match(new RegExp(`^(hatch|sprout|create|create-ordered)-[^\s]+$`, 'i')) && !isSingular) {
             tag = SpecialCommand;
         }
-        else if (token.match(new RegExp(`^is-${matchedBreed}\\?$`, 'i')) && isSingular) {
+        else if (token.match(new RegExp(`^is-[^\s]+\\?$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^in-${matchedBreed}-from$`, 'i')) && isSingular) {
+        else if (token.match(new RegExp(`^in-[^\s]+-from$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^(in|out)-${matchedBreed}-(neighbor\\?|neighbors)$`, 'i')) && isSingular) {
+        else if (token.match(new RegExp(`^(in|out)-[^\s]+-(neighbor\\?|neighbors)$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^out-${matchedBreed}-to$`, 'i')) && isSingular) {
+        else if (token.match(new RegExp(`^out-[^\s]+-to$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^create-${matchedBreed}-(to|from|with)$`, 'i'))) {
+        else if (token.match(new RegExp(`^create-[^\s]+-(to|from|with)$`, 'i'))) {
             tag = SpecialCommand;
         }
-        return tag;
+        if (!foundMatch)
+            return { tag: tag, valid: false };
+        return { tag: tag, valid: true };
     }
     function matchCustomProcedure(token) {
         let parseContext = GetContext();
@@ -30065,6 +30071,7 @@ if(!String.prototype.matchAll) {
     // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
     const UnrecognizedLinter = (view, preprocessContext, lintContext) => {
         const diagnostics = [];
+        const context = getCheckContext(view, lintContext, preprocessContext);
         syntaxTree(view.state)
             .cursor()
             .iterate((node) => {
@@ -30097,6 +30104,9 @@ if(!String.prototype.matchAll) {
                         diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
                     }
                 }
+                else if (checkBreedLike(value).found) {
+                    checkBreed(diagnostics, context, view, node.node);
+                }
                 else if (!['[', ']', ')', '(', '"'].includes(value) && !checkBreedLike(value).found) {
                     // Anything else could be an unrecognized statement
                     if (((_d = node.node.parent) === null || _d === void 0 ? void 0 : _d.name) == 'Normal') {
@@ -30119,6 +30129,31 @@ if(!String.prototype.matchAll) {
             .cursor()
             .iterate((noderef) => {
             var _a;
+            // if (noderef.name=='String'){
+            //   let curr = noderef.node;
+            //   let parents: string[] = [];
+            //   let p: string[]=[]
+            //   while (curr.parent) {
+            //     if (curr.name=='ReporterStatement'){
+            //       let children:string[]=[]
+            //       let c_vals:string[]=[]
+            //       let c=curr.firstChild?.cursor()
+            //       children.push(c?.name??'null')
+            //       c_vals.push(view.state.sliceDoc(c?.from,c?.to))
+            //       while (c?.nextSibling()){
+            //         children.push(c.name)
+            //         c_vals.push(view.state.sliceDoc(c.from,c.to))
+            //       }
+            //       // console.log(children)
+            //       // console.log(c_vals)
+            //       // console.log(curr.firstChild?.name,view.state.sliceDoc(curr.firstChild?.from, curr.firstChild?.to))
+            //     }
+            //     parents.push(view.state.sliceDoc(curr.from, curr.to));
+            //     p.push(curr.name)
+            //     curr = curr.parent;
+            //   }
+            //   console.log(parents)
+            // }
             if (
             // Checking let/set statements
             (noderef.name == 'SetVariable' &&
@@ -30198,6 +30233,7 @@ if(!String.prototype.matchAll) {
                     let func = result[1];
                     let expected = result[2];
                     let actual = result[3];
+                    //console.log(func,expected,actual,error_type)
                     if (func == null || expected == null || actual == null) ;
                     // create error messages
                     else if (error_type == 'no primitive') {
@@ -30357,6 +30393,7 @@ if(!String.prototype.matchAll) {
                             ? 100
                             : (_s = primitive.DefaultOption) !== null && _s !== void 0 ? _s : primitive.RightArgumentTypes.length;
                 }
+                //console.log(func,args.rightArgs.length,rightArgMin,rightArgMax)
                 // ensure at least minimum # right args present
                 if (args.rightArgs.length < rightArgMin) {
                     Log(args.rightArgs);
@@ -32280,9 +32317,9 @@ if(!String.prototype.matchAll) {
         let doc = view.state.doc.toString();
         // eliminate extra spacing
         Editor.ForceParse();
-        console.log('1', doc);
+        // console.log('1', doc);
         let new_doc = removeSpacing(syntaxTree(view.state), doc);
-        console.log('2', new_doc);
+        // console.log('2', new_doc);
         view.dispatch({ changes: { from: 0, to: doc.length, insert: new_doc } });
         // parse it again
         Editor.ForceParse();
@@ -32291,9 +32328,9 @@ if(!String.prototype.matchAll) {
         view.dispatch({
             changes: addSpacing(view, 0, new_doc.length, Editor.LineWidth),
         });
-        console.log('3', view.state.doc.toString());
+        // console.log('3', view.state.doc.toString());
         new_doc = finalSpacing(view.state.doc.toString());
-        console.log('4', new_doc);
+        // console.log('4', new_doc);
         view.dispatch({ changes: { from: 0, to: view.state.doc.toString().length, insert: new_doc } });
         // doc = view.state.doc.toString();
         Editor.ForceParse();
@@ -32378,9 +32415,9 @@ if(!String.prototype.matchAll) {
         new_doc = new_doc.replace(/\n\n+/g, '\n\n');
         new_doc = new_doc.replace(/ +/g, ' ');
         new_doc = new_doc.replace(/^\s+/g, '');
-        console.log(new_doc);
+        // console.log(new_doc);
         new_doc = new_doc.replace(/(\n[^;\n]+)\n[ ]*\[[ ]*\n/g, '$1 [\n');
-        console.log(new_doc);
+        // console.log(new_doc);
         new_doc = new_doc.replace(/(\n+)(\n\nto[ -])/g, '$2');
         new_doc = new_doc.replace(/(\n+)(\n\n[\w-]+-own)/g, '$2');
         new_doc = new_doc.replace(/[ ]+$/, '');
@@ -32504,7 +32541,7 @@ if(!String.prototype.matchAll) {
                                 // );
                                 if (doc.substring(lastPos, cursor.from).includes('\n') &&
                                     doc.substring(startPos, cursor.to).replace(/\s+/g, ' ').length < lineWidth) {
-                                    console.log('here', doc.substring(cursor.from, cursor.to));
+                                    // console.log('here', doc.substring(cursor.from, cursor.to));
                                     changes.push({
                                         from: removeFrom,
                                         to: cursor.from,
