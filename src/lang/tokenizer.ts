@@ -157,8 +157,8 @@ export const keyword = new ExternalTokenizer((input, stack) => {
 
     // Check if token is a breed reporter/command
     const match = matchBreed(token);
-    if (match != 0) {
-      input.acceptToken(match);
+    if (match.tag != 0 && match.valid) {
+      input.acceptToken(match.tag);
       return;
     }
 
@@ -167,6 +167,8 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     if (customMatch != 0) {
       input.acceptToken(customMatch);
       return;
+    } else if (match.tag != 0 && !match.valid) {
+      input.acceptToken(match.tag);
     } else {
       input.acceptToken(Identifier);
     }
@@ -210,7 +212,7 @@ function matchBreed(token: string) {
   let breedVars = parseContext.BreedVars;
   if (breedVars.has(token)) {
     tag = Identifier;
-    return tag;
+    return { tag: tag, valid: false };
   }
   // Check breed special reporters
   let pluralBreedNames = parseContext.PluralBreeds;
@@ -233,31 +235,32 @@ function matchBreed(token: string) {
     }
   }
   // console.log(token,matchedBreed,breedNames)
-  if (!foundMatch) return tag;
+
   if (singularBreedNames.has(token)) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^${matchedBreed}-own$`, 'i')) && !isSingular) {
+  } else if (token.match(new RegExp(`^[^\s]+-own$`, 'i')) && !isSingular) {
     tag = Own;
-  } else if (token.match(new RegExp(`^${matchedBreed}-(at|here|on)$`, 'i')) && !isSingular) {
+  } else if (token.match(new RegExp(`^[^\s]+-(at|here|on)$`, 'i')) && !isSingular) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^${matchedBreed}-(with|neighbor\\?|neighbors)$`, 'i')) && isSingular) {
+  } else if (token.match(new RegExp(`^[^\s]+-(with|neighbor\\?|neighbors)$`, 'i')) && isSingular) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^(my-in|my-out)-${matchedBreed}$`, 'i')) && !isSingular) {
+  } else if (token.match(new RegExp(`^(my-in|my-out)-[^\s]+$`, 'i')) && !isSingular) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^(hatch|sprout|create|create-ordered)-${matchedBreed}$`, 'i')) && !isSingular) {
+  } else if (token.match(new RegExp(`^(hatch|sprout|create|create-ordered)-[^\s]+$`, 'i')) && !isSingular) {
     tag = SpecialCommand;
-  } else if (token.match(new RegExp(`^is-${matchedBreed}\\?$`, 'i')) && isSingular) {
+  } else if (token.match(new RegExp(`^is-[^\s]+\\?$`, 'i')) && isSingular) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^in-${matchedBreed}-from$`, 'i')) && isSingular) {
+  } else if (token.match(new RegExp(`^in-[^\s]+-from$`, 'i')) && isSingular) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^(in|out)-${matchedBreed}-(neighbor\\?|neighbors)$`, 'i')) && isSingular) {
+  } else if (token.match(new RegExp(`^(in|out)-[^\s]+-(neighbor\\?|neighbors)$`, 'i')) && isSingular) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^out-${matchedBreed}-to$`, 'i')) && isSingular) {
+  } else if (token.match(new RegExp(`^out-[^\s]+-to$`, 'i')) && isSingular) {
     tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^create-${matchedBreed}-(to|from|with)$`, 'i'))) {
+  } else if (token.match(new RegExp(`^create-[^\s]+-(to|from|with)$`, 'i'))) {
     tag = SpecialCommand;
   }
-  return tag;
+  if (!foundMatch) return { tag: tag, valid: false };
+  return { tag: tag, valid: true };
 }
 
 function matchCustomProcedure(token: string) {

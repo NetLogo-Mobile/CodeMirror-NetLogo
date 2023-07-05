@@ -17,6 +17,31 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
+      // if (noderef.name=='String'){
+      //   let curr = noderef.node;
+      //   let parents: string[] = [];
+      //   let p: string[]=[]
+      //   while (curr.parent) {
+      //     if (curr.name=='ReporterStatement'){
+      //       let children:string[]=[]
+      //       let c_vals:string[]=[]
+      //       let c=curr.firstChild?.cursor()
+      //       children.push(c?.name??'null')
+      //       c_vals.push(view.state.sliceDoc(c?.from,c?.to))
+      //       while (c?.nextSibling()){
+      //         children.push(c.name)
+      //         c_vals.push(view.state.sliceDoc(c.from,c.to))
+      //       }
+      //       // console.log(children)
+      //       // console.log(c_vals)
+      //       // console.log(curr.firstChild?.name,view.state.sliceDoc(curr.firstChild?.from, curr.firstChild?.to))
+      //     }
+      //     parents.push(view.state.sliceDoc(curr.from, curr.to));
+      //     p.push(curr.name)
+      //     curr = curr.parent;
+      //   }
+      //   console.log(parents)
+      // }
       if (
         // Checking let/set statements
         (noderef.name == 'SetVariable' &&
@@ -107,6 +132,7 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
           let func = result[1];
           let expected = result[2];
           let actual = result[3];
+          //console.log(func,expected,actual,error_type)
           if (func == null || expected == null || actual == null) {
           }
           // create error messages
@@ -283,6 +309,7 @@ export const checkValidNumArgs = function (
     }
   } else {
     let primitive = primitives.GetNamedPrimitive(func);
+
     // checks for terms used as primitives but don't exist in our dataset
     if (!primitive) {
       Log('no primitive', args.func?.name, func);
@@ -318,6 +345,7 @@ export const checkValidNumArgs = function (
             ? 100
             : primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
       }
+      //console.log(func,args.rightArgs.length,rightArgMin,rightArgMax)
       // ensure at least minimum # right args present
       if (args.rightArgs.length < rightArgMin) {
         Log(args.rightArgs);

@@ -4,10 +4,12 @@ import { Log } from '../../utils/debug-utils';
 import { Linter, getDiagnostic } from './linter-builder';
 import { checkBreedLike } from '../../utils/breed-utils';
 import { reserved } from '../keywords';
+import { checkBreed, getCheckContext } from '../utils/check-identifier';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
 export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext) => {
   const diagnostics: Diagnostic[] = [];
+  const context = getCheckContext(view, lintContext, preprocessContext);
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
@@ -37,6 +39,8 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
           } else {
             diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
           }
+        } else if (checkBreedLike(value).found) {
+          checkBreed(diagnostics, context, view, node.node);
         } else if (!['[', ']', ')', '(', '"'].includes(value) && !checkBreedLike(value).found) {
           // Anything else could be an unrecognized statement
           if (node.node.parent?.name == 'Normal') {
