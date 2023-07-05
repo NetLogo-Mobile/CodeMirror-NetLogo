@@ -27748,7 +27748,7 @@ if(!String.prototype.matchAll) {
                 let variables = m[4];
                 variables = variables.replace(/;[^\n]*\n/g, '');
                 variables = variables.replace(/\n/g, ' ');
-                this.BreedVars.set(m[1], variables.split(' ').filter((v) => v != '' && v != '\n'));
+                this.BreedVars.set(m[3], variables.split(' ').filter((v) => v != '' && v != '\n'));
             }
         }
         /** processProcedures: Parse the code for procedure names. */
