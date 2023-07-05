@@ -57,7 +57,7 @@ export class StatePreprocess {
       variables = variables.replace(/;[^\n]*\n/g, '');
       variables = variables.replace(/\n/g, ' ');
       this.BreedVars.set(
-        m[1],
+        m[3],
         variables.split(' ').filter((v) => v != '' && v != '\n')
       );
     }
