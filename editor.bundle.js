@@ -4524,6 +4524,9 @@ if(!String.prototype.matchAll) {
             }
         }
     }
+    function isScrolledToBottom(elt) {
+        return elt.scrollTop > Math.max(1, elt.scrollHeight - elt.clientHeight - 4);
+    }
 
     class DOMPos {
         constructor(node, offset, precise = true) {
@@ -4566,7 +4569,7 @@ if(!String.prototype.matchAll) {
                 let prev = null, next;
                 for (let child of this.children) {
                     if (child.dirty) {
-                        if (!child.dom && (next = prev ? prev.nextSibling : parent.firstChild)) {
+                        if (!child.dom && (next = prev ? prev.nextSibling : parent.firstChild) && next != view.docView.compositionNode) {
                             let contentView = ContentView.get(next);
                             if (!contentView || !contentView.parent && contentView.canReuseDOM(child))
                                 child.reuseDOM(next);
@@ -6803,6 +6806,7 @@ if(!String.prototype.matchAll) {
             super();
             this.view = view;
             this.compositionDeco = Decoration.none;
+            this.compositionNode = null;
             this.decorations = [];
             this.dynamicDecorationMap = [];
             // Track a minimum width for the editor. When measuring sizes in
@@ -6842,10 +6846,8 @@ if(!String.prototype.matchAll) {
                     this.minWidthTo = update.changes.mapPos(this.minWidthTo, 1);
                 }
             }
-            if (this.view.inputState.composing < 0)
-                this.compositionDeco = Decoration.none;
-            else if (update.transactions.length || this.dirty)
-                this.compositionDeco = computeCompositionDeco(this.view, update.changes);
+            ({ deco: this.compositionDeco, node: this.compositionNode } =
+                this.view.inputState.composing < 0 ? noComp : computeCompositionDeco(this.view, update.changes));
             // When the DOM nodes around the selection are moved to another
             // parent, Chrome sometimes reports a different selection through
             // getSelection than the one that it actually shows to the user.
@@ -7233,10 +7235,11 @@ if(!String.prototype.matchAll) {
             return { from, to: from + cView.length, node: cView.dom, text: textNode };
         }
     }
+    const noComp = { deco: Decoration.none, node: null };
     function computeCompositionDeco(view, changes) {
         let surrounding = compositionSurroundingNode(view);
         if (!surrounding)
-            return Decoration.none;
+            return noComp;
         let { from, to, node, text: textNode } = surrounding;
         let newFrom = changes.mapPos(from, 1), newTo = Math.max(newFrom, changes.mapPos(to, -1));
         let { state } = view, reader = new DOMReader([], state);
@@ -7246,25 +7249,26 @@ if(!String.prototype.matchAll) {
             reader.readRange(node.firstChild, null);
         let { text } = reader;
         if (text.indexOf(LineBreakPlaceholder) > -1)
-            return Decoration.none; // Don't try to preserve multi-line compositions
+            return noComp; // Don't try to preserve multi-line compositions
         if (newTo - newFrom < text.length) {
             if (state.doc.sliceString(newFrom, Math.min(state.doc.length, newFrom + text.length)) == text)
                 newTo = newFrom + text.length;
             else if (state.doc.sliceString(Math.max(0, newTo - text.length), newTo) == text)
                 newFrom = newTo - text.length;
             else
-                return Decoration.none;
+                return noComp;
         }
         else if (state.doc.sliceString(newFrom, newTo) != text) {
-            return Decoration.none;
+            return noComp;
         }
         let topView = ContentView.get(node);
         if (topView instanceof CompositionView)
             topView = topView.widget.topView;
         else if (topView)
             topView.parent = null;
-        return Decoration.set(Decoration.replace({ widget: new CompositionWidget(node, textNode, topView), inclusive: true })
+        let deco = Decoration.set(Decoration.replace({ widget: new CompositionWidget(node, textNode, topView), inclusive: true })
             .range(newFrom, newTo));
+        return { deco, node };
     }
     class CompositionWidget extends WidgetType {
         constructor(top, text, topView) {
@@ -7927,6 +7931,7 @@ if(!String.prototype.matchAll) {
     const PendingKeys = [
         { key: "Backspace", keyCode: 8, inputType: "deleteContentBackward" },
         { key: "Enter", keyCode: 13, inputType: "insertParagraph" },
+        { key: "Enter", keyCode: 13, inputType: "insertLineBreak" },
         { key: "Delete", keyCode: 46, inputType: "deleteContentForward" }
     ];
     const EmacsyPendingKeys = "dthko";
@@ -8171,7 +8176,7 @@ if(!String.prototype.matchAll) {
         if (!style && event.button == 0)
             style = basicMouseSelection(view, event);
         if (style) {
-            let mustFocus = view.root.activeElement != view.contentDOM;
+            let mustFocus = !view.hasFocus;
             view.inputState.startMouseSelection(new MouseSelection(view, event, style, mustFocus));
             if (mustFocus)
                 view.observer.ignore(() => focusPreventScroll(view.contentDOM));
@@ -9367,7 +9372,7 @@ if(!String.prototype.matchAll) {
             let contentChanges = update.changedRanges;
             let heightChanges = ChangedRange.extendWithRanges(contentChanges, heightRelevantDecoChanges(prevDeco, this.stateDeco, update ? update.changes : ChangeSet.empty(this.state.doc.length)));
             let prevHeight = this.heightMap.height;
-            let scrollAnchor = this.scrolledToBottom ? null : this.lineBlockAtHeight(this.scrollTop);
+            let scrollAnchor = this.scrolledToBottom ? null : this.scrollAnchorAt(this.scrollTop);
             this.heightMap = this.heightMap.applyChanges(this.stateDeco, update.startState.doc, this.heightOracle.setDoc(this.state.doc), heightChanges);
             if (this.heightMap.height != prevHeight)
                 update.flags |= 2 /* Height */;
@@ -9427,7 +9432,7 @@ if(!String.prototype.matchAll) {
                 this.scrollAnchorHeight = -1;
                 this.scrollTop = view.scrollDOM.scrollTop;
             }
-            this.scrolledToBottom = this.scrollTop > view.scrollDOM.scrollHeight - view.scrollDOM.clientHeight - 4;
+            this.scrolledToBottom = isScrolledToBottom(view.scrollDOM);
             // Pixel viewport
             let pixelViewport = (this.printing ? fullPixelRange : visiblePixelRange)(dom, this.paddingTop);
             let dTop = pixelViewport.top - this.pixelViewport.top, dBottom = pixelViewport.bottom - this.pixelViewport.bottom;
@@ -9669,6 +9674,10 @@ if(!String.prototype.matchAll) {
         }
         lineBlockAtHeight(height) {
             return scaleBlock(this.heightMap.lineAt(this.scaler.fromDOM(height), QueryType$1.ByHeight, this.heightOracle, 0, 0), this.scaler);
+        }
+        scrollAnchorAt(scrollTop) {
+            let block = this.lineBlockAtHeight(scrollTop + 8);
+            return block.from >= this.viewport.from || this.viewportLines[0].top - scrollTop > 200 ? block : this.viewportLines[0];
         }
         elementAtHeight(height) {
             return scaleBlock(this.heightMap.blockAt(this.scaler.fromDOM(height), this.heightOracle, 0, 0), this.scaler);
@@ -11042,22 +11051,23 @@ if(!String.prototype.matchAll) {
             let updated = null;
             let sDOM = this.scrollDOM, { scrollTop } = sDOM;
             let { scrollAnchorPos, scrollAnchorHeight } = this.viewState;
+            if (scrollTop != this.viewState.scrollTop)
+                scrollAnchorHeight = -1;
             this.viewState.scrollAnchorHeight = -1;
-            if (scrollAnchorHeight < 0 || scrollTop != this.viewState.scrollTop) {
-                if (scrollTop > sDOM.scrollHeight - sDOM.clientHeight - 4) {
-                    scrollAnchorPos = -1;
-                    scrollAnchorHeight = this.viewState.heightMap.height;
-                }
-                else {
-                    let block = this.viewState.lineBlockAtHeight(scrollTop);
-                    scrollAnchorPos = block.from;
-                    scrollAnchorHeight = block.top;
-                }
-            }
             try {
                 for (let i = 0;; i++) {
+                    if (scrollAnchorHeight < 0) {
+                        if (isScrolledToBottom(sDOM)) {
+                            scrollAnchorPos = -1;
+                            scrollAnchorHeight = this.viewState.heightMap.height;
+                        }
+                        else {
+                            let block = this.viewState.scrollAnchorAt(scrollTop);
+                            scrollAnchorPos = block.from;
+                            scrollAnchorHeight = block.top;
+                        }
+                    }
                     this.updateState = 1 /* Measuring */;
-                    let oldViewport = this.viewport;
                     let changed = this.viewState.measure(this);
                     if (!changed && !this.measureRequests.length && this.viewState.scrollTarget == null)
                         break;
@@ -11080,7 +11090,7 @@ if(!String.prototype.matchAll) {
                             return BadMeasure;
                         }
                     });
-                    let update = ViewUpdate.create(this, this.state, []), redrawn = false, scrolled = false;
+                    let update = ViewUpdate.create(this, this.state, []), redrawn = false;
                     update.flags |= changed;
                     if (!updated)
                         updated = update;
@@ -11104,28 +11114,28 @@ if(!String.prototype.matchAll) {
                                 logException(this.state, e);
                             }
                         }
-                    if (this.viewState.editorHeight) {
-                        if (this.viewState.scrollTarget) {
-                            this.docView.scrollIntoView(this.viewState.scrollTarget);
-                            this.viewState.scrollTarget = null;
-                            scrolled = true;
-                        }
-                        else if (scrollAnchorHeight > -1) {
-                            let newAnchorHeight = scrollAnchorPos < 0 ? this.viewState.heightMap.height :
-                                this.viewState.lineBlockAt(scrollAnchorPos).top;
-                            let diff = newAnchorHeight - scrollAnchorHeight;
-                            if (diff > 1 || diff < -1) {
-                                sDOM.scrollTop = scrollTop + diff;
-                                scrolled = true;
-                            }
-                        }
-                    }
                     if (redrawn)
                         this.docView.updateSelection(true);
-                    if (this.viewport.from == oldViewport.from && this.viewport.to == oldViewport.to &&
-                        !scrolled && this.measureRequests.length == 0)
+                    if (!update.viewportChanged && this.measureRequests.length == 0) {
+                        if (this.viewState.editorHeight) {
+                            if (this.viewState.scrollTarget) {
+                                this.docView.scrollIntoView(this.viewState.scrollTarget);
+                                this.viewState.scrollTarget = null;
+                                continue;
+                            }
+                            else {
+                                let newAnchorHeight = scrollAnchorPos < 0 ? this.viewState.heightMap.height :
+                                    this.viewState.lineBlockAt(scrollAnchorPos).top;
+                                let diff = newAnchorHeight - scrollAnchorHeight;
+                                if (diff > 1 || diff < -1) {
+                                    scrollTop = sDOM.scrollTop = scrollTop + diff;
+                                    scrollAnchorHeight = -1;
+                                    continue;
+                                }
+                            }
+                        }
                         break;
-                    scrollAnchorHeight = -1;
+                    }
                 }
             }
             finally {
@@ -26019,7 +26029,8 @@ if(!String.prototype.matchAll) {
         'Infinite loop _': (Name) => `This "${Name}" loop will run forever and likely block the model. Do you want to re-write into a "go" loop?`,
         'Argument is reserved _': (Name) => `The argument "${Name}" is a reserved NetLogo keyword. Do you want to replace it?`,
         'Argument is invalid _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
-        'Negation _': (Name) => `This looks like it is supposed to be a negation, but is not written correctly. Do you want to fix it?`,
+        'Negation _': (Name) => `This expression looks like an incorrect negation. The correct format is "(- ${Name.substring(1)})".`,
+        'Deprecated usage of ?': (Name) => `This expression looks like an incorrect anonymous procedure. The correct format looks like "[[ arg ] -> print arg]".`,
         // Agent types and basic names
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -26183,8 +26194,9 @@ if(!String.prototype.matchAll) {
         'Infinite loop _': (Name) => `这个 "${Name}" 循环将永远运行下去，可能会阻塞模型。你想将它改成 "go" 循环吗？`,
         'Argument is reserved _': (Name) => `参数名称 "${Name}" 和 NetLogo 的关键字重复了。你想换一个名字吗？`,
         'Argument is invalid _': (Name) => `参数名称 "${Name}" 不可用。你想换一个名字吗？`,
-        'Inconsistent code block type _': (Prior, New) => `The code block type "${New}" does not match the preceding code block type "${Prior}".`,
-        'Negation _': (Name) => `This looks like it is supposed to be a negation, but is not written correctly. Do you want to fix it?`,
+        'Inconsistent code block type _': (Prior, New) => `中括号内的 "${New}" 和此前观察到的 "${Prior}" 不匹配。`,
+        'Negation _': (Name) => `取负值的方式不受支持。正确的格式是："(- ${Name.substring(1)})"。`,
+        'Deprecated usage of ?': (Name) => `匿名函数的写法不受支持。正确的格式类似于 "[[ 参数 ] -> print 参数]".`,
         // Agent types and basic names
         Observer: () => '观察者',
         Turtle: () => '海龟',
@@ -29856,25 +29868,38 @@ if(!String.prototype.matchAll) {
         syntaxTree(view.state)
             .cursor()
             .iterate((noderef) => {
-            var _a;
-            if (noderef.name == 'Identifier' && ((_a = noderef.node.parent) === null || _a === void 0 ? void 0 : _a.name) != '⚠') {
+            var parent = noderef.node.parent;
+            if (noderef.name == 'Identifier' && (parent === null || parent === void 0 ? void 0 : parent.name) != '⚠') {
                 const node = noderef.node;
                 const value = getCodeName(view.state, node);
                 // check if it meets some initial criteria for validity
                 if (checkValidIdentifier(node, value, context))
                     return;
+                // check if it's a negation
                 if (value.startsWith('-') && checkValidIdentifier(node, value.slice(1), context)) {
                     let d = getDiagnostic(view, noderef, 'Negation _');
                     d.actions = [
                         {
                             name: Localized.Get('Fix'),
                             apply(view, from, to) {
-                                view.dispatch({ changes: { from, to, insert: '( - ' + value.slice(1) + ' )' } });
+                                view.dispatch({ changes: { from, to, insert: '(- ' + value.slice(1) + ' )' } });
                             },
                         },
                     ];
                     diagnostics.push(d);
                     return;
+                }
+                // check if it is deprecated ?
+                if (value === '?') {
+                    // if someone uses repeat 10 [ print ? ], the lint message becomes incorrect
+                    // it is better if we check the related primitive as well, but too complicated for now
+                    while (parent !== null) {
+                        if (parent.name === 'CodeBlock') {
+                            diagnostics.push(getDiagnostic(view, noderef, 'Deprecated usage of ?'));
+                            return;
+                        }
+                        parent = parent.parent;
+                    }
                 }
                 // check if the identifier looks like a breed procedure (e.g. "create-___")
                 let result = checkBreedLike(value);
