@@ -68,6 +68,8 @@ const en_us: Record<string, Function> = {
     `This expression looks like an incorrect negation. The correct format is "(- ${Name.substring(1)})".`,
   'Deprecated usage of ?': (Name: string) =>
     `This expression looks like an incorrect anonymous procedure. The correct format looks like "[[ arg ] -> print arg]".`,
+  'Incorrect usage of ,': (Name: string) =>
+    `In NetLogo, spaces " " are used to separate meanings. There is no need to use ",".`,
 
   // Agent types and basic names
   Observer: () => 'Observer',

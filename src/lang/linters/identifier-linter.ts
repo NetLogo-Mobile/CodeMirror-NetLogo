@@ -46,6 +46,11 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
             parent = parent.parent;
           }
         }
+        // check if it is deprecated ?
+        if (value === ',') {
+          diagnostics.push(getDiagnostic(view, noderef, 'Incorrect usage of ,'));
+          return;
+        }
         // check if the identifier looks like a breed procedure (e.g. "create-___")
         let result = checkBreedLike(value);
         if (!result.found) {
