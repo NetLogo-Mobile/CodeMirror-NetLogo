@@ -39,7 +39,7 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
           // if someone uses repeat 10 [ print ? ], the lint message becomes incorrect
           // it is better if we check the related primitive as well, but too complicated for now
           while (parent !== null) {
-            if (parent.name === 'CodeBlock') {
+            if (parent.name === 'CodeBlock' || parent.name === 'Value') {
               diagnostics.push(getDiagnostic(view, noderef, 'Deprecated usage of ?'));
               return;
             }
