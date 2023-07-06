@@ -26031,6 +26031,7 @@ if(!String.prototype.matchAll) {
         'Argument is invalid _': (Name) => `The argument "${Name}" is invalid. Do you want to replace it?`,
         'Negation _': (Name) => `This expression looks like an incorrect negation. The correct format is "(- ${Name.substring(1)})".`,
         'Deprecated usage of ?': (Name) => `This expression looks like an incorrect anonymous procedure. The correct format looks like "[[ arg ] -> print arg]".`,
+        'Incorrect usage of ,': (Name) => `In NetLogo, spaces " " are used to separate meanings. There is no need to use ",".`,
         // Agent types and basic names
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -26197,6 +26198,7 @@ if(!String.prototype.matchAll) {
         'Inconsistent code block type _': (Prior, New) => `中括号内的 "${New}" 和此前观察到的 "${Prior}" 不匹配。`,
         'Negation _': (Name) => `取负值的方式不受支持。正确的格式是："(- ${Name.substring(1)})"。`,
         'Deprecated usage of ?': (Name) => `匿名函数的写法不受支持。正确的格式类似于 "[[ 参数 ] -> print 参数]".`,
+        'Incorrect usage of ,': (Name) => `NetLogo 语言中使用空格分隔词义，无须使用 ","。`,
         // Agent types and basic names
         Observer: () => '观察者',
         Turtle: () => '海龟',
@@ -29900,6 +29902,11 @@ if(!String.prototype.matchAll) {
                         }
                         parent = parent.parent;
                     }
+                }
+                // check if it is deprecated ?
+                if (value === ',') {
+                    diagnostics.push(getDiagnostic(view, noderef, 'Incorrect usage of ,'));
+                    return;
                 }
                 // check if the identifier looks like a breed procedure (e.g. "create-___")
                 let result = checkBreedLike(value);
