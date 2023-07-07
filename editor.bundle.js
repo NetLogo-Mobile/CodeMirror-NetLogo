@@ -33074,7 +33074,12 @@ if(!String.prototype.matchAll) {
                 }
             }
             else if (noderef.name == 'Procedure' && noderef.node.getChildren('ProcedureContent').length == 0) {
-                changes.push({ from: noderef.from, to: noderef.to, insert: '' });
+                let child = noderef.node.getChild('ProcedureName');
+                let name = state.sliceDoc(child === null || child === void 0 ? void 0 : child.from, child === null || child === void 0 ? void 0 : child.to).toLowerCase();
+                let matches = state.doc.toString().match(new RegExp(name, 'gi'));
+                if (matches && matches.length == 1) {
+                    changes.push({ from: noderef.from, to: noderef.to, insert: '' });
+                }
             }
             else if (noderef.name == 'ProcedureName') {
                 let name = state.sliceDoc(noderef.from, noderef.to).toLowerCase();
