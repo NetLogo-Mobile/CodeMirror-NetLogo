@@ -50,9 +50,10 @@ const zh_cn: Record<string, Function> = {
   'Argument is reserved _': (Name: string) => `参数名称 "${Name}" 和 NetLogo 的关键字重复了。你想换一个名字吗？`,
   'Argument is invalid _': (Name: string) => `参数名称 "${Name}" 不可用。你想换一个名字吗？`,
   'Inconsistent code block type _': (Prior: string, New: string) =>
-    `The code block type "${New}" does not match the preceding code block type "${Prior}".`,
-  'Negation _': (Name: string) =>
-    `This looks like it is supposed to be a negation, but is not written correctly. Do you want to fix it?`,
+    `中括号内的 "${New}" 和此前观察到的 "${Prior}" 不匹配。`,
+  'Negation _': (Name: string) => `取负值的方式不受支持。正确的格式是："(- ${Name.substring(1)})"。`,
+  'Deprecated usage of ?': (Name: string) => `匿名函数的写法不受支持。正确的格式类似于 "[[ 参数 ] -> print 参数]".`,
+  'Incorrect usage of ,': (Name: string) => `NetLogo 语言中使用空格分隔词义，无须使用 ","。`,
 
   // Agent types and basic names
   Observer: () => '观察者',
