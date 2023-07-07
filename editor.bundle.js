@@ -28953,34 +28953,34 @@ if(!String.prototype.matchAll) {
         if (singularBreedNames.has(token)) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^[^\s]+-own$`, 'i')) && !isSingular) {
+        else if (token.match(/^[^\s]+-own$/i) && !isSingular) {
             tag = Own;
         }
-        else if (token.match(new RegExp(`^[^\s]+-(at|here|on)$`, 'i')) && !isSingular) {
+        else if (token.match(/^[^\s]+-(at|here|on)$/i) && !isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^[^\s]+-(with|neighbor\\?|neighbors)$`, 'i')) && isSingular) {
+        else if (token.match(/^[^\s]+-(with|neighbor\\?|neighbors)$/i) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^(my-in|my-out)-[^\s]+$`, 'i')) && !isSingular) {
+        else if (token.match(/^(my-in|my-out)-[^\s]+$/i) && !isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^(hatch|sprout|create|create-ordered)-[^\s]+$`, 'i')) && !isSingular) {
+        else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+$/i) && !isSingular) {
             tag = SpecialCommand;
         }
-        else if (token.match(new RegExp(`^is-[^\s]+\\?$`, 'i')) && isSingular) {
+        else if (token.match(/^is-[^\s]+\\?$/i) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^in-[^\s]+-from$`, 'i')) && isSingular) {
+        else if (token.match(/^in-[^\s]+-from$/i) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^(in|out)-[^\s]+-(neighbor\\?|neighbors)$`, 'i')) && isSingular) {
+        else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?|neighbors)$/i) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^out-[^\s]+-to$`, 'i')) && isSingular) {
+        else if (token.match(/^out-[^\s]+-to$/i) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(new RegExp(`^create-[^\s]+-(to|from|with)$`, 'i'))) {
+        else if (token.match(/^create-[^\s]+-(to|from|with)$/i)) {
             tag = SpecialCommand;
         }
         if (!foundMatch)
