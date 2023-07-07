@@ -26874,9 +26874,8 @@ if(!String.prototype.matchAll) {
     catch (error) { }
 
     /** Global: Global object. */
-    const Global = typeof globalThis === 'undefined' ? window : globalThis;
     /** Log: Log to console if debug is enabled. */
-    const Log = Global.GalapagosSilent ? console.log : () => { };
+    const Log = console.log ; //Global.GalapagosSilent ? console.log : () => {};
     /**
      * String.prototype.trimStart() polyfill
      * Adapted from polyfill.io
@@ -28950,41 +28949,41 @@ if(!String.prototype.matchAll) {
             }
         }
         // console.log(token,matchedBreed,breedNames)
+        if (!foundMatch)
+            return { tag: token.match(/^create-[^\s\?]+$/i) ? SpecialCommand : tag, valid: false };
         if (singularBreedNames.has(token)) {
             tag = SpecialReporter;
         }
-        else if (token.match(/^[^\s]+-own$/i) && !isSingular) {
+        else if (token.match(new RegExp(`^${matchedBreed}-own$`, 'i')) && !isSingular) {
             tag = Own;
         }
-        else if (token.match(/^[^\s]+-(at|here|on)$/i) && !isSingular) {
+        else if (token.match(new RegExp(`^${matchedBreed}-(at|here|on)$`, 'i')) && !isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(/^[^\s]+-(with|neighbor\\?|neighbors)$/i) && isSingular) {
+        else if (token.match(new RegExp(`^${matchedBreed}-(with|neighbor\\?|neighbors)$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(/^(my-in|my-out)-[^\s]+$/i) && !isSingular) {
+        else if (token.match(new RegExp(`^(my-in|my-out)-${matchedBreed}$`, 'i')) && !isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+$/i) && !isSingular) {
+        else if (token.match(new RegExp(`^(hatch|sprout|create|create-ordered)-${matchedBreed}$`, 'i')) && !isSingular) {
             tag = SpecialCommand;
         }
-        else if (token.match(/^is-[^\s]+\\?$/i) && isSingular) {
+        else if (token.match(new RegExp(`^is-${matchedBreed}\\?$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(/^in-[^\s]+-from$/i) && isSingular) {
+        else if (token.match(new RegExp(`^in-${matchedBreed}-from$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?|neighbors)$/i) && isSingular) {
+        else if (token.match(new RegExp(`^(in|out)-${matchedBreed}-(neighbor\\?|neighbors)$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(/^out-[^\s]+-to$/i) && isSingular) {
+        else if (token.match(new RegExp(`^out-${matchedBreed}-to$`, 'i')) && isSingular) {
             tag = SpecialReporter;
         }
-        else if (token.match(/^create-[^\s]+-(to|from|with)$/i)) {
+        else if (token.match(new RegExp(`^create-${matchedBreed}-(to|from|with)$`, 'i'))) {
             tag = SpecialCommand;
         }
-        if (!foundMatch)
-            return { tag: tag, valid: false };
         return { tag: tag, valid: true };
     }
     function matchCustomProcedure(token) {
