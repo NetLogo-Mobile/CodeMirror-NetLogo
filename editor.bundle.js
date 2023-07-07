@@ -32785,7 +32785,7 @@ if(!String.prototype.matchAll) {
             else if (node.name == 'Globals' || node.name == 'Extensions') {
                 if (first[node.name] == null) {
                     if (procedureStart != null && procedureStart < node.from) {
-                        console.log('Moving ' + node.name + ' to ' + procedureStart);
+                        // console.log('Moving ' + node.name + ' to ' + procedureStart);
                         changes.push({
                             from: 0,
                             to: 0,
@@ -32813,7 +32813,7 @@ if(!String.prototype.matchAll) {
                         .replace(/extensions\s*\[/i, '')
                         .replace(/\]/, '');
                     let index = first[node.name];
-                    console.log('combining statements');
+                    // console.log('combining statements');
                     if (index) {
                         changes.push({
                             from: index,
@@ -32835,7 +32835,7 @@ if(!String.prototype.matchAll) {
             else if (procedureStart != null &&
                 (node.name == 'BreedsOwn' ||
                     (node.name == 'Misplaced' && node.node.resolveInner(node.from, 1).name == 'BreedToken'))) {
-                console.log('Moving ' + node.name + ' to ' + procedureStart);
+                // console.log('Moving ' + node.name + ' to ' + procedureStart);
                 changes.push({
                     from: 0,
                     to: 0,
@@ -32877,10 +32877,10 @@ if(!String.prototype.matchAll) {
         if (cursor.node.name == 'Normal') {
             if (cursor.firstChild()) {
                 checkForMisplaced(cursor.node);
-                console.log(cursor.node.name, changes);
+                // console.log(cursor.node.name, changes);
                 while (cursor.nextSibling()) {
                     checkForMisplaced(cursor.node);
-                    console.log(cursor.node.name, changes);
+                    // console.log(cursor.node.name, changes);
                 }
             }
         }
@@ -32995,7 +32995,7 @@ if(!String.prototype.matchAll) {
                 let change = FixBreed(noderef.node, state, breeds);
                 if (change != null) {
                     changes.push({
-                        from: commentsStart !== null && commentsStart !== void 0 ? commentsStart : change.from,
+                        from: change.from,
                         to: change.to,
                         insert: change.insert,
                     });
@@ -33138,7 +33138,7 @@ if(!String.prototype.matchAll) {
             state.sliceDoc(singular === null || singular === void 0 ? void 0 : singular.from, singular === null || singular === void 0 ? void 0 : singular.to).toLowerCase() ==
                 state.sliceDoc(plural === null || plural === void 0 ? void 0 : plural.from, plural === null || plural === void 0 ? void 0 : plural.to).toLowerCase();
         let invalid_plur = ['turtles', 'links', 'patches', ...breeds].includes(state.sliceDoc(plural === null || plural === void 0 ? void 0 : plural.from, plural === null || plural === void 0 ? void 0 : plural.to).toLowerCase());
-        console.log(singular, plural, invalid_sing, invalid_plur);
+        // console.log("BREED FIXING",singular, plural, invalid_sing, invalid_plur);
         if (singular && plural && invalid_sing && invalid_plur) {
             return {
                 from: node.from,
