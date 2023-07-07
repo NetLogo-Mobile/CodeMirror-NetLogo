@@ -114,11 +114,126 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
   let commentsStart: null | number = null;
   let commentFrom: null | number = null;
   let procedureStart: null | number = null;
+  let first: { Globals: null | number; Extensions: null | number } = { Globals: null, Extensions: null };
   let reserved = GetReserved(Editor.LintContext);
   let breeds: string[] = [];
   let globals: string[] = [];
   let extensions: string[] = [];
   let reservedVars = [...turtleVars, ...patchVars, ...linkVars, ...constants];
+
+  var checkForMisplaced = (node: SyntaxNode) => {
+    if (node.name == 'Procedure' && procedureStart == null) {
+      procedureStart = node.from;
+    } else if (node.name == 'Globals' || node.name == 'Extensions') {
+      if (first[node.name] == null) {
+        if (procedureStart != null && procedureStart < node.from) {
+          console.log('Moving ' + node.name + ' to ' + procedureStart);
+          changes.push({
+            from: 0,
+            to: 0,
+            insert: AddComments(state.sliceDoc(node.from, node.to), comments) + '\n\n',
+          });
+          changes.push({
+            from: commentsStart ?? node.from,
+            to: node.to,
+            insert: '',
+          });
+          first[node.name] = AddComments(state.sliceDoc(node.from, node.to), comments).length - 1;
+          comments = [];
+          commentFrom = null;
+          commentsStart = null;
+          return;
+        } else {
+          first[node.name] = node.to - 1;
+        }
+      } else {
+        let to_add = state
+          .sliceDoc(node.from, node.to)
+          .replace(/globals\s*\[/i, '')
+          .replace(/extensions\s*\[/i, '')
+          .replace(/\]/, '');
+        let index = first[node.name];
+        console.log('combining statements');
+        if (index) {
+          changes.push({
+            from: index,
+            to: index,
+            insert: ' ' + to_add,
+          });
+          changes.push({
+            from: commentsStart ?? node.from,
+            to: node.to,
+            insert: '',
+          });
+          comments = [];
+          commentFrom = null;
+          commentsStart = null;
+          return;
+        }
+      }
+    } else if (
+      procedureStart != null &&
+      (node.name == 'BreedsOwn' ||
+        (node.name == 'Misplaced' && node.node.resolveInner(node.from, 1).name == 'BreedToken'))
+    ) {
+      console.log('Moving ' + node.name + ' to ' + procedureStart);
+      changes.push({
+        from: 0,
+        to: 0,
+        insert: AddComments(state.sliceDoc(node.from, node.to), comments) + '\n\n',
+      });
+      changes.push({
+        from: commentsStart ?? node.from,
+        to: node.to,
+        insert: '',
+      });
+      comments = [];
+      commentFrom = null;
+      commentsStart = null;
+      return;
+    }
+    if (node.name == 'LineComment') {
+      // take only the one preceding comment
+      comments = [state.sliceDoc(node.from, node.to)];
+      commentsStart = node.from;
+      // take all immediately preceding comments
+      // comments.push(state.sliceDoc(node.from, node.to));
+      // commentsStart = commentsStart ?? node.from;
+    } else if (comments.length > 0 && !commentFrom) {
+      // Record the position of what comes immediately after the comments
+      // (this is in case of nesting, so we don't lose the comments)
+      commentFrom = node.from;
+    } else if (comments.length > 0 && commentFrom && node.from > commentFrom) {
+      // Discard the comment info when we move on to the next statement
+      comments = [];
+      commentFrom = null;
+      commentsStart = null;
+    }
+  };
+
+  //do some re-ordering at the top level
+  let cursor = syntaxTree(state).cursor();
+  cursor.firstChild();
+  if (cursor.node.name == 'Normal') {
+    if (cursor.firstChild()) {
+      checkForMisplaced(cursor.node);
+      console.log(cursor.node.name, changes);
+      while (cursor.nextSibling()) {
+        checkForMisplaced(cursor.node);
+        console.log(cursor.node.name, changes);
+      }
+    }
+  }
+
+  Editor.Operations.ChangeCode(changes);
+  Editor.ForceParse();
+  state = Editor.CodeMirror.state;
+  changes = [];
+  procedureStart = null;
+  comments = [];
+  commentFrom = null;
+  commentsStart = null;
+
   // Go over the syntax tree
   syntaxTree(state)
     .cursor()
