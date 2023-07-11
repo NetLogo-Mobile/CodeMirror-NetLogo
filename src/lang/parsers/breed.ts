@@ -53,22 +53,28 @@ const breedStatementRules = [
     Position: 0,
   },
   {
-    Match: /^(.*?)-(with|neighbor\?|neighbors)$/,
+    Match: /^in-(.*?)-from$/,
     Singular: true,
     Tag: SpecialReporter,
     Type: BreedType.UndirectedLink,
   },
   {
-    Match: /^(?:my-in|my-out)-(.*?)$/,
-    Singular: false,
+    Match: /^out-(.*?)-to$/,
+    Singular: true,
     Tag: SpecialReporter,
     Type: BreedType.UndirectedLink,
   },
   {
-    Match: /^(?:hatch|sprout|create|create-ordered)-(.*?)$/,
+    Match: /^(?:out|in)-(.*?)-(neighbor\?|neighbors)$/,
+    Singular: true,
+    Tag: SpecialReporter,
+    Type: BreedType.UndirectedLink,
+  },
+  {
+    Match: /^(?:my-in|my-out|my)-(.*?)$/,
     Singular: false,
-    Tag: SpecialCommand,
-    Type: BreedType.Turtle,
+    Tag: SpecialReporter,
+    Type: BreedType.UndirectedLink,
   },
   {
     Match: /^is-(.*?)\?$/,
@@ -77,22 +83,22 @@ const breedStatementRules = [
     Type: undefined,
   },
   {
-    Match: /^in-(.*?)-from\?$/,
-    Singular: true,
-    Tag: SpecialReporter,
-    Type: BreedType.UndirectedLink,
-  },
-  {
-    Match: /^out-(.*?)-to\?$/,
-    Singular: true,
-    Tag: SpecialReporter,
-    Type: BreedType.UndirectedLink,
-  },
-  {
     Match: /^create-(.*?)-(?:to|from|with)$/,
-    Singular: true,
+    Singular: undefined,
     Tag: SpecialCommand,
     Type: BreedType.UndirectedLink,
+  },
+  {
+    Match: /^(.*?)-(with|neighbor\?|neighbors)$/,
+    Singular: true,
+    Tag: SpecialReporter,
+    Type: BreedType.UndirectedLink,
+  },
+  {
+    Match: /^(?:hatch|sprout|create-ordered|create)-(.*?)$/,
+    Singular: false,
+    Tag: SpecialCommand,
+    Type: BreedType.Turtle,
   },
 ];
 
@@ -113,7 +119,8 @@ export function matchBreed(token: string) {
       var name = match[1];
       var type = -1;
       var typeConstrained = rule.Type !== undefined;
-      if (rule.Singular) {
+      var singular = rule.Singular !== undefined ? rule.Singular : parseContext.SingularBreeds.has(name);
+      if (singular) {
         if (!parseContext.SingularBreeds.has(name)) return { tag: 0, valid: false };
         if (typeConstrained) type = parseContext.BreedTypes.get(parseContext.SingularToPlurals.get(name)!)!;
       } else {
