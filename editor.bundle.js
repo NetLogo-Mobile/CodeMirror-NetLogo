@@ -28735,18 +28735,21 @@ if(!String.prototype.matchAll) {
       SpecialCommandCreateLink = 87;
 
     /** breedStatementRules: Rules for matching breed statements. */
+    // For Ruth: You might want to merge the "BreedLocation" into those rules and then refactor relevant procedures into this file.
     const breedStatementRules = [
         {
             Match: /^(.*?)-own$/,
             Singular: false,
             Tag: Own,
             Type: undefined,
+            Position: 0,
         },
         {
             Match: /^(.*?)-(at|here|on)$/,
             Singular: false,
             Tag: SpecialReporter,
             Type: BreedType.Turtle,
+            Position: 0,
         },
         {
             Match: /^(.*?)-(with|neighbor\?|neighbors)$/,
@@ -28755,13 +28758,13 @@ if(!String.prototype.matchAll) {
             Type: BreedType.UndirectedLink,
         },
         {
-            Match: /^(my-in|my-out)-(.*?)$/,
+            Match: /^(?:my-in|my-out)-(.*?)$/,
             Singular: false,
             Tag: SpecialReporter,
             Type: BreedType.UndirectedLink,
         },
         {
-            Match: /^(hatch|sprout|create|create-ordered)-(.*?)$/,
+            Match: /^(?:hatch|sprout|create|create-ordered)-(.*?)$/,
             Singular: false,
             Tag: SpecialCommand,
             Type: BreedType.Turtle,
@@ -28785,7 +28788,7 @@ if(!String.prototype.matchAll) {
             Type: BreedType.UndirectedLink,
         },
         {
-            Match: /^create-(.*?)-(to|from|with)\?$/,
+            Match: /^create-(.*?)-(?:to|from|with)$/,
             Singular: true,
             Tag: SpecialCommand,
             Type: BreedType.UndirectedLink,
