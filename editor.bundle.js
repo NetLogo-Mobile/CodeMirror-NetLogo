@@ -28801,6 +28801,8 @@ if(!String.prototype.matchAll) {
         let breedVars = parseContext.BreedVars;
         if (breedVars.has(token))
             return { tag: Identifier, valid: false };
+        if (parseContext.SingularBreeds.has(token))
+            return { tag: SpecialReporter, valid: true };
         // Check breed statements
         for (let rule of breedStatementRules) {
             let match = token.match(rule.Match);
