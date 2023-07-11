@@ -104,6 +104,7 @@ export function matchBreed(token: string) {
   // Check breed variables
   let breedVars = parseContext.BreedVars;
   if (breedVars.has(token)) return { tag: Identifier, valid: false };
+  if (parseContext.SingularBreeds.has(token)) return { tag: SpecialReporter, valid: true };
 
   // Check breed statements
   for (let rule of breedStatementRules) {
