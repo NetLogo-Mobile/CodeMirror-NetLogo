@@ -26079,7 +26079,7 @@ if(!String.prototype.matchAll) {
         '~CustomCommand': (Name) => `A user-defined command. `,
         // Chat and AI assistant
         ClickHere: () => 'Click here',
-        Reconnect: () => `Reconnect`,
+        Reconnect: () => `Try it again`,
         RunCode: () => `Run`,
         'Trying to run the code': () => `Trying to run the code...`,
         'Trying to run the procedure _': (Name) => `Trying to run the procedure \`${Name}\`...`,
@@ -26259,7 +26259,7 @@ if(!String.prototype.matchAll) {
         'Type NetLogo command here': () => '在这里输入 NetLogo 命令',
         'Talk to the computer in NetLogo or natural languages': () => `用 NetLogo 或自然语言写代码`,
         // Chat and AI interface
-        Reconnect: () => `重新连接`,
+        Reconnect: () => `再试一次`,
         RunCode: () => `运行`,
         'Trying to run the code': () => `尝试运行代码……`,
         'Trying to run the procedure _': (Name) => `尝试运行子程序 \`${Name}\`……`,
@@ -28734,13 +28734,106 @@ if(!String.prototype.matchAll) {
       SpecialCommandCreateTurtle = 86,
       SpecialCommandCreateLink = 87;
 
+    /** breedStatementRules: Rules for matching breed statements. */
+    const breedStatementRules = [
+        {
+            Match: /^(.*?)-own$/,
+            Singular: false,
+            Tag: Own,
+            Type: undefined,
+        },
+        {
+            Match: /^(.*?)-(at|here|on)$/,
+            Singular: false,
+            Tag: SpecialReporter,
+            Type: BreedType.Turtle,
+        },
+        {
+            Match: /^(.*?)-(with|neighbor\?|neighbors)$/,
+            Singular: true,
+            Tag: SpecialReporter,
+            Type: BreedType.UndirectedLink,
+        },
+        {
+            Match: /^(my-in|my-out)-(.*?)$/,
+            Singular: false,
+            Tag: SpecialReporter,
+            Type: BreedType.UndirectedLink,
+        },
+        {
+            Match: /^(hatch|sprout|create|create-ordered)-(.*?)$/,
+            Singular: false,
+            Tag: SpecialCommand,
+            Type: BreedType.Turtle,
+        },
+        {
+            Match: /^is-(.*?)\?$/,
+            Singular: true,
+            Tag: SpecialReporter,
+            Type: undefined,
+        },
+        {
+            Match: /^in-(.*?)-from\?$/,
+            Singular: true,
+            Tag: SpecialReporter,
+            Type: BreedType.UndirectedLink,
+        },
+        {
+            Match: /^out-(.*?)-to\?$/,
+            Singular: true,
+            Tag: SpecialReporter,
+            Type: BreedType.UndirectedLink,
+        },
+        {
+            Match: /^create-(.*?)-(to|from|with)\?$/,
+            Singular: true,
+            Tag: SpecialCommand,
+            Type: BreedType.UndirectedLink,
+        },
+    ];
+    /** matchBreed: Check if the token is a breed reporter/command/variable. */
+    function matchBreed(token) {
+        let parseContext = GetContext();
+        // Check breed variables
+        let breedVars = parseContext.BreedVars;
+        if (breedVars.has(token))
+            return { tag: Identifier, valid: false };
+        // Check breed statements
+        for (let rule of breedStatementRules) {
+            let match = token.match(rule.Match);
+            if (match) {
+                var name = match[1];
+                var type = -1;
+                var typeConstrained = rule.Type !== undefined;
+                if (rule.Singular) {
+                    if (!parseContext.SingularBreeds.has(name))
+                        return { tag: 0, valid: false };
+                    if (typeConstrained)
+                        type = parseContext.BreedTypes.get(parseContext.SingularToPlurals.get(name));
+                }
+                else {
+                    if (!parseContext.PluralBreeds.has(name))
+                        return { tag: 0, valid: false };
+                    if (typeConstrained)
+                        type = parseContext.BreedTypes.get(name);
+                }
+                if (type == BreedType.DirectedLink)
+                    type = BreedType.UndirectedLink;
+                if (typeConstrained && type !== rule.Type)
+                    return { tag: 0, valid: false };
+                return { tag: rule.Tag, valid: true };
+            }
+        }
+        return { tag: 0, valid: false };
+    }
+
     let primitives$4 = PrimitiveManager;
     // Keyword tokenizer
     const keyword = new ExternalTokenizer((input, stack) => {
         let token = '';
         // Find until the token is complete
         while (isValidKeyword(input.next)) {
-            token += String.fromCharCode(input.next).toLowerCase();
+            token += String.fromCharCode(input.next);
             input.advance();
         }
         if (token == '')
@@ -28915,77 +29008,7 @@ if(!String.prototype.matchAll) {
             // a-z
             (ch >= 97 && ch <= 122));
     }
-    // JC: Two issues with this approach: first, CJK breed names won't work; second, you can potentially do /\w+-(own|at|here)/ without doing many times
-    // checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
-    // Another issue: what if one breed is called sheep, the other sheep-sheep? I would recommend to rewrite into regex with capture groups.
-    // Such as: ^(.*?)-own$ and then check if the first capture group is a breed name.
-    function matchBreed(token) {
-        let tag = 0;
-        let parseContext = GetContext();
-        // Check breed variables
-        let breedVars = parseContext.BreedVars;
-        if (breedVars.has(token)) {
-            tag = Identifier;
-            return { tag: tag, valid: false };
-        }
-        // Check breed special reporters
-        let pluralBreedNames = parseContext.PluralBreeds;
-        let singularBreedNames = parseContext.SingularBreeds;
-        let foundMatch = false;
-        let matchedBreed = '';
-        let isSingular = false;
-        for (let [b] of pluralBreedNames) {
-            if (token.includes(b) && b.length > matchedBreed.length) {
-                foundMatch = true;
-                matchedBreed = b;
-                isSingular = false;
-            }
-        }
-        for (let [b] of singularBreedNames) {
-            if (token.includes(b) && b.length > matchedBreed.length) {
-                foundMatch = true;
-                matchedBreed = b;
-                isSingular = true;
-            }
-        }
-        // console.log(token,matchedBreed,breedNames)
-        if (!foundMatch)
-            return { tag: token.match(/^create-[^\s\?]+$/i) ? SpecialCommand : tag, valid: false };
-        if (singularBreedNames.has(token)) {
-            tag = SpecialReporter;
-        }
-        else if (token.match(new RegExp(`^${matchedBreed}-own$`, 'i')) && !isSingular) {
-            tag = Own;
-        }
-        else if (token.match(new RegExp(`^${matchedBreed}-(at|here|on)$`, 'i')) && !isSingular) {
-            tag = SpecialReporter;
-        }
-        else if (token.match(new RegExp(`^${matchedBreed}-(with|neighbor\\?|neighbors)$`, 'i')) && isSingular) {
-            tag = SpecialReporter;
-        }
-        else if (token.match(new RegExp(`^(my-in|my-out)-${matchedBreed}$`, 'i')) && !isSingular) {
-            tag = SpecialReporter;
-        }
-        else if (token.match(new RegExp(`^(hatch|sprout|create|create-ordered)-${matchedBreed}$`, 'i')) && !isSingular) {
-            tag = SpecialCommand;
-        }
-        else if (token.match(new RegExp(`^is-${matchedBreed}\\?$`, 'i')) && isSingular) {
-            tag = SpecialReporter;
-        }
-        else if (token.match(new RegExp(`^in-${matchedBreed}-from$`, 'i')) && isSingular) {
-            tag = SpecialReporter;
-        }
-        else if (token.match(new RegExp(`^(in|out)-${matchedBreed}-(neighbor\\?|neighbors)$`, 'i')) && isSingular) {
-            tag = SpecialReporter;
-        }
-        else if (token.match(new RegExp(`^out-${matchedBreed}-to$`, 'i')) && isSingular) {
-            tag = SpecialReporter;
-        }
-        else if (token.match(new RegExp(`^create-${matchedBreed}-(to|from|with)$`, 'i'))) {
-            tag = SpecialCommand;
-        }
-        return { tag: tag, valid: true };
-    }
+    /** matchCustomProcedure: Check if the token is a custom procedure. */
     function matchCustomProcedure(token) {
         let parseContext = GetContext();
         if (parseContext.Commands.has(token))
@@ -29457,7 +29480,10 @@ if(!String.prototype.matchAll) {
             }
             addBreedAction(diagnostic, breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
             diagnostics.push(diagnostic);
+            return true;
         }
+        else
+            return false;
     }
 
     /** AutoCompletion: Auto completion service for a NetLogo model. */
@@ -29902,14 +29928,14 @@ if(!String.prototype.matchAll) {
                         parent = parent.parent;
                     }
                 }
-                // check if it is deprecated ?
+                // check if it is incorrect ,
                 if (value === ',') {
                     diagnostics.push(getDiagnostic(view, noderef, 'Incorrect usage of ,'));
                     return;
                 }
                 // check if the identifier looks like a breed procedure (e.g. "create-___")
                 let result = checkBreedLike(value);
-                if (!result.found) {
+                if (!result.found || !checkBreed(diagnostics, context, view, node)) {
                     if (UnrecognizedSuggestions.hasOwnProperty(value)) {
                         diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier with replacement _', 'error', value, UnrecognizedSuggestions[value]));
                     }
@@ -29917,16 +29943,17 @@ if(!String.prototype.matchAll) {
                         diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
                     }
                 }
-                else {
-                    checkBreed(diagnostics, context, view, node);
-                }
             }
         });
         return diagnostics;
     };
     /** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
     const UnrecognizedSuggestions = {
-        else: 'if-else',
+        else: 'ifelse',
+        'create-patch': 'ask patch 0 0',
+        'create-patches': 'ask patches',
+        'create-link': 'create-link-with',
+        'create-links': 'create-links-with',
         'set-patch-color': 'set pcolor',
     };
 
