@@ -118,7 +118,12 @@ const gatherAnonymousVariables = function (Group: CodeBlock[] | Procedure[], Nod
 };
 
 /** checkBreed: Checks if the term in the structure of a breed command/reporter and push lint messages */
-export function checkBreed(diagnostics: Diagnostic[], context: CheckContext, view: EditorView, noderef: SyntaxNode) {
+export function checkBreed(
+  diagnostics: Diagnostic[],
+  context: CheckContext,
+  view: EditorView,
+  noderef: SyntaxNode
+): boolean {
   // pull out name of possible intended breed
   let value = getCodeName(view.state, noderef);
   let breedinfo = getBreedName(value);
@@ -136,5 +141,6 @@ export function checkBreed(diagnostics: Diagnostic[], context: CheckContext, vie
     }
     addBreedAction(diagnostic, breedinfo.isLink ? BreedType.UndirectedLink : BreedType.Turtle, plural, singular);
     diagnostics.push(diagnostic);
-  }
+    return true;
+  } else return false;
 }

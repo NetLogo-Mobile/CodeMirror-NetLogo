@@ -121,7 +121,7 @@ const en_us: Record<string, Function> = {
 
   // Chat and AI assistant
   ClickHere: () => 'Click here',
-  Reconnect: () => `Reconnect`,
+  Reconnect: () => `Try it again`,
   RunCode: () => `Run`,
   'Trying to run the code': () => `Trying to run the code...`,
   'Trying to run the procedure _': (Name: string) => `Trying to run the procedure \`${Name}\`...`,

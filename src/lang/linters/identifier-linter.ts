@@ -46,14 +46,14 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
             parent = parent.parent;
           }
         }
-        // check if it is deprecated ?
+        // check if it is incorrect ,
         if (value === ',') {
           diagnostics.push(getDiagnostic(view, noderef, 'Incorrect usage of ,'));
           return;
         }
         // check if the identifier looks like a breed procedure (e.g. "create-___")
         let result = checkBreedLike(value);
-        if (!result.found) {
+        if (!result.found || !checkBreed(diagnostics, context, view, node)) {
           if (UnrecognizedSuggestions.hasOwnProperty(value)) {
             diagnostics.push(
               getDiagnostic(
@@ -68,8 +68,6 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
           } else {
             diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
           }
-        } else {
-          checkBreed(diagnostics, context, view, node);
         }
       }
     });
@@ -78,6 +76,10 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
 
 /** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
 export const UnrecognizedSuggestions: Record<string, string> = {
-  else: 'if-else',
+  else: 'ifelse',
+  'create-patch': 'ask patch 0 0',
+  'create-patches': 'ask patches',
+  'create-link': 'create-link-with',
+  'create-links': 'create-links-with',
   'set-patch-color': 'set pcolor',
 };

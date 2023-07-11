@@ -38,6 +38,8 @@ import {
 
 import { PrimitiveManager } from './primitives/primitives';
 import { GetContext } from './netlogo';
+import { BreedType } from './classes/structures';
+import { matchBreed } from './parsers/breed';
 
 let primitives = PrimitiveManager;
 
@@ -46,7 +48,7 @@ export const keyword = new ExternalTokenizer((input, stack) => {
   let token = '';
   // Find until the token is complete
   while (isValidKeyword(input.next)) {
-    token += String.fromCharCode(input.next).toLowerCase();
+    token += String.fromCharCode(input.next);
     input.advance();
   }
   if (token == '') return;
@@ -201,68 +203,7 @@ export function isValidKeyword(ch: number) {
   );
 }
 
-// JC: Two issues with this approach: first, CJK breed names won't work; second, you can potentially do /\w+-(own|at|here)/ without doing many times
-// checks if token is a breed command/reporter. For some reason 'or' didn't work here, so they're all separate
-// Another issue: what if one breed is called sheep, the other sheep-sheep? I would recommend to rewrite into regex with capture groups.
-// Such as: ^(.*?)-own$ and then check if the first capture group is a breed name.
-function matchBreed(token: string) {
-  let tag = 0;
-  let parseContext = GetContext();
-  // Check breed variables
-  let breedVars = parseContext.BreedVars;
-  if (breedVars.has(token)) {
-    tag = Identifier;
-    return { tag: tag, valid: false };
-  }
-  // Check breed special reporters
-  let pluralBreedNames = parseContext.PluralBreeds;
-  let singularBreedNames = parseContext.SingularBreeds;
-  let foundMatch = false;
-  let matchedBreed = '';
-  let isSingular = false;
-  for (let [b] of pluralBreedNames) {
-    if (token.includes(b) && b.length > matchedBreed.length) {
-      foundMatch = true;
-      matchedBreed = b;
-      isSingular = false;
-    }
-  }
-  for (let [b] of singularBreedNames) {
-    if (token.includes(b) && b.length > matchedBreed.length) {
-      foundMatch = true;
-      matchedBreed = b;
-      isSingular = true;
-    }
-  }
-  // console.log(token,matchedBreed,breedNames)
-  if (!foundMatch) return { tag: token.match(/^create-[^\s\?]+$/i) ? SpecialCommand : tag, valid: false };
-
-  if (singularBreedNames.has(token)) {
-    tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^${matchedBreed}-own$`, 'i')) && !isSingular) {
-    tag = Own;
-  } else if (token.match(new RegExp(`^${matchedBreed}-(at|here|on)$`, 'i')) && !isSingular) {
-    tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^${matchedBreed}-(with|neighbor\\?|neighbors)$`, 'i')) && isSingular) {
-    tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^(my-in|my-out)-${matchedBreed}$`, 'i')) && !isSingular) {
-    tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^(hatch|sprout|create|create-ordered)-${matchedBreed}$`, 'i')) && !isSingular) {
-    tag = SpecialCommand;
-  } else if (token.match(new RegExp(`^is-${matchedBreed}\\?$`, 'i')) && isSingular) {
-    tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^in-${matchedBreed}-from$`, 'i')) && isSingular) {
-    tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^(in|out)-${matchedBreed}-(neighbor\\?|neighbors)$`, 'i')) && isSingular) {
-    tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^out-${matchedBreed}-to$`, 'i')) && isSingular) {
-    tag = SpecialReporter;
-  } else if (token.match(new RegExp(`^create-${matchedBreed}-(to|from|with)$`, 'i'))) {
-    tag = SpecialCommand;
-  }
-  return { tag: tag, valid: true };
-}
-
+/** matchCustomProcedure: Check if the token is a custom procedure. */
 function matchCustomProcedure(token: string) {
   let parseContext = GetContext();
   if (parseContext.Commands.has(token)) return SpecialCommand;

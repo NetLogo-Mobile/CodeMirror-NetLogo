@@ -118,7 +118,7 @@ const zh_cn: Record<string, Function> = {
   'Talk to the computer in NetLogo or natural languages': () => `用 NetLogo 或自然语言写代码`,
 
   // Chat and AI interface
-  Reconnect: () => `重新连接`,
+  Reconnect: () => `再试一次`,
   RunCode: () => `运行`,
   'Trying to run the code': () => `尝试运行代码……`,
   'Trying to run the procedure _': (Name: string) => `尝试运行子程序 \`${Name}\`……`,
