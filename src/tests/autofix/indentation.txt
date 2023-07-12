@@ -16,18 +16,21 @@ create-turtles 1
                   face one-of turtles with [ color = red ] ; make the wabbits face the central turtle
                 ] 
 ===
-; create a central turtle
-create-turtles 1 [
-  set color red
-  set size 2
-  setxy 0 0 ; place the turtle at the center of the world
-]
+breed [ wabbits wabbit ]
 
-; create 10 wabbits around the central turtle
-create-wabbits 10 [
-  set color white
-  set size 1
-  setxy (5 * sin (360 / 10 * who))
-        (5 * cos (360 / 10 * who)) ; place the wabbits in a circle around the central turtle
-  face one-of turtles with [ color = red ] ; make the wabbits face the central turtle
-]
+to play
+  ; create a central turtle
+  create-turtles 1 [
+    set color red
+    set size 2
+    setxy 0 0 ; place the turtle at the center of the world
+  ]
+  ; create 10 wabbits around the central turtle
+  create-wabbits 10 [
+    set color white
+    set size 1
+    setxy (5 * sin (360 / 10 * who))
+          (5 * cos (360 / 10 * who)) ; place the wabbits in a circle around the central turtle
+    face one-of turtles with [ color = red ] ; make the wabbits face the central turtle
+  ]
+end

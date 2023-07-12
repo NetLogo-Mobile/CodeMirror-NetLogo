@@ -8,7 +8,7 @@ import { BreedType } from 'src/lang/classes/structures';
 import { SyntaxNode } from '@lezer/common';
 import { EditorState } from '@codemirror/state';
 import { constants, linkVars, patchVars, turtleVars } from '../keywords';
-import { stat } from 'fs';
+import { forceLinting, forEachDiagnostic } from '@codemirror/lint';
 
 /** FixGeneratedCode: Try to fix and prettify the generated code. */
 export function FixGeneratedCodeRegex(Editor: GalapagosEditor, Source: string, Parent?: CodeSnapshot): string {
@@ -97,7 +97,12 @@ export function FixGeneratedCodeRegex(Editor: GalapagosEditor, Source: string, P
   return Editor.GetCode().trim();
 }
 
-export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent?: CodeSnapshot): string {
+export async function FixGeneratedCode(
+  Editor: GalapagosEditor,
+  Source: string,
+  Parent?: CodeSnapshot,
+  try_again: boolean = true
+): Promise<string> {
   Source = Source.trim();
   if (Source == '') return Source;
   // Remove the trailing semicolon
@@ -464,6 +469,23 @@ export function FixGeneratedCode(Editor: GalapagosEditor, Source: string, Parent
   // Log("CHANGES",changes)
   // Send in the changes
   Editor.Operations.ChangeCode(changes);
+  // forceLinting(Editor.CodeMirror)
+  // forEachDiagnostic(Editor.CodeMirror.state, (diag) => {
+  //   console.log("HERE")
+  //   console.log(diag)})
+  let Errors = await Editor.ForceLintAsync();
+  let did_actions = false;
+  Errors.map((error) => {
+    if (error.actions) {
+      did_actions = true;
+      error.actions[0].apply(Editor.CodeMirror, error.from, error.to);
+    }
+  });
+  if (did_actions && try_again) {
+    FixGeneratedCode(Editor, Editor.CodeMirror.state.doc.toString(), Parent, false);
+  }
+  console.log(Errors);
+
   // Third pass: re-introduce the snapshot
   IntegrateSnapshot(Editor, Snapshot);
   if (Parent) IntegrateSnapshot(Editor, Parent);

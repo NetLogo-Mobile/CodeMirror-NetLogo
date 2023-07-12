@@ -101,7 +101,7 @@ export class SemanticFeatures {
     return IntegrateSnapshot(this.Galapagos, Snapshot);
   }
   /** FixGeneratedCode: Try to fix and prettify a piece of generated code. */
-  FixGeneratedCode(Source: string, Parent?: CodeSnapshot): string {
+  async FixGeneratedCode(Source: string, Parent?: CodeSnapshot): Promise<string> {
     return FixGeneratedCode(this.Galapagos, Source, Parent);
   }
   // #endregion
