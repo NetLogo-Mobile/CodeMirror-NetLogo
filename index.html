@@ -105,7 +105,7 @@
         Editor.SetCode(Next['pre']);
         Editor.ForceParse();
         Editor.ForceLint();
-        Editor.Semantics.FixGeneratedCode(Editor.GetCode());
+        await Editor.Semantics.FixGeneratedCode(Editor.GetCode());
         Editor.ForceParse();
         Editor.ForceLint();
         let Errors = await Editor.ForceLintAsync();

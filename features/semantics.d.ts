@@ -36,7 +36,7 @@ export declare class SemanticFeatures {
     /** IntegrateSnapshot: Integrate a snapshot of the code. */
     IntegrateSnapshot(Snapshot: CodeSnapshot): void;
     /** FixGeneratedCode: Try to fix and prettify a piece of generated code. */
-    FixGeneratedCode(Source: string, Parent?: CodeSnapshot): string;
+    FixGeneratedCode(Source: string, Parent?: CodeSnapshot): Promise<string>;
     /** ForEachDiagnostic: Loop through all linting diagnostics throughout the code. */
     ForEachDiagnostic(Callback: (d: Diagnostic, from: number, to: number) => void): void;
 }
