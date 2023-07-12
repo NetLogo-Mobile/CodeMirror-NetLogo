@@ -25,6 +25,7 @@
     "@rollup/plugin-node-resolve": "^14.1.0",
     "codemirror": "^6.0.1",
     "crelt": "^1.0.6",
+    "diff": "^5.1.0",
     "fs": "^0.0.1-security",
     "minimist": "^1.2.8",
     "mkdirp": "^2.1.6",
@@ -36,6 +37,7 @@
   "devDependencies": {
     "@lopatnov/rollup-plugin-uglify": "^2.1.5",
     "@rollup/plugin-typescript": "^8.5.0",
+    "@types/diff": "^5.0.3",
     "@types/node": "^18.16.18",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "eslint": "^8.43.0",
