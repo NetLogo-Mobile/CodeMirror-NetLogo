@@ -321,6 +321,22 @@ export class StateNetLogo {
             this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
           }
         }
+      } else if (
+        cursor.node.name.includes('Special') &&
+        !cursor.node.name.includes('Both') &&
+        !cursor.node.name.includes('Turtle') &&
+        !cursor.node.name.includes('Link')
+      ) {
+        let name = getCodeName(state, cursor.node);
+        let context = this.Procedures.get(name)?.Context ?? null;
+        if (context) {
+          newContext = combineContexts(context, priorContext);
+          if (!noContext(newContext)) {
+            priorContext = newContext;
+          } else {
+            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+          }
+        }
       }
       child = cursor.nextSibling();
     }
