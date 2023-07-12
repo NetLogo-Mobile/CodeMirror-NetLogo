@@ -79,30 +79,24 @@ export class SelectionFeatures {
     const removed = diff.filter((part) => part.removed).map((part) => part.value);
     const added: string[] = diff.filter((part) => part.added).map((part) => part.value);
 
-    // create a transaction so editorView shows previous version doc so as to highlight changes
-    const length = this.CodeMirror.state.doc.length;
-    const prevAsText = Text.of(PreviousVersion.split('\n'));
-    const tr = this.CodeMirror.state.update({ changes: { from: 0, to: length, insert: prevAsText } });
-    this.CodeMirror.dispatch(tr); // dispatch transaction
-
-    // defining stateffect for removed words using mark decoration
+    // defining stateffect for added words using mark decoration --> should be green
     const removedEffect = StateEffect.define<{ from: number; to: number }>({
       map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
     });
-    // stateEffect for added words using widget decoration
+    // stateEffect for removed words using widget decoration
     const addTextWidget = StateEffect.define<{ from: number; to: number }>({
       map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
     });
 
     // define mark decoration for removed words
-    const removedMark = Decoration.mark({ class: 'cm-removed' }); //mark decoration for removed words
-    const removedTheme = EditorView.baseTheme({
-      '.cm-removed': { textDecoration: 'line-through red', textDecorationThickness: '2px' },
+    const addedMark = Decoration.mark({ class: 'cm-added' }); //mark decoration for removed words
+    const addedTheme = EditorView.baseTheme({
+      '.cm-added': { color: 'green', fontWeight: 'bold' },
     });
 
-    // index tracker for added array (tells us which added words have already been highlighted )
-    let addedIndex = 0;
-    // define statefield for words needing to be highlighted
+    // index tracker for removed array (tells us which removed words have already been highlighted )
+    let removedIndex = 0;
+    // define statefield for words needing to be highlighted (field for both added and removed words)
     const changesField = StateField.define<DecorationSet>({
       create() {
         return Decoration.none;
@@ -111,16 +105,16 @@ export class SelectionFeatures {
         value = value.map(tr.changes);
         for (let e of tr.effects) {
           if (e.is(removedEffect)) {
-            //if it is a removed word then add "removed" mark decoration
+            //if it is a added word then add "added" mark decoration
             value = value.update({
-              add: [removedMark.range(e.value.from, e.value.to)],
+              add: [addedMark.range(e.value.from, e.value.to)],
             });
           } else if (e.is(addTextWidget)) {
             let decorationWidget = Decoration.widget({
-              widget: new textWidget(added[addedIndex], '#32CD32', 'bold'), // if it is an added word then add a "added" widget decoration
+              widget: new textWidget(removed[removedIndex], 'red', 'line-through red', '2px'), // if it is a removed word then add a "removed" widget decoration
               side: 1,
             });
-            addedIndex++; // increment addedIndex because we have already added this word
+            removedIndex++; // increment removedIndex because we have already added this word
             value = value.update({
               add: [decorationWidget.range(e.value.to)],
             });
@@ -132,7 +126,7 @@ export class SelectionFeatures {
     });
 
     /* highlightRemoved: searches for the removed word in previous string and highlights it as "removed" */
-    function highlightRemoved(view: EditorView, word: string) {
+    function highlightAdded(view: EditorView, word: string) {
       let effects: StateEffect<any>[] = [];
       // create a cursor to find the word
       let cursor = new SearchCursor(view.state.doc, word, 0);
@@ -146,7 +140,7 @@ export class SelectionFeatures {
       );
       if (!effects.length) return false;
       if (!view.state.field(changesField, false)) {
-        effects.push(StateEffect.appendConfig.of([changesField, removedTheme]));
+        effects.push(StateEffect.appendConfig.of([changesField, addedTheme]));
       }
       view.dispatch({ effects });
       return true;
@@ -169,14 +163,14 @@ export class SelectionFeatures {
       return true;
     }
 
-    // iterate through removed words and highlight them
-    removed.forEach((word) => highlightRemoved(this.CodeMirror, word));
+    // iterate through added words and highlight them green
+    added.forEach((word) => highlightAdded(this.CodeMirror, word));
 
     // iterate through added words and highlight them
     let currentPos = 0; // position tracker for added words so they are added in the correct position based on where diff put them in the consolidated string
     diff.forEach((part) => {
       //updated current position
-      if (part.added) {
+      if (part.removed) {
         // add the widget to the editor
         makeWidget(this.CodeMirror, currentPos);
       } else {

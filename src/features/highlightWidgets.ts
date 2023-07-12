@@ -7,12 +7,14 @@ export class textWidget extends WidgetType {
   textColor: string;
   fontWeight: string;
   textDecoration: string;
-  constructor(text: string, color = '', fontWeight: string = '', decoration = '') {
+  decoThickness: string;
+  constructor(text: string, color = '', decoration = '', decoThickness = '', fontWeight: string = '') {
     super();
     this.widgetText = text;
     this.textColor = color;
-    this.fontWeight = fontWeight;
     this.textDecoration = decoration;
+    this.decoThickness = decoThickness;
+    this.fontWeight = fontWeight;
   }
 
   toDOM() {
@@ -22,8 +24,9 @@ export class textWidget extends WidgetType {
     wrap.textContent = this.widgetText;
     // optional parameters
     if (this.textColor != '') wrap.style.color = this.textColor;
-    if (this.fontWeight != '') wrap.style.fontWeight = this.fontWeight;
     if (this.textDecoration != '') wrap.style.textDecoration = this.textDecoration;
+    if (this.decoThickness != '') wrap.style.textDecorationThickness = this.decoThickness;
+    if (this.fontWeight != '') wrap.style.fontWeight = this.fontWeight;
     return wrap;
   }
 }
