@@ -27397,7 +27397,7 @@ if(!String.prototype.matchAll) {
         }
         /** combineContext: Identify context of a block by combining with the previous context. */
         combineContext(node, state, priorContext, newContext) {
-            var _a, _b;
+            var _a, _b, _c, _d;
             let cursor = node.cursor();
             let child = cursor.firstChild();
             while (child) {
@@ -27437,6 +27437,22 @@ if(!String.prototype.matchAll) {
                         else {
                             context = (_b = this.Preprocess.GetBreedVariableContexts(name)) !== null && _b !== void 0 ? _b : context;
                         }
+                        newContext = combineContexts(context, priorContext);
+                        if (!noContext(newContext)) {
+                            priorContext = newContext;
+                        }
+                        else {
+                            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+                        }
+                    }
+                }
+                else if (cursor.node.name.includes('Special') &&
+                    !cursor.node.name.includes('Both') &&
+                    !cursor.node.name.includes('Turtle') &&
+                    !cursor.node.name.includes('Link')) {
+                    let name = getCodeName(state, cursor.node);
+                    let context = (_d = (_c = this.Procedures.get(name)) === null || _c === void 0 ? void 0 : _c.Context) !== null && _d !== void 0 ? _d : null;
+                    if (context) {
                         newContext = combineContexts(context, priorContext);
                         if (!noContext(newContext)) {
                             priorContext = newContext;
