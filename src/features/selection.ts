@@ -3,7 +3,6 @@ import { Decoration, DecorationSet, EditorView } from '@codemirror/view';
 import { GalapagosEditor } from '../editor';
 import { diffWords } from 'diff';
 import { EditorState, StateEffect, StateField } from '@codemirror/state';
-import { Text } from '@codemirror/text';
 import { SearchCursor } from '@codemirror/search';
 import { textWidget, CheckboxWidget } from './highlightWidgets';
 
@@ -89,10 +88,7 @@ export class SelectionFeatures {
     });
 
     // define mark decoration for removed words
-    const addedMark = Decoration.mark({ class: 'cm-added' }); //mark decoration for removed words
-    const addedTheme = EditorView.baseTheme({
-      '.cm-added': { color: 'green', fontWeight: 'bold' },
-    });
+    const addedMark = Decoration.mark({ attributes: { style: 'background-color: #D1FFBD' } }); //mark decoration for removed words
 
     // index tracker for removed array (tells us which removed words have already been highlighted )
     let removedIndex = 0;
@@ -111,7 +107,7 @@ export class SelectionFeatures {
             });
           } else if (e.is(addTextWidget)) {
             let decorationWidget = Decoration.widget({
-              widget: new textWidget(removed[removedIndex], 'red', 'line-through red', '2px'), // if it is a removed word then add a "removed" widget decoration
+              widget: new textWidget(removed[removedIndex], 'black', 'line-through red', '2px', '#FFCCCB'), // if it is a removed word then add a "removed" widget decoration
               side: 1,
             });
             removedIndex++; // increment removedIndex because we have already added this word
@@ -140,7 +136,7 @@ export class SelectionFeatures {
       );
       if (!effects.length) return false;
       if (!view.state.field(changesField, false)) {
-        effects.push(StateEffect.appendConfig.of([changesField, addedTheme]));
+        effects.push(StateEffect.appendConfig.of([changesField]));
       }
       view.dispatch({ effects });
       return true;

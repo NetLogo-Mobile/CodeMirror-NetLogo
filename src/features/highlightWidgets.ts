@@ -8,12 +8,14 @@ export class textWidget extends WidgetType {
   fontWeight: string;
   textDecoration: string;
   decoThickness: string;
-  constructor(text: string, color = '', decoration = '', decoThickness = '', fontWeight: string = '') {
+  bgColor: string;
+  constructor(text: string, color = '', decoration = '', decoThickness = '', bgColor = '', fontWeight: string = '') {
     super();
     this.widgetText = text;
     this.textColor = color;
     this.textDecoration = decoration;
     this.decoThickness = decoThickness;
+    this.bgColor = bgColor;
     this.fontWeight = fontWeight;
   }
 
@@ -26,6 +28,7 @@ export class textWidget extends WidgetType {
     if (this.textColor != '') wrap.style.color = this.textColor;
     if (this.textDecoration != '') wrap.style.textDecoration = this.textDecoration;
     if (this.decoThickness != '') wrap.style.textDecorationThickness = this.decoThickness;
+    if (this.bgColor != '') wrap.style.backgroundColor = this.bgColor;
     if (this.fontWeight != '') wrap.style.fontWeight = this.fontWeight;
     return wrap;
   }
