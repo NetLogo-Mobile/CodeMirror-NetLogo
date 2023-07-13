@@ -27008,10 +27008,28 @@ if(!String.prototype.matchAll) {
                 return new AgentContexts('-T--');
             }
         }
+        GetSuperType(Name) {
+            var Type = this.BreedTypes.get(Name);
+            if (Type == BreedType.Patch)
+                return 'patches';
+            else if (Type == BreedType.Turtle)
+                return 'turtles';
+            else if (Type == BreedType.DirectedLink || Type == BreedType.UndirectedLink)
+                return 'links';
+            return null;
+        }
         /** GetBreedVariableContexts: Get the context for a breed variable. */
         GetBreedVariableContexts(Name) {
-            if (this.BreedVarToPlurals.has(Name))
-                return this.GetBreedContext(this.BreedVarToPlurals.get(Name), true);
+            if (this.BreedVarToPlurals.has(Name)) {
+                let breeds = this.BreedVarToPlurals.get(Name);
+                if (breeds && breeds.length > 0) {
+                    let context = new AgentContexts();
+                    for (let b of breeds) {
+                        context = combineContexts(context, this.GetBreedContext(b, true));
+                    }
+                    return context;
+                }
+            } //return this.GetBreedContext(this.BreedVarToPlurals.get(Name)!, true);
         }
         /** GetReporterBreed: Get the breed for a reporter. */
         GetReporterBreed(Name) {
@@ -27381,7 +27399,51 @@ if(!String.prototype.matchAll) {
             procedure.AnonymousProcedures = this.gatherAnonProcedures(Node, State, procedure);
             procedure.Context = this.getContext(Node, State);
             procedure.CodeBlocks = this.gatherCodeBlocks(State, Node, procedure.Context, procedure.Variables, procedure.Arguments);
+            this.checkReporterContext(Node, State);
             return procedure;
+        }
+        checkReporterContext(Node, State) {
+            Node.cursor().iterate((noderef) => {
+                if (noderef.name == 'ReporterLeft1Args') {
+                    let left = null;
+                    let right = null;
+                    if (getCodeName(State, noderef) == 'of') {
+                        left = noderef.node.prevSibling;
+                        right = noderef.node.nextSibling;
+                    }
+                    else if (getCodeName(State, noderef) == 'with') {
+                        right = noderef.node.prevSibling;
+                        left = noderef.node.nextSibling;
+                    }
+                    if (left && right) {
+                        let breed = this.identifyBreed(right, State);
+                        let str = getCodeName(State, left);
+                        str = str.replace(/^\s*\[/, '');
+                        str = str.replace(/\]\s$/, '');
+                        str = str.replace(/\[[^\]]*\]/, '');
+                        if (breed) {
+                            for (let s of str.split(' ')) {
+                                if (this.Preprocess.BreedVarToPlurals.has(s.toLowerCase())) {
+                                    let var_breed = this.Preprocess.BreedVarToPlurals.get(s.toLowerCase());
+                                    let supertype = this.Preprocess.GetSuperType(breed);
+                                    let context = new AgentContexts();
+                                    if (supertype && var_breed && !var_breed.includes(breed) && !var_breed.includes(supertype)) {
+                                        if (supertype == 'turtles' && var_breed.includes('patches')) {
+                                            continue;
+                                        }
+                                        else {
+                                            for (let b of var_breed) {
+                                                context = combineContexts(context, this.Preprocess.GetBreedContext(b, true));
+                                            }
+                                            this.ContextErrors.push(new ContextError(left.from, left.to, this.Preprocess.GetBreedContext(breed, false), context, s));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
         }
         /** getContext: Identify context of a block by looking at primitives and variable names. */
         getContext(node, state, priorContext_param) {
@@ -27582,7 +27644,7 @@ if(!String.prototype.matchAll) {
                 return breed;
             // If we find a breed name, return it
             Node.cursor().iterate((noderef) => {
-                if (breed != '')
+                if (breed != undefined)
                     return false;
                 let str = getCodeName(State, noderef);
                 if (str.startsWith('['))
@@ -27776,12 +27838,41 @@ if(!String.prototype.matchAll) {
         }
         /** processBreedVars: Parse the code for breed variables. */
         processBreedVars(matches) {
+            var _a, _b, _c;
             for (var m of matches) {
                 let variables = m[4];
                 variables = variables.replace(/;[^\n]*\n/g, '');
                 variables = variables.replace(/\n/g, ' ');
                 this.BreedVars.set(m[3], variables.split(' ').filter((v) => v != '' && v != '\n'));
             }
+            this.BreedVars.set('patches', ((_a = this.BreedVars.get('patches')) !== null && _a !== void 0 ? _a : []).concat(['pxcor', 'pycor', 'pcolor', 'plabel', 'plabel-color']));
+            this.BreedVars.set('turtles', ((_b = this.BreedVars.get('turtles')) !== null && _b !== void 0 ? _b : []).concat([
+                'who',
+                'color',
+                'heading',
+                'xcor',
+                'ycor',
+                'shape',
+                'label',
+                'label-color',
+                'hidden?',
+                'size',
+                'pen-size',
+                'pen-mode',
+                'breed',
+            ]));
+            this.BreedVars.set('links', ((_c = this.BreedVars.get('links')) !== null && _c !== void 0 ? _c : []).concat([
+                'end1',
+                'end2',
+                'color',
+                'label',
+                'label-color',
+                'hidden?',
+                'breed',
+                'thickness',
+                'shape',
+                'tie-mode',
+            ]));
         }
         /** processProcedures: Parse the code for procedure names. */
         processProcedures(procedures) {
@@ -33845,6 +33936,7 @@ if(!String.prototype.matchAll) {
         }
         /** UpdateSharedPreprocess: Update the shared preprocess context of the editor. */
         UpdateSharedPreprocess() {
+            var _a;
             var mainPreprocess = this.PreprocessContext.Clear();
             for (var child of this.GetChildren()) {
                 if (child.Options.ParseMode == ParseMode.Normal || child == this) {
@@ -33862,7 +33954,11 @@ if(!String.prototype.matchAll) {
                     for (var [p, vars] of preprocess.BreedVars) {
                         for (var variable of vars) {
                             mainPreprocess.BreedVars.set(variable, child.ID);
-                            mainPreprocess.BreedVarToPlurals.set(variable, p);
+                            let vars = mainPreprocess.BreedVarToPlurals.has(variable)
+                                ? (_a = mainPreprocess.BreedVarToPlurals.get(variable)) !== null && _a !== void 0 ? _a : []
+                                : [];
+                            vars.push(p);
+                            mainPreprocess.BreedVarToPlurals.set(variable, vars);
                         }
                     }
                     for (var [p, num_args] of preprocess.Commands) {

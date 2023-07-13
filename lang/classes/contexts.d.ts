@@ -16,7 +16,7 @@ export declare class PreprocessContext {
     /** BreedVars: Breed variables in the model. */
     BreedVars: Map<string, number>;
     /** BreedVarToPlurals: Breed variable-plural mappings in the model. */
-    BreedVarToPlurals: Map<string, string>;
+    BreedVarToPlurals: Map<string, string[]>;
     /** Commands: Commands in the model with number of arguments. */
     Commands: Map<string, number>;
     /** Reporters: Reporters in the model with number of arguments. */
@@ -29,6 +29,7 @@ export declare class PreprocessContext {
     Clear(): PreprocessContext;
     /** GetBreedContext: Get the context for a breed. */
     GetBreedContext(Name: string, IsVariable: boolean): AgentContexts;
+    GetSuperType(Name: string): null | string;
     /** GetBreedVariableContexts: Get the context for a breed variable. */
     GetBreedVariableContexts(Name: string): AgentContexts | undefined;
     /** GetReporterBreed: Get the breed for a reporter. */

@@ -48,6 +48,7 @@ export declare class StateNetLogo {
     private gatherOnelineProcedure;
     /** gatherProcedure: Gather all information about a procedure. */
     private gatherProcedure;
+    private checkReporterContext;
     /** getContext: Identify context of a block by looking at primitives and variable names. */
     private getContext;
     /** combineContext: Identify context of a block by combining with the previous context. */
