@@ -1,3 +1,4 @@
+import { combineContexts } from 'src/utils/context-utils';
 import { AgentContexts, Breed, BreedType, Procedure } from './structures';
 
 /** PreprocessContext: master context from preprocessing */
@@ -17,7 +18,7 @@ export class PreprocessContext {
   /** BreedVars: Breed variables in the model. */
   public BreedVars: Map<string, number> = new Map<string, number>();
   /** BreedVarToPlurals: Breed variable-plural mappings in the model. */
-  public BreedVarToPlurals: Map<string, string> = new Map<string, string>();
+  public BreedVarToPlurals: Map<string, string[]> = new Map<string, string[]>();
   /** Commands: Commands in the model with number of arguments. */
   public Commands: Map<string, number> = new Map<string, number>();
   /** Reporters: Reporters in the model with number of arguments. */
@@ -56,9 +57,27 @@ export class PreprocessContext {
       return new AgentContexts('-T--');
     }
   }
+
+  public GetSuperType(Name: string): null | string {
+    var Type = this.BreedTypes.get(Name);
+    if (Type == BreedType.Patch) return 'patches';
+    else if (Type == BreedType.Turtle) return 'turtles';
+    else if (Type == BreedType.DirectedLink || Type == BreedType.UndirectedLink) return 'links';
+    return null;
+  }
+
   /** GetBreedVariableContexts: Get the context for a breed variable. */
   public GetBreedVariableContexts(Name: string): AgentContexts | undefined {
-    if (this.BreedVarToPlurals.has(Name)) return this.GetBreedContext(this.BreedVarToPlurals.get(Name)!, true);
+    if (this.BreedVarToPlurals.has(Name)) {
+      let breeds = this.BreedVarToPlurals.get(Name);
+      if (breeds && breeds.length > 0) {
+        let context = new AgentContexts();
+        for (let b of breeds) {
+          context = combineContexts(context, this.GetBreedContext(b, true));
+        }
+        return context;
+      }
+    } //return this.GetBreedContext(this.BreedVarToPlurals.get(Name)!, true);
   }
   /** GetReporterBreed: Get the breed for a reporter. */
   public GetReporterBreed(Name: string): string | undefined {

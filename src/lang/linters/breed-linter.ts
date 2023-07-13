@@ -39,7 +39,7 @@ export const BreedLinter: Linter = (view, preprocessContext, lintContext) => {
 
 // checkValidBreed: Checks if the term in the structure of a breed command/reporter
 // is the name of an actual breed, and in the correct singular/plural form
-const checkValidBreed = function (node: SyntaxNode, value: string, context: CheckContext, breeds: Breed[]) {
+export const checkValidBreed = function (node: SyntaxNode, value: string, context: CheckContext, breeds: Breed[]) {
   //let isValid = true;
   let result = {
     isValid: true,

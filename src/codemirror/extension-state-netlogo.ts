@@ -261,7 +261,53 @@ export class StateNetLogo {
       procedure.Variables,
       procedure.Arguments
     );
+    this.checkReporterContext(Node, State);
     return procedure;
+  }
+
+  private checkReporterContext(Node: SyntaxNode, State: EditorState): void {
+    Node.cursor().iterate((noderef) => {
+      if (noderef.name == 'ReporterLeft1Args') {
+        let left = null;
+        let right = null;
+        if (getCodeName(State, noderef) == 'of') {
+          left = noderef.node.prevSibling;
+          right = noderef.node.nextSibling;
+        } else if (getCodeName(State, noderef) == 'with') {
+          right = noderef.node.prevSibling;
+          left = noderef.node.nextSibling;
+        }
+        if (left && right) {
+          let breed = this.identifyBreed(right, State);
+          let str = getCodeName(State, left);
+          str = str.replace(/^\s*\[/, '');
+          str = str.replace(/\]\s$/, '');
+          str = str.replace(/\[[^\]]*\]/, '');
+          if (breed) {
+            for (let s of str.split(' ')) {
+              if (this.Preprocess.BreedVarToPlurals.has(s.toLowerCase())) {
+                let var_breed = this.Preprocess.BreedVarToPlurals.get(s.toLowerCase());
+                let supertype = this.Preprocess.GetSuperType(breed);
+                let context = new AgentContexts();
+
+                if (supertype && var_breed && !var_breed.includes(breed) && !var_breed.includes(supertype)) {
+                  if (supertype == 'turtles' && var_breed.includes('patches')) {
+                    continue;
+                  } else {
+                    for (let b of var_breed) {
+                      context = combineContexts(context, this.Preprocess.GetBreedContext(b, true));
+                    }
+                    this.ContextErrors.push(
+                      new ContextError(left.from, left.to, this.Preprocess.GetBreedContext(breed, false), context, s)
+                    );
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
   }
 
   /** getContext: Identify context of a block by looking at primitives and variable names. */
@@ -468,7 +514,7 @@ export class StateNetLogo {
     if (breed) return breed;
     // If we find a breed name, return it
     Node.cursor().iterate((noderef) => {
-      if (breed != '') return false;
+      if (breed != undefined) return false;
       let str = getCodeName(State, noderef);
       if (str.startsWith('[')) return false;
       if (this.Preprocess.PluralBreeds.has(str)) {

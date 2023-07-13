@@ -434,7 +434,11 @@ export class GalapagosEditor {
         for (var [p, vars] of preprocess.BreedVars) {
           for (var variable of vars) {
             mainPreprocess.BreedVars.set(variable, child.ID);
-            mainPreprocess.BreedVarToPlurals.set(variable, p);
+            let vars: string[] = mainPreprocess.BreedVarToPlurals.has(variable)
+              ? mainPreprocess.BreedVarToPlurals.get(variable) ?? []
+              : [];
+            vars.push(p);
+            mainPreprocess.BreedVarToPlurals.set(variable, vars);
           }
         }
         for (var [p, num_args] of preprocess.Commands) {
