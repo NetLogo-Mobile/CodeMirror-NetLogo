@@ -1,4 +1,7 @@
 @precedence {
+  bestleft @left,
+  bestright @right,
+  best @right,
   cut @cut,
   paren @left,
   open @left,
@@ -6,10 +9,12 @@
   leftArgs @left,
   lastArgs @left,
   rightArgs @right,
+  worse,
   exponent @right,
   times @left,
   plus @left,
-  comparative @left
+  comparative @left,
+  worst @right
 }
 
 @top Program { 
@@ -20,7 +25,7 @@
     (ReporterStatement | Value) ~global
   } |
   Embedded {
-    (CommandStatement | OpenParen CommandStatement CloseParen | ReporterStatement | Value)+ ~global
+    (CommandStatement | OpenParen CommandStatement CloseParen | ReporterStatement ~statement | Value ~statement)+ ~global
   }
 }
 
@@ -111,8 +116,8 @@ VariableDeclaration {
 }
 
 NewVariableDeclaration {
-  Let newVariableName Value |
-  Let newVariableName ReporterStatement
+  Let newVariableName Value ~statement |
+  Let newVariableName ReporterStatement ~statement
 }
 
 newVariableName {
@@ -162,8 +167,8 @@ builtinPrims {
 }
 
 SetVariable {
-  Set (VariableName|builtinPrims) Value |
-  Set (VariableName|builtinPrims) ReporterStatement
+  Set (VariableName|builtinPrims) Value ~statement |
+  Set (VariableName|builtinPrims) ReporterStatement ~statement
 }
 
 VariableName {
@@ -214,7 +219,7 @@ CodeBlock[@dynamicPrecedence=-1] {
 }
 
 ReporterBlock {
-  OpenBracket ReporterContent !close ~bebracket CloseBracket ~endbracket |
+  OpenBracket ReporterContent ~statement !close ~bebracket CloseBracket ~endbracket |
   OpenBracket Value !close ~bebracket CloseBracket ~endbracket
 }
 
@@ -223,18 +228,25 @@ Property {
 }
 
 AnonymousProcedure {
-  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
+  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent* ~statement |Value~statement) ~bebracket CloseBracket ~endbracket
 }
 
 ShortAnonymousProcedure {
-  OpenBracket (ProcedureContent*|ReporterContent*|Value) ~bebracket CloseBracket ~endbracket
+  OpenBracket (ProcedureContent*|ReporterContent* ~statement |Value ~statement) ~bebracket CloseBracket ~endbracket
+}
+
+leftArg1Phrase {
+  (ReporterLeft1Args | ReporterLeft1ArgsOpt) !lastArgs Arg
+}
+leftArg2Phrase{
+  ReporterLeft2Args Arg !lastArgs Arg
 }
 
 ReporterStatement { 
   OpenParen ReporterStatement !close CloseParen |
-  OpenParen ReporterLeft1ArgsOpt !lastArgs Arg CloseParen |
-  Arg !leftArgs (ReporterLeft1Args | ReporterLeft1ArgsOpt) !lastArgs Arg |
-  Arg !leftArgs ReporterLeft2Args Arg !lastArgs Arg |
+  OpenParen leftArg1Phrase CloseParen |
+  Arg !bestleft leftArg1Phrase ~left1 |
+  Arg !bestleft leftArg2Phrase ~left2 |
   SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP | UnsupportedPrim|
   (Reporter1Args | SpecialReporter1Args | SpecialReporter1ArgsTurtle | SpecialReporter1ArgsLink | SpecialReporter1ArgsBoth) !lastArgs Arg |
   (Reporter2Args | SpecialReporter2Args | SpecialReporter2ArgsTurtle) Arg !lastArgs Arg |
@@ -265,10 +277,10 @@ CommandStatement {
   (Command4Args | SpecialCommand4Args) Arg Arg Arg !lastArgs Arg |
   (Command5Args | SpecialCommand5Args) Arg Arg Arg Arg !lastArgs Arg |
   (Command6Args | SpecialCommand6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
-  turtle2[@dynamicPrecedence=10] { SpecialCommandCreateTurtle Arg ~turtles Arg } |
-  link2[@dynamicPrecedence=10] { SpecialCommandCreateLink Arg ~links Arg} |
-  turtle1[@dynamicPrecedence=-5] { SpecialCommandCreateTurtle Arg ~turtles} |
-  link1[@dynamicPrecedence=-5] { SpecialCommandCreateLink Arg ~links} |
+  turtle2 { SpecialCommandCreateTurtle Arg !best Arg } |
+  link2 { SpecialCommandCreateLink Arg !best Arg} |
+  turtle1 { SpecialCommandCreateTurtle Arg} |
+  link1 { SpecialCommandCreateLink Arg} |
   Command0ArgsVar !lastArgs Arg* ~statement |
   Command1ArgsVar !lastArgs Arg+ |
   Command2ArgsVar Arg !lastArgs Arg+ |

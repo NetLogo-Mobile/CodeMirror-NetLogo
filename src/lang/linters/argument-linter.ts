@@ -8,6 +8,7 @@ import { NetLogoType } from '../classes/structures';
 import { Linter, getDiagnostic } from './linter-builder';
 import { PreprocessContext } from '../classes/contexts';
 import { Log } from '../../utils/debug-utils';
+import { getCodeName } from '../utils/code';
 
 let primitives = PrimitiveManager;
 
@@ -90,6 +91,7 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
         if (Node.firstChild?.name == '⚠') diagnostics.push(getDiagnostic(view, Node, 'Missing command _'));
         // Checking the arguments
         let args = getArgs(Node);
+        // console.log(view.state.sliceDoc(args.func?.from, args.func?.to),args.leftArgs,args.rightArgs)
         // Log(args.rightArgs.map((node)=>view.state.sliceDoc(node.from, node.to)))
         // Log(args.rightArgs.map((node)=>node.name))
         // Log(args.rightArgs.map((node)=>{
@@ -124,6 +126,7 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
         //     node.name+' '+view.state.sliceDoc(node.from, node.to)
         //   })
         // }))
+
         // Ensures there is a primitive to check
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
           // identify the errors and terms to be conveyed in error message
