@@ -75,7 +75,7 @@ export class SelectionFeatures {
     // create diff instance comparing previous version of string to current version
     const diff = diffWords(PreviousVersion, CurrentVersion);
     // separate words into added and removed
-    const removed = diff.filter((part) => part.removed).map((part) => part.value);
+    const removed = diff.filter((part) => part.removed).map((part) => part.value.replace('\n', '↵\n'));
     const added: string[] = diff.filter((part) => part.added).map((part) => part.value);
 
     // defining stateffect for added words using mark decoration --> should be green
@@ -121,7 +121,7 @@ export class SelectionFeatures {
       provide: (f) => EditorView.decorations.from(f),
     });
 
-    /* highlightRemoved: searches for the removed word in previous string and highlights it as "removed" */
+    /* highlightAdded: searches for the added word in previous string and highlights it as "removed" */
     function highlightAdded(view: EditorView, word: string) {
       let effects: StateEffect<any>[] = [];
       // create a cursor to find the word

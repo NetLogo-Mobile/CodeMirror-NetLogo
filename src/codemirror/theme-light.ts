@@ -44,7 +44,7 @@ const lightTheme = EditorView.theme({
     textDecorationThickness: '2px',
   },
   '.cm-removed': {
-    textDecoration: 'line-through',
+    textDecoration: 'overline underline',
     textDecorationColor: '#cc2200',
     textDecorationThickness: '2px',
   },
