@@ -21,7 +21,7 @@
   Normal {
     (globalStatement | Misplaced | Procedure)* ~global
   } |
-  OnelineReporter {
+  OnelineReporter[@dynamicPrecedence=1] {
     (ReporterStatement | Value) ~global
   } |
   Embedded {
