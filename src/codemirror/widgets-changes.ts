@@ -1,40 +1,21 @@
 import { EditorView, WidgetType } from '@codemirror/view';
 import { Text } from '@codemirror/text';
 
-/* textWidget: Subclass of WidgetType, used to create a CM6 Widget representing some text and its styling */
-export class textWidget extends WidgetType {
-  widgetText: string;
-  textColor: string;
-  fontWeight: string;
-  textDecoration: string;
-  decoThickness: string;
-  bgColor: string;
-  constructor(text: string, color = '', decoration = '', decoThickness = '', bgColor = '', fontWeight: string = '') {
+/* TextWidget: A CM6 Widget representing some text and its styling. */
+export class TextWidget extends WidgetType {
+  constructor(private text: string, private className: string = '') {
     super();
-    this.widgetText = text;
-    this.textColor = color;
-    this.textDecoration = decoration;
-    this.decoThickness = decoThickness;
-    this.bgColor = bgColor;
-    this.fontWeight = fontWeight;
   }
-
   toDOM() {
     let wrap = document.createElement('span');
     wrap.setAttribute('aria-hidden', 'true');
-    wrap.className = 'cm-text';
-    wrap.textContent = this.widgetText;
-    // optional parameters
-    if (this.textColor != '') wrap.style.color = this.textColor;
-    if (this.textDecoration != '') wrap.style.textDecoration = this.textDecoration;
-    if (this.decoThickness != '') wrap.style.textDecorationThickness = this.decoThickness;
-    if (this.bgColor != '') wrap.style.backgroundColor = this.bgColor;
-    if (this.fontWeight != '') wrap.style.fontWeight = this.fontWeight;
+    wrap.className = `cm-text ${this.className}`;
+    wrap.textContent = this.text;
     return wrap;
   }
 }
 
-/* CheckboxWidget: Subclass of WidgetType used to create a "checkbox" DOM feature to accept changes in the highlight feature */
+/* CheckboxWidget: A "checkbox" DOM feature to accept changes. */
 export class CheckboxWidget extends WidgetType {
   private readonly CodeMirror: EditorView;
   private readonly CurrentVersion: string;
@@ -43,7 +24,6 @@ export class CheckboxWidget extends WidgetType {
     this.CodeMirror = editor;
     this.CurrentVersion = finalText;
   }
-
   toDOM() {
     let wrap = document.createElement('span');
     wrap.setAttribute('aria-hidden', 'true');
@@ -60,7 +40,7 @@ export class CheckboxWidget extends WidgetType {
       // dispatch transaction
       this.CodeMirror.dispatch(transaction);
       // destroy widget
-      //this.destroy();
+      // this.destroy();
     });
     return wrap;
   }

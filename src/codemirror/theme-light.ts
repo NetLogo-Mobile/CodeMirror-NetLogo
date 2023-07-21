@@ -38,6 +38,16 @@ const lightTheme = EditorView.theme({
     background: '#FAD842',
     content: 'none',
   },
+  '.cm-added': {
+    textDecoration: 'overline underline',
+    textDecorationColor: '#117432',
+    textDecorationThickness: '2px',
+  },
+  '.cm-removed': {
+    textDecoration: 'line-through',
+    textDecorationColor: '#cc2200',
+    textDecorationThickness: '2px',
+  },
 });
 
 export { lightTheme };

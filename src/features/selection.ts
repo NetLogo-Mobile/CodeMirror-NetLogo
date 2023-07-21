@@ -4,7 +4,7 @@ import { GalapagosEditor } from '../editor';
 import { diffWords } from 'diff';
 import { EditorState, StateEffect, StateField } from '@codemirror/state';
 import { SearchCursor } from '@codemirror/search';
-import { textWidget, CheckboxWidget } from './highlightWidgets';
+import { TextWidget, CheckboxWidget } from '../codemirror/widgets-changes';
 
 /** SelectionFeatures: The selection and cursor features of the editor. */
 export class SelectionFeatures {
@@ -87,8 +87,8 @@ export class SelectionFeatures {
       map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
     });
 
-    // define mark decoration for removed words
-    const addedMark = Decoration.mark({ attributes: { style: 'background-color: #82ff4d' } }); //mark decoration for removed words
+    // define mark decoration for added words
+    const addedMark = Decoration.mark({ attributes: { class: 'cm-added' } }); //mark decoration for removed words
 
     // index tracker for removed array (tells us which removed words have already been highlighted )
     let removedIndex = 0;
@@ -107,7 +107,7 @@ export class SelectionFeatures {
             });
           } else if (e.is(addTextWidget)) {
             let decorationWidget = Decoration.widget({
-              widget: new textWidget(removed[removedIndex], 'black', 'line-through red', '2px', '#FFCCCB'), // if it is a removed word then add a "removed" widget decoration
+              widget: new TextWidget(removed[removedIndex], 'cm-removed'), // if it is a removed word then add a "removed" widget decoration
               side: 1,
             });
             removedIndex++; // increment removedIndex because we have already added this word
