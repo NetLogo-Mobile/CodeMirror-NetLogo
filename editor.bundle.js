@@ -28756,7 +28756,7 @@ if(!String.prototype.matchAll) {
             textDecorationThickness: '2px',
         },
         '.cm-removed': {
-            textDecoration: 'line-through',
+            textDecoration: 'overline underline',
             textDecorationColor: '#cc2200',
             textDecorationThickness: '2px',
         },
@@ -33561,7 +33561,7 @@ if(!String.prototype.matchAll) {
             // create diff instance comparing previous version of string to current version
             const diff = diffWords(PreviousVersion, CurrentVersion);
             // separate words into added and removed
-            const removed = diff.filter((part) => part.removed).map((part) => part.value);
+            const removed = diff.filter((part) => part.removed).map((part) => part.value.replace('\n', '↵\n'));
             const added = diff.filter((part) => part.added).map((part) => part.value);
             // defining stateffect for added words using mark decoration --> should be green
             const removedEffect = StateEffect.define({
@@ -33604,7 +33604,7 @@ if(!String.prototype.matchAll) {
                 },
                 provide: (f) => EditorView.decorations.from(f),
             });
-            /* highlightRemoved: searches for the removed word in previous string and highlights it as "removed" */
+            /* highlightAdded: searches for the added word in previous string and highlights it as "removed" */
             function highlightAdded(view, word) {
                 let effects = [];
                 // create a cursor to find the word
