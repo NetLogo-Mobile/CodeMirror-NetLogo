@@ -88,7 +88,7 @@ export class SelectionFeatures {
     });
 
     // define mark decoration for removed words
-    const addedMark = Decoration.mark({ attributes: { style: 'background-color: #D1FFBD' } }); //mark decoration for removed words
+    const addedMark = Decoration.mark({ attributes: { style: 'background-color: #82ff4d' } }); //mark decoration for removed words
 
     // index tracker for removed array (tells us which removed words have already been highlighted )
     let removedIndex = 0;
