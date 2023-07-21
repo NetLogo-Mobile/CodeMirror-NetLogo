@@ -29488,7 +29488,7 @@ if(!String.prototype.matchAll) {
       tokenData: "&d~R]XYzYZz]^zpqzrs!]xy#yyz$O}!O$T!O!P$a!Q![%^!]!^%q!}#O&Y#P#Q&_~!PS$S~XYzYZz]^zpqz~!`VOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s<%lO!]~!zO#`~~!}RO;'S!];'S;=`#W;=`O!]~#ZWOr!]rs!us#O!]#O#P!z#P;'S!];'S;=`#s;=`<%l!]<%lO!]~#vP;=`<%l!]~$OO#Z~~$TO#[~~$WR!O!P$a!Q![%^!`!a%l~$dP!Q![$g~$lQ#_~!Q![$g#X#Y$r~$uR{|%O}!O%O!Q![%U~%RP!Q![%U~%ZP#_~!Q![%U~%cR#_~!O!P$g!Q![%^#X#Y$r~%qO#h~~%vS!z~OY%qZ;'S%q;'S;=`&S<%lO%q~&VP;=`<%l%q~&_O#P~~&dO!}~",
       tokenizers: [0, keyword],
       topRules: {"Program":[0,89]},
-      dynamicPrecedences: {"109":-1},
+      dynamicPrecedences: {"109":-1,"129":1},
       specialized: [{term: 18, get: (value, stack) => (specializeReporter(value) << 1), external: specializeReporter},{term: 25, get: (value, stack) => (specializeSpecialReporter(value) << 1), external: specializeSpecialReporter},{term: 17, get: (value, stack) => (specializeCommand(value) << 1), external: specializeCommand},{term: 26, get: (value, stack) => (specializeSpecialCommand(value) << 1), external: specializeSpecialCommand}],
       tokenPrec: 0
     });
