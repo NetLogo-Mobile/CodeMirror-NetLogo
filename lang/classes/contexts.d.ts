@@ -59,8 +59,6 @@ export declare class LintContext {
     GetBreeds(): Breed[];
     /** GetBreedFromVariable: Find the breed which defines a certain variable. */
     GetBreedFromVariable(varName: string): string | null;
-    /** GetBreedFromProcedure: Get breed name from breed procedure. */
-    GetBreedFromProcedure(term: string): string | null;
     /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
     GetProcedureFromVariable(varName: string, from: number, to: number): string | null;
 }
