@@ -143,8 +143,6 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     input.acceptToken(LinkVar);
   } else if (constants.indexOf(token) != -1) {
     input.acceptToken(Constant);
-  } else if (token.indexOf(':') != -1 && primitives.GetExtensions().indexOf(token.split(':')[0]) == -1) {
-    input.acceptToken(UnsupportedPrim);
   } else {
     // Check if token is a reporter/commander
     const primitive = PrimitiveManager.GetNamedPrimitive(token);
@@ -169,8 +167,10 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     if (customMatch != 0) {
       input.acceptToken(customMatch);
       return;
-    } else if (match.tag != 0 && !match.valid) {
+    } else if (match.tag != 0) {
       input.acceptToken(match.tag);
+    } else if (token.indexOf(':') != -1 && primitives.GetExtensions().indexOf(token.split(':')[0]) == -1) {
+      input.acceptToken(UnsupportedPrim);
     } else {
       input.acceptToken(Identifier);
     }
