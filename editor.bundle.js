@@ -28847,9 +28847,9 @@ if(!String.prototype.matchAll) {
       SpecialCommandCreateTurtle = 86,
       SpecialCommandCreateLink = 87;
 
-    /** breedStatementRules: Rules for matching breed statements. */
+    /** BreedStatementRules: Rules for matching breed statements. */
     // For Ruth: You might want to merge the "BreedLocation" into those rules and then refactor relevant procedures into this file.
-    const breedStatementRules = [
+    const BreedStatementRules = [
         {
             Match: /^(.*?)-own$/,
             Singular: false,
@@ -28858,98 +28858,151 @@ if(!String.prototype.matchAll) {
             Position: 0,
         },
         {
-            Match: /^(.*?)-(at|here|on)$/,
+            Match: /^(.*?)-(at)$/,
             Singular: false,
-            Tag: SpecialReporter,
+            Tag: SpecialReporter2ArgsTurtle,
             Type: BreedType.Turtle,
             Position: 0,
         },
         {
-            Match: /^in-(.*?)-from$/,
-            Singular: true,
-            Tag: SpecialReporter,
-            Type: BreedType.UndirectedLink,
-        },
-        {
-            Match: /^out-(.*?)-to$/,
-            Singular: true,
-            Tag: SpecialReporter,
-            Type: BreedType.UndirectedLink,
-        },
-        {
-            Match: /^(?:out|in)-(.*?)-(neighbor\?|neighbors)$/,
-            Singular: true,
-            Tag: SpecialReporter,
-            Type: BreedType.UndirectedLink,
-        },
-        {
-            Match: /^(?:my-in|my-out|my)-(.*?)$/,
+            Match: /^(.*?)-(here)$/,
             Singular: false,
-            Tag: SpecialReporter,
-            Type: BreedType.UndirectedLink,
-        },
-        {
-            Match: /^is-(.*?)\?$/,
-            Singular: true,
-            Tag: SpecialReporter,
-            Type: undefined,
-        },
-        {
-            Match: /^create-(.*?)-(?:to|from|with)$/,
-            Singular: undefined,
-            Tag: SpecialCommand,
-            Type: BreedType.UndirectedLink,
-        },
-        {
-            Match: /^(.*?)-(with|neighbor\?|neighbors)$/,
-            Singular: true,
-            Tag: SpecialReporter,
-            Type: BreedType.UndirectedLink,
-        },
-        {
-            Match: /^(?:hatch|sprout|create-ordered|create)-(.*?)$/,
-            Singular: false,
-            Tag: SpecialCommand,
+            Tag: SpecialReporter0ArgsTurtle,
             Type: BreedType.Turtle,
+            Position: 0,
+        },
+        {
+            Match: /^(.*?)-(on)$/,
+            Singular: false,
+            Tag: SpecialReporter1ArgsTurtle,
+            Type: BreedType.Turtle,
+            Position: 0,
+        },
+        {
+            Match: /^(in)-(.*?)-(from)$/,
+            Singular: true,
+            Tag: SpecialReporter1ArgsLink,
+            Type: BreedType.UndirectedLink,
+            Position: 1,
+        },
+        {
+            Match: /^(out)-(.*?)-(to)$/,
+            Singular: true,
+            Tag: SpecialReporter1ArgsLink,
+            Type: BreedType.UndirectedLink,
+            Position: 1,
+        },
+        {
+            Match: /^(out|in)-(.*?)-(neighbor\?)$/,
+            Singular: true,
+            Tag: SpecialReporter1ArgsLink,
+            Type: BreedType.UndirectedLink,
+            Position: 1,
+        },
+        {
+            Match: /^(out|in)-(.*?)-(neighbors)$/,
+            Singular: true,
+            Tag: SpecialReporter0ArgsLink,
+            Type: BreedType.UndirectedLink,
+            Position: 1,
+        },
+        {
+            Match: /^(my-in|my-out|my)-(.*?)$/,
+            Singular: false,
+            Tag: SpecialReporter0ArgsLinkP,
+            Type: BreedType.UndirectedLink,
+            Position: 1,
+        },
+        {
+            Match: /^(is)-(.*?)\?$/,
+            Singular: true,
+            Tag: SpecialReporter1ArgsBoth,
+            Type: undefined,
+            Position: 1,
+        },
+        {
+            Match: /^(create)-(.*?)-(to|from|with)$/,
+            Singular: undefined,
+            Tag: SpecialCommandCreateLink,
+            Type: BreedType.UndirectedLink,
+            Position: 1,
+        },
+        {
+            Match: /^(.*?)-(with|neighbor\?)$/,
+            Singular: true,
+            Tag: SpecialReporter1ArgsLink,
+            Type: BreedType.UndirectedLink,
+            Position: 0,
+        },
+        {
+            Match: /^(.*?)-(neighbors)$/,
+            Singular: true,
+            Tag: SpecialReporter0ArgsLink,
+            Type: BreedType.UndirectedLink,
+            Position: 0,
+        },
+        {
+            Match: /^(hatch|sprout|create-ordered|create)-(.*?)$/,
+            Singular: false,
+            Tag: SpecialCommandCreateTurtle,
+            Type: BreedType.Turtle,
+            Position: 1,
         },
     ];
-    /** matchBreed: Check if the token is a breed reporter/command/variable. */
-    function matchBreed(token) {
+    /** MatchBreed: Check if the token is a breed reporter/command/variable. */
+    function MatchBreed(token) {
         let parseContext = GetContext();
         // Check breed variables
         let breedVars = parseContext.BreedVars;
         if (breedVars.has(token))
-            return { tag: Identifier, valid: false };
-        if (parseContext.SingularBreeds.has(token))
-            return { tag: SpecialReporter, valid: true };
+            return { Tag: Identifier, Valid: false };
+        if (parseContext.SingularBreeds.has(token)) {
+            var Type = parseContext.BreedTypes.get(parseContext.SingularToPlurals.get(token));
+            if (Type == BreedType.Turtle)
+                return { Tag: SpecialReporter1Args, Valid: true };
+            else
+                return { Tag: SpecialReporter2Args, Valid: true };
+        }
         // Check breed statements
-        for (let rule of breedStatementRules) {
+        for (let rule of BreedStatementRules) {
             let match = token.match(rule.Match);
             if (match) {
-                var name = match[1];
+                var name = match[rule.Position + 1];
                 var type = -1;
-                var typeConstrained = rule.Type !== undefined;
+                // Find the breed
                 var singular = rule.Singular !== undefined ? rule.Singular : parseContext.SingularBreeds.has(name);
                 if (singular) {
                     if (!parseContext.SingularBreeds.has(name))
-                        return { tag: 0, valid: false };
-                    if (typeConstrained)
-                        type = parseContext.BreedTypes.get(parseContext.SingularToPlurals.get(name));
+                        return { Tag: 0, Valid: false };
+                    type = parseContext.BreedTypes.get(parseContext.SingularToPlurals.get(name));
                 }
                 else {
                     if (!parseContext.PluralBreeds.has(name))
-                        return { tag: 0, valid: false };
-                    if (typeConstrained)
-                        type = parseContext.BreedTypes.get(name);
+                        return { Tag: 0, Valid: false };
+                    type = parseContext.BreedTypes.get(name);
                 }
                 if (type == BreedType.DirectedLink)
                     type = BreedType.UndirectedLink;
-                if (typeConstrained && type !== rule.Type)
-                    return { tag: 0, valid: false };
-                return { tag: rule.Tag, valid: true };
+                // Check the type
+                if (rule.Type !== undefined && type !== rule.Type)
+                    return { Tag: 0, Valid: false };
+                // Produce the prototype
+                switch (type) {
+                    case BreedType.Turtle:
+                        match[rule.Position + 1] = singular ? 'turtle' : 'turtles';
+                        break;
+                    case BreedType.Patch:
+                        match[rule.Position + 1] = singular ? 'patch' : 'patches';
+                        break;
+                    case BreedType.UndirectedLink:
+                    case BreedType.DirectedLink:
+                        match[rule.Position + 1] = singular ? 'link' : 'links';
+                        break;
+                }
+                return { Rule: rule, Tag: rule.Tag, Valid: true, Prototype: match.slice(1).join('-') };
             }
         }
-        return { tag: 0, valid: false };
+        return { Tag: 0, Valid: false };
     }
 
     let primitives$4 = PrimitiveManager;
@@ -29088,9 +29141,9 @@ if(!String.prototype.matchAll) {
                 return;
             }
             // Check if token is a breed reporter/command
-            const match = matchBreed(token);
-            if (match.tag != 0 && match.valid) {
-                input.acceptToken(match.tag);
+            const match = MatchBreed(token);
+            if (match.Tag != 0 && match.Valid) {
+                input.acceptToken(match.Tag);
                 return;
             }
             // Check if token is a custom procedure
@@ -29099,8 +29152,8 @@ if(!String.prototype.matchAll) {
                 input.acceptToken(customMatch);
                 return;
             }
-            else if (match.tag != 0) {
-                input.acceptToken(match.tag);
+            else if (match.Tag != 0) {
+                input.acceptToken(match.Tag);
             }
             else if (token.indexOf(':') != -1 && primitives$4.GetExtensions().indexOf(token.split(':')[0]) == -1) {
                 input.acceptToken(UnsupportedPrim);
@@ -29314,48 +29367,6 @@ if(!String.prototype.matchAll) {
                 return -1;
             }
         }
-        if (token == 'patch' || token == 'link') {
-            return SpecialReporter2Args;
-        }
-        else if (parseContext.SingularBreeds.has(token)) {
-            return SpecialReporter1Args;
-        }
-        if (token.match(/[^\s]+-(at)/)) {
-            return SpecialReporter2ArgsTurtle;
-        }
-        else if (token.match(/[^\s]+-here/)) {
-            return SpecialReporter0ArgsTurtle;
-        }
-        else if (token.match(/[^\s]+-neighbors/)) {
-            return SpecialReporter0ArgsLink;
-        }
-        else if (token.match(/[^\s]+-on/)) {
-            return SpecialReporter1ArgsTurtle;
-        }
-        else if (token.match(/[^\s]+-(with|neighbor\\?)/)) {
-            return SpecialReporter1ArgsLink;
-        }
-        else if (token.match(/^(my|my-in|my-out)-[^\s]+/)) {
-            return SpecialReporter0ArgsLinkP;
-        }
-        else if (token.match(/^is-[^\s]+\\?$/)) {
-            return SpecialReporter1ArgsBoth;
-        }
-        else if (token.match(/^in-[^\s]+-from$/)) {
-            return SpecialReporter1ArgsLink;
-        }
-        else if (token.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-            return SpecialReporter0ArgsLink;
-        }
-        else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-            return SpecialReporter1ArgsLink;
-        }
-        else if (token.match(/^out-[^\s]+-to$/)) {
-            return SpecialReporter1ArgsLink;
-        }
-        else {
-            return -1;
-        }
     };
     const specializeCommand = function (token) {
         token = token.toLowerCase();
@@ -29458,12 +29469,6 @@ if(!String.prototype.matchAll) {
             else {
                 return -1;
             }
-        }
-        else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
-            return SpecialCommandCreateLink;
-        }
-        else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
-            return SpecialCommandCreateTurtle;
         }
         else {
             return -1;
@@ -30312,31 +30317,6 @@ if(!String.prototype.matchAll) {
             .cursor()
             .iterate((noderef) => {
             var _a;
-            // if (noderef.name=='String'){
-            //   let curr = noderef.node;
-            //   let parents: string[] = [];
-            //   let p: string[]=[]
-            //   while (curr.parent) {
-            //     if (curr.name=='ReporterStatement'){
-            //       let children:string[]=[]
-            //       let c_vals:string[]=[]
-            //       let c=curr.firstChild?.cursor()
-            //       children.push(c?.name??'null')
-            //       c_vals.push(view.state.sliceDoc(c?.from,c?.to))
-            //       while (c?.nextSibling()){
-            //         children.push(c.name)
-            //         c_vals.push(view.state.sliceDoc(c.from,c.to))
-            //       }
-            //       // console.log(children)
-            //       // console.log(c_vals)
-            //       // console.log(curr.firstChild?.name,view.state.sliceDoc(curr.firstChild?.from, curr.firstChild?.to))
-            //     }
-            //     parents.push(view.state.sliceDoc(curr.from, curr.to));
-            //     p.push(curr.name)
-            //     curr = curr.parent;
-            //   }
-            //   console.log(parents)
-            // }
             if (
             // Checking let/set statements
             (noderef.name == 'SetVariable' &&
