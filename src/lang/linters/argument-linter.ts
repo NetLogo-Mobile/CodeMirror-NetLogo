@@ -18,31 +18,6 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
   syntaxTree(view.state)
     .cursor()
     .iterate((noderef) => {
-      // if (noderef.name=='String'){
-      //   let curr = noderef.node;
-      //   let parents: string[] = [];
-      //   let p: string[]=[]
-      //   while (curr.parent) {
-      //     if (curr.name=='ReporterStatement'){
-      //       let children:string[]=[]
-      //       let c_vals:string[]=[]
-      //       let c=curr.firstChild?.cursor()
-      //       children.push(c?.name??'null')
-      //       c_vals.push(view.state.sliceDoc(c?.from,c?.to))
-      //       while (c?.nextSibling()){
-      //         children.push(c.name)
-      //         c_vals.push(view.state.sliceDoc(c.from,c.to))
-      //       }
-      //       // console.log(children)
-      //       // console.log(c_vals)
-      //       // console.log(curr.firstChild?.name,view.state.sliceDoc(curr.firstChild?.from, curr.firstChild?.to))
-      //     }
-      //     parents.push(view.state.sliceDoc(curr.from, curr.to));
-      //     p.push(curr.name)
-      //     curr = curr.parent;
-      //   }
-      //   console.log(parents)
-      // }
       if (
         // Checking let/set statements
         (noderef.name == 'SetVariable' &&

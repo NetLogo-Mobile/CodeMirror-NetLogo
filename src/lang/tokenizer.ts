@@ -38,8 +38,7 @@ import {
 
 import { PrimitiveManager } from './primitives/primitives';
 import { GetContext } from './netlogo';
-import { BreedType } from './classes/structures';
-import { matchBreed } from './parsers/breed';
+import { MatchBreed } from './parsers/breed';
 
 let primitives = PrimitiveManager;
 
@@ -156,9 +155,9 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     }
 
     // Check if token is a breed reporter/command
-    const match = matchBreed(token);
-    if (match.tag != 0 && match.valid) {
-      input.acceptToken(match.tag);
+    const match = MatchBreed(token);
+    if (match.Tag != 0 && match.Valid) {
+      input.acceptToken(match.Tag);
       return;
     }
 
@@ -167,8 +166,8 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     if (customMatch != 0) {
       input.acceptToken(customMatch);
       return;
-    } else if (match.tag != 0) {
-      input.acceptToken(match.tag);
+    } else if (match.Tag != 0) {
+      input.acceptToken(match.Tag);
     } else if (token.indexOf(':') != -1 && primitives.GetExtensions().indexOf(token.split(':')[0]) == -1) {
       input.acceptToken(UnsupportedPrim);
     } else {

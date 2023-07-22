@@ -22,13 +22,6 @@ import {
   SpecialReporter4Args,
   SpecialReporter5Args,
   SpecialReporter6Args,
-  SpecialReporter1ArgsBoth,
-  SpecialReporter0ArgsLink,
-  SpecialReporter1ArgsLink,
-  SpecialReporter2ArgsTurtle,
-  SpecialReporter0ArgsTurtle,
-  SpecialReporter1ArgsTurtle,
-  SpecialReporter0ArgsLinkP,
   Command0Args,
   Command1Args,
   Command2Args,
@@ -146,38 +139,6 @@ const specializeSpecialReporter = function (token: string) {
       return -1;
     }
   }
-
-  if (token == 'patch' || token == 'link') {
-    return SpecialReporter2Args;
-  } else if (parseContext.SingularBreeds.has(token)) {
-    return SpecialReporter1Args;
-  }
-
-  if (token.match(/[^\s]+-(at)/)) {
-    return SpecialReporter2ArgsTurtle;
-  } else if (token.match(/[^\s]+-here/)) {
-    return SpecialReporter0ArgsTurtle;
-  } else if (token.match(/[^\s]+-neighbors/)) {
-    return SpecialReporter0ArgsLink;
-  } else if (token.match(/[^\s]+-on/)) {
-    return SpecialReporter1ArgsTurtle;
-  } else if (token.match(/[^\s]+-(with|neighbor\\?)/)) {
-    return SpecialReporter1ArgsLink;
-  } else if (token.match(/^(my|my-in|my-out)-[^\s]+/)) {
-    return SpecialReporter0ArgsLinkP;
-  } else if (token.match(/^is-[^\s]+\\?$/)) {
-    return SpecialReporter1ArgsBoth;
-  } else if (token.match(/^in-[^\s]+-from$/)) {
-    return SpecialReporter1ArgsLink;
-  } else if (token.match(/^(in|out)-[^\s]+-(neighbors)$/)) {
-    return SpecialReporter0ArgsLink;
-  } else if (token.match(/^(in|out)-[^\s]+-(neighbor\\?)$/)) {
-    return SpecialReporter1ArgsLink;
-  } else if (token.match(/^out-[^\s]+-to$/)) {
-    return SpecialReporter1ArgsLink;
-  } else {
-    return -1;
-  }
 };
 
 const specializeCommand = function (token: string) {
@@ -261,10 +222,6 @@ const specializeSpecialCommand = function (token: string) {
     } else {
       return -1;
     }
-  } else if (token.match(/^create-[^\s]+-(to|from|with)$/)) {
-    return SpecialCommandCreateLink;
-  } else if (token.match(/^(hatch|sprout|create|create-ordered)-[^\s]+/)) {
-    return SpecialCommandCreateTurtle;
   } else {
     return -1;
   }
