@@ -1,6 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { EditorView } from '@codemirror/view';
 import { Linter, getDiagnostic } from './linter-builder';
 import { BreedType } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
@@ -12,6 +11,7 @@ import { removeAction } from '../utils/actions';
 import { stateExtension } from 'src/codemirror/extension-state-netlogo';
 import { GetAllBreedPrimitives } from '../parsers/breed';
 import { getCodeName } from '../utils/code';
+import { ParseMode } from '../../editor-config';
 
 let primitives = PrimitiveManager;
 
@@ -34,7 +34,9 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
       diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
     } else if (reservedVars.includes(value)) {
       if (type.includes('variable')) {
-        diagnostics.push(removeAction(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type)));
+        if (type == 'Local variable')
+          diagnostics.push(removeAction(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type)));
+        else diagnostics.push(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type));
       } else {
         diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
       }
@@ -47,25 +49,16 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
       }
     }
   };
-  if (view.state.field(stateExtension).EditorID != 0) {
+  var Mode = view.state.field(stateExtension).Mode;
+  if (Mode != ParseMode.Normal && Mode != ParseMode.Generative) {
+    defined.push(...lintContext.GetDefined());
     syntaxTree(view.state)
       .cursor()
       .iterate((noderef) => {
         if (noderef.name == 'NewVariableDeclaration') {
-          // TODO: Optimize it so that whenever we see a procedure, we check the local variables
-          // Now, for each new variable declaration, we look back again
-          // It would also solve the issue of arguments & local variables using the same name
-          // Since the new variable definition is typically few, not a high priority
           let child = noderef.node.getChild('Identifier') ?? noderef.node.getChild('UnsupportedPrim');
           if (!child) return;
-          let localvars = [
-            ...lintContext.Globals.keys(),
-            ...lintContext.WidgetGlobals.keys(),
-            ...lintContext.Procedures.keys(),
-            ...lintContext.Breeds.keys(),
-            ...lintContext.Extensions.keys(),
-            ...getLocalVariables(child, view.state, lintContext),
-          ];
+          let localvars = getLocalVariables(child, view.state, lintContext);
           NameCheck(child, 'Local variable', localvars);
         }
       });
@@ -109,8 +102,6 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
           // Now, for each new variable declaration, we look back again
           // It would also solve the issue of arguments & local variables using the same name
           // Since the new variable definition is typically few, not a high priority
-          //let child = noderef.node.getChild('Identifier') ?? noderef.node.getChild('UnsupportedPrim');
-          // console.log(view.state.sliceDoc(noderef.from,noderef.to),getChildren(noderef.node,view))
           let child = noderef.node.firstChild?.nextSibling;
           if (!child) return;
           if (child.name.includes('Reporter') || child.name.includes('Command')) {

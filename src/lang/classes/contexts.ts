@@ -145,7 +145,16 @@ export class LintContext {
     this.Procedures.clear();
     return this;
   }
-
+  /** GetDefined: Get defined names. */
+  public GetDefined(): string[] {
+    var defined = [];
+    defined.push(...this.Globals.keys());
+    defined.push(...this.WidgetGlobals.keys());
+    defined.push(...this.Procedures.keys());
+    defined.push(...this.GetBreedNames());
+    defined.push(...this.GetBreedVariables());
+    return defined;
+  }
   /** GetBreedNames: Get names related to breeds. */
   public GetBreedNames(): string[] {
     var breedNames: string[] = [];
@@ -158,18 +167,14 @@ export class LintContext {
   /** GetPluralBreedNames: Get plural names related to breeds. */
   public GetPluralBreedNames(): string[] {
     var breedNames: string[] = [];
-    for (let breed of this.Breeds.values()) {
-      breedNames.push(breed.Plural);
-    }
+    for (let breed of this.Breeds.values()) breedNames.push(breed.Plural);
     return breedNames;
   }
   /** GetBreedVariables: Get variable names related to breeds. */
   public GetBreedVariables(): string[] {
-    var breedNames: string[] = [];
-    for (let breed of this.Breeds.values()) {
-      breedNames = breedNames.concat(breed.Variables);
-    }
-    return breedNames;
+    var variables: string[] = [];
+    for (let breed of this.Breeds.values()) variables = variables.concat(breed.Variables);
+    return variables;
   }
   /** GetBreeds: Get list of breeds. */
   public GetBreeds(): Breed[] {
