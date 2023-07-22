@@ -29530,6 +29530,24 @@ if(!String.prototype.matchAll) {
         else
             return false;
     }
+    /** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
+    const UnrecognizedSuggestions = {
+        else: 'ifelse',
+        'create-patch': 'ask patch 0 0',
+        'create-patches': 'ask patches',
+        'create-link': 'create-link-with',
+        'create-links': 'create-links-with',
+        'set-patch-color': 'set pcolor',
+    };
+    /** checkUnrecognizedWithSuggestions: Check if the unrecognized identifier has a suggestion. */
+    function checkUnrecognizedWithSuggestions(diagnostics, view, node) {
+        var value = getCodeName(view.state, node);
+        if (UnrecognizedSuggestions.hasOwnProperty(value)) {
+            diagnostics.push(getDiagnostic(view, node, 'Unrecognized identifier with replacement _', 'error', value, UnrecognizedSuggestions[value]));
+            return true;
+        }
+        return false;
+    }
 
     /** AutoCompletion: Auto completion service for a NetLogo model. */
     /* Possible Types of Autocompletion Tokens:
@@ -29982,24 +30000,13 @@ if(!String.prototype.matchAll) {
                 if (checkUndefinedBreed(diagnostics, context.preprocessState, view, node))
                     return;
                 // check if a suggestion exists
-                if (UnrecognizedSuggestions.hasOwnProperty(value)) {
-                    diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier with replacement _', 'error', value, UnrecognizedSuggestions[value]));
-                }
-                else {
-                    diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
-                }
+                if (checkUnrecognizedWithSuggestions(diagnostics, view, node))
+                    return;
+                // nothing more to check, so it is an unrecognized identifier
+                diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
             }
         });
         return diagnostics;
-    };
-    /** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
-    const UnrecognizedSuggestions = {
-        else: 'ifelse',
-        'create-patch': 'ask patch 0 0',
-        'create-patches': 'ask patches',
-        'create-link': 'create-link-with',
-        'create-links': 'create-links-with',
-        'set-patch-color': 'set pcolor',
     };
 
     // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
@@ -30094,6 +30101,9 @@ if(!String.prototype.matchAll) {
                 }
                 else if (!['[', ']', ')', '(', '"'].includes(value) &&
                     !checkUndefinedBreed(diagnostics, context.preprocessState, view, node.node)) {
+                    // Check if a suggestion exists
+                    if (checkUnrecognizedWithSuggestions(diagnostics, view, node))
+                        return;
                     // Anything else could be an unrecognized statement
                     if (((_d = node.node.parent) === null || _d === void 0 ? void 0 : _d.name) == 'Normal') {
                         diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));
