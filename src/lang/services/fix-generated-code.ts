@@ -156,6 +156,9 @@ export async function FixGeneratedCode(
   commentFrom = null;
   commentsStart = null;
 
+  // Repeatedly make the entire doc lowercased is expensive. Let's cache it.
+  let lowerdoc = state.doc.toString().toLowerCase();
+
   // Go over the syntax tree
   syntaxTree(state)
     .cursor()
@@ -178,7 +181,7 @@ export async function FixGeneratedCode(
         }
         changes.push({
           from: commentsStart ?? noderef.from,
-          to: Math.min(noderef.to + 1, state.doc.toString().length),
+          to: Math.min(noderef.to + 1, lowerdoc.length),
           insert: '',
         });
         return false;
@@ -203,8 +206,8 @@ export async function FixGeneratedCode(
         let deleted = 0;
         let temp_changes: { from: number; insert: string; to?: number }[] = [];
         noderef.node.getChildren('Identifier').map((child) => {
-          let value = state.sliceDoc(child.from, child.to);
-          if (globals.includes(value.toLowerCase()) || reservedVars.includes(value.toLowerCase())) {
+          let value = getCodeName(state, child);
+          if (globals.includes(value) || reservedVars.includes(value)) {
             temp_changes.push({
               from: child.from,
               to: child.to,
@@ -212,7 +215,7 @@ export async function FixGeneratedCode(
             });
             deleted += 1;
           }
-          globals.push(value.toLowerCase());
+          globals.push(value);
         });
         if (deleted == len || len == 0) {
           changes.push({
@@ -269,21 +272,12 @@ export async function FixGeneratedCode(
         let deleted = 0;
         let temp_changes: { from: number; insert: string; to?: number }[] = [];
         noderef.node.getChildren('Identifier').map((child) => {
-          let value = state.sliceDoc(child.from, child.to);
+          let value = getCodeName(state, child);
           if (
-            state.doc
-              .toString()
-              .toLowerCase()
-              .includes('(' + value.toLowerCase() + ':') ||
-            state.doc
-              .toString()
-              .toLowerCase()
-              .includes(' ' + value.toLowerCase() + ':') ||
-            state.doc
-              .toString()
-              .toLowerCase()
-              .includes('\n' + value.toLowerCase() + ':') ||
-            extensions.includes(value.toLowerCase())
+            lowerdoc.includes('(' + value + ':') ||
+            lowerdoc.includes(' ' + value + ':') ||
+            lowerdoc.includes('\n' + value + ':') ||
+            extensions.includes(value)
           ) {
             temp_changes.push({
               from: child.from,
@@ -292,7 +286,7 @@ export async function FixGeneratedCode(
             });
             deleted += 1;
           }
-          extensions.push(value.toLowerCase());
+          extensions.push(value);
         });
         if (deleted == len || len == 0) {
           changes.push({
@@ -322,13 +316,7 @@ export async function FixGeneratedCode(
           .getChild('ProcedureContent')
           ?.getChild('CommandStatement')
           ?.getChild('SpecialCommand0Args');
-        if (
-          child &&
-          state.doc
-            .toString()
-            .toLowerCase()
-            .includes('to ' + state.sliceDoc(child.from, child.to))
-        ) {
+        if (child && lowerdoc.includes('to ' + getCodeName(state, child))) {
           changes.push({
             from: noderef.from,
             to: noderef.to,
@@ -339,7 +327,7 @@ export async function FixGeneratedCode(
         // JC: I am confused. What does this one do?
         let child = noderef.node.getChild('ProcedureName')!;
         let name = getCodeName(state, child);
-        let matches = state.doc.toString().match(new RegExp(name, 'gi'));
+        let matches = lowerdoc.match(new RegExp(name, 'gi'));
         if (matches && matches.length == 1) {
           changes.push({ from: noderef.from, to: noderef.to, insert: '' });
         }
@@ -381,8 +369,8 @@ export async function FixGeneratedCode(
   // If there are rogue statements, wrap them into a procedure
   if (intoProcedure.length != 0) {
     changes.push({
-      from: procedureStart ?? state.doc.toString().length,
-      to: procedureStart ?? state.doc.toString().length,
+      from: procedureStart ?? lowerdoc.length,
+      to: procedureStart ?? lowerdoc.length,
       insert: '\nto play\n' + intoProcedure.join('\n') + '\nend\n\n',
     });
   }

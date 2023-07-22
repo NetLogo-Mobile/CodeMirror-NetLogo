@@ -139,11 +139,13 @@ export function checkUndefinedBreed(
 /** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
 export const UnrecognizedSuggestions: Record<string, string> = {
   else: 'ifelse',
+  '%': 'mod',
   'create-patch': 'ask patch 0 0',
   'create-patches': 'ask patches',
   'create-link': 'create-link-with',
   'create-links': 'create-links-with',
   'set-patch-color': 'set pcolor',
+  'set-world-size': 'resize-world',
 };
 
 /** checkUnrecognizedWithSuggestions: Check if the unrecognized identifier has a suggestion. */
