@@ -60,15 +60,6 @@ export declare enum NetLogoType {
     Command = 20,
     Other = 21
 }
-/** BreedLocation: Possible locations of breed name in primitives. */
-export declare enum BreedLocation {
-    First = 0,
-    Second = 1,
-    Third = 2,
-    Middle = 3,
-    Question = 4,
-    Null = 5
-}
 /** AgentContexts: Agent contexts of a primitive. */
 export declare class AgentContexts {
     /** Observer: Whether the context includes observers. */

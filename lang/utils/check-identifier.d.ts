@@ -16,6 +16,6 @@ export declare const getCheckContext: (view: EditorView, lintContext: LintContex
 export declare const acceptableIdentifiers: string[];
 export declare const checkValidIdentifier: (Node: SyntaxNode, value: string, context: CheckContext) => boolean;
 export declare const getLocalVariables: (Node: SyntaxNode, State: EditorState, parseState: LintContext | StateNetLogo) => string[];
-/** checkBreed: Checks if the term in the structure of a breed command/reporter and push lint messages */
-export declare function checkBreed(diagnostics: Diagnostic[], context: CheckContext, view: EditorView, noderef: SyntaxNode): boolean;
+/** checkUndefinedBreed: Check if the breed-like primitive is undefined and provide lint messages accordingly. */
+export declare function checkUndefinedBreed(diagnostics: Diagnostic[], context: PreprocessContext, view: EditorView, noderef: SyntaxNode): boolean;
 //# sourceMappingURL=check-identifier.d.ts.map
