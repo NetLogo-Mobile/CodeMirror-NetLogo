@@ -34,7 +34,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
       diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
     } else if (reservedVars.includes(value)) {
       if (type.includes('variable')) {
-        if (type == 'Local variable')
+        if (type != 'Local variable')
           diagnostics.push(removeAction(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type)));
         else diagnostics.push(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type));
       } else {
