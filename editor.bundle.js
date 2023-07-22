@@ -34134,6 +34134,9 @@ if(!String.prototype.matchAll) {
             // First pass: prettify the code
             Editor.SetCode(Source);
             Editor.Semantics.PrettifyAll();
+            // John: Shall we make the snapshot more powerful and eliminate some of the hard-coded stuff here?
+            // e.g. if we give each global variable a slot for comments, we can just identify extra global statements and send into the snapshot
+            // Then, rebuild the global statements from the snapshot.
             // Second pass: clean up global statements
             var Snapshot = BuildSnapshot(Editor);
             var intoProcedure = [];
@@ -34498,19 +34501,19 @@ if(!String.prototype.matchAll) {
             }
             // Send in the changes
             Editor.Operations.ChangeCode(changes);
-            // Fourth pass: lint the code and apply the actions
-            let Errors = yield Editor.ForceLintAsync();
+            // I just realized that we cannot do this in the current fashion. e.g. When there are multiple breed fixes with the same name, we might introduce multiple statements.
+            /*// Fourth pass: lint the code and apply the actions
+            let Errors = await Editor.ForceLintAsync();
             console.log(Errors);
             let did_actions = false;
             Errors.map((error) => {
-                if (error.actions) {
-                    did_actions = true;
-                    error.actions[0].apply(Editor.CodeMirror, error.from, error.to);
-                }
+              if (error.actions) {
+                did_actions = true;
+                error.actions[0].apply(Editor.CodeMirror, error.from, error.to);
+              }
             });
             // If there were actions, run the auto-fix again
-            if (did_actions && try_again)
-                yield FixGeneratedCode(Editor, Editor.CodeMirror.state.doc.toString(), Parent, false);
+            if (did_actions && try_again) await FixGeneratedCode(Editor, Editor.CodeMirror.state.doc.toString(), Parent, false);*/
             // Fifth pass: re-introduce the snapshot
             IntegrateSnapshot(Editor, Snapshot);
             if (Parent)
