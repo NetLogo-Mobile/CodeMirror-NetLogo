@@ -440,7 +440,16 @@ expression {
   APReporterFlip,
   APReporterVar,
   APReporter,
-  UnsupportedPrim
+  UnsupportedPrim,
+  SpecialCommandCreateTurtle,
+  SpecialCommandCreateLink,
+  SpecialReporter1ArgsBoth,
+  SpecialReporter0ArgsLink,
+  SpecialReporter1ArgsLink,
+  SpecialReporter2ArgsTurtle,
+  SpecialReporter0ArgsTurtle,
+  SpecialReporter1ArgsTurtle,
+  SpecialReporter0ArgsLinkP
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {
@@ -469,14 +478,7 @@ expression {
   SpecialReporter3Args,
   SpecialReporter4Args,
   SpecialReporter5Args,
-  SpecialReporter6Args,
-  SpecialReporter1ArgsBoth,
-  SpecialReporter0ArgsLink,
-  SpecialReporter1ArgsLink,
-  SpecialReporter2ArgsTurtle,
-  SpecialReporter0ArgsTurtle,
-  SpecialReporter1ArgsTurtle,
-  SpecialReporter0ArgsLinkP
+  SpecialReporter6Args
 }
 
 @external specialize {Command} specializeCommand from './specializer' {
@@ -504,9 +506,7 @@ expression {
   SpecialCommand3Args,
   SpecialCommand4Args,
   SpecialCommand5Args,
-  SpecialCommand6Args,
-  SpecialCommandCreateTurtle,
-  SpecialCommandCreateLink
+  SpecialCommand6Args
 }
 
 @external prop context from './props'

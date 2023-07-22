@@ -95,6 +95,7 @@ export const unsupported = [
   'hubnet-send-message',
   'hubnet-send-override',
   'hubnet-send-watch',
+  'wait',
   'inspect',
   'no-display',
   'set-current-directory',

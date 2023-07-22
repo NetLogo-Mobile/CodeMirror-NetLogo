@@ -19,8 +19,9 @@ const en_us: Record<string, Function> = {
     `"${Name}" is out of place. Maybe try "${Suggested}"？`,
   'Invalid content for code block _': (Name: string) => `"${Name}" is out of place in the surrounding code block.`,
   'Invalid content for list _': (Name: string) => `"${Name}" is out of place in the surrounding list.`,
-  'Unsupported statement _': (Name: string) =>
-    `"${Name}" is not supported in this version of NetLogo, so linting may be incorrect.`,
+  'Unsupported statement _': (Name: string) => `"${Name}" is not supported in this version of NetLogo.`,
+  'Unsupported extension statement _': (Name: string) =>
+    `"${Name}" is not supported in this version of NetLogo. The parsing could be wrong.`,
   'Invalid for Normal mode _': (Value: string) => `This editor mode expects a full NetLogo model.`,
   'Invalid for Embedded mode _': (Value: string) => `This editor mode expects a few command statements.`,
   'Invalid for Oneline mode _': (Value: string) =>

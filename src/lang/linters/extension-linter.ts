@@ -1,11 +1,11 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { Localized } from '../../editor';
 import { Linter, getDiagnostic } from './linter-builder';
 import { PrimitiveManager } from '../primitives/primitives';
 import { checkValidIdentifier, getCheckContext } from '../utils/check-identifier';
 import { SyntaxNode } from '@lezer/common';
 import { addGlobalsAction } from '../utils/actions';
+import { getCodeName } from '../utils/code';
 
 let primitives = PrimitiveManager;
 
@@ -22,7 +22,7 @@ export const ExtensionLinter: Linter = (view, preprocessContext, lintContext) =>
     .iterate((noderef) => {
       if (noderef.name == 'Extensions') {
         noderef.node.getChildren('Identifier').map((child) => {
-          let name = view.state.sliceDoc(child.from, child.to);
+          let name = getCodeName(view.state, child);
           if (primitives.GetExtensions().indexOf(name) == -1)
             diagnostics.push(getDiagnostic(view, child, 'Unsupported extension _', 'warning'));
         });
@@ -38,10 +38,10 @@ export const ExtensionLinter: Linter = (view, preprocessContext, lintContext) =>
             noderef.node.parent?.name != 'Arguments' &&
             noderef.node.parent?.name != 'AnonArguments' &&
             noderef.node.parent?.name != 'ProcedureName' &&
-            !checkValidIdentifier(noderef.node, view.state.sliceDoc(noderef.from, noderef.to), context))) &&
+            !checkValidIdentifier(noderef.node, getCodeName(view.state, noderef), context))) &&
         !noderef.name.includes('Special')
       ) {
-        const value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+        const value = getCodeName(view.state, noderef);
         let vals = value.split(':');
         if (vals.length <= 1 || lintContext.Extensions.has(vals[0])) return;
         diagnostics.push(

@@ -460,20 +460,18 @@ export class StateNetLogo {
       inheritParentContext: false,
     };
     let cursor = node.parent?.cursor();
-    // console.log(state.sliceDoc(cursor?.node.from,cursor?.node.to))
     let ask = false;
     if (cursor?.firstChild()) {
       if (!['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(cursor.node.name)) {
-        prim.name = state.sliceDoc(cursor.node.from, cursor.node.to).toLowerCase();
+        prim.name = getCodeName(state, cursor.node);
         prim.type = cursor.node.name;
         if (prim.name == 'ask') {
           ask = true;
         }
       }
       while (cursor.nextSibling() && (prim.name == '' || ask)) {
-        // console.log(prim.name,cursor.node.name,state.sliceDoc(cursor.node.from,cursor.node.to))
         if (!['OpenParen', 'CloseParen', 'Reporters', 'Commands', 'Arg'].includes(cursor.node.name)) {
-          prim.name = state.sliceDoc(cursor.node.from, cursor.node.to);
+          prim.name = getCodeName(state, cursor.node);
           prim.type = cursor.node.name;
         } else if (cursor.node.name == 'Arg' && ask) {
           prim.breed = this.identifyBreed(cursor.node, state) ?? prim.breed;
@@ -481,7 +479,6 @@ export class StateNetLogo {
         }
       }
     }
-    // console.log(prim.name,state.sliceDoc(node.from,node.to))
     if (prim.type.includes('Special')) {
       prim.isSpecial = true;
       prim.breed = MatchBreed(prim.name, this.Preprocess).Plural ?? '';

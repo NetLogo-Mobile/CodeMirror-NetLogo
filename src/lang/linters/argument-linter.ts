@@ -8,6 +8,7 @@ import { NetLogoType } from '../classes/structures';
 import { Linter, getDiagnostic } from './linter-builder';
 import { PreprocessContext } from '../classes/contexts';
 import { Log } from '../../utils/debug-utils';
+import { getCodeName } from '../utils/code';
 
 let primitives = PrimitiveManager;
 
@@ -32,9 +33,7 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
         let cursor = noderef.node.cursor();
         if (cursor.firstChild()) {
           while (cursor.nextSibling()) {
-            if (cursor.from != cursor.to) {
-              child_count++;
-            }
+            if (cursor.from != cursor.to) child_count++;
           }
         }
         let actual = child_count;
@@ -65,42 +64,6 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
         if (Node.firstChild?.name == '⚠') diagnostics.push(getDiagnostic(view, Node, 'Missing command _'));
         // Checking the arguments
         let args = getArgs(Node);
-        // console.log(view.state.sliceDoc(args.func?.from, args.func?.to),args.leftArgs,args.rightArgs)
-        // Log(args.rightArgs.map((node)=>view.state.sliceDoc(node.from, node.to)))
-        // Log(args.rightArgs.map((node)=>node.name))
-        // Log(args.rightArgs.map((node)=>{
-        //   let cursor = node.cursor()
-        //   let children = []
-        //   if (cursor.firstChild()){
-        //     children.push(cursor.node)
-        //     while(cursor.nextSibling()){
-        //       children.push(cursor.node)
-        //     }
-        //   }
-        //   return children.map((node1)=>{
-        //     let cursor = node1.cursor()
-        //     let children = []
-        //     if (cursor.firstChild()){
-        //       children.push(cursor.node)
-        //       while(cursor.nextSibling()){
-        //         children.push(cursor.node)
-        //       }
-        //     }
-        //     return children.map((node2)=>{
-        //       let cursor = node2.cursor()
-        //       let children = []
-        //       if (cursor.firstChild()){
-        //         children.push(cursor.node)
-        //         while(cursor.nextSibling()){
-        //           children.push(cursor.node)
-        //         }
-        //       }
-        //       return children.map((node)=>node.name+' '+view.state.sliceDoc(node.from, node.to))
-        //     })
-        //     node.name+' '+view.state.sliceDoc(node.from, node.to)
-        //   })
-        // }))
-
         // Ensures there is a primitive to check
         if (Node.getChildren('VariableDeclaration').length == 0 && args.func) {
           // identify the errors and terms to be conveyed in error message
@@ -165,16 +128,11 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
         }
         // Check for infinite loops
         if (args.func) {
-          let funcName = view.state.sliceDoc(args.func.from, args.func.to).toLowerCase();
+          let funcName = getCodeName(view.state, args.func);
           var potentialLoop = false;
           // Find potentials
           if (funcName == 'while') {
-            potentialLoop =
-              args.rightArgs.length > 1 &&
-              !!view.state
-                .sliceDoc(args.rightArgs[0].from, args.rightArgs[0].to)
-                .toLowerCase()
-                .match(/\[\s*true\s*\]/g);
+            potentialLoop = args.rightArgs.length > 1 && getCodeName(view.state, args.rightArgs[0]) == 'true';
           } else if (funcName == 'loop') {
             potentialLoop = true;
           }
@@ -191,7 +149,7 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
 const checkLoopEnd = function (view: EditorView, node: SyntaxNode) {
   let found = false;
   node.cursor().iterate((noderef) => {
-    var command = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
+    var command = getCodeName(view.state, noderef);
     if (['stop', 'die', 'report'].includes(command)) {
       found = true;
       return false;
@@ -200,15 +158,18 @@ const checkLoopEnd = function (view: EditorView, node: SyntaxNode) {
   return found;
 };
 
+/** ArgsInfo: Contains all the information about the arguments of a statement. */
+interface ArgsInfo {
+  leftArgs: SyntaxNode | null;
+  rightArgs: SyntaxNode[];
+  func: SyntaxNode | null;
+  hasParentheses: boolean;
+}
+
 /** getArgs: collects everything used as an argument so it can be counted. */
 export const getArgs = function (Node: SyntaxNode) {
   let cursor = Node.cursor();
-  let args: {
-    leftArgs: SyntaxNode | null;
-    rightArgs: SyntaxNode[];
-    func: SyntaxNode | null;
-    hasParentheses: boolean;
-  } = { leftArgs: null, rightArgs: [], func: null, hasParentheses: false };
+  let args: ArgsInfo = { leftArgs: null, rightArgs: [], func: null, hasParentheses: false };
   let seenFunc = false;
   let done = false;
   if (!cursor.firstChild()) {
@@ -252,27 +213,10 @@ export const getArgs = function (Node: SyntaxNode) {
 };
 
 /** checkValidNumArgs: checks if correct number of arguments are present. */
-export const checkValidNumArgs = function (
-  state: EditorState,
-  args: {
-    leftArgs: SyntaxNode | null;
-    rightArgs: SyntaxNode[];
-    func: SyntaxNode | null;
-    hasParentheses: boolean;
-  },
-  preprocessContext: PreprocessContext
-) {
-  // get the text/name of the primitive
-  let func = state.sliceDoc(args.func?.from, args.func?.to).toLowerCase();
-  // checking for "Special" cases (custom and breed procedures)
-  if (args.func?.name.includes('Special')) {
-    let numArgs =
-      preprocessContext.Commands.get(func) ??
-      preprocessContext.Reporters.get(func) ??
-      getBreedCommandArgs(func) ??
-      getBreedProcedureArgs(args.func.name);
-    return [numArgs == args.rightArgs.length, func, numArgs, args.rightArgs.length];
-  } else if (func == '-') {
+export const checkValidNumArgs = function (state: EditorState, args: ArgsInfo, preprocessContext: PreprocessContext) {
+  let func = getCodeName(state, args.func!);
+  // checking for "-" (negation)
+  if (func == '-') {
     if (!args.hasParentheses && !args.leftArgs) {
       Log('left args');
       let expected = 1;
@@ -284,68 +228,73 @@ export const checkValidNumArgs = function (
     } else {
       return [true, func, 0, 0];
     }
-  } else {
-    let primitive = primitives.GetNamedPrimitive(func);
-
-    // checks for terms used as primitives but don't exist in our dataset
-    if (!primitive) {
-      Log('no primitive', args.func?.name, func);
-      return ['no primitive', func, 0, 0];
-    } else if (
-      // checks for incorrect numbers of arguments on the left side
-      (primitive.LeftArgumentType?.Types[0] == NetLogoType.Unit && args.leftArgs) ||
-      (primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit && !args.leftArgs)
-    ) {
-      Log('left args');
-      let expected = primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit ? 1 : 0;
-      let actual = args.leftArgs ? 1 : 0;
-      Log('left', expected, actual);
-      return ['left', func, expected, actual];
-    } else {
-      let rightArgMin = 0;
-      let rightArgMax = 0;
-      if ((args.func?.name.includes('APCommand') || args.func?.name.includes('Var')) && !args.hasParentheses) {
-        let name = args.func?.name;
-        name = name.replace('Command', '');
-        name = name.replace('ArgsVar', '');
-        rightArgMin = Number(name[0]);
-        rightArgMax = Number(name[0]);
-      } else {
-        // find the minimum and maximum acceptable numbers of right-side arguments
-        rightArgMin = args.hasParentheses
-          ? primitive.MinimumOption ??
-            primitive.DefaultOption ??
-            primitive.RightArgumentTypes.filter((arg) => arg.Optional == false).length
-          : primitive.DefaultOption ?? primitive.RightArgumentTypes.filter((arg) => arg.Optional == false).length;
-        rightArgMax =
-          primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length > 0 && args.hasParentheses
-            ? 100
-            : primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
-      }
-      //console.log(func,args.rightArgs.length,rightArgMin,rightArgMax)
-      // ensure at least minimum # right args present
-      if (args.rightArgs.length < rightArgMin) {
-        Log(args.rightArgs);
-        Log(func, 'rightargs', rightArgMin, rightArgMax, args.rightArgs.length);
-        return ['rightmin', func, rightArgMin, args.rightArgs.length];
-        // ensure at most max # right args present
-      } else if (args.rightArgs.length > rightArgMax) {
-        return ['rightmax', func, rightArgMax, args.rightArgs.length];
-      } else {
-        return [true, func, 0, 0];
-      }
+  }
+  // checking for "Special" cases (custom and breed procedures)
+  let funcRef = func;
+  let name = args.func?.name ?? '';
+  if (name.includes('Special')) {
+    switch (name) {
+      case 'SpecialCommandCreateTurtle':
+        name = 'Command2Args';
+        funcRef = 'create-turtles';
+        break;
+      case 'SpecialCommandCreateLink':
+        name = 'Command2Args';
+        funcRef = 'create-links-with';
+        break;
+      default:
+        let numArgs =
+          preprocessContext.Commands.get(func) ?? preprocessContext.Reporters.get(func) ?? getBreedProcedureArgs(name);
+        return [numArgs == args.rightArgs.length, func, numArgs, args.rightArgs.length];
     }
   }
-};
-
-// getBreedCommandArgs: get number of args for breed procedures that are commands
-const getBreedCommandArgs = function (func: string) {
-  if (func.match(/^(hatch|sprout|create|create-ordered)-\w+/)) {
-    return 2;
-  } else if (func.match(/^create-\w+-(to|from|with)$/)) {
-    return 2;
+  // checking for regular primitives
+  let primitive = primitives.GetNamedPrimitive(funcRef);
+  // checks for terms used as primitives but don't exist in our dataset
+  if (!primitive) {
+    Log('no primitive', args.func?.name, func);
+    return ['no primitive', func, 0, 0];
+  } else if (
+    // checks for incorrect numbers of arguments on the left side
+    (primitive.LeftArgumentType?.Types[0] == NetLogoType.Unit && args.leftArgs) ||
+    (primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit && !args.leftArgs)
+  ) {
+    Log('left args');
+    let expected = primitive.LeftArgumentType?.Types[0] != NetLogoType.Unit ? 1 : 0;
+    let actual = args.leftArgs ? 1 : 0;
+    Log('left', expected, actual);
+    return ['left', func, expected, actual];
   } else {
-    return null;
+    let rightArgMin = 0;
+    let rightArgMax = 0;
+    if ((name.includes('APCommand') || name.includes('Var')) && !args.hasParentheses) {
+      name = name.replace('Command', '');
+      name = name.replace('ArgsVar', '');
+      rightArgMin = Number(name[0]);
+      rightArgMax = Number(name[0]);
+    } else {
+      // find the minimum and maximum acceptable numbers of right-side arguments
+      rightArgMin = args.hasParentheses
+        ? primitive.MinimumOption ??
+          primitive.DefaultOption ??
+          primitive.RightArgumentTypes.filter((arg) => arg.Optional == false).length
+        : primitive.DefaultOption ?? primitive.RightArgumentTypes.filter((arg) => arg.Optional == false).length;
+      rightArgMax =
+        primitive.RightArgumentTypes.filter((arg) => arg.CanRepeat).length > 0 && args.hasParentheses
+          ? 100
+          : primitive.DefaultOption ?? primitive.RightArgumentTypes.length;
+    }
+    // ensure at least minimum # right args present
+    if (args.rightArgs.length < rightArgMin) {
+      Log(args.rightArgs);
+      Log(func, 'rightargs', rightArgMin, rightArgMax, args.rightArgs.length);
+      return ['rightmin', func, rightArgMin, args.rightArgs.length];
+      // ensure at most max # right args present
+    } else if (args.rightArgs.length > rightArgMax) {
+      return ['rightmax', func, rightArgMax, args.rightArgs.length];
+    } else {
+      return [true, func, 0, 0];
+    }
   }
 };
 

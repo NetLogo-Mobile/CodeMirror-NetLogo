@@ -1,10 +1,11 @@
 import { Breed } from '../lang/classes/structures';
 import { EditorState } from '@codemirror/state';
 import { syntaxTree } from '@codemirror/language';
+import { getCodeName } from '../lang/utils/code';
 
 /** classifyPrimitive: Identify type of reporter/command for appropriate tooltip. */
 export const classifyPrimitive = function (name: string) {
-  //classify all types of reporter as 'breed','custom', or builtin
+  // classify all types of reporter as 'breed','custom', or builtin
   if (name.indexOf('Reporter') != -1 && name.indexOf('ReporterStatement') == -1) {
     if (name.indexOf('Special') != -1) {
       if (name.indexOf('Turtle') != -1 || name.indexOf('Link') != -1 || name.indexOf('Both') != -1) {
@@ -16,8 +17,7 @@ export const classifyPrimitive = function (name: string) {
       name = 'Reporter';
     }
   }
-
-  //classify all types of commands as 'breed','custom', or builtin
+  // classify all types of commands as 'breed','custom', or builtin
   if (name.indexOf('Command') != -1 && name.indexOf('CommandStatement') == -1) {
     if (name.indexOf('Special') != -1) {
       if (name.indexOf('Create') != -1) {
@@ -62,7 +62,7 @@ export const getLink = function (nodeName: string, childName: string, term: stri
     .iterate((node) => {
       if (node.name == nodeName) {
         node.node.getChildren(childName).map((subnode) => {
-          if (state.sliceDoc(subnode.from, subnode.to) == term) {
+          if (getCodeName(state, subnode) == term) {
             linkData = {
               to: subnode.to,
               from: subnode.from,

@@ -11,6 +11,7 @@ import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { removeAction } from '../utils/actions';
 import { stateExtension } from 'src/codemirror/extension-state-netlogo';
 import { GetAllBreedPrimitives } from '../parsers/breed';
+import { getCodeName } from '../utils/code';
 
 let primitives = PrimitiveManager;
 
@@ -27,7 +28,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
   reservedVars.push(...linkVars);
   // Used & reserved
   var NameCheck = (node: SyntaxNode | SyntaxNodeRef, type: string, extra?: string[], isBreed: boolean = false) => {
-    const value = view.state.sliceDoc(node.from, node.to).toLowerCase();
+    const value = getCodeName(view.state, node);
     // For breeds, we ignore other breed variables since you can re-define them in NetLogo
     if (defined.includes(value) || extra?.includes(value) || (!isBreed && breedDefined.includes(value))) {
       diagnostics.push(getDiagnostic(view, node, 'Term _ already used', 'error', value, type));
@@ -78,7 +79,6 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
         } else if (noderef.name == 'Identifier' && noderef.node.parent?.name == 'Globals') {
           NameCheck(noderef, 'Global variable');
         } else if (noderef.name == 'ProcedureName') {
-          const value = view.state.sliceDoc(noderef.from, noderef.to).toLowerCase();
           if (noderef.node.parent?.getChildren('To').length == 0) {
             diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized global statement _', 'error'));
           } else {
@@ -88,7 +88,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
           let own = noderef.node.getChild('Own');
           let breedvars: string[] = [];
           if (!own) return;
-          let breedName = view.state.sliceDoc(own.from, own.to).toLowerCase();
+          let breedName = getCodeName(view.state, noderef);
           breedName = breedName.substring(0, breedName.length - 4);
           noderef.node.getChildren('Identifier').map((child) => {
             if (breedName == 'turtles') {
@@ -114,7 +114,7 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
           let child = noderef.node.firstChild?.nextSibling;
           if (!child) return;
           if (child.name.includes('Reporter') || child.name.includes('Command')) {
-            const value = view.state.sliceDoc(child.from, child.to).toLowerCase();
+            const value = getCodeName(view.state, child);
             diagnostics.push(getDiagnostic(view, child, 'Term _ reserved', 'error', value, 'Local variable'));
           } else if (noderef.name == 'NewVariableDeclaration') {
             let localvars = getLocalVariables(child, view.state, lintContext);
@@ -138,21 +138,6 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
       });
   }
   return diagnostics;
-};
-
-const getChildren = (node: SyntaxNode, view: EditorView) => {
-  let children: string[] = [];
-  let values: string[] = [];
-  let cursor = node.cursor();
-  if (cursor.firstChild()) {
-    children.push(cursor.node.name);
-    values.push(view.state.sliceDoc(cursor.from, cursor.to));
-    while (cursor.nextSibling()) {
-      children.push(cursor.node.name);
-      values.push(view.state.sliceDoc(cursor.from, cursor.to));
-    }
-  }
-  return [children, values];
 };
 
 const isLinkBreed = (breedName: string, lintContext: LintContext) => {

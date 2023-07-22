@@ -18,10 +18,12 @@ export const UnrecognizedGlobalLinter: Linter = (view, preprocessContext, lintCo
     }
     cursor.node.getChildren('Procedure').map((child) => {
       if (child.from < lastGlobalPos) {
-        let value = view.state.sliceDoc(child.from, child.to).split('\n')[0];
+        let value: string;
         let nameNode = child.node.getChild('Procedure')?.getChild('ProcedureName');
         if (nameNode) {
           value = view.state.sliceDoc(nameNode.from, nameNode.to);
+        } else {
+          value = view.state.sliceDoc(child.from, child.to).split('\n')[0];
         }
         diagnostics.push({
           from: child.from,

@@ -186,16 +186,6 @@ export class LintContext {
     }
     return null;
   }
-  /** GetBreedFromProcedure: Get breed name from breed procedure. */
-  public GetBreedFromProcedure(term: string): string | null {
-    let breed = '';
-    for (let b of this.GetBreedNames()) {
-      if (term.includes(b) && b.length > breed.length) {
-        breed = b;
-      }
-    }
-    return breed;
-  }
   /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
   public GetProcedureFromVariable(varName: string, from: number, to: number): string | null {
     for (let proc of this.Procedures.values()) {

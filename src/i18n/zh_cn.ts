@@ -18,6 +18,7 @@ const zh_cn: Record<string, Function> = {
   'Invalid content for code block _': (Name: string) => `"${Name}" 不应存在于代码块之中。`,
   'Invalid content for list _': (Name: string) => `"${Name}" 不应存在于列表之中`,
   'Unsupported statement _': (Name: string) => `此版本 NetLogo 不支持 "${Name}"。`,
+  'Unsupported extension statement _': (Name: string) => `此版本 NetLogo 不支持 "${Name}"。提示和错误信息可能不正确。`,
   'Invalid for Normal mode _': (Value: string) => `此编辑器模式只用于编辑 NetLogo 模型。`,
   'Invalid for Embedded mode _': (Value: string) => `此编辑器模式只用于编辑 NetLogo 模型中的一小段代码。`,
   'Invalid for Oneline mode _': (Value: string) => `此编辑器模式只用于编辑单行命令或单行函数。`,
