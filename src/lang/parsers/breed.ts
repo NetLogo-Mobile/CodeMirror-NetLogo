@@ -1,4 +1,5 @@
-import { BreedType } from '../classes/structures';
+import { LintContext } from '../classes/contexts';
+import { Breed, BreedType } from '../classes/structures';
 import { GetContext } from '../netlogo';
 
 import {
@@ -209,4 +210,51 @@ export function MatchBreed(token: string): BreedMatch {
   }
 
   return { Tag: 0, Valid: false };
+}
+
+/** GetAllBreedPrimitives: Get all breed primitives. */
+export function GetAllBreedPrimitives(lintContext: LintContext): string[] {
+  let all: string[] = [];
+  for (let b of lintContext.Breeds.values()) {
+    all.push(...GetBreedPrimitives(b));
+  }
+  return all;
+}
+
+/** GetBreedPrimitives: Get primitives for a specific breed. */
+export function GetBreedPrimitives(b: Breed): string[] {
+  let all = [];
+  if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+    if (b.BreedType == BreedType.Turtle) {
+      all.push('hatch-' + b.Plural);
+      all.push('sprout-' + b.Plural);
+      all.push('create-' + b.Plural);
+      all.push('create-ordered-' + b.Plural);
+    }
+    all.push(b.Plural + '-at');
+    all.push(b.Plural + '-here');
+    all.push(b.Plural + '-on');
+    all.push('is-' + b.Singular + '?');
+  } else {
+    all.push('create-' + b.Plural + '-to');
+    all.push('create-' + b.Singular + '-to');
+    all.push('create-' + b.Plural + '-from');
+    all.push('create-' + b.Singular + '-from');
+    all.push('create-' + b.Plural + '-with');
+    all.push('create-' + b.Singular + '-with');
+    all.push('out-' + b.Singular + '-to');
+    all.push('out-' + b.Singular + '-neighbors');
+    all.push('out-' + b.Singular + '-neighbor?');
+    all.push('in-' + b.Singular + '-from');
+    all.push('in-' + b.Singular + '-neighbors');
+    all.push('in-' + b.Singular + '-neighbor?');
+    all.push('my-' + b.Plural);
+    all.push('my-in-' + b.Plural);
+    all.push('my-out-' + b.Plural);
+    all.push(b.Singular + '-neighbor?');
+    all.push(b.Singular + '-neighbors');
+    all.push(b.Singular + '-with');
+    all.push('is-' + b.Singular + '?');
+  }
+  return all;
 }

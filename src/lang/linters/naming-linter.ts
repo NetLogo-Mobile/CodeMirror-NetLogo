@@ -10,6 +10,7 @@ import { turtleVars, patchVars, linkVars } from '../keywords';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { removeAction } from '../utils/actions';
 import { stateExtension } from 'src/codemirror/extension-state-netlogo';
+import { GetAllBreedPrimitives } from '../parsers/breed';
 
 let primitives = PrimitiveManager;
 
@@ -20,42 +21,10 @@ export const NamingLinter: Linter = (view, preprocessContext, lintContext) => {
   let breedDefined: string[] = [];
   // Reserved keywords
   let reserved = ['turtles', 'turtle', 'patches', 'patch', 'links', 'link'];
-  let reservedVars: string[] = [];
+  let reservedVars: string[] = GetAllBreedPrimitives(lintContext);
   reservedVars.push(...turtleVars);
   reservedVars.push(...patchVars);
   reservedVars.push(...linkVars);
-  for (let b of lintContext.Breeds.values()) {
-    if (b.BreedType == BreedType.Turtle) {
-      reserved.push('hatch-' + b.Plural);
-      reserved.push('sprout-' + b.Plural);
-      reserved.push('create-' + b.Plural);
-      reserved.push('create-ordered-' + b.Plural);
-      reserved.push(b.Plural + '-at');
-      reserved.push(b.Plural + '-here');
-      reserved.push(b.Plural + '-on');
-      reserved.push('is-' + b.Singular + '?');
-    } else {
-      reserved.push('create-' + b.Plural + '-to');
-      reserved.push('create-' + b.Singular + '-to');
-      reserved.push('create-' + b.Plural + '-from');
-      reserved.push('create-' + b.Singular + '-from');
-      reserved.push('create-' + b.Plural + '-with');
-      reserved.push('create-' + b.Singular + '-with');
-      reserved.push('out-' + b.Singular + '-to');
-      reserved.push('out-' + b.Singular + '-neighbors');
-      reserved.push('out-' + b.Singular + '-neighbor?');
-      reserved.push('in-' + b.Singular + '-from');
-      reserved.push('in-' + b.Singular + '-neighbors');
-      reserved.push('in-' + b.Singular + '-neighbor?');
-      reserved.push('my-' + b.Plural);
-      reserved.push('my-in-' + b.Plural);
-      reserved.push('my-out-' + b.Plural);
-      reserved.push(b.Singular + '-neighbor?');
-      reserved.push(b.Singular + '-neighbors');
-      reserved.push(b.Singular + '-with');
-      reserved.push('is-' + b.Singular + '?');
-    }
-  }
   // Used & reserved
   var NameCheck = (node: SyntaxNode | SyntaxNodeRef, type: string, extra?: string[], isBreed: boolean = false) => {
     const value = view.state.sliceDoc(node.from, node.to).toLowerCase();
