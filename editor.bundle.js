@@ -29004,6 +29004,52 @@ if(!String.prototype.matchAll) {
         }
         return { Tag: 0, Valid: false };
     }
+    /** GetAllBreedPrimitives: Get all breed primitives. */
+    function GetAllBreedPrimitives(lintContext) {
+        let all = [];
+        for (let b of lintContext.Breeds.values()) {
+            all.push(...GetBreedPrimitives(b));
+        }
+        return all;
+    }
+    /** GetBreedPrimitives: Get primitives for a specific breed. */
+    function GetBreedPrimitives(b) {
+        let all = [];
+        if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+            if (b.BreedType == BreedType.Turtle) {
+                all.push('hatch-' + b.Plural);
+                all.push('sprout-' + b.Plural);
+                all.push('create-' + b.Plural);
+                all.push('create-ordered-' + b.Plural);
+            }
+            all.push(b.Plural + '-at');
+            all.push(b.Plural + '-here');
+            all.push(b.Plural + '-on');
+            all.push('is-' + b.Singular + '?');
+        }
+        else {
+            all.push('create-' + b.Plural + '-to');
+            all.push('create-' + b.Singular + '-to');
+            all.push('create-' + b.Plural + '-from');
+            all.push('create-' + b.Singular + '-from');
+            all.push('create-' + b.Plural + '-with');
+            all.push('create-' + b.Singular + '-with');
+            all.push('out-' + b.Singular + '-to');
+            all.push('out-' + b.Singular + '-neighbors');
+            all.push('out-' + b.Singular + '-neighbor?');
+            all.push('in-' + b.Singular + '-from');
+            all.push('in-' + b.Singular + '-neighbors');
+            all.push('in-' + b.Singular + '-neighbor?');
+            all.push('my-' + b.Plural);
+            all.push('my-in-' + b.Plural);
+            all.push('my-out-' + b.Plural);
+            all.push(b.Singular + '-neighbor?');
+            all.push(b.Singular + '-neighbors');
+            all.push(b.Singular + '-with');
+            all.push('is-' + b.Singular + '?');
+        }
+        return all;
+    }
 
     let primitives$4 = PrimitiveManager;
     // Keyword tokenizer
@@ -30678,43 +30724,10 @@ if(!String.prototype.matchAll) {
         let breedDefined = [];
         // Reserved keywords
         let reserved = ['turtles', 'turtle', 'patches', 'patch', 'links', 'link'];
-        let reservedVars = [];
+        let reservedVars = GetAllBreedPrimitives(lintContext);
         reservedVars.push(...turtleVars);
         reservedVars.push(...patchVars);
         reservedVars.push(...linkVars);
-        for (let b of lintContext.Breeds.values()) {
-            if (b.BreedType == BreedType.Turtle) {
-                reserved.push('hatch-' + b.Plural);
-                reserved.push('sprout-' + b.Plural);
-                reserved.push('create-' + b.Plural);
-                reserved.push('create-ordered-' + b.Plural);
-                reserved.push(b.Plural + '-at');
-                reserved.push(b.Plural + '-here');
-                reserved.push(b.Plural + '-on');
-                reserved.push('is-' + b.Singular + '?');
-            }
-            else {
-                reserved.push('create-' + b.Plural + '-to');
-                reserved.push('create-' + b.Singular + '-to');
-                reserved.push('create-' + b.Plural + '-from');
-                reserved.push('create-' + b.Singular + '-from');
-                reserved.push('create-' + b.Plural + '-with');
-                reserved.push('create-' + b.Singular + '-with');
-                reserved.push('out-' + b.Singular + '-to');
-                reserved.push('out-' + b.Singular + '-neighbors');
-                reserved.push('out-' + b.Singular + '-neighbor?');
-                reserved.push('in-' + b.Singular + '-from');
-                reserved.push('in-' + b.Singular + '-neighbors');
-                reserved.push('in-' + b.Singular + '-neighbor?');
-                reserved.push('my-' + b.Plural);
-                reserved.push('my-in-' + b.Plural);
-                reserved.push('my-out-' + b.Plural);
-                reserved.push(b.Singular + '-neighbor?');
-                reserved.push(b.Singular + '-neighbors');
-                reserved.push(b.Singular + '-with');
-                reserved.push('is-' + b.Singular + '?');
-            }
-        }
         // Used & reserved
         var NameCheck = (node, type, extra, isBreed = false) => {
             const value = view.state.sliceDoc(node.from, node.to).toLowerCase();
@@ -34127,7 +34140,6 @@ if(!String.prototype.matchAll) {
             let commentFrom = null;
             let procedureStart = null;
             let first = { Globals: null, Extensions: null };
-            let reserved = GetReserved(Editor.LintContext);
             let breeds = [];
             let globals = [];
             let extensions = [];
@@ -34428,25 +34440,15 @@ if(!String.prototype.matchAll) {
                     }
                 }
                 else if (noderef.name == 'Procedure' && noderef.node.getChildren('ProcedureContent').length == 0) {
+                    // JC: I am confused. What does this one do?
                     let child = noderef.node.getChild('ProcedureName');
-                    let name = state.sliceDoc(child === null || child === void 0 ? void 0 : child.from, child === null || child === void 0 ? void 0 : child.to).toLowerCase();
+                    let name = getCodeName(state, child);
                     let matches = state.doc.toString().match(new RegExp(name, 'gi'));
                     if (matches && matches.length == 1) {
                         changes.push({ from: noderef.from, to: noderef.to, insert: '' });
                     }
                 }
-                else if (noderef.name == 'ProcedureName') {
-                    let name = state.sliceDoc(noderef.from, noderef.to).toLowerCase();
-                    if (reserved.includes(name)) {
-                        let pieces = name.split('-');
-                        pieces[0] = 'setup';
-                        changes.push({
-                            from: noderef.from,
-                            to: noderef.to,
-                            insert: pieces.join('-'),
-                        });
-                    }
-                }
+                else if (noderef.name == 'ProcedureName') ;
                 // Record the position of the first procedure to know where to add 'play'
                 if (!procedureStart && noderef.name == 'Procedure')
                     procedureStart = noderef.from;
@@ -34543,44 +34545,6 @@ if(!String.prototype.matchAll) {
             return str;
         else
             return comments.join('\n') + '\n' + str;
-    }
-    /** GetReserved: Get the list of reserved words. */
-    function GetReserved(lintContext) {
-        let all = [];
-        for (let b of lintContext.Breeds.values()) {
-            if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
-                all.push('hatch-' + b.Plural);
-                all.push('sprout-' + b.Plural);
-                all.push('create-' + b.Plural);
-                all.push('create-ordered-' + b.Plural);
-                all.push(b.Plural + '-at');
-                all.push(b.Plural + '-here');
-                all.push(b.Plural + '-on');
-                all.push('is-' + b.Singular + '?');
-            }
-            else {
-                all.push('create-' + b.Plural + '-to');
-                all.push('create-' + b.Singular + '-to');
-                all.push('create-' + b.Plural + '-from');
-                all.push('create-' + b.Singular + '-from');
-                all.push('create-' + b.Plural + '-with');
-                all.push('create-' + b.Singular + '-with');
-                all.push('out-' + b.Singular + '-to');
-                all.push('out-' + b.Singular + '-neighbors');
-                all.push('out-' + b.Singular + '-neighbor?');
-                all.push('in-' + b.Singular + '-from');
-                all.push('in-' + b.Singular + '-neighbors');
-                all.push('in-' + b.Singular + '-neighbor?');
-                all.push('my-' + b.Plural);
-                all.push('my-in-' + b.Plural);
-                all.push('my-out-' + b.Plural);
-                all.push(b.Singular + '-neighbor?');
-                all.push(b.Singular + '-neighbors');
-                all.push(b.Singular + '-with');
-                all.push('is-' + b.Singular + '?');
-            }
-        }
-        return all;
     }
 
     /** SemanticFeatures: The linting, parsing, and highlighting features of the editor. */

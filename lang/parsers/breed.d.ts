@@ -1,4 +1,5 @@
-import { BreedType } from '../classes/structures';
+import { LintContext } from '../classes/contexts';
+import { Breed, BreedType } from '../classes/structures';
 /** BreedStatementRule: A rule for matching breed statements. */
 export interface BreedStatementRule {
     /** Match: The regular expression for the rule. */
@@ -25,4 +26,8 @@ export interface BreedMatch {
 }
 /** MatchBreed: Check if the token is a breed reporter/command/variable. */
 export declare function MatchBreed(token: string): BreedMatch;
+/** GetAllBreedPrimitives: Get all breed primitives. */
+export declare function GetAllBreedPrimitives(lintContext: LintContext): string[];
+/** GetBreedPrimitives: Get primitives for a specific breed. */
+export declare function GetBreedPrimitives(b: Breed): string[];
 //# sourceMappingURL=breed.d.ts.map
