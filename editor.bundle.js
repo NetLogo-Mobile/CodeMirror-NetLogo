@@ -26930,6 +26930,16 @@ if(!String.prototype.matchAll) {
             this.Procedures.clear();
             return this;
         }
+        /** GetDefined: Get defined names. */
+        GetDefined() {
+            var defined = [];
+            defined.push(...this.Globals.keys());
+            defined.push(...this.WidgetGlobals.keys());
+            defined.push(...this.Procedures.keys());
+            defined.push(...this.GetBreedNames());
+            defined.push(...this.GetBreedVariables());
+            return defined;
+        }
         /** GetBreedNames: Get names related to breeds. */
         GetBreedNames() {
             var breedNames = [];
@@ -26942,18 +26952,16 @@ if(!String.prototype.matchAll) {
         /** GetPluralBreedNames: Get plural names related to breeds. */
         GetPluralBreedNames() {
             var breedNames = [];
-            for (let breed of this.Breeds.values()) {
+            for (let breed of this.Breeds.values())
                 breedNames.push(breed.Plural);
-            }
             return breedNames;
         }
         /** GetBreedVariables: Get variable names related to breeds. */
         GetBreedVariables() {
-            var breedNames = [];
-            for (let breed of this.Breeds.values()) {
-                breedNames = breedNames.concat(breed.Variables);
-            }
-            return breedNames;
+            var variables = [];
+            for (let breed of this.Breeds.values())
+                variables = variables.concat(breed.Variables);
+            return variables;
         }
         /** GetBreeds: Get list of breeds. */
         GetBreeds() {
@@ -30467,7 +30475,10 @@ if(!String.prototype.matchAll) {
             }
             else if (reservedVars.includes(value)) {
                 if (type.includes('variable')) {
-                    diagnostics.push(removeAction(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type)));
+                    if (type == 'Local variable')
+                        diagnostics.push(removeAction(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type)));
+                    else
+                        diagnostics.push(getDiagnostic(view, node, 'Variable _ reserved', 'error', value, type));
                 }
                 else {
                     diagnostics.push(getDiagnostic(view, node, 'Term _ reserved', 'error', value, type));
@@ -30484,27 +30495,18 @@ if(!String.prototype.matchAll) {
                 }
             }
         };
-        if (view.state.field(stateExtension).EditorID != 0) {
+        var Mode = view.state.field(stateExtension).Mode;
+        if (Mode != ParseMode.Normal && Mode != ParseMode.Generative) {
+            defined.push(...lintContext.GetDefined());
             syntaxTree(view.state)
                 .cursor()
                 .iterate((noderef) => {
                 var _a;
                 if (noderef.name == 'NewVariableDeclaration') {
-                    // TODO: Optimize it so that whenever we see a procedure, we check the local variables
-                    // Now, for each new variable declaration, we look back again
-                    // It would also solve the issue of arguments & local variables using the same name
-                    // Since the new variable definition is typically few, not a high priority
                     let child = (_a = noderef.node.getChild('Identifier')) !== null && _a !== void 0 ? _a : noderef.node.getChild('UnsupportedPrim');
                     if (!child)
                         return;
-                    let localvars = [
-                        ...lintContext.Globals.keys(),
-                        ...lintContext.WidgetGlobals.keys(),
-                        ...lintContext.Procedures.keys(),
-                        ...lintContext.Breeds.keys(),
-                        ...lintContext.Extensions.keys(),
-                        ...getLocalVariables(child, view.state, lintContext),
-                    ];
+                    let localvars = getLocalVariables(child, view.state, lintContext);
                     NameCheck(child, 'Local variable', localvars);
                 }
             });
@@ -30560,8 +30562,6 @@ if(!String.prototype.matchAll) {
                     // Now, for each new variable declaration, we look back again
                     // It would also solve the issue of arguments & local variables using the same name
                     // Since the new variable definition is typically few, not a high priority
-                    //let child = noderef.node.getChild('Identifier') ?? noderef.node.getChild('UnsupportedPrim');
-                    // console.log(view.state.sliceDoc(noderef.from,noderef.to),getChildren(noderef.node,view))
                     let child = (_c = noderef.node.firstChild) === null || _c === void 0 ? void 0 : _c.nextSibling;
                     if (!child)
                         return;

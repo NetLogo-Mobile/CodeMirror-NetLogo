@@ -49,6 +49,8 @@ export declare class LintContext {
     Procedures: Map<string, Procedure>;
     /** Clear: Clear the context. */
     Clear(): LintContext;
+    /** GetDefined: Get defined names. */
+    GetDefined(): string[];
     /** GetBreedNames: Get names related to breeds. */
     GetBreedNames(): string[];
     /** GetPluralBreedNames: Get plural names related to breeds. */
