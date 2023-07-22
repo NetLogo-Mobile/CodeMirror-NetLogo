@@ -1,7 +1,7 @@
 import { EditorView } from '@codemirror/view';
 import { stateExtension, StateNetLogo } from '../../codemirror/extension-state-netlogo';
 import { EditorState } from '@codemirror/state';
-import { SyntaxNode } from '@lezer/common';
+import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { CodeBlock, Procedure } from '../classes/structures';
 import { LintContext, PreprocessContext } from '../classes/contexts';
 import { getCodeName, getParentProcedure } from './code';
@@ -134,4 +134,37 @@ export function checkUndefinedBreed(
     diagnostics.push(diagnostic);
     return true;
   } else return false;
+}
+
+/** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
+export const UnrecognizedSuggestions: Record<string, string> = {
+  else: 'ifelse',
+  'create-patch': 'ask patch 0 0',
+  'create-patches': 'ask patches',
+  'create-link': 'create-link-with',
+  'create-links': 'create-links-with',
+  'set-patch-color': 'set pcolor',
+};
+
+/** checkUnrecognizedWithSuggestions: Check if the unrecognized identifier has a suggestion. */
+export function checkUnrecognizedWithSuggestions(
+  diagnostics: Diagnostic[],
+  view: EditorView,
+  node: SyntaxNode | SyntaxNodeRef
+): boolean {
+  var value = getCodeName(view.state, node);
+  if (UnrecognizedSuggestions.hasOwnProperty(value)) {
+    diagnostics.push(
+      getDiagnostic(
+        view,
+        node,
+        'Unrecognized identifier with replacement _',
+        'error',
+        value,
+        UnrecognizedSuggestions[value]
+      )
+    );
+    return true;
+  }
+  return false;
 }

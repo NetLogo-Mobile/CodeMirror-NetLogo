@@ -3,7 +3,7 @@ import { Diagnostic } from '@codemirror/lint';
 import { Log } from '../../utils/debug-utils';
 import { Linter, getDiagnostic } from './linter-builder';
 import { reserved } from '../keywords';
-import { checkUndefinedBreed, getCheckContext } from '../utils/check-identifier';
+import { checkUndefinedBreed, getCheckContext, checkUnrecognizedWithSuggestions } from '../utils/check-identifier';
 import { getCodeName } from '../utils/code';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
@@ -43,6 +43,8 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
           !['[', ']', ')', '(', '"'].includes(value) &&
           !checkUndefinedBreed(diagnostics, context.preprocessState, view, node.node)
         ) {
+          // Check if a suggestion exists
+          if (checkUnrecognizedWithSuggestions(diagnostics, view, node)) return;
           // Anything else could be an unrecognized statement
           if (node.node.parent?.name == 'Normal') {
             diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));

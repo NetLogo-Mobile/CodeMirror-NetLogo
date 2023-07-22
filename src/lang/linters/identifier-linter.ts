@@ -2,7 +2,12 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
 import { Linter, getDiagnostic } from './linter-builder';
-import { checkValidIdentifier, getCheckContext, checkUndefinedBreed } from '../utils/check-identifier';
+import {
+  checkValidIdentifier,
+  getCheckContext,
+  checkUndefinedBreed,
+  checkUnrecognizedWithSuggestions,
+} from '../utils/check-identifier';
 import { getCodeName } from '../utils/code';
 import { Localized } from 'src/editor';
 
@@ -53,31 +58,10 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
         // check if the identifier looks like a breed procedure (e.g. "create-___")
         if (checkUndefinedBreed(diagnostics, context.preprocessState, view, node)) return;
         // check if a suggestion exists
-        if (UnrecognizedSuggestions.hasOwnProperty(value)) {
-          diagnostics.push(
-            getDiagnostic(
-              view,
-              noderef,
-              'Unrecognized identifier with replacement _',
-              'error',
-              value,
-              UnrecognizedSuggestions[value]
-            )
-          );
-        } else {
-          diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
-        }
+        if (checkUnrecognizedWithSuggestions(diagnostics, view, node)) return;
+        // nothing more to check, so it is an unrecognized identifier
+        diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
       }
     });
   return diagnostics;
-};
-
-/** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
-export const UnrecognizedSuggestions: Record<string, string> = {
-  else: 'ifelse',
-  'create-patch': 'ask patch 0 0',
-  'create-patches': 'ask patches',
-  'create-link': 'create-link-with',
-  'create-links': 'create-links-with',
-  'set-patch-color': 'set pcolor',
 };
