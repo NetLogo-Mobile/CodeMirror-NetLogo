@@ -29075,9 +29075,6 @@ if(!String.prototype.matchAll) {
         else if (constants.indexOf(token) != -1) {
             input.acceptToken(Constant);
         }
-        else if (token.indexOf(':') != -1 && primitives$4.GetExtensions().indexOf(token.split(':')[0]) == -1) {
-            input.acceptToken(UnsupportedPrim);
-        }
         else {
             // Check if token is a reporter/commander
             const primitive = PrimitiveManager.GetNamedPrimitive(token);
@@ -29102,8 +29099,11 @@ if(!String.prototype.matchAll) {
                 input.acceptToken(customMatch);
                 return;
             }
-            else if (match.tag != 0 && !match.valid) {
+            else if (match.tag != 0) {
                 input.acceptToken(match.tag);
+            }
+            else if (token.indexOf(':') != -1 && primitives$4.GetExtensions().indexOf(token.split(':')[0]) == -1) {
+                input.acceptToken(UnsupportedPrim);
             }
             else {
                 input.acceptToken(Identifier);
