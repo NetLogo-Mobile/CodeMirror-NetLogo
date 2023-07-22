@@ -28696,11 +28696,13 @@ if(!String.prototype.matchAll) {
             return true;
         }
         // #endregion
+        // #region "Procedures"
         ReplaceProcedure(view, name, content) {
+            name = name.trim().toLowerCase();
             syntaxTree(view.state)
                 .cursor()
                 .iterate((node) => {
-                if (node.name == 'Procedure' && view.state.sliceDoc(node.from, node.to) == name) {
+                if (node.name == 'Procedure' && getCodeName(view.state, node) == name) {
                     node.from + content.length;
                     view.dispatch({
                         changes: {
