@@ -5,7 +5,6 @@ import { Procedure, CodeBlock, AgentContexts } from '../classes/structures';
 import { LintContext } from '../classes/contexts';
 import { combineContexts, noContext } from '../../utils/context-utils';
 import { stateExtension } from '../../codemirror/extension-state-netlogo';
-import { syntaxTree } from '@codemirror/language';
 
 /** ContextLinter: Checks if procedures and code blocks have a valid context. */
 export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -24,7 +23,6 @@ export const ContextLinter: Linter = (view, preprocessContext, lintContext) => {
       )
     );
   }
-
   return diagnostics;
 };
 

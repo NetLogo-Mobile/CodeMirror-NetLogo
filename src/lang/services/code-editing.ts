@@ -8,6 +8,7 @@ import { GalapagosEditor } from '../../editor';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
 import { reserved } from '../keywords';
 import { getSingularName } from '../parsers/breed';
+import { getCodeName } from '../utils/code';
 
 /** CodeEditing: Functions for editing code. */
 export class CodeEditing {
@@ -133,12 +134,14 @@ export class CodeEditing {
   }
   // #endregion
 
+  // #region "Procedures"
   public ReplaceProcedure(view: EditorView, name: string, content: string) {
     let index = 0;
+    name = name.trim().toLowerCase();
     syntaxTree(view.state)
       .cursor()
       .iterate((node) => {
-        if (node.name == 'Procedure' && view.state.sliceDoc(node.from, node.to) == name) {
+        if (node.name == 'Procedure' && getCodeName(view.state, node) == name) {
           index = node.from + content.length;
           view.dispatch({
             changes: {
@@ -150,4 +153,5 @@ export class CodeEditing {
         }
       });
   }
+  // #endregion
 }
