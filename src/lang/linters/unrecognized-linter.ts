@@ -2,9 +2,9 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Log } from '../../utils/debug-utils';
 import { Linter, getDiagnostic } from './linter-builder';
-import { checkBreedLike } from '../../utils/breed-utils';
 import { reserved } from '../keywords';
-import { checkBreed, getCheckContext } from '../utils/check-identifier';
+import { checkUndefinedBreed, getCheckContext } from '../utils/check-identifier';
+import { getCodeName } from '../utils/code';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
 export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -20,7 +20,7 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
           parents.push(curr.parent.name);
           curr = curr.parent;
         }
-        const value = view.state.sliceDoc(node.from, node.to).toLowerCase().trim();
+        const value = getCodeName(view.state, node);
         Log(value, node.name, parents);
         if (node.node.parent?.name == 'Arguments') {
           // Arguments should not be reserved words or command/reporter names
@@ -39,9 +39,10 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
           } else {
             diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
           }
-        } else if (checkBreedLike(value).found) {
-          checkBreed(diagnostics, context, view, node.node);
-        } else if (!['[', ']', ')', '(', '"'].includes(value) && !checkBreedLike(value).found) {
+        } else if (
+          !['[', ']', ')', '(', '"'].includes(value) &&
+          !checkUndefinedBreed(diagnostics, context.preprocessState, view, node.node)
+        ) {
           // Anything else could be an unrecognized statement
           if (node.node.parent?.name == 'Normal') {
             diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));

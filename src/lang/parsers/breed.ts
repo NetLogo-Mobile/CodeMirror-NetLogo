@@ -1,6 +1,5 @@
-import { LintContext } from '../classes/contexts';
+import { LintContext, PreprocessContext } from '../classes/contexts';
 import { Breed, BreedType } from '../classes/structures';
-import { GetContext } from '../netlogo';
 
 import {
   Own,
@@ -33,7 +32,6 @@ import {
 } from './../lang.terms.js';
 
 /** BreedStatementRules: Rules for matching breed statements. */
-// For Ruth: You might want to merge the "BreedLocation" into those rules and then refactor relevant procedures into this file.
 const BreedStatementRules: BreedStatementRule[] = [
   {
     Match: /^(.*?)-own$/,
@@ -155,6 +153,12 @@ export interface BreedMatch {
   Tag: number;
   /** Valid: Whether the match is validated. */
   Valid: boolean;
+  /** Singular: The singular form of the breed. */
+  Singular?: string;
+  /** Plural: The plural form of the breed. */
+  Plural?: string;
+  /** Type: The type of the breed. */
+  Type?: BreedType;
   /** Rule: The rule that matched. */
   Rule?: BreedStatementRule;
   /** Prototype: The prototype of the token. */
@@ -162,50 +166,74 @@ export interface BreedMatch {
 }
 
 /** MatchBreed: Check if the token is a breed reporter/command/variable. */
-export function MatchBreed(token: string): BreedMatch {
-  let parseContext = GetContext();
-
+export function MatchBreed(token: string, context: PreprocessContext, guessing: boolean = false): BreedMatch {
   // Check breed variables
-  let breedVars = parseContext.BreedVars;
-  if (breedVars.has(token)) return { Tag: Identifier, Valid: false };
-  if (parseContext.SingularBreeds.has(token)) {
-    var Type = parseContext.BreedTypes.get(parseContext.SingularToPlurals.get(token)!);
-    if (Type == BreedType.Turtle) return { Tag: SpecialReporter1Args, Valid: true };
-    else return { Tag: SpecialReporter2Args, Valid: true };
+  if (!guessing) {
+    let breedVars = context.BreedVars;
+    if (breedVars.has(token)) return { Tag: Identifier, Valid: false };
+    if (context.SingularBreeds.has(token)) {
+      let plural = context.SingularToPlurals.get(token)!;
+      var type = context.BreedTypes.get(plural);
+      if (type == BreedType.Turtle) return { Tag: SpecialReporter1Args, Singular: token, Plural: plural, Valid: true };
+      else return { Tag: SpecialReporter2Args, Singular: token, Plural: plural, Valid: true };
+    }
   }
 
   // Check breed statements
+  var valid = true;
   for (let rule of BreedStatementRules) {
     let match = token.match(rule.Match);
     if (match) {
       var name = match[rule.Position + 1];
-      var type = -1;
       // Find the breed
-      var singular = rule.Singular !== undefined ? rule.Singular : parseContext.SingularBreeds.has(name);
-      if (singular) {
-        if (!parseContext.SingularBreeds.has(name)) return { Tag: 0, Valid: false };
-        type = parseContext.BreedTypes.get(parseContext.SingularToPlurals.get(name)!)!;
+      var isSingular = rule.Singular !== undefined ? rule.Singular : context.SingularBreeds.has(name);
+      var singular: string, plural: string;
+      if (isSingular) {
+        singular = name;
+        if (!context.SingularBreeds.has(name)) {
+          if (!guessing) return { Tag: 0, Valid: false };
+          plural = getPluralName(name);
+          valid = false;
+        } else {
+          plural = context.SingularToPlurals.get(name)!;
+        }
       } else {
-        if (!parseContext.PluralBreeds.has(name)) return { Tag: 0, Valid: false };
-        type = parseContext.BreedTypes.get(name)!;
+        plural = name;
+        if (!context.PluralBreeds.has(name)) {
+          if (!guessing) return { Tag: 0, Valid: false };
+          singular = getSingularName(name);
+          valid = false;
+        } else {
+          singular = context.PluralToSingulars.get(name)!;
+        }
       }
-      if (type == BreedType.DirectedLink) type = BreedType.UndirectedLink;
       // Check the type
-      if (rule.Type !== undefined && type !== rule.Type) return { Tag: 0, Valid: false };
+      type = context.BreedTypes.get(plural);
+      if (typeof type === 'undefined' && guessing) type = rule.Type; // Guess if needed
+      if (type == BreedType.DirectedLink) type = BreedType.UndirectedLink;
+      if (typeof rule.Type !== 'undefined' && type !== rule.Type) return { Tag: 0, Valid: false };
       // Produce the prototype
       switch (type) {
         case BreedType.Turtle:
-          match[rule.Position + 1] = singular ? 'turtle' : 'turtles';
+          match[rule.Position + 1] = isSingular ? 'turtle' : 'turtles';
           break;
         case BreedType.Patch:
-          match[rule.Position + 1] = singular ? 'patch' : 'patches';
+          match[rule.Position + 1] = isSingular ? 'patch' : 'patches';
           break;
         case BreedType.UndirectedLink:
-        case BreedType.DirectedLink:
-          match[rule.Position + 1] = singular ? 'link' : 'links';
+          match[rule.Position + 1] = isSingular ? 'link' : 'links';
           break;
       }
-      return { Rule: rule, Tag: rule.Tag, Valid: true, Prototype: match.slice(1).join('-') };
+      // Return the result
+      return {
+        Rule: rule,
+        Tag: rule.Tag,
+        Plural: plural,
+        Singular: singular,
+        Type: type,
+        Valid: valid,
+        Prototype: match.slice(1).join('-'),
+      };
     }
   }
 
@@ -258,3 +286,21 @@ export function GetBreedPrimitives(b: Breed): string[] {
   }
   return all;
 }
+
+/** getPluralName: Get the plural name of a breed. */
+export const getPluralName = function (singular: string) {
+  if (singular[singular.length - 1] == 's') {
+    return singular + 'es';
+  } else {
+    return singular + 's';
+  }
+};
+
+/** getSingularName: Get the singular name of a breed. */
+export const getSingularName = function (plural: string) {
+  if (plural[plural.length - 1] != 's') {
+    return 'a-' + plural;
+  } else {
+    return plural.substring(0, plural.length - 1);
+  }
+};

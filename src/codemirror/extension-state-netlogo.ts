@@ -10,7 +10,6 @@ import {
   BreedType,
 } from '../lang/classes/structures';
 import { combineContexts, noContext } from '../utils/context-utils';
-import { getBreedName } from '../utils/breed-utils';
 import { SyntaxNode, SyntaxNodeRef } from '@lezer/common';
 import { RuntimeError } from '../lang/linters/runtime-linter';
 import { PrimitiveManager } from '../lang/primitives/primitives';
@@ -20,6 +19,7 @@ import { GetCursorUntilMode } from '../lang/utils/cursors';
 import { getCodeName } from '../lang/utils/code';
 import { PreprocessContext } from '../lang/classes/contexts';
 import { syntaxTree } from '@codemirror/language';
+import { MatchBreed } from '../lang/parsers/breed';
 
 let primitives = PrimitiveManager;
 
@@ -484,7 +484,7 @@ export class StateNetLogo {
     // console.log(prim.name,state.sliceDoc(node.from,node.to))
     if (prim.type.includes('Special')) {
       prim.isSpecial = true;
-      prim.breed = getBreedName(prim.name).breed ?? '';
+      prim.breed = MatchBreed(prim.name, this.Preprocess).Plural ?? '';
     }
     if (prim.breed != '') {
       prim.context = new AgentContexts('null');

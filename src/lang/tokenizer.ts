@@ -155,7 +155,7 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     }
 
     // Check if token is a breed reporter/command
-    const match = MatchBreed(token);
+    const match = MatchBreed(token, GetContext());
     if (match.Tag != 0 && match.Valid) {
       input.acceptToken(match.Tag);
       return;

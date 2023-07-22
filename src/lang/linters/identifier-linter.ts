@@ -2,8 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { EditorView } from '@codemirror/view';
 import { Linter, getDiagnostic } from './linter-builder';
-import { checkBreedLike } from '../../utils/breed-utils';
-import { checkValidIdentifier, getCheckContext, checkBreed } from '../utils/check-identifier';
+import { checkValidIdentifier, getCheckContext, checkUndefinedBreed } from '../utils/check-identifier';
 import { getCodeName } from '../utils/code';
 import { Localized } from 'src/editor';
 
@@ -52,22 +51,21 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
           return;
         }
         // check if the identifier looks like a breed procedure (e.g. "create-___")
-        let result = checkBreedLike(value);
-        if (!result.found || !checkBreed(diagnostics, context, view, node)) {
-          if (UnrecognizedSuggestions.hasOwnProperty(value)) {
-            diagnostics.push(
-              getDiagnostic(
-                view,
-                noderef,
-                'Unrecognized identifier with replacement _',
-                'error',
-                value,
-                UnrecognizedSuggestions[value]
-              )
-            );
-          } else {
-            diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
-          }
+        if (checkUndefinedBreed(diagnostics, context.preprocessState, view, node)) return;
+        // check if a suggestion exists
+        if (UnrecognizedSuggestions.hasOwnProperty(value)) {
+          diagnostics.push(
+            getDiagnostic(
+              view,
+              noderef,
+              'Unrecognized identifier with replacement _',
+              'error',
+              value,
+              UnrecognizedSuggestions[value]
+            )
+          );
+        } else {
+          diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
         }
       }
     });

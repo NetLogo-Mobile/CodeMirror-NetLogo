@@ -8,7 +8,6 @@ import { NetLogoType } from '../classes/structures';
 import { Linter, getDiagnostic } from './linter-builder';
 import { PreprocessContext } from '../classes/contexts';
 import { Log } from '../../utils/debug-utils';
-import { getCodeName } from '../utils/code';
 
 let primitives = PrimitiveManager;
 

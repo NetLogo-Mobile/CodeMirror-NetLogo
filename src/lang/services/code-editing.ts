@@ -6,8 +6,8 @@ import { BreedType } from '../classes/structures';
 import { GetCursorInsideMode, GetCursorUntilMode } from '../utils/cursors';
 import { GalapagosEditor } from '../../editor';
 import { preprocessStateExtension } from '../../codemirror/extension-state-preprocess';
-import { getSingularName } from '../../utils/breed-utils';
 import { reserved } from '../keywords';
+import { getSingularName } from '../parsers/breed';
 
 /** CodeEditing: Functions for editing code. */
 export class CodeEditing {
