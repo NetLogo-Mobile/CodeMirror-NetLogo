@@ -140,6 +140,8 @@ export function checkUndefinedBreed(
 export const UnrecognizedSuggestions: Record<string, string> = {
   else: 'ifelse',
   '%': 'mod',
+  '{': '[',
+  '}': ']',
   'create-patch': 'ask patch 0 0',
   'create-patches': 'ask patches',
   'create-link': 'create-link-with',

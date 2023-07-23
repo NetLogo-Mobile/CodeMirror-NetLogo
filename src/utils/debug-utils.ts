@@ -2,7 +2,7 @@
 export const Global: any = typeof globalThis === 'undefined' ? window : globalThis;
 
 /** Log: Log to console if debug is enabled. */
-export const Log = true ? console.log : () => {}; //Global.GalapagosSilent ? console.log : () => {};
+export const Log = Global.GalapagosSilent ? () => {} : console.log;
 
 /**
  * String.prototype.trimStart() polyfill
