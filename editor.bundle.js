@@ -29541,11 +29541,13 @@ if(!String.prototype.matchAll) {
     /** UnrecognizedSuggestions: Suggestions for unrecognized identifiers. */
     const UnrecognizedSuggestions = {
         else: 'ifelse',
+        '%': 'mod',
         'create-patch': 'ask patch 0 0',
         'create-patches': 'ask patches',
         'create-link': 'create-link-with',
         'create-links': 'create-links-with',
         'set-patch-color': 'set pcolor',
+        'set-world-size': 'resize-world',
     };
     /** checkUnrecognizedWithSuggestions: Check if the unrecognized identifier has a suggestion. */
     function checkUnrecognizedWithSuggestions(diagnostics, view, node) {
@@ -33986,6 +33988,8 @@ if(!String.prototype.matchAll) {
             comments = [];
             commentFrom = null;
             commentsStart = null;
+            // Repeatedly make the entire doc lowercased is expensive. Let's cache it.
+            let lowerdoc = state.doc.toString().toLowerCase();
             // Go over the syntax tree
             syntaxTree(state)
                 .cursor()
@@ -34009,7 +34013,7 @@ if(!String.prototype.matchAll) {
                     }
                     changes.push({
                         from: commentsStart !== null && commentsStart !== void 0 ? commentsStart : noderef.from,
-                        to: Math.min(noderef.to + 1, state.doc.toString().length),
+                        to: Math.min(noderef.to + 1, lowerdoc.length),
                         insert: '',
                     });
                     return false;
@@ -34035,8 +34039,8 @@ if(!String.prototype.matchAll) {
                     let deleted = 0;
                     let temp_changes = [];
                     noderef.node.getChildren('Identifier').map((child) => {
-                        let value = state.sliceDoc(child.from, child.to);
-                        if (globals.includes(value.toLowerCase()) || reservedVars.includes(value.toLowerCase())) {
+                        let value = getCodeName(state, child);
+                        if (globals.includes(value) || reservedVars.includes(value)) {
                             temp_changes.push({
                                 from: child.from,
                                 to: child.to,
@@ -34044,7 +34048,7 @@ if(!String.prototype.matchAll) {
                             });
                             deleted += 1;
                         }
-                        globals.push(value.toLowerCase());
+                        globals.push(value);
                     });
                     if (deleted == len || len == 0) {
                         changes.push({
@@ -34106,20 +34110,11 @@ if(!String.prototype.matchAll) {
                     let deleted = 0;
                     let temp_changes = [];
                     noderef.node.getChildren('Identifier').map((child) => {
-                        let value = state.sliceDoc(child.from, child.to);
-                        if (state.doc
-                            .toString()
-                            .toLowerCase()
-                            .includes('(' + value.toLowerCase() + ':') ||
-                            state.doc
-                                .toString()
-                                .toLowerCase()
-                                .includes(' ' + value.toLowerCase() + ':') ||
-                            state.doc
-                                .toString()
-                                .toLowerCase()
-                                .includes('\n' + value.toLowerCase() + ':') ||
-                            extensions.includes(value.toLowerCase())) {
+                        let value = getCodeName(state, child);
+                        if (lowerdoc.includes('(' + value + ':') ||
+                            lowerdoc.includes(' ' + value + ':') ||
+                            lowerdoc.includes('\n' + value + ':') ||
+                            extensions.includes(value)) {
                             temp_changes.push({
                                 from: child.from,
                                 to: child.to,
@@ -34127,7 +34122,7 @@ if(!String.prototype.matchAll) {
                             });
                             deleted += 1;
                         }
-                        extensions.push(value.toLowerCase());
+                        extensions.push(value);
                     });
                     if (deleted == len || len == 0) {
                         changes.push({
@@ -34155,11 +34150,7 @@ if(!String.prototype.matchAll) {
                 if (noderef.name == 'Procedure' && noderef.node.getChildren('ProcedureContent').length == 1) {
                     let child = (_e = (_d = noderef.node
                         .getChild('ProcedureContent')) === null || _d === void 0 ? void 0 : _d.getChild('CommandStatement')) === null || _e === void 0 ? void 0 : _e.getChild('SpecialCommand0Args');
-                    if (child &&
-                        state.doc
-                            .toString()
-                            .toLowerCase()
-                            .includes('to ' + state.sliceDoc(child.from, child.to))) {
+                    if (child && lowerdoc.includes('to ' + getCodeName(state, child))) {
                         changes.push({
                             from: noderef.from,
                             to: noderef.to,
@@ -34171,7 +34162,7 @@ if(!String.prototype.matchAll) {
                     // JC: I am confused. What does this one do?
                     let child = noderef.node.getChild('ProcedureName');
                     let name = getCodeName(state, child);
-                    let matches = state.doc.toString().match(new RegExp(name, 'gi'));
+                    let matches = lowerdoc.match(new RegExp(name, 'gi'));
                     if (matches && matches.length == 1) {
                         changes.push({ from: noderef.from, to: noderef.to, insert: '' });
                     }
@@ -34204,8 +34195,8 @@ if(!String.prototype.matchAll) {
             // If there are rogue statements, wrap them into a procedure
             if (intoProcedure.length != 0) {
                 changes.push({
-                    from: procedureStart !== null && procedureStart !== void 0 ? procedureStart : state.doc.toString().length,
-                    to: procedureStart !== null && procedureStart !== void 0 ? procedureStart : state.doc.toString().length,
+                    from: procedureStart !== null && procedureStart !== void 0 ? procedureStart : lowerdoc.length,
+                    to: procedureStart !== null && procedureStart !== void 0 ? procedureStart : lowerdoc.length,
                     insert: '\nto play\n' + intoProcedure.join('\n') + '\nend\n\n',
                 });
             }
