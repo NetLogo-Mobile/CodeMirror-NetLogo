@@ -29982,7 +29982,12 @@ if(!String.prototype.matchAll) {
                         {
                             name: Localized.Get('Fix'),
                             apply(view, from, to) {
-                                view.dispatch({ changes: { from, to, insert: '(- ' + value.slice(1) + ' )' } });
+                                if (value.startsWith('(')) {
+                                    view.dispatch({ changes: { from, to, insert: '- ' + value.slice(1) } });
+                                }
+                                else {
+                                    view.dispatch({ changes: { from, to, insert: '(- ' + value.slice(1) + ')' } });
+                                }
                             },
                         },
                     ];
