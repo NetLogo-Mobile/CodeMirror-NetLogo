@@ -26706,8 +26706,9 @@ if(!String.prototype.matchAll) {
     catch (error) { }
 
     /** Global: Global object. */
+    const Global = typeof globalThis === 'undefined' ? window : globalThis;
     /** Log: Log to console if debug is enabled. */
-    const Log = console.log ; //Global.GalapagosSilent ? console.log : () => {};
+    const Log = Global.GalapagosSilent ? () => { } : console.log;
     /**
      * String.prototype.trimStart() polyfill
      * Adapted from polyfill.io
@@ -29542,6 +29543,8 @@ if(!String.prototype.matchAll) {
     const UnrecognizedSuggestions = {
         else: 'ifelse',
         '%': 'mod',
+        '{': '[',
+        '}': ']',
         'create-patch': 'ask patch 0 0',
         'create-patches': 'ask patches',
         'create-link': 'create-link-with',
