@@ -31,7 +31,11 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
             {
               name: Localized.Get('Fix'),
               apply(view: EditorView, from: number, to: number) {
-                view.dispatch({ changes: { from, to, insert: '(- ' + value.slice(1) + ' )' } });
+                if (value.startsWith('(')) {
+                  view.dispatch({ changes: { from, to, insert: '- ' + value.slice(1) } });
+                } else {
+                  view.dispatch({ changes: { from, to, insert: '(- ' + value.slice(1) + ')' } });
+                }
               },
             },
           ];
