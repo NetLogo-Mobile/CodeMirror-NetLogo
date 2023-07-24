@@ -99,12 +99,18 @@ export class SelectionFeatures {
       },
       update(value, tr) {
         value = value.map(tr.changes);
+        if (clicked) {
+          // if clicked is true, then we remove decorations and return
+          console.log('removing decorations');
+          return Decoration.none;
+        }
         for (let e of tr.effects) {
           if (e.is(removedEffect)) {
             //if it is a added word then add "added" mark decoration
             value = value.update({
               add: [addedMark.range(e.value.from, e.value.to)],
             });
+            clicked = false;
           } else if (e.is(addTextWidget)) {
             let decorationWidget = Decoration.widget({
               widget: new TextWidget(removed[removedIndex], 'cm-removed'), // if it is a removed word then add a "removed" widget decoration
@@ -114,6 +120,7 @@ export class SelectionFeatures {
             value = value.update({
               add: [decorationWidget.range(e.value.to)],
             });
+            clicked = false;
           }
         }
         return value;
@@ -175,14 +182,6 @@ export class SelectionFeatures {
       }
     });
 
-    function sleep(ms: number) {
-      return new Promise((resolve) => setTimeout(resolve, ms));
-    }
-
-    function revert(view: EditorView, state: EditorState) {
-      view.setState(state);
-      return;
-    }
     //   //create another statefield to remove the highlight after 5 seconds
     const removeChangesField = StateField.define({
       create() {
@@ -192,11 +191,7 @@ export class SelectionFeatures {
         // check if cursor changed
         if (tr.selection && !clicked) {
           // if cursor changed, then remove the highlight
-          console.log('selection changed ');
-          sleep(50).then(() => {
-            revert(editorView, currentState);
-            clicked = false;
-          });
+          clicked = true;
         }
         return;
       },
