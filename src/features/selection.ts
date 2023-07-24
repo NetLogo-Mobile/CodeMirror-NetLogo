@@ -67,7 +67,8 @@ export class SelectionFeatures {
   // #region "Highlighting Changes"
   /** HighlightChanges: Highlight the changes in the editor. */
   HighlightChanges(PreviousVersion: string) {
-    let clicked: boolean = false;
+    let hasDecorations: boolean = false; // boolean flag to check if decorations have been added
+    let clicked: boolean = false; // boolean flag to check if cursor has changed upon adding decorations
     // string of current state doc of editor at time of "HighlightChanges" call
     const CurrentVersion: string = this.CodeMirror.state.doc.toString();
     const currentState = this.CodeMirror.state;
@@ -99,9 +100,11 @@ export class SelectionFeatures {
       },
       update(value, tr) {
         value = value.map(tr.changes);
-        if (clicked) {
-          // if clicked is true, then we remove decorations and return
+        if (hasDecorations && clicked) {
+          // if clicked is true and we have decorations, then we remove decorations and return
           console.log('removing decorations');
+          clicked = false;
+          hasDecorations = false;
           return Decoration.none;
         }
         for (let e of tr.effects) {
@@ -110,6 +113,7 @@ export class SelectionFeatures {
             value = value.update({
               add: [addedMark.range(e.value.from, e.value.to)],
             });
+            hasDecorations = true;
             clicked = false;
           } else if (e.is(addTextWidget)) {
             let decorationWidget = Decoration.widget({
@@ -120,6 +124,7 @@ export class SelectionFeatures {
             value = value.update({
               add: [decorationWidget.range(e.value.to)],
             });
+            hasDecorations = true;
             clicked = false;
           }
         }
@@ -189,8 +194,8 @@ export class SelectionFeatures {
       },
       update(lines, tr) {
         // check if cursor changed
-        if (tr.selection && !clicked) {
-          // if cursor changed, then remove the highlight
+        if (tr && hasDecorations) {
+          // if cursor changed, set clicked to true which makes the update function in changesField remove the decorations
           clicked = true;
         }
         return;
