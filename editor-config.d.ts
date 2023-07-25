@@ -39,15 +39,15 @@ export declare enum EditorLanguage {
 }
 /** ParseMode: The parsing mode. */
 export declare enum ParseMode {
-    /** Normal: Normal mode, where the code is supposed to be an entire model. */
+    /** Normal: Normal mode (Regular editor tab), where the code is supposed to be an entire model. */
     Normal = "Normal",
-    /** Oneline: Oneline mode, where the code is supposed to be a single line of command statement. */
+    /** Oneline: Oneline mode (Command center), where the code is supposed to be a single line of command or reporter statement. */
     Oneline = "Oneline",
-    /** OnelineReporter: Oneline reporter mode, where the code is supposed to be a single line of reporter statment. */
+    /** OnelineReporter: Oneline reporter mode (Widget input), where the code is supposed to be a single line of reporter statment. */
     OnelineReporter = "OnelineReporter",
-    /** Embedded: Embedded mode, where the code is supposed to be multiple lines of command statements. */
+    /** Embedded: Embedded mode (Button/Plot commands), where the code is supposed to be multiple lines of command statements. */
     Embedded = "Embedded",
-    /** Generative: Generative mode, a special Normal mode that does not provide context to its parent but instead take it back. */
+    /** Generative: Generative mode (ChatLogo), a special Normal mode that does not provide context to its parent but instead take it back. */
     Generative = "Generative"
 }
 //# sourceMappingURL=editor-config.d.ts.map
