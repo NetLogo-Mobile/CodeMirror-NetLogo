@@ -21,11 +21,11 @@
   Normal {
     (globalStatement | Misplaced | Procedure)* ~global
   } |
-  OnelineReporter[@dynamicPrecedence=1] {
+  OnelineReporter {
     (ReporterStatement | Value) ~global
   } |
   Embedded {
-    (CommandStatement | OpenParen CommandStatement CloseParen | ReporterStatement ~statement | Value ~statement)+ ~global
+    (CommandStatement | OpenParen CommandStatement CloseParen)+ ~global
   }
 }
 
