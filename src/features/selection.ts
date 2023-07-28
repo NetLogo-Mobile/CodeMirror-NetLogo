@@ -1,10 +1,9 @@
 import { selectAll } from '@codemirror/commands';
 import { Decoration, DecorationSet, EditorView } from '@codemirror/view';
 import { GalapagosEditor } from '../editor';
-import { diffWords } from 'diff';
 import { EditorState, StateEffect, StateField } from '@codemirror/state';
-import { SearchCursor } from '@codemirror/search';
 import { TextWidget, CheckboxWidget } from '../codemirror/widgets-changes';
+import { ChangeSet } from '@codemirror/state';
 
 /** SelectionFeatures: The selection and cursor features of the editor. */
 export class SelectionFeatures {
@@ -66,66 +65,69 @@ export class SelectionFeatures {
 
   // #region "Highlighting Changes"
   /** HighlightChanges: Highlight the changes in the editor. */
-  HighlightChanges(PreviousVersion: string) {
-    let hasDecorations: boolean = false; // boolean flag to check if decorations have been added
-    let clicked: boolean = false; // boolean flag to check if cursor has changed upon adding decorations
-    // string of current state doc of editor at time of "HighlightChanges" call
-    const CurrentVersion: string = this.CodeMirror.state.doc.toString();
-    const currentState = this.CodeMirror.state;
-    const editorView = this.CodeMirror;
-    // create diff instance comparing previous version of string to current version
-    const diff = diffWords(PreviousVersion, CurrentVersion);
-    // separate words into added and removed
-    const removed = diff.filter((part) => part.removed).map((part) => part.value.replace('\n', '↵\n'));
-    const added: string[] = diff.filter((part) => part.added).map((part) => part.value);
-
-    // defining stateffect for added words using mark decoration --> should be green
-    const removedEffect = StateEffect.define<{ from: number; to: number }>({
-      map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
+  /** Instead of taking a previous version, have it take a change set that turns the previous version into the current version */
+  HighlightChanges(changeSet: ChangeSet) {
+    var editor = this.CodeMirror;
+    var addedWords: Map<number, string> = new Map(); // map added word to their pos before the changeset
+    var removedSections: Map<number, number> = new Map(); // removed section, key is start, value is end pos
+    // fromA, toA (are the starts in the previous version), from B, toB are the ranges in the final version
+    changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
+      // changes are insertions if inserted is not ''
+      if (inserted.toString() != '') {
+        addedWords.set(fromA, inserted.toString());
+      } else {
+        removedSections.set(fromA, toA);
+      }
+      console.log(fromA, toA, fromB, toB, inserted.toString());
     });
-    // stateEffect for removed words using widget decoration
+    console.log(removedSections);
+
+    let hasDecorations: boolean = false;
+    let clickedAfterDeco: boolean = false;
+
+    // stateEffect for adding widget decorations(added words)
     const addTextWidget = StateEffect.define<{ from: number; to: number }>({
       map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
     });
+    // stateEffect for marking removed words
+    const removedEffect = StateEffect.define<{ from: number; to: number }>({
+      map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
+    });
+    // define mark effect for removed words
+    const removedMark = Decoration.mark({ attributes: { class: 'cm-removed' } });
 
-    // define mark decoration for added words
-    const addedMark = Decoration.mark({ attributes: { class: 'cm-added' } }); //mark decoration for removed words
-
-    // index tracker for removed array (tells us which removed words have already been highlighted )
-    let removedIndex = 0;
-    // define statefield for words needing to be highlighted (field for both added and removed words)
+    // stateField for tracking changes
     const changesField = StateField.define<DecorationSet>({
       create() {
         return Decoration.none;
       },
       update(value, tr) {
         value = value.map(tr.changes);
-        if (hasDecorations && clicked) {
+        if (hasDecorations && clickedAfterDeco) {
           // if clicked is true and we have decorations, then we remove decorations and return
           console.log('removing decorations');
-          clicked = false;
+          clickedAfterDeco = false;
           hasDecorations = false;
+          // apply changeset
+          // remove decorations
           return Decoration.none;
         }
         for (let e of tr.effects) {
-          if (e.is(removedEffect)) {
-            //if it is a added word then add "added" mark decoration
-            value = value.update({
-              add: [addedMark.range(e.value.from, e.value.to)],
-            });
-            hasDecorations = true;
-            clicked = false;
-          } else if (e.is(addTextWidget)) {
+          if (e.is(addTextWidget)) {
             let decorationWidget = Decoration.widget({
-              widget: new TextWidget(removed[removedIndex], 'cm-removed'), // if it is a removed word then add a "removed" widget decoration
+              widget: new TextWidget(addedWords.get(e.value.to) ?? 'wack', 'cm-added'), // if it is a removed word then add a "removed" widget decoration
               side: 1,
             });
-            removedIndex++; // increment removedIndex because we have already added this word
             value = value.update({
               add: [decorationWidget.range(e.value.to)],
             });
             hasDecorations = true;
-            clicked = false;
+          } else if (e.is(removedEffect)) {
+            let decorationMark = Decoration.mark({ attributes: { class: 'cm-removed' } });
+            value = value.update({
+              add: [decorationMark.range(e.value.from, e.value.to)],
+            });
+            hasDecorations = true;
           }
         }
         return value;
@@ -133,28 +135,7 @@ export class SelectionFeatures {
       provide: (f) => EditorView.decorations.from(f),
     });
 
-    /* highlightAdded: searches for the added word in previous string and highlights it as "removed" */
-    function highlightAdded(view: EditorView, word: string) {
-      let effects: StateEffect<any>[] = [];
-      // create a cursor to find the word
-      let cursor = new SearchCursor(view.state.doc, word, 0);
-      // find the word
-      cursor.next();
-      effects.push(
-        removedEffect.of({
-          from: cursor.value.from,
-          to: cursor.value.to,
-        })
-      );
-      if (!effects.length) return false;
-      if (!view.state.field(changesField, false)) {
-        effects.push(StateEffect.appendConfig.of([changesField]));
-      }
-      view.dispatch({ effects });
-      return true;
-    }
-
-    /* makeWidget: creates a widget decoration of the added word (as 'text') and adds it to the EditorView at "end"*/
+    /*makeWidget: creates a widget decoration of the given type and text. */
     function makeWidget(view: EditorView, end: number, type: string = 'text') {
       let effects: StateEffect<any>[] = [];
       if (type === 'text') {
@@ -171,40 +152,48 @@ export class SelectionFeatures {
       return true;
     }
 
-    // iterate through added words and highlight them green
-    added.forEach((word) => highlightAdded(this.CodeMirror, word));
-
-    // iterate through added words and highlight them
-    let currentPos = 0; // position tracker for added words so they are added in the correct position based on where diff put them in the consolidated string
-    diff.forEach((part) => {
-      //updated current position
-      if (part.removed) {
-        // add the widget to the editor
-        makeWidget(this.CodeMirror, currentPos);
-      } else {
-        // if it is not an added word, then update the current position to be after the word that was not added
-        currentPos += part.value.length;
+    // function to highlight sections that were removed
+    function highlightRemoved(view: EditorView, from: number, to: number) {
+      let effects: StateEffect<any>[] = [];
+      effects.push(
+        removedEffect.of({
+          from: from,
+          to: to,
+        })
+      );
+      if (!effects.length) return false;
+      if (!view.state.field(changesField, false)) {
+        effects.push(StateEffect.appendConfig.of([changesField]));
       }
+      view.dispatch({ effects });
+      return true;
+    }
+
+    addedWords.forEach((value, key) => {
+      makeWidget(this.CodeMirror, key);
     });
 
-    //   //create another statefield to remove the highlight after 5 seconds
-    const removeChangesField = StateField.define({
+    removedSections.forEach((value, key) => {
+      highlightRemoved(this.CodeMirror, key, value);
+    });
+
+    // create field to track when to remove decorations upon changing cursor selection
+    const removedChangesField = StateField.define({
       create() {
         Decoration.none;
       },
       update(lines, tr) {
-        // check if cursor changed
         if (tr && hasDecorations) {
-          // if cursor changed, set clicked to true which makes the update function in changesField remove the decorations
-          clicked = true;
+          clickedAfterDeco = true;
+          console.log('clicked ' + clickedAfterDeco);
+          //editor.dispatch({changes: changeSet});
         }
         return;
       },
     });
-    // add the statefield to the editor
     this.CodeMirror.dispatch({
-      effects: StateEffect.appendConfig.of([removeChangesField]),
+      effects: StateEffect.appendConfig.of([removedChangesField]),
     });
+    // #endregion
   }
-  // #endregion
 }
