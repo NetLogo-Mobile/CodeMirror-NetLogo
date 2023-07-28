@@ -108,8 +108,6 @@ export class SelectionFeatures {
           console.log('removing decorations');
           clickedAfterDeco = false;
           hasDecorations = false;
-          // apply changeset
-          // remove decorations
           return Decoration.none;
         }
         for (let e of tr.effects) {
@@ -177,16 +175,23 @@ export class SelectionFeatures {
       highlightRemoved(this.CodeMirror, key, value);
     });
 
+    // sleep function
+    function sleep(ms: number) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
     // create field to track when to remove decorations upon changing cursor selection
     const removedChangesField = StateField.define({
       create() {
         Decoration.none;
       },
       update(lines, tr) {
-        if (tr && hasDecorations) {
+        if (tr.selection && hasDecorations) {
           clickedAfterDeco = true;
           console.log('clicked ' + clickedAfterDeco);
-          //editor.dispatch({changes: changeSet});
+          sleep(1).then(() => {
+            editor.dispatch({ changes: changeSet });
+          });
         }
         return;
       },
