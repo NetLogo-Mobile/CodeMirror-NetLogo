@@ -7,11 +7,24 @@
   <body>
     <!-- Make Editor #2 (new) highlight the new changes compared with Editor1's version (old) -->
     <button name="NextTest" onclick="createSampleChangeSet()">Highlight</button>
+    <button name="ToggleAutoAccept" onclick="toggleAutoAccept(isAutoAccept)">Auto Accept</button>
     <div class="editorBody"></div>
     <div id="Container1" style="height: 100vh"></div>
     <!--<div id="Container2" style="height: 40vh"></div> !-->
     <script src="editor.bundle.js"></script>
     <script>
+      var isAutoAccept = true;
+      function toggleAutoAccept(isAuto) {
+        if (isAuto) {
+          isAutoAccept = false;
+          // change button text
+          document.getElementsByName('ToggleAutoAccept')[0].innerHTML = 'Manual Accept';
+        } else {
+          isAutoAccept = true;
+          // change button text
+          document.getElementsByName('ToggleAutoAccept')[0].innerHTML = 'Auto Accept';
+        }
+      }
       var Editor1;
       //var Editor2;
       window.addEventListener('load', function () {
@@ -27,18 +40,16 @@
         // Editor2.SetCode('');
       });
       function createSampleChangeSet() {
-        if (Editor1.CodeMirror.state.doc.length > 3) {
-          const placeHolderTr = Editor1.CodeMirror.state.update({
-            changes: [
-              { from: 0, to: 3 },
-              { from: 4, insert: 'i love you' },
-            ],
-          });
-          const placeHolderChangeset = placeHolderTr.changes;
-          Editor1.Selection.HighlightChanges(placeHolderChangeset);
-        } else {
-          console.log('Editor1 not enough text');
-        }
+        const placeHolderTr = Editor1.CodeMirror.state.update({
+          changes: [
+            { from: 0, to: 2 },
+            { from: 2, insert: 'amazing' },
+            { from: 9, insert: 'yay ' },
+            { from: 18, to: 21 },
+          ],
+        });
+        const placeHolderChangeset = placeHolderTr.changes;
+        Editor1.Selection.HighlightChanges(placeHolderChangeset, isAutoAccept);
       }
     </script>
   </body>

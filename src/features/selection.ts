@@ -4,6 +4,7 @@ import { GalapagosEditor } from '../editor';
 import { EditorState, StateEffect, StateField } from '@codemirror/state';
 import { TextWidget, CheckboxWidget } from '../codemirror/widgets-changes';
 import { ChangeSet } from '@codemirror/state';
+import { Line, Text } from '@codemirror/text';
 
 /** SelectionFeatures: The selection and cursor features of the editor. */
 export class SelectionFeatures {
@@ -66,21 +67,22 @@ export class SelectionFeatures {
   // #region "Highlighting Changes"
   /** HighlightChanges: Highlight the changes in the editor. */
   /** Instead of taking a previous version, have it take a change set that turns the previous version into the current version */
-  HighlightChanges(changeSet: ChangeSet) {
+  HighlightChanges(changeSet: ChangeSet, isAutoAccept: boolean = true) {
     var editor = this.CodeMirror;
     var addedWords: Map<number, string> = new Map(); // map added word to their pos before the changeset
     var removedSections: Map<number, number> = new Map(); // removed section, key is start, value is end pos
     // fromA, toA (are the starts in the previous version), from B, toB are the ranges in the final version
+    console.log(changeSet);
     changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
       // changes are insertions if inserted is not ''
-      if (inserted.toString() != '') {
+      if (inserted.length > 0) {
         addedWords.set(fromA, inserted.toString());
       } else {
+        console.log(inserted.length);
         removedSections.set(fromA, toA);
       }
-      console.log(fromA, toA, fromB, toB, inserted.toString());
+      console.log('one change');
     });
-    console.log(removedSections);
 
     let hasDecorations: boolean = false;
     let clickedAfterDeco: boolean = false;
@@ -89,6 +91,12 @@ export class SelectionFeatures {
     const addTextWidget = StateEffect.define<{ from: number; to: number }>({
       map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
     });
+
+    // stateEffect for adding checkbox widget
+    const addCheckbox = StateEffect.define<{ from: number; to: number }>({
+      map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
+    });
+
     // stateEffect for marking removed words
     const removedEffect = StateEffect.define<{ from: number; to: number }>({
       map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
@@ -126,6 +134,16 @@ export class SelectionFeatures {
               add: [decorationMark.range(e.value.from, e.value.to)],
             });
             hasDecorations = true;
+          } else if (e.is(addCheckbox)) {
+            let decorationWidget = Decoration.widget({
+              widget: new CheckboxWidget(editor),
+              side: 1,
+            });
+            console.log('adding checkbox');
+            value = value.update({
+              add: [decorationWidget.range(e.value.to)],
+            });
+            hasDecorations = true;
           }
         }
         return value;
@@ -139,6 +157,14 @@ export class SelectionFeatures {
       if (type === 'text') {
         effects.push(
           addTextWidget.of({
+            from: 0,
+            to: end,
+          })
+        );
+      } else {
+        // checkbox widget
+        effects.push(
+          addCheckbox.of({
             from: 0,
             to: end,
           })
@@ -166,39 +192,61 @@ export class SelectionFeatures {
       view.dispatch({ effects });
       return true;
     }
-
     addedWords.forEach((value, key) => {
       makeWidget(this.CodeMirror, key);
+      // add checkbox widget at the end of each change if not in autoaccept mode
     });
 
     removedSections.forEach((value, key) => {
       highlightRemoved(this.CodeMirror, key, value);
     });
 
-    // sleep function
+    // sleep function to wait for decorations to be removed before applying changes
     function sleep(ms: number) {
       return new Promise((resolve) => setTimeout(resolve, ms));
     }
 
-    // create field to track when to remove decorations upon changing cursor selection
-    const removedChangesField = StateField.define({
-      create() {
-        Decoration.none;
-      },
-      update(lines, tr) {
-        if (tr.selection && hasDecorations) {
-          clickedAfterDeco = true;
-          console.log('clicked ' + clickedAfterDeco);
-          sleep(1).then(() => {
-            editor.dispatch({ changes: changeSet });
-          });
+    // function to add checkbox widget per line at the end of each change
+    function addCheckboxWidgets(changeset: ChangeSet, doc: Text) {
+      // find all the changes in the changeset
+      let changedLines: number[] = []; // array of changed lines in the changeset
+      changeset.iterChanges((fromA, toA, fromB, toB, inserted) => {
+        let changedLine = doc.lineAt(fromA).number;
+        if (!changedLines.includes(changedLine)) {
+          changedLines.push(changedLine);
         }
-        return;
-      },
-    });
-    this.CodeMirror.dispatch({
-      effects: StateEffect.appendConfig.of([removedChangesField]),
-    });
+      });
+      // add checkbox widget to the end of each changed line
+      changedLines.forEach((line) => {
+        let lineEnd = doc.line(line).to;
+        makeWidget(editor, lineEnd, 'checkbox');
+      });
+    }
+
+    // create field to track when to remove decorations upon changing cursor selection, but only in autoaccept mode
+    if (isAutoAccept) {
+      const removedChangesField = StateField.define({
+        create() {
+          Decoration.none;
+        },
+        update(lines, tr) {
+          if (tr.selection && hasDecorations) {
+            clickedAfterDeco = true;
+            console.log('clicked ' + clickedAfterDeco);
+            sleep(1).then(() => {
+              editor.dispatch({ changes: changeSet });
+            });
+          }
+          return;
+        },
+      });
+      this.CodeMirror.dispatch({
+        effects: StateEffect.appendConfig.of([removedChangesField]),
+      });
+    } else {
+      // if not in autoaccept mode, then add checkbox widget at the end of each change
+      addCheckboxWidgets(changeSet, this.CodeMirror.state.doc);
+    }
     // #endregion
   }
 }

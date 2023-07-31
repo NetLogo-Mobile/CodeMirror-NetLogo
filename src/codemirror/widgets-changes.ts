@@ -18,30 +18,15 @@ export class TextWidget extends WidgetType {
 /* CheckboxWidget: A "checkbox" DOM feature to accept changes. */
 export class CheckboxWidget extends WidgetType {
   private readonly CodeMirror: EditorView;
-  private readonly CurrentVersion: string;
-  constructor(editor: EditorView, finalText: string) {
+  constructor(editor: EditorView) {
     super();
     this.CodeMirror = editor;
-    this.CurrentVersion = finalText;
   }
   toDOM() {
     let wrap = document.createElement('span');
     wrap.setAttribute('aria-hidden', 'true');
     let box = wrap.appendChild(document.createElement('input'));
     box.type = 'checkbox';
-    box.addEventListener('click', (e) => {
-      // length of current codemirror
-      let length = this.CodeMirror.state.doc.length;
-      // turn currentVersion into an array
-      let currentAsArr = this.CurrentVersion.split('\n');
-      let newTextObj = Text.of(currentAsArr);
-      // create transaction
-      let transaction = this.CodeMirror.state.update({ changes: { from: 0, to: length, insert: newTextObj } });
-      // dispatch transaction
-      this.CodeMirror.dispatch(transaction);
-      // destroy widget
-      // this.destroy();
-    });
     return wrap;
   }
 
