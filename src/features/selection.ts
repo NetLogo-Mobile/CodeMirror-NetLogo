@@ -81,7 +81,6 @@ export class SelectionFeatures {
         console.log(inserted.length);
         removedSections.set(fromA, toA);
       }
-      console.log('one change');
     }, true);
 
     let hasDecorations: boolean = false;
@@ -101,8 +100,6 @@ export class SelectionFeatures {
     const removedEffect = StateEffect.define<{ from: number; to: number }>({
       map: ({ from, to }, change) => ({ from: change.mapPos(from), to: change.mapPos(to) }),
     });
-    // define mark effect for removed words
-    const removedMark = Decoration.mark({ attributes: { class: 'cm-removed' } });
 
     // stateField for tracking changes
     const changesField = StateField.define<DecorationSet>({
