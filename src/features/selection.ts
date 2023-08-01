@@ -66,11 +66,11 @@ export class SelectionFeatures {
 
   // #region "Highlighting Changes"
   /** HighlightChanges: Highlight the changes in the editor. */
-  /** Instead of taking a previous version, have it take a change set that turns the previous version into the current version */
   HighlightChanges(changeSet: ChangeSet, isAutoAccept: boolean = true) {
     var editor = this.CodeMirror;
     var addedWords: Map<number, string> = new Map(); // map added word to their pos before the changeset
     var removedSections: Map<number, number> = new Map(); // removed section, key is start, value is end pos
+    let document = this.CodeMirror.state.doc;
     // fromA, toA (are the starts in the previous version), from B, toB are the ranges in the final version
     console.log(changeSet);
     changeSet.iterChanges((fromA, toA, fromB, toB, inserted) => {
@@ -82,7 +82,7 @@ export class SelectionFeatures {
         removedSections.set(fromA, toA);
       }
       console.log('one change');
-    });
+    }, true);
 
     let hasDecorations: boolean = false;
     let clickedAfterDeco: boolean = false;
@@ -136,10 +136,9 @@ export class SelectionFeatures {
             hasDecorations = true;
           } else if (e.is(addCheckbox)) {
             let decorationWidget = Decoration.widget({
-              widget: new CheckboxWidget(editor),
+              widget: new CheckboxWidget(editor, document.lineAt(e.value.to).number, changeSet),
               side: 1,
             });
-            console.log('adding checkbox');
             value = value.update({
               add: [decorationWidget.range(e.value.to)],
             });
@@ -194,7 +193,6 @@ export class SelectionFeatures {
     }
     addedWords.forEach((value, key) => {
       makeWidget(this.CodeMirror, key);
-      // add checkbox widget at the end of each change if not in autoaccept mode
     });
 
     removedSections.forEach((value, key) => {
@@ -219,7 +217,8 @@ export class SelectionFeatures {
       // add checkbox widget to the end of each changed line
       changedLines.forEach((line) => {
         let lineEnd = doc.line(line).to;
-        makeWidget(editor, lineEnd, 'checkbox');
+        let checkbox = makeWidget(editor, lineEnd, 'checkbox');
+        console.log(checkbox);
       });
     }
 
