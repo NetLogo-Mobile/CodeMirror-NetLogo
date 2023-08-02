@@ -26,6 +26,7 @@ export declare class AutoCompletion {
     private getBreedCommands;
     /** getBreedReporters: Get breed reporters. */
     private getBreedReporters;
+    private addBreedCompletions;
     /** GetCompletion: Get the completion hint at a given context. */
     GetCompletion(Context: CompletionContext): CompletionResult | null | Promise<CompletionResult | null>;
     /** GetCompletionSource: Get the completion source for a NetLogo model. */

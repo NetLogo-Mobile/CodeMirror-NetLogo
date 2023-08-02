@@ -1,5 +1,7 @@
 import { LintContext, PreprocessContext } from '../classes/contexts';
-import { Breed, BreedType } from '../classes/structures';
+import { Breed, BreedType, AgentContexts } from '../classes/structures';
+/** BreedStatementRules: Rules for matching breed statements. */
+export declare const BreedStatementRules: BreedStatementRule[];
 /** BreedStatementRule: A rule for matching breed statements. */
 export interface BreedStatementRule {
     /** Match: The regular expression for the rule. */
@@ -12,6 +14,12 @@ export interface BreedStatementRule {
     Type: BreedType | undefined;
     /** Position: Position of the match group. */
     Position: number;
+    /** String: String representation of the rule. */
+    String: string[];
+    /** Context: Context of the rule. */
+    Context: AgentContexts;
+    /** isCommand: Is the rule a command? */
+    isCommand: boolean;
 }
 /** BreedMatch: A match for a breed. */
 export interface BreedMatch {
@@ -29,6 +37,8 @@ export interface BreedMatch {
     Rule?: BreedStatementRule;
     /** Prototype: The prototype of the token. */
     Prototype?: string;
+    /** Context: The context of the token. */
+    Context?: AgentContexts;
 }
 /** MatchBreed: Check if the token is a breed reporter/command/variable. */
 export declare function MatchBreed(token: string, context: PreprocessContext, guessing?: boolean): BreedMatch;

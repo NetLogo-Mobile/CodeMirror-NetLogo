@@ -7025,6 +7025,28 @@ if(!String.prototype.matchAll) {
                 off = start;
             }
         }
+        coordsForChar(pos) {
+            let { i, off } = this.childPos(pos, 1), child = this.children[i];
+            if (!(child instanceof LineView))
+                return null;
+            while (child.children.length) {
+                let { i, off: childOff } = child.childPos(off, 1);
+                for (;; i++) {
+                    if (i == child.children.length)
+                        return null;
+                    if ((child = child.children[i]).length)
+                        break;
+                }
+                off = childOff;
+            }
+            if (!(child instanceof TextView))
+                return null;
+            let end = findClusterBreak(child.text, off);
+            if (end == off)
+                return null;
+            let rects = textRange(child.dom, off, end).getClientRects();
+            return !rects.length || rects[0].top >= rects[0].bottom ? null : rects[0];
+        }
         measureVisibleLineHeights(viewport) {
             let result = [], { from, to } = viewport;
             let contentWidth = this.view.contentDOM.clientWidth;
@@ -9896,7 +9918,7 @@ if(!String.prototype.matchAll) {
             display: "flex",
             height: "100%",
             boxSizing: "border-box",
-            left: 0,
+            insetInlineStart: 0,
             zIndex: 200
         },
         "&light .cm-gutters": {
@@ -11358,6 +11380,17 @@ if(!String.prototype.matchAll) {
             let line = this.state.doc.lineAt(pos), order = this.bidiSpans(line);
             let span = order[BidiSpan.find(order, pos - line.from, -1, side)];
             return flattenRect(rect, (span.dir == Direction.LTR) == (side > 0));
+        }
+        /**
+        Return the rectangle around a given character. If `pos` does not
+        point in front of a character that is in the viewport and
+        rendered (i.e. not replaced, not a line break), this will return
+        null. For space characters that are a line wrap point, this will
+        return the position before the line break.
+        */
+        coordsForChar(pos) {
+            this.readMeasured();
+            return this.docView.coordsForChar(pos);
         }
         /**
         The default width of a character in the editor. May not
@@ -27102,6 +27135,9 @@ if(!String.prototype.matchAll) {
             Tag: Own,
             Type: undefined,
             Position: 0,
+            String: ['<breed>-own'],
+            Context: new AgentContexts('O---'),
+            isCommand: false,
         },
         {
             Match: /^(.*?)-(at)$/,
@@ -27109,6 +27145,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter2ArgsTurtle,
             Type: BreedType.Turtle,
             Position: 0,
+            String: ['<breed>-at'],
+            Context: new AgentContexts('-TPL'),
+            isCommand: false,
         },
         {
             Match: /^(.*?)-(here)$/,
@@ -27116,6 +27155,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter0ArgsTurtle,
             Type: BreedType.Turtle,
             Position: 0,
+            String: ['<breed>-here'],
+            Context: new AgentContexts('-TP-'),
+            isCommand: false,
         },
         {
             Match: /^(.*?)-(on)$/,
@@ -27123,6 +27165,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter1ArgsTurtle,
             Type: BreedType.Turtle,
             Position: 0,
+            String: ['<breed>-on'],
+            Context: new AgentContexts('OTPL'),
+            isCommand: false,
         },
         {
             Match: /^(in)-(.*?)-(from)$/,
@@ -27130,6 +27175,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter1ArgsLink,
             Type: BreedType.UndirectedLink,
             Position: 1,
+            String: ['in-<breed>-from'],
+            Context: new AgentContexts('-T--'),
+            isCommand: false,
         },
         {
             Match: /^(out)-(.*?)-(to)$/,
@@ -27137,6 +27185,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter1ArgsLink,
             Type: BreedType.UndirectedLink,
             Position: 1,
+            String: ['out-<breed>-to'],
+            Context: new AgentContexts('-T--'),
+            isCommand: false,
         },
         {
             Match: /^(out|in)-(.*?)-(neighbor\?)$/,
@@ -27144,6 +27195,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter1ArgsLink,
             Type: BreedType.UndirectedLink,
             Position: 1,
+            String: ['out-<breed>-neighbor?', 'in-<breed>-neighbor?'],
+            Context: new AgentContexts('-T--'),
+            isCommand: false,
         },
         {
             Match: /^(out|in)-(.*?)-(neighbors)$/,
@@ -27151,6 +27205,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter0ArgsLink,
             Type: BreedType.UndirectedLink,
             Position: 1,
+            String: ['out-<breed>-neighbors', 'in-<breed>-neighbors'],
+            Context: new AgentContexts('-T--'),
+            isCommand: false,
         },
         {
             Match: /^(my-in|my-out|my)-(.*?)$/,
@@ -27158,6 +27215,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter0ArgsLinkP,
             Type: BreedType.UndirectedLink,
             Position: 1,
+            String: ['my-out-<breed>', 'my-in-<breed>', 'my-<breed>'],
+            Context: new AgentContexts('-T--'),
+            isCommand: false,
         },
         {
             Match: /^(is)-(.*?)\?$/,
@@ -27165,6 +27225,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter1ArgsBoth,
             Type: undefined,
             Position: 1,
+            String: ['is-<breed>?'],
+            Context: new AgentContexts('OTPL'),
+            isCommand: false,
         },
         {
             Match: /^(create)-(.*?)-(to|from|with)$/,
@@ -27172,6 +27235,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialCommandCreateLink,
             Type: BreedType.UndirectedLink,
             Position: 1,
+            String: ['create-<breed>-to', 'create-<breed>-with', 'create-<breed>-from'],
+            Context: new AgentContexts('-T--'),
+            isCommand: true,
         },
         {
             Match: /^(.*?)-(with|neighbor\?)$/,
@@ -27179,6 +27245,9 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter1ArgsLink,
             Type: BreedType.UndirectedLink,
             Position: 0,
+            String: ['<breed>-with', '<breed>-neighbor?'],
+            Context: new AgentContexts('-T--'),
+            isCommand: false,
         },
         {
             Match: /^(.*?)-(neighbors)$/,
@@ -27186,13 +27255,39 @@ if(!String.prototype.matchAll) {
             Tag: SpecialReporter0ArgsLink,
             Type: BreedType.UndirectedLink,
             Position: 0,
+            String: ['<breed>-neighbors'],
+            Context: new AgentContexts('-T--'),
+            isCommand: false,
         },
         {
-            Match: /^(hatch|sprout|create-ordered|create)-(.*?)$/,
+            Match: /^(create-ordered|create)-(.*?)$/,
             Singular: false,
             Tag: SpecialCommandCreateTurtle,
             Type: BreedType.Turtle,
             Position: 1,
+            String: ['create-ordered-<breed>', 'create-<breed>'],
+            Context: new AgentContexts('O---'),
+            isCommand: true,
+        },
+        {
+            Match: /^(hatch)-(.*?)$/,
+            Singular: false,
+            Tag: SpecialCommandCreateTurtle,
+            Type: BreedType.Turtle,
+            Position: 1,
+            String: ['hatch-<breed>'],
+            Context: new AgentContexts('-T--'),
+            isCommand: true,
+        },
+        {
+            Match: /^(sprout)-(.*?)$/,
+            Singular: false,
+            Tag: SpecialCommandCreateTurtle,
+            Type: BreedType.Turtle,
+            Position: 1,
+            String: ['sprout-<breed>'],
+            Context: new AgentContexts('--P-'),
+            isCommand: true,
         },
     ];
     /** MatchBreed: Check if the token is a breed reporter/command/variable. */
@@ -27270,6 +27365,7 @@ if(!String.prototype.matchAll) {
                     Tag: rule.Tag,
                     Plural: plural,
                     Singular: singular,
+                    Context: rule.Context,
                     Type: type,
                     Valid: valid,
                     Prototype: match.slice(1).join('-'),
@@ -27673,12 +27769,17 @@ if(!String.prototype.matchAll) {
                         }
                     }
                 }
-                else if (cursor.node.name.includes('Special') &&
-                    !cursor.node.name.includes('Both') &&
-                    !cursor.node.name.includes('Turtle') &&
-                    !cursor.node.name.includes('Link')) {
+                else if (cursor.node.name.includes('Special')) {
                     let name = getCodeName(state, cursor.node);
-                    let context = (_d = (_c = this.Procedures.get(name)) === null || _c === void 0 ? void 0 : _c.Context) !== null && _d !== void 0 ? _d : null;
+                    let context = null;
+                    if (!cursor.node.name.includes('Both') &&
+                        !cursor.node.name.includes('Turtle') &&
+                        !cursor.node.name.includes('Link')) {
+                        context = (_d = (_c = this.Procedures.get(name)) === null || _c === void 0 ? void 0 : _c.Context) !== null && _d !== void 0 ? _d : null;
+                    }
+                    else {
+                        context = MatchBreed(name, this.Preprocess).Context;
+                    }
                     if (context) {
                         newContext = combineContexts(context, priorContext);
                         if (!noContext(newContext)) {
@@ -29633,20 +29734,22 @@ if(!String.prototype.matchAll) {
                 // Patch has no commands
                 if (b.BreedType == BreedType.Patch)
                     continue;
-                if (b.BreedType == BreedType.Turtle) {
-                    commands.push('hatch-' + b.Plural);
-                    commands.push('sprout-' + b.Plural);
-                    commands.push('create-' + b.Plural);
-                    commands.push('create-ordered-' + b.Plural);
-                }
                 else {
-                    commands.push('create-' + b.Plural + '-to');
-                    commands.push('create-' + b.Singular + '-to');
-                    commands.push('create-' + b.Plural + '-from');
-                    commands.push('create-' + b.Singular + '-from');
-                    commands.push('create-' + b.Plural + '-with');
-                    commands.push('create-' + b.Singular + '-with');
+                    commands = commands.concat(this.addBreedCompletions(b, true));
                 }
+                // if (b.BreedType == BreedType.Turtle) {
+                //   commands.push('hatch-' + b.Plural);
+                //   commands.push('sprout-' + b.Plural);
+                //   commands.push('create-' + b.Plural);
+                //   commands.push('create-ordered-' + b.Plural);
+                // } else {
+                //   commands.push('create-' + b.Plural + '-to');
+                //   commands.push('create-' + b.Singular + '-to');
+                //   commands.push('create-' + b.Plural + '-from');
+                //   commands.push('create-' + b.Singular + '-from');
+                //   commands.push('create-' + b.Plural + '-with');
+                //   commands.push('create-' + b.Singular + '-with');
+                // }
             }
             return commands;
         }
@@ -29654,29 +29757,47 @@ if(!String.prototype.matchAll) {
         getBreedReporters(state) {
             let reporters = [];
             for (let b of state.Breeds.values()) {
-                if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
-                    reporters.push(b.Plural + '-at');
-                    reporters.push(b.Plural + '-here');
-                    reporters.push(b.Plural + '-on');
-                    reporters.push('is-' + b.Singular + '?');
-                }
-                else {
-                    reporters.push('out-' + b.Singular + '-to');
-                    reporters.push('out-' + b.Singular + '-neighbors');
-                    reporters.push('out-' + b.Singular + '-neighbor?');
-                    reporters.push('in-' + b.Singular + '-from');
-                    reporters.push('in-' + b.Singular + '-neighbors');
-                    reporters.push('in-' + b.Singular + '-neighbor?');
-                    reporters.push('my-' + b.Plural);
-                    reporters.push('my-in-' + b.Plural);
-                    reporters.push('my-out-' + b.Plural);
-                    reporters.push(b.Singular + '-neighbor?');
-                    reporters.push(b.Singular + '-neighbors');
-                    reporters.push(b.Singular + '-with');
-                    reporters.push('is-' + b.Singular + '?');
-                }
+                reporters = reporters.concat(this.addBreedCompletions(b, false));
+                // if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+                //   reporters.push(b.Plural + '-at');
+                //   reporters.push(b.Plural + '-here');
+                //   reporters.push(b.Plural + '-on');
+                //   reporters.push('is-' + b.Singular + '?');
+                // } else {
+                //   reporters.push('out-' + b.Singular + '-to');
+                //   reporters.push('out-' + b.Singular + '-neighbors');
+                //   reporters.push('out-' + b.Singular + '-neighbor?');
+                //   reporters.push('in-' + b.Singular + '-from');
+                //   reporters.push('in-' + b.Singular + '-neighbors');
+                //   reporters.push('in-' + b.Singular + '-neighbor?');
+                //   reporters.push('my-' + b.Plural);
+                //   reporters.push('my-in-' + b.Plural);
+                //   reporters.push('my-out-' + b.Plural);
+                //   reporters.push(b.Singular + '-neighbor?');
+                //   reporters.push(b.Singular + '-neighbors');
+                //   reporters.push(b.Singular + '-with');
+                //   reporters.push('is-' + b.Singular + '?');
+                // }
             }
             return reporters;
+        }
+        addBreedCompletions(breed, commands) {
+            let completions = [];
+            for (var rule of BreedStatementRules) {
+                if ((rule.Type == breed.BreedType || rule.Type == undefined) && rule.isCommand == commands && rule.Tag != Own) {
+                    if (rule.Singular == true || rule.Singular == undefined) {
+                        for (var s of rule.String) {
+                            completions.push(s.replace(/<breed>/g, breed.Singular));
+                        }
+                    }
+                    if (rule.Singular == false || rule.Singular == undefined) {
+                        for (var s of rule.String) {
+                            completions.push(s.replace(/<breed>/g, breed.Plural));
+                        }
+                    }
+                }
+            }
+            return completions;
         }
         /** GetCompletion: Get the completion hint at a given context. */
         GetCompletion(Context) {
