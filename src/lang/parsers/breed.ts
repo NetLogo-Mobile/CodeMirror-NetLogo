@@ -1,5 +1,5 @@
 import { LintContext, PreprocessContext } from '../classes/contexts';
-import { Breed, BreedType } from '../classes/structures';
+import { Breed, BreedType, AgentContexts } from '../classes/structures';
 
 import {
   Own,
@@ -32,13 +32,16 @@ import {
 } from './../lang.terms.js';
 
 /** BreedStatementRules: Rules for matching breed statements. */
-const BreedStatementRules: BreedStatementRule[] = [
+export const BreedStatementRules: BreedStatementRule[] = [
   {
     Match: /^(.*?)-own$/,
     Singular: false,
     Tag: Own,
     Type: undefined,
     Position: 0,
+    String: ['<breed>-own'],
+    Context: new AgentContexts('O---'),
+    isCommand: false,
   },
   {
     Match: /^(.*?)-(at)$/,
@@ -46,6 +49,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter2ArgsTurtle,
     Type: BreedType.Turtle,
     Position: 0,
+    String: ['<breed>-at'],
+    Context: new AgentContexts('-TPL'),
+    isCommand: false,
   },
   {
     Match: /^(.*?)-(here)$/,
@@ -53,6 +59,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter0ArgsTurtle,
     Type: BreedType.Turtle,
     Position: 0,
+    String: ['<breed>-here'],
+    Context: new AgentContexts('-TP-'),
+    isCommand: false,
   },
   {
     Match: /^(.*?)-(on)$/,
@@ -60,6 +69,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter1ArgsTurtle,
     Type: BreedType.Turtle,
     Position: 0,
+    String: ['<breed>-on'],
+    Context: new AgentContexts('OTPL'),
+    isCommand: false,
   },
   {
     Match: /^(in)-(.*?)-(from)$/,
@@ -67,6 +79,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter1ArgsLink,
     Type: BreedType.UndirectedLink,
     Position: 1,
+    String: ['in-<breed>-from'],
+    Context: new AgentContexts('-T--'),
+    isCommand: false,
   },
   {
     Match: /^(out)-(.*?)-(to)$/,
@@ -74,6 +89,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter1ArgsLink,
     Type: BreedType.UndirectedLink,
     Position: 1,
+    String: ['out-<breed>-to'],
+    Context: new AgentContexts('-T--'),
+    isCommand: false,
   },
   {
     Match: /^(out|in)-(.*?)-(neighbor\?)$/,
@@ -81,6 +99,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter1ArgsLink,
     Type: BreedType.UndirectedLink,
     Position: 1,
+    String: ['out-<breed>-neighbor?', 'in-<breed>-neighbor?'],
+    Context: new AgentContexts('-T--'),
+    isCommand: false,
   },
   {
     Match: /^(out|in)-(.*?)-(neighbors)$/,
@@ -88,6 +109,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter0ArgsLink,
     Type: BreedType.UndirectedLink,
     Position: 1,
+    String: ['out-<breed>-neighbors', 'in-<breed>-neighbors'],
+    Context: new AgentContexts('-T--'),
+    isCommand: false,
   },
   {
     Match: /^(my-in|my-out|my)-(.*?)$/,
@@ -95,6 +119,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter0ArgsLinkP,
     Type: BreedType.UndirectedLink,
     Position: 1,
+    String: ['my-out-<breed>', 'my-in-<breed>', 'my-<breed>'],
+    Context: new AgentContexts('-T--'),
+    isCommand: false,
   },
   {
     Match: /^(is)-(.*?)\?$/,
@@ -102,6 +129,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter1ArgsBoth,
     Type: undefined,
     Position: 1,
+    String: ['is-<breed>?'],
+    Context: new AgentContexts('OTPL'),
+    isCommand: false,
   },
   {
     Match: /^(create)-(.*?)-(to|from|with)$/,
@@ -109,6 +139,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialCommandCreateLink,
     Type: BreedType.UndirectedLink,
     Position: 1,
+    String: ['create-<breed>-to', 'create-<breed>-with', 'create-<breed>-from'],
+    Context: new AgentContexts('-T--'),
+    isCommand: true,
   },
   {
     Match: /^(.*?)-(with|neighbor\?)$/,
@@ -116,6 +149,9 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter1ArgsLink,
     Type: BreedType.UndirectedLink,
     Position: 0,
+    String: ['<breed>-with', '<breed>-neighbor?'],
+    Context: new AgentContexts('-T--'),
+    isCommand: false,
   },
   {
     Match: /^(.*?)-(neighbors)$/,
@@ -123,13 +159,39 @@ const BreedStatementRules: BreedStatementRule[] = [
     Tag: SpecialReporter0ArgsLink,
     Type: BreedType.UndirectedLink,
     Position: 0,
+    String: ['<breed>-neighbors'],
+    Context: new AgentContexts('-T--'),
+    isCommand: false,
   },
   {
-    Match: /^(hatch|sprout|create-ordered|create)-(.*?)$/,
+    Match: /^(create-ordered|create)-(.*?)$/,
     Singular: false,
     Tag: SpecialCommandCreateTurtle,
     Type: BreedType.Turtle,
     Position: 1,
+    String: ['create-ordered-<breed>', 'create-<breed>'],
+    Context: new AgentContexts('O---'),
+    isCommand: true,
+  },
+  {
+    Match: /^(hatch)-(.*?)$/,
+    Singular: false,
+    Tag: SpecialCommandCreateTurtle,
+    Type: BreedType.Turtle,
+    Position: 1,
+    String: ['hatch-<breed>'],
+    Context: new AgentContexts('-T--'),
+    isCommand: true,
+  },
+  {
+    Match: /^(sprout)-(.*?)$/,
+    Singular: false,
+    Tag: SpecialCommandCreateTurtle,
+    Type: BreedType.Turtle,
+    Position: 1,
+    String: ['sprout-<breed>'],
+    Context: new AgentContexts('--P-'),
+    isCommand: true,
   },
 ];
 
@@ -145,6 +207,12 @@ export interface BreedStatementRule {
   Type: BreedType | undefined;
   /** Position: Position of the match group. */
   Position: number;
+  /** String: String representation of the rule. */
+  String: string[];
+  /** Context: Context of the rule. */
+  Context: AgentContexts;
+  /** isCommand: Is the rule a command? */
+  isCommand: boolean;
 }
 
 /** BreedMatch: A match for a breed. */
@@ -163,6 +231,8 @@ export interface BreedMatch {
   Rule?: BreedStatementRule;
   /** Prototype: The prototype of the token. */
   Prototype?: string;
+  /** Context: The context of the token. */
+  Context?: AgentContexts;
 }
 
 /** MatchBreed: Check if the token is a breed reporter/command/variable. */
@@ -230,6 +300,7 @@ export function MatchBreed(token: string, context: PreprocessContext, guessing: 
         Tag: rule.Tag,
         Plural: plural,
         Singular: singular,
+        Context: rule.Context,
         Type: type,
         Valid: valid,
         Prototype: match.slice(1).join('-'),

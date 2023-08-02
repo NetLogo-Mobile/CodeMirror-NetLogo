@@ -4,10 +4,14 @@ import { syntaxTree } from '@codemirror/language';
 import { PrimitiveManager } from '../primitives/primitives';
 import { getLocalVariables } from '../utils/check-identifier';
 import { GalapagosEditor } from '../../editor';
-import { BreedType } from '../classes/structures';
+import { Breed, BreedType } from '../classes/structures';
 import { ParseMode } from '../../editor-config';
 import { Log } from '../../utils/debug-utils';
 import { LintContext } from '../classes/contexts';
+import { BreedStatementRules } from '../parsers/breed';
+// eslint-disable-next-line @typescript-eslint/ban-ts-comment
+// @ts-ignore
+import { Own } from './../lang.terms.js';
 
 /** AutoCompletion: Auto completion service for a NetLogo model. */
 /* Possible Types of Autocompletion Tokens:
@@ -96,19 +100,22 @@ export class AutoCompletion {
     for (let b of state.Breeds.values()) {
       // Patch has no commands
       if (b.BreedType == BreedType.Patch) continue;
-      if (b.BreedType == BreedType.Turtle) {
-        commands.push('hatch-' + b.Plural);
-        commands.push('sprout-' + b.Plural);
-        commands.push('create-' + b.Plural);
-        commands.push('create-ordered-' + b.Plural);
-      } else {
-        commands.push('create-' + b.Plural + '-to');
-        commands.push('create-' + b.Singular + '-to');
-        commands.push('create-' + b.Plural + '-from');
-        commands.push('create-' + b.Singular + '-from');
-        commands.push('create-' + b.Plural + '-with');
-        commands.push('create-' + b.Singular + '-with');
+      else {
+        commands = commands.concat(this.addBreedCompletions(b, true));
       }
+      // if (b.BreedType == BreedType.Turtle) {
+      //   commands.push('hatch-' + b.Plural);
+      //   commands.push('sprout-' + b.Plural);
+      //   commands.push('create-' + b.Plural);
+      //   commands.push('create-ordered-' + b.Plural);
+      // } else {
+      //   commands.push('create-' + b.Plural + '-to');
+      //   commands.push('create-' + b.Singular + '-to');
+      //   commands.push('create-' + b.Plural + '-from');
+      //   commands.push('create-' + b.Singular + '-from');
+      //   commands.push('create-' + b.Plural + '-with');
+      //   commands.push('create-' + b.Singular + '-with');
+      // }
     }
     return commands;
   }
@@ -117,28 +124,48 @@ export class AutoCompletion {
   private getBreedReporters(state: LintContext): string[] {
     let reporters: string[] = [];
     for (let b of state.Breeds.values()) {
-      if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
-        reporters.push(b.Plural + '-at');
-        reporters.push(b.Plural + '-here');
-        reporters.push(b.Plural + '-on');
-        reporters.push('is-' + b.Singular + '?');
-      } else {
-        reporters.push('out-' + b.Singular + '-to');
-        reporters.push('out-' + b.Singular + '-neighbors');
-        reporters.push('out-' + b.Singular + '-neighbor?');
-        reporters.push('in-' + b.Singular + '-from');
-        reporters.push('in-' + b.Singular + '-neighbors');
-        reporters.push('in-' + b.Singular + '-neighbor?');
-        reporters.push('my-' + b.Plural);
-        reporters.push('my-in-' + b.Plural);
-        reporters.push('my-out-' + b.Plural);
-        reporters.push(b.Singular + '-neighbor?');
-        reporters.push(b.Singular + '-neighbors');
-        reporters.push(b.Singular + '-with');
-        reporters.push('is-' + b.Singular + '?');
-      }
+      reporters = reporters.concat(this.addBreedCompletions(b, false));
+      // if (b.BreedType == BreedType.Turtle || b.BreedType == BreedType.Patch) {
+      //   reporters.push(b.Plural + '-at');
+      //   reporters.push(b.Plural + '-here');
+      //   reporters.push(b.Plural + '-on');
+      //   reporters.push('is-' + b.Singular + '?');
+      // } else {
+      //   reporters.push('out-' + b.Singular + '-to');
+      //   reporters.push('out-' + b.Singular + '-neighbors');
+      //   reporters.push('out-' + b.Singular + '-neighbor?');
+      //   reporters.push('in-' + b.Singular + '-from');
+      //   reporters.push('in-' + b.Singular + '-neighbors');
+      //   reporters.push('in-' + b.Singular + '-neighbor?');
+      //   reporters.push('my-' + b.Plural);
+      //   reporters.push('my-in-' + b.Plural);
+      //   reporters.push('my-out-' + b.Plural);
+      //   reporters.push(b.Singular + '-neighbor?');
+      //   reporters.push(b.Singular + '-neighbors');
+      //   reporters.push(b.Singular + '-with');
+      //   reporters.push('is-' + b.Singular + '?');
+      // }
     }
     return reporters;
+  }
+
+  private addBreedCompletions(breed: Breed, commands: boolean) {
+    let completions: string[] = [];
+    for (var rule of BreedStatementRules) {
+      if ((rule.Type == breed.BreedType || rule.Type == undefined) && rule.isCommand == commands && rule.Tag != Own) {
+        if (rule.Singular == true || rule.Singular == undefined) {
+          for (var s of rule.String) {
+            completions.push(s.replace(/<breed>/g, breed.Singular));
+          }
+        }
+        if (rule.Singular == false || rule.Singular == undefined) {
+          for (var s of rule.String) {
+            completions.push(s.replace(/<breed>/g, breed.Plural));
+          }
+        }
+      }
+    }
+    return completions;
   }
 
   /** GetCompletion: Get the completion hint at a given context. */
