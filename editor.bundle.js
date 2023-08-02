@@ -29040,11 +29040,12 @@ if(!String.prototype.matchAll) {
     });
 
     let primitives$4 = PrimitiveManager;
+    let checker = generateChecker();
     // Keyword tokenizer
     const keyword = new ExternalTokenizer((input, stack) => {
         let token = '';
         // Find until the token is complete
-        while (isValidKeyword(input.next)) {
+        while (checker[input.next]) {
             token += String.fromCharCode(input.next);
             input.advance();
         }
@@ -29219,6 +29220,13 @@ if(!String.prototype.matchAll) {
             ch == 95 ||
             // a-z
             (ch >= 97 && ch <= 122));
+    }
+    function generateChecker() {
+        let c = [];
+        for (var i = 0; i < 256; i++) {
+            c.push(isValidKeyword(i));
+        }
+        return c;
     }
     /** matchCustomProcedure: Check if the token is a custom procedure. */
     function matchCustomProcedure(token) {
