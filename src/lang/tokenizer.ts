@@ -41,12 +41,13 @@ import { GetContext } from './netlogo';
 import { MatchBreed } from './parsers/breed';
 
 let primitives = PrimitiveManager;
+let checker = generateChecker();
 
 // Keyword tokenizer
 export const keyword = new ExternalTokenizer((input, stack) => {
   let token = '';
   // Find until the token is complete
-  while (isValidKeyword(input.next)) {
+  while (checker[input.next]) {
     token += String.fromCharCode(input.next);
     input.advance();
   }
@@ -200,6 +201,14 @@ export function isValidKeyword(ch: number) {
     // a-z
     (ch >= 97 && ch <= 122)
   );
+}
+
+function generateChecker() {
+  let c: boolean[] = [];
+  for (var i = 0; i < 256; i++) {
+    c.push(isValidKeyword(i));
+  }
+  return c;
 }
 
 /** matchCustomProcedure: Check if the token is a custom procedure. */
