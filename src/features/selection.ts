@@ -118,7 +118,7 @@ export class SelectionFeatures {
         for (let e of tr.effects) {
           if (e.is(addTextWidget)) {
             let decorationWidget = Decoration.widget({
-              widget: new TextWidget(addedWords.get(e.value.to) ?? 'wack', 'cm-added'), // if it is a removed word then add a "removed" widget decoration
+              widget: new TextWidget(addedWords.get(e.value.to) ?? '', 'cm-added', editor, changeSet), // if it is a removed word then add a "removed" widget decoration
               side: 1,
             });
             value = value.update({
@@ -133,8 +133,8 @@ export class SelectionFeatures {
             hasDecorations = true;
           } else if (e.is(addCheckbox)) {
             let decorationWidget = Decoration.widget({
-              widget: new CheckboxWidget(editor, document.lineAt(e.value.to).number, changeSet),
-              side: 1,
+              widget: new CheckboxWidget(editor, document.lineAt(e.value.to), changeSet),
+              side: 2,
             });
             value = value.update({
               add: [decorationWidget.range(e.value.to)],
@@ -227,8 +227,6 @@ export class SelectionFeatures {
         },
         update(lines, tr) {
           if (tr.selection && hasDecorations) {
-            clickedAfterDeco = true;
-            console.log('clicked ' + clickedAfterDeco);
             sleep(1).then(() => {
               editor.dispatch({ changes: changeSet });
             });
