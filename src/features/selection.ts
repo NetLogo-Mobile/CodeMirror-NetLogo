@@ -227,6 +227,7 @@ export class SelectionFeatures {
         },
         update(lines, tr) {
           if (tr.selection && hasDecorations) {
+            clickedAfterDeco = true;
             sleep(1).then(() => {
               editor.dispatch({ changes: changeSet });
             });

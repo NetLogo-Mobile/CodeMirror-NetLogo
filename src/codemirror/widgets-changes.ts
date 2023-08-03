@@ -64,9 +64,14 @@ export class CheckboxWidget extends WidgetType {
   handleEvent() {
     let customChange: ChangeSet = this.getLineCS();
     console.log(customChange);
-    // dispatch changeset to editor
-    this.CodeMirror.dispatch({ changes: customChange });
-    // change the changest so its reflected by the other copies of the changeset in the editor
+    // also dispatch a no-op selection transaction to codemirror, if the checkbox is clicked
+    let transaction = this.CodeMirror.state.update({ selection: this.CodeMirror.state.selection });
+    this.CodeMirror.dispatch(transaction);
+    let delay = 10; // set the delay time here
+    new Promise((resolve) => setTimeout(resolve, delay)).then(() => {
+      // dispatch changeset to editor after making sure decorations have been removed (from the no-op selection transaction)
+      this.CodeMirror.dispatch({ changes: customChange });
+    });
   }
 
   /* takes the changeset and line, and creates a custom changeset for the line*/
