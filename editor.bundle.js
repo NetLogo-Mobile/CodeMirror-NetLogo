@@ -26420,6 +26420,7 @@ if(!String.prototype.matchAll) {
             this.RegisterBuiltin('~CustomCommand');
             this.RegisterBuiltin('~CustomReporter');
             this.RegisterBuiltin('~LocalVariable');
+            this.RegisterBuiltin('~NewVariableDeclaration/Identifier');
         }
         // RegisterInternal: Register some built-in explanations.
         RegisterBuiltin(...Args) {
@@ -27013,9 +27014,46 @@ if(!String.prototype.matchAll) {
             }
             return null;
         }
+        checkCodeBlocks(varName, blocks, proc_name, from, to) {
+            for (let b of blocks) {
+                // console.log(b)
+                if (b.PositionEnd < from || b.PositionStart > to)
+                    continue;
+                for (let localVar of b.Variables) {
+                    // console.log(localVar.Name,varName,localVar.CreationPos,to)
+                    if (localVar.Name == varName && localVar.CreationPos <= to)
+                        return proc_name;
+                }
+                // console.log("didn't find")
+                let other = this.checkCodeBlocks(varName, b.CodeBlocks, proc_name, from, to);
+                if (other != null) {
+                    return other;
+                }
+                let anon = this.checkAnonProc(varName, b.AnonymousProcedures, proc_name, from, to);
+                if (anon != null) {
+                    return anon;
+                }
+            }
+            return null;
+        }
+        checkAnonProc(varName, anon, proc_name, from, to) {
+            for (let anonProc of anon) {
+                if (anonProc.PositionEnd < from || anonProc.PositionStart > to)
+                    continue;
+                if (anonProc.Arguments.includes(varName))
+                    return '{anonymous},' + proc_name;
+                for (let localVar of anonProc.Variables) {
+                    if (localVar.Name == varName && localVar.CreationPos <= to)
+                        return '{anonymous},' + proc_name;
+                }
+            }
+            return null;
+        }
         /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
         GetProcedureFromVariable(varName, from, to) {
+            // console.log(from,to,"'"+varName+"'")
             for (let proc of this.Procedures.values()) {
+                // console.log(proc)
                 if (proc.PositionEnd < from || proc.PositionStart > to)
                     continue;
                 // Check the argument list in a procedure
@@ -27027,15 +27065,15 @@ if(!String.prototype.matchAll) {
                         return proc.Name;
                 }
                 // Check the anonymous arguments in a procedure
-                for (let anonProc of proc.AnonymousProcedures) {
-                    if (anonProc.PositionEnd > from || anonProc.PositionStart < to)
-                        continue;
-                    if (anonProc.Arguments.includes(varName))
-                        return '{anonymous},' + proc.Name;
-                    for (let localVar of anonProc.Variables) {
-                        if (localVar.Name == varName && localVar.CreationPos <= to)
-                            return '{anonymous},' + proc.Name;
-                    }
+                let anon = this.checkAnonProc(varName, proc.AnonymousProcedures, proc.Name, from, to);
+                // console.log(anon)
+                if (anon != null) {
+                    return anon;
+                }
+                let other = this.checkCodeBlocks(varName, proc.CodeBlocks, proc.Name, from, to);
+                // console.log(other)
+                if (other != null) {
+                    return other;
                 }
             }
             return null;
@@ -28379,8 +28417,11 @@ if(!String.prototype.matchAll) {
             }
             else {
                 // if term is not a breed variable, check if it is a local variable for a procedure
-                if (closestTerm == '~VariableName' || (parentName == 'Identifier' && closestTerm == '')) {
+                if (closestTerm == '~VariableName' ||
+                    closestTerm == '~NewVariableDeclaration/Identifier' ||
+                    (parentName == 'Identifier' && closestTerm == '')) {
                     secondTerm = lintContext.GetProcedureFromVariable(term, lastFrom, lastTo);
+                    // console.log("SECOND",secondTerm)
                     // if procedure cannot be identified, term is an unidentified local variable
                     if (secondTerm != null)
                         closestTerm = '~LocalVariable';
@@ -30749,6 +30790,15 @@ if(!String.prototype.matchAll) {
             .iterate((node) => {
             var _a, _b, _c, _d;
             // Match the bracket/paren
+            // if(['OpenParen','CloseParen'].includes(node.name)) {
+            //   let parents: string[] = [];
+            //   let curr= node.node
+            //   while (curr.parent) {
+            //     parents.push(curr.parent.name);
+            //     curr = curr.parent;
+            //   }
+            //   console.log(getCodeName(view.state, node),parents)
+            // }
             if (['OpenBracket', 'OpenParen'].includes(node.name)) {
                 let match = matchBrackets(view.state, node.from, 1);
                 if (match && match.matched)
@@ -31006,12 +31056,13 @@ if(!String.prototype.matchAll) {
                 for (let i = 0, pos = start;; i++) {
                     let code = norm.charCodeAt(i);
                     let match = this.match(code, pos);
-                    if (match) {
-                        this.value = match;
-                        return this;
-                    }
-                    if (i == norm.length - 1)
+                    if (i == norm.length - 1) {
+                        if (match) {
+                            this.value = match;
+                            return this;
+                        }
                         break;
+                    }
                     if (pos == start && i < str.length && str.charCodeAt(i) == code)
                         pos++;
                 }
@@ -31266,10 +31317,10 @@ if(!String.prototype.matchAll) {
                 line = line * (sign == "-" ? -1 : 1) + startLine.number;
             }
             let docLine = state.doc.line(Math.max(1, Math.min(state.doc.lines, line)));
+            let selection = EditorSelection.cursor(docLine.from + Math.max(0, Math.min(col, docLine.length)));
             view.dispatch({
-                effects: dialogEffect.of(false),
-                selection: EditorSelection.cursor(docLine.from + Math.max(0, Math.min(col, docLine.length))),
-                scrollIntoView: true
+                effects: [dialogEffect.of(false), EditorView.scrollIntoView(selection.from, { y: 'center' })],
+                selection,
             });
             view.focus();
         }

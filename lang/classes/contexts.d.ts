@@ -61,6 +61,8 @@ export declare class LintContext {
     GetBreeds(): Breed[];
     /** GetBreedFromVariable: Find the breed which defines a certain variable. */
     GetBreedFromVariable(varName: string): string | null;
+    private checkCodeBlocks;
+    private checkAnonProc;
     /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
     GetProcedureFromVariable(varName: string, from: number, to: number): string | null;
 }
