@@ -32,6 +32,7 @@ class DictionaryManager {
     this.RegisterBuiltin('~CustomCommand');
     this.RegisterBuiltin('~CustomReporter');
     this.RegisterBuiltin('~LocalVariable');
+    this.RegisterBuiltin('~NewVariableDeclaration/Identifier');
   }
   // RegisterInternal: Register some built-in explanations.
   private RegisterBuiltin(...Args: string[]) {

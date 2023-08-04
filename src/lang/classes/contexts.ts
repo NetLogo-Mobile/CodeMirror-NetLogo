@@ -1,5 +1,5 @@
 import { combineContexts } from 'src/utils/context-utils';
-import { AgentContexts, Breed, BreedType, Procedure } from './structures';
+import { AgentContexts, Breed, BreedType, Procedure, CodeBlock, AnonymousProcedure } from './structures';
 
 /** PreprocessContext: master context from preprocessing */
 export class PreprocessContext {
@@ -191,9 +191,56 @@ export class LintContext {
     }
     return null;
   }
+
+  private checkCodeBlocks(
+    varName: string,
+    blocks: CodeBlock[],
+    proc_name: string,
+    from: number,
+    to: number
+  ): string | null {
+    for (let b of blocks) {
+      // console.log(b)
+      if (b.PositionEnd < from || b.PositionStart > to) continue;
+      for (let localVar of b.Variables) {
+        // console.log(localVar.Name,varName,localVar.CreationPos,to)
+        if (localVar.Name == varName && localVar.CreationPos <= to) return proc_name;
+      }
+      // console.log("didn't find")
+      let other = this.checkCodeBlocks(varName, b.CodeBlocks, proc_name, from, to);
+      if (other != null) {
+        return other;
+      }
+      let anon = this.checkAnonProc(varName, b.AnonymousProcedures, proc_name, from, to);
+      if (anon != null) {
+        return anon;
+      }
+    }
+    return null;
+  }
+
+  private checkAnonProc(
+    varName: string,
+    anon: AnonymousProcedure[],
+    proc_name: string,
+    from: number,
+    to: number
+  ): string | null {
+    for (let anonProc of anon) {
+      if (anonProc.PositionEnd < from || anonProc.PositionStart > to) continue;
+      if (anonProc.Arguments.includes(varName)) return '{anonymous},' + proc_name;
+      for (let localVar of anonProc.Variables) {
+        if (localVar.Name == varName && localVar.CreationPos <= to) return '{anonymous},' + proc_name;
+      }
+    }
+
+    return null;
+  }
   /** GetProcedureFromVariable: Find the procedure that defines a certain variable. */
   public GetProcedureFromVariable(varName: string, from: number, to: number): string | null {
+    // console.log(from,to,"'"+varName+"'")
     for (let proc of this.Procedures.values()) {
+      // console.log(proc)
       if (proc.PositionEnd < from || proc.PositionStart > to) continue;
       // Check the argument list in a procedure
       if (proc.Arguments.includes(varName)) return proc.Name;
@@ -202,12 +249,15 @@ export class LintContext {
         if (localVar.Name == varName && localVar.CreationPos <= to) return proc.Name;
       }
       // Check the anonymous arguments in a procedure
-      for (let anonProc of proc.AnonymousProcedures) {
-        if (anonProc.PositionEnd > from || anonProc.PositionStart < to) continue;
-        if (anonProc.Arguments.includes(varName)) return '{anonymous},' + proc.Name;
-        for (let localVar of anonProc.Variables) {
-          if (localVar.Name == varName && localVar.CreationPos <= to) return '{anonymous},' + proc.Name;
-        }
+      let anon = this.checkAnonProc(varName, proc.AnonymousProcedures, proc.Name, from, to);
+      // console.log(anon)
+      if (anon != null) {
+        return anon;
+      }
+      let other = this.checkCodeBlocks(varName, proc.CodeBlocks, proc.Name, from, to);
+      // console.log(other)
+      if (other != null) {
+        return other;
       }
     }
     return null;

@@ -76,8 +76,13 @@ export function getTooltip(
       closestTerm = '~BreedVariable';
     } else {
       // if term is not a breed variable, check if it is a local variable for a procedure
-      if (closestTerm == '~VariableName' || (parentName == 'Identifier' && closestTerm == '')) {
+      if (
+        closestTerm == '~VariableName' ||
+        closestTerm == '~NewVariableDeclaration/Identifier' ||
+        (parentName == 'Identifier' && closestTerm == '')
+      ) {
         secondTerm = lintContext.GetProcedureFromVariable(term, lastFrom, lastTo);
+        // console.log("SECOND",secondTerm)
         // if procedure cannot be identified, term is an unidentified local variable
         if (secondTerm != null) closestTerm = '~LocalVariable';
       }
