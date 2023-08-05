@@ -24922,7 +24922,7 @@ if(!String.prototype.matchAll) {
                     Declaration: /*@__PURE__*/continuedIndent()
                 }),
                 /*@__PURE__*/foldNodeProp.add({
-                    Block: foldInside
+                    "Block KeyframeList": foldInside
                 })
             ]
         }),
@@ -26171,6 +26171,7 @@ if(!String.prototype.matchAll) {
         'Arguments needed for execution _': (Name, Arguments) => `The "${Name}" procedure needs ${Arguments > 1 ? '' : 'an '}argument${Arguments > 1 ? 's' : ''} to run. Please provide ${Arguments > 1 ? 'them' : 'it'}.`,
         'Please download Turtle Universe': () => `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
         'Failed to retrieve knowledge': () => `Sorry, we did not find the specific knowledge.`,
+        'Execute again': () => 'Execute the code **again**',
         // Options
         'Help me fix this code': () => `Help me fix this code`,
         'Explain the error': () => `Explain the error`,
@@ -26339,6 +26340,7 @@ if(!String.prototype.matchAll) {
         'Arguments needed for execution _': (Name, Arguments) => `在执行 \`${Name}\` 之前，需要知道它的参数。`,
         'Please download Turtle Universe': () => `功能在网页模式下不可用。请下载[海龟实验室](https://www.turtlesim.com/products/turtle-universe/index-cn.html)以获得更好的体验。`,
         'Failed to retrieve knowledge': () => `抱歉，未能找到相应知识。`,
+        'Execute again': () => '**再次执行**这段代码',
         // Options
         'Help me fix this code': () => `试试 AI 自动修复代码`,
         'Explain the error': () => `让 AI 解释错误信息`,
@@ -26420,7 +26422,6 @@ if(!String.prototype.matchAll) {
             this.RegisterBuiltin('~CustomCommand');
             this.RegisterBuiltin('~CustomReporter');
             this.RegisterBuiltin('~LocalVariable');
-            this.RegisterBuiltin('~NewVariableDeclaration/Identifier');
         }
         // RegisterInternal: Register some built-in explanations.
         RegisterBuiltin(...Args) {
@@ -28425,6 +28426,8 @@ if(!String.prototype.matchAll) {
                     // if procedure cannot be identified, term is an unidentified local variable
                     if (secondTerm != null)
                         closestTerm = '~LocalVariable';
+                    else
+                        closestTerm = '~VariableName';
                 }
             }
         }
@@ -29086,7 +29089,7 @@ if(!String.prototype.matchAll) {
     const keyword = new ExternalTokenizer((input, stack) => {
         let token = '';
         // Find until the token is complete
-        while (checker[input.next]) {
+        while (input.next >= 255 || checker[input.next]) {
             token += String.fromCharCode(input.next);
             input.advance();
         }
