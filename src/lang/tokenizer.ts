@@ -47,7 +47,7 @@ let checker = generateChecker();
 export const keyword = new ExternalTokenizer((input, stack) => {
   let token = '';
   // Find until the token is complete
-  while (checker[input.next]) {
+  while (input.next >= 255 || checker[input.next]) {
     token += String.fromCharCode(input.next);
     input.advance();
   }
@@ -59,7 +59,6 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     input.acceptToken(Identifier);
     return;
   }
-
   if (token == 'set') {
     input.acceptToken(Set);
   } else if (token == 'let') {

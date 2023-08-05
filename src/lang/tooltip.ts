@@ -85,6 +85,7 @@ export function getTooltip(
         // console.log("SECOND",secondTerm)
         // if procedure cannot be identified, term is an unidentified local variable
         if (secondTerm != null) closestTerm = '~LocalVariable';
+        else closestTerm = '~VariableName';
       }
     }
   }

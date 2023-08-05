@@ -193,6 +193,7 @@ const en_us: Record<string, Function> = {
   'Please download Turtle Universe': () =>
     `The feature is unavailable in Web Preview. Please download [Turtle Universe](https://www.turtlesim.com/products/turtle-universe/) to continue.`,
   'Failed to retrieve knowledge': () => `Sorry, we did not find the specific knowledge.`,
+  'Execute again': () => 'Execute the code **again**',
 
   // Options
   'Help me fix this code': () => `Help me fix this code`,

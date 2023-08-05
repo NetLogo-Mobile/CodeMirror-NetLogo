@@ -172,6 +172,7 @@ const zh_cn: Record<string, Function> = {
   'Please download Turtle Universe': () =>
     `功能在网页模式下不可用。请下载[海龟实验室](https://www.turtlesim.com/products/turtle-universe/index-cn.html)以获得更好的体验。`,
   'Failed to retrieve knowledge': () => `抱歉，未能找到相应知识。`,
+  'Execute again': () => '**再次执行**这段代码',
 
   // Options
   'Help me fix this code': () => `试试 AI 自动修复代码`,
