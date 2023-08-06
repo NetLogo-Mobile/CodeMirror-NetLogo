@@ -148,6 +148,7 @@ export const UnrecognizedSuggestions: Record<string, string> = {
   'create-links': 'create-links-with',
   'set-patch-color': 'set pcolor',
   'set-world-size': 'resize-world',
+  return: 'report',
 };
 
 /** checkUnrecognizedWithSuggestions: Check if the unrecognized identifier has a suggestion. */
