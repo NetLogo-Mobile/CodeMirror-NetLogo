@@ -328,27 +328,20 @@ export class StateNetLogo {
     let cursor = node.cursor();
     let child = cursor.firstChild();
     while (child) {
+      let context: AgentContexts | undefined = undefined;
+      let name: string | undefined = undefined;
       if (
         (cursor.node.name.includes('Command') || cursor.node.name.includes('Reporter')) &&
         !cursor.node.name.includes('Commands') &&
         !cursor.node.name.includes('Reporters') &&
         !cursor.node.name.includes('Special')
       ) {
-        let name = getCodeName(state, cursor.node);
-        let context = this.getPrimitiveContext(state, cursor.node, name);
-        if (context) {
-          newContext = combineContexts(context, priorContext);
-          if (!noContext(newContext)) {
-            priorContext = newContext;
-          } else {
-            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
-          }
-        }
+        name = getCodeName(state, cursor.node);
+        context = this.getPrimitiveContext(state, cursor.node, name);
       } else if (cursor.node.name == 'VariableDeclaration') {
         let n = cursor.node.getChild('SetVariable')?.getChild('VariableName');
         if (n) {
-          let context = new AgentContexts();
-          let name = getCodeName(state, n);
+          name = getCodeName(state, n);
           if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
             context = new AgentContexts('-T-L');
           } else if (n?.getChild('PatchVar')) {
@@ -358,35 +351,28 @@ export class StateNetLogo {
           } else if (n?.getChild('LinkVar')) {
             context = new AgentContexts('---L');
           } else {
-            context = this.Preprocess.GetBreedVariableContexts(name) ?? context;
-          }
-          newContext = combineContexts(context, priorContext);
-          if (!noContext(newContext)) {
-            priorContext = newContext;
-          } else {
-            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
+            context = this.Preprocess.GetBreedVariableContexts(name);
           }
         }
       } else if (cursor.node.name.includes('Special')) {
-        let name = getCodeName(state, cursor.node);
-        let context = null;
+        name = getCodeName(state, cursor.node);
         if (
           !cursor.node.name.includes('Both') &&
           !cursor.node.name.includes('Turtle') &&
           !cursor.node.name.includes('Link')
         ) {
-          context = this.Procedures.get(name)?.Context ?? null;
+          context = this.Procedures.get(name)?.Context;
         } else {
           context = MatchBreed(name, this.Preprocess).Context;
         }
-
-        if (context) {
-          newContext = combineContexts(context, priorContext);
-          if (!noContext(newContext)) {
-            priorContext = newContext;
-          } else {
-            this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name));
-          }
+      }
+      // Combine and check the context
+      if (context) {
+        newContext = combineContexts(context, priorContext);
+        if (!noContext(newContext)) {
+          priorContext = newContext;
+        } else {
+          this.ContextErrors.push(new ContextError(cursor.node.from, cursor.node.to, priorContext, context, name!));
         }
       }
       child = cursor.nextSibling();
@@ -490,13 +476,10 @@ export class StateNetLogo {
     }
     if (prim.breed != '') {
       prim.context = new AgentContexts('null');
-      if (prim.breed != '') {
-        for (let b of this.Breeds.values()) {
-          if (prim.breed.toLowerCase() == b.Singular || prim.breed.toLowerCase() == b.Plural) {
-            prim.context = this.Preprocess.GetBreedContext(b.Plural, false);
-            break;
-          }
-        }
+      if (this.Preprocess.PluralBreeds.has(prim.breed)) {
+        prim.context = this.Preprocess.GetBreedContext(prim.breed, false);
+      } else if (this.Preprocess.SingularBreeds.has(prim.breed)) {
+        prim.context = this.Preprocess.GetBreedContext(this.Preprocess.SingularToPlurals.get(prim.breed)!, false);
       }
     } else {
       let primitive = primitives.GetNamedPrimitive(prim.name);

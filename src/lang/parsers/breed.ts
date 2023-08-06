@@ -237,6 +237,8 @@ export interface BreedMatch {
 
 /** MatchBreed: Check if the token is a breed reporter/command/variable. */
 export function MatchBreed(token: string, context: PreprocessContext, guessing: boolean = false): BreedMatch {
+  token = token.toLowerCase();
+
   // Check breed variables
   if (!guessing) {
     let breedVars = context.BreedVars;
