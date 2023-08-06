@@ -29704,6 +29704,7 @@ if(!String.prototype.matchAll) {
         'create-links': 'create-links-with',
         'set-patch-color': 'set pcolor',
         'set-world-size': 'resize-world',
+        return: 'report',
     };
     /** checkUnrecognizedWithSuggestions: Check if the unrecognized identifier has a suggestion. */
     function checkUnrecognizedWithSuggestions(diagnostics, view, node) {
