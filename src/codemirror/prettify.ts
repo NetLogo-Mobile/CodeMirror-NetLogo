@@ -3,6 +3,7 @@ import { EditorView } from '@codemirror/view';
 import { IterMode, SyntaxNode, Tree } from '@lezer/common';
 import { GalapagosEditor } from 'src/editor';
 import { Log } from '../utils/debug-utils';
+import { getCodeName } from 'src/lang/utils/code';
 
 /** prettify: Change selection to fit formatting standards. */
 export const prettify = function (view: EditorView, from: number | null = null, to: number | null = null) {
@@ -153,6 +154,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
+      console.log(node.name, "'" + getCodeName(view.state, node.node) + "'");
       if (node.from >= from && node.to <= to) {
         if (
           ((node.node.parent?.name == 'Program' && node.name != 'LineComment') ||
@@ -162,6 +164,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
           node.from > 0 &&
           doc[node.from - 1] != '\n'
         ) {
+          // console.log("A")
           changes.push({ from: node.from, to: node.from, insert: '\n' });
         } else if (node.name == 'CodeBlock') {
           //console.log("CODEBLOCK",doc.substring(node.from,node.to))
@@ -180,6 +183,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
                 insert: replacement,
               });
             } else {
+              // console.log("B")
               changes.push({
                 from: node.from,
                 to: node.to,
@@ -188,9 +192,16 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
             }
             return false;
           } else if (checkBlock(node.node, 'ProcedureContent', doc, lineWidth)) {
+            // console.log(getCodeName(view.state,node.node))
             for (var name of ['ProcedureContent', 'CloseBracket']) {
               node.node.getChildren(name).map((child) => {
-                if (doc[child.from - 1] != '\n') {
+                if (
+                  doc
+                    .substring(Math.max(0, child.from - 15), child.from)
+                    .trim()
+                    .endsWith('\n')
+                ) {
+                  // console.log("C",doc.substring(child.from-15,child.from).trim().endsWith('\n'))
                   changes.push({
                     from: child.from,
                     to: child.from,
@@ -204,6 +215,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
           for (var name of ['ReporterContent', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               if (doc[child.from - 1] != '\n') {
+                // console.log("D")
                 changes.push({
                   from: child.from,
                   to: child.from,
@@ -272,8 +284,10 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
                   });
                 } else if (
                   doc.substring(startPos, cursor.to).length > lineWidth &&
-                  !doc.substring(lastPos, cursor.to).includes('\n')
+                  !doc.substring(lastPos, cursor.to).includes('\n') &&
+                  cursor.node.nextSibling
                 ) {
+                  // console.log("#@$#@$#@!$#!@$#!")
                   changes.push({
                     from: removeFrom,
                     to: cursor.from,
@@ -321,6 +335,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
         ) {
           for (var name of ['ProcedureContent', 'ReporterContent', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
+              // console.log("E")
               if (doc[child.from - 1] != '\n') {
                 changes.push({
                   from: child.from,
@@ -363,6 +378,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
             for (var name of ['CloseBracket', 'Extension', 'Identifier']) {
               node.node.getChildren(name).map((child) => {
                 if (doc[child.from - 1] != '\n' && child.from > 0) {
+                  // console.log("F")
                   changes.push({
                     from: child.from,
                     to: child.from,

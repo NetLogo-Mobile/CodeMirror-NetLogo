@@ -5,6 +5,8 @@ import { Linter, getDiagnostic } from './linter-builder';
 import { reserved } from '../keywords';
 import { checkUndefinedBreed, getCheckContext, checkUnrecognizedWithSuggestions } from '../utils/check-identifier';
 import { getCodeName } from '../utils/code';
+import { stateExtension } from 'src/codemirror/extension-state-netlogo';
+import { ParseMode } from 'src/editor-config';
 
 // UnrecognizedLinter: Checks for anything that can't be parsed by the grammar
 export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -22,6 +24,16 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
         }
         const value = getCodeName(view.state, node);
         Log(value, node.name, parents);
+        if (node.name == 'Misplaced') {
+          let sum: number = 0;
+          let types: string[] = ['Extensions', 'Globals', 'Breed', 'BreedsOwn', 'Procedure'];
+          types.map((name: string) => {
+            sum += node.node.parent?.getChildren(name).length ?? 0;
+          });
+          if (sum == 0 && view.state.field(stateExtension).Mode != ParseMode.Normal) {
+            return;
+          }
+        }
         if (node.node.parent?.name == 'Arguments') {
           // Arguments should not be reserved words or command/reporter names
           let child = node.node.firstChild;

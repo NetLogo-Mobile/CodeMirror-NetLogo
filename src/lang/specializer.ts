@@ -46,6 +46,7 @@ import {
   SpecialCommand6Args,
   SpecialCommandCreateTurtle,
   SpecialCommandCreateLink,
+  Command1_2ArgsOpt,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -151,6 +152,7 @@ const specializeCommand = function (token: string) {
   let commands = primitives.GetPrimitive('', token);
   if (commands) {
     let repeats = false;
+    let nonoptional: number = 0;
     let args = commands?.RightArgumentTypes.length;
     commands.RightArgumentTypes.map((arg) => {
       if (arg.CanRepeat) {
@@ -159,7 +161,23 @@ const specializeCommand = function (token: string) {
           args = commands?.DefaultOption;
         }
       }
+      if (!arg.Optional) {
+        nonoptional += 1;
+      }
     });
+    // let repeats = false;
+    // let args = 0
+    // commands.RightArgumentTypes.map((arg) => {
+    //   if (arg.CanRepeat || arg.Optional) {
+    //     repeats = true;
+    //   }
+    //   if (!arg.Optional){
+    //     args+=1
+    //   }
+    // });
+    // if (commands?.DefaultOption) {
+    //   args = commands?.DefaultOption;
+    // }
     if (repeats) {
       if (args == 0) {
         return Command0ArgsVar;
@@ -176,6 +194,8 @@ const specializeCommand = function (token: string) {
       } else if (args == 6) {
         return Command6ArgsVar;
       }
+    } else if (nonoptional == 1 && args == 2) {
+      return Command1_2ArgsOpt;
     } else {
       if (args == 0) {
         return Command0Args;

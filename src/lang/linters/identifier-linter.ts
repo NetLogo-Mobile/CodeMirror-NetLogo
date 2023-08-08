@@ -19,7 +19,10 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
     .cursor()
     .iterate((noderef) => {
       var parent = noderef.node.parent;
-      if (noderef.name == 'Identifier' && parent?.name != '⚠') {
+      if (
+        (noderef.name == 'Identifier' && parent?.name != '⚠') ||
+        (noderef.name == 'SpecialCommandCreateTurtlePossible' && parent?.name.includes('VariableName'))
+      ) {
         const node = noderef.node;
         const value = getCodeName(view.state, node);
         // check if it meets some initial criteria for validity

@@ -251,6 +251,7 @@ export const checkValidNumArgs = function (state: EditorState, args: ArgsInfo, p
   }
   // checking for regular primitives
   let primitive = primitives.GetNamedPrimitive(funcRef);
+  // console.log(primitive);
   // checks for terms used as primitives but don't exist in our dataset
   if (!primitive) {
     Log('no primitive', args.func?.name, func);

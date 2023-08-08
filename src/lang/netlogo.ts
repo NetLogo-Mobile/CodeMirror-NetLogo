@@ -180,14 +180,16 @@ function bracketedAligned(context: TreeIndentContext) {
 }
 
 function delimitedStrategy(context: TreeIndentContext) {
-  // console.log(context.node.name, context.node.firstChild?.name);
+  let nextNode = context.node.resolveInner(context.pos);
+  console.log(nextNode.name, nextNode.node.parent?.name);
+  console.log(context.textAfter, context.node.name, context.node.parent?.name);
   let after = context.textAfter,
     space = after.match(/^\s*/)![0].length;
   let closing = '[\n',
     align = context.node.firstChild?.name != 'Arg' && context.node.firstChild?.name != 'LineComment',
     units = 1;
   let next = after.slice(space, space + 2);
-  let closed = closing && (next == closing || next == '[');
+  let closed = closing && (next == closing || next == '[' || next == ']');
   // console.log("'" + after.slice(space, space + 2) + "'", closing.length);
   let aligned = align ? bracketedAligned(context) : null;
   // console.log(aligned, closed, context.baseIndent);

@@ -6,7 +6,7 @@ import { CodeBlock, Procedure } from '../classes/structures';
 import { LintContext, PreprocessContext } from '../classes/contexts';
 import { getCodeName, getParentProcedure } from './code';
 import { getDiagnostic } from '../linters/linter-builder';
-import { addBreedAction } from './actions';
+import { addBreedAction, AddReplaceAction } from './actions';
 import { Diagnostic } from '@codemirror/lint';
 import { MatchBreed } from '../parsers/breed';
 
@@ -129,9 +129,11 @@ export function checkUndefinedBreed(
   let info = MatchBreed(value, context, true);
   // if the breed name is not recognized, add the lint message
   if (!info.Valid && info.Plural) {
-    let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', info.Plural);
-    if (typeof info.Type !== 'undefined') addBreedAction(diagnostic, info.Type, info.Plural, info.Singular!);
-    diagnostics.push(diagnostic);
+    if (!checkUnrecognizedWithSuggestions(diagnostics, view, noderef)) {
+      let diagnostic = getDiagnostic(view, noderef, 'Unrecognized breed name _', 'error', info.Plural);
+      if (typeof info.Type !== 'undefined') addBreedAction(diagnostic, info.Type, info.Plural, info.Singular!);
+      diagnostics.push(diagnostic);
+    }
     return true;
   } else return false;
 }
@@ -159,16 +161,16 @@ export function checkUnrecognizedWithSuggestions(
 ): boolean {
   var value = getCodeName(view.state, node);
   if (UnrecognizedSuggestions.hasOwnProperty(value)) {
-    diagnostics.push(
-      getDiagnostic(
-        view,
-        node,
-        'Unrecognized identifier with replacement _',
-        'error',
-        value,
-        UnrecognizedSuggestions[value]
-      )
+    let diagnostic = getDiagnostic(
+      view,
+      node,
+      'Unrecognized identifier with replacement _',
+      'error',
+      value,
+      UnrecognizedSuggestions[value]
     );
+    AddReplaceAction(diagnostic, UnrecognizedSuggestions[value]);
+    diagnostics.push(diagnostic);
     return true;
   }
   return false;

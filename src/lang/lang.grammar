@@ -20,14 +20,14 @@
 }
 
 @top Program { 
+  Embedded {
+    (CommandStatement | Parenthetical<CommandStatement>)+ ~global
+  } |
   Normal {
     (globalStatement | Misplaced | Procedure)* ~global
   } |
   OnelineReporter {
     (ReporterStatement | Value) ~global
-  } |
-  Embedded {
-    (CommandStatement | Parenthetical<CommandStatement>)+ ~global
   }
 }
 
@@ -268,10 +268,8 @@ CommandStatement {
   (Command4Args | SpecialCommand4Args) Arg Arg Arg !lastArgs Arg |
   (Command5Args | SpecialCommand5Args) Arg Arg Arg Arg !lastArgs Arg |
   (Command6Args | SpecialCommand6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
-  turtle2 { (SpecialCommandCreateTurtle|SpecialCommandCreateTurtlePossible) Arg !best Arg } |
-  link2 { SpecialCommandCreateLink Arg !best Arg} |
-  turtle1 { (SpecialCommandCreateTurtle|SpecialCommandCreateTurtlePossible) Arg} |
-  link1 { SpecialCommandCreateLink Arg} |
+  turtle2 { (SpecialCommandCreateTurtle|SpecialCommandCreateTurtlePossible|SpecialCommandCreateLink|Command1_2ArgsOpt) Arg !best Arg } |
+  turtle1 { (SpecialCommandCreateTurtle|SpecialCommandCreateTurtlePossible|SpecialCommandCreateLink|Command1_2ArgsOpt) Arg} |
   Command0ArgsVar !lastArgs Arg*  |
   Command1ArgsVar !lastArgs Arg+ |
   Command2ArgsVar Arg !lastArgs Arg+ |
@@ -417,7 +415,8 @@ Reporters {
   SpecialReporter0ArgsTurtle,
   SpecialReporter1ArgsTurtle,
   SpecialReporter0ArgsLinkP,
-  SpecialCommandCreateTurtlePossible
+  SpecialCommandCreateTurtlePossible,
+  Command1_2ArgsOpt
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {

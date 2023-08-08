@@ -57,6 +57,20 @@ export const removeAction = function (diagnostic: Diagnostic): Diagnostic {
   return diagnostic;
 };
 
+/** removeAction: Add an removing the snippet action. */
+export const AddReplaceAction = function (diagnostic: Diagnostic, replacement: string): Diagnostic {
+  diagnostic.actions = [
+    ...(diagnostic.actions ?? []),
+    {
+      name: Localized.Get('Replace'),
+      apply(view: EditorView, from: number, to: number) {
+        view.dispatch({ changes: { from, to, insert: replacement } });
+      },
+    },
+  ];
+  return diagnostic;
+};
+
 /** explainAction: Add an explain the linting message action. */
 export const explainAction = function (
   diagnostic: Diagnostic,
