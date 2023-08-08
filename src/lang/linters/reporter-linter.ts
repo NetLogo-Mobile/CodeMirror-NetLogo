@@ -18,21 +18,16 @@ export const ReporterLinter: Linter = (view, preprocessContext, lintContext) => 
       let found_report = false;
       let reporter_node = null;
       // console.log()
-      proc.cursor().iterate((node) => {
-        if (node.name == 'Command1Args' && getCodeName(view.state, node.node) == 'report') {
-          found_report = true;
-          reporter_node = node.node;
-          console.log(node.from, node.to);
-        }
+      syntaxTree(view.state).iterate({
+        enter: (node) => {
+          if (node.name == 'Command1Args' && getCodeName(view.state, node.node) == 'report') {
+            found_report = true;
+            reporter_node = node.node;
+          }
+        },
+        from: proc.from,
+        to: proc.to,
       });
-      if (is_reporter != found_report) {
-        console.log(
-          getCodeName(view.state, proc.getChild('ProcedureName') ?? proc),
-          getCodeName(view.state, to_node ?? proc),
-          is_reporter,
-          found_report
-        );
-      }
       if (is_reporter && !found_report && to_node) {
         let diagnostic = getDiagnostic(view, to_node, 'Invalid to-report _', 'error', 'to-report');
         AddReplaceAction(diagnostic, 'to');
@@ -41,9 +36,9 @@ export const ReporterLinter: Linter = (view, preprocessContext, lintContext) => 
         // console.log(reporter_node)
         // console.log(getCodeName(view.state, to_node),is_reporter,found_report)
         diagnostics.push(getDiagnostic(view, reporter_node, 'Invalid report _', 'error', 'report'));
-        // let diagnostic = getDiagnostic(view, to_node, 'Invalid report warning _', 'warning', 'report');
-        // AddReplaceAction(diagnostic, 'to-report');
-        // diagnostics.push(diagnostic);
+        let diagnostic = getDiagnostic(view, to_node, 'Invalid report warning _', 'warning', 'report');
+        AddReplaceAction(diagnostic, 'to-report');
+        diagnostics.push(diagnostic);
       }
     });
   return diagnostics;
