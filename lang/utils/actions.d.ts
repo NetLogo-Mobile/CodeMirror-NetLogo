@@ -6,6 +6,8 @@ export declare const addBreedAction: (diagnostic: Diagnostic, type: BreedType, p
 export declare const addGlobalsAction: (diagnostic: Diagnostic, type: 'Globals' | 'Extensions', items: string[]) => Diagnostic;
 /** removeAction: Add an removing the snippet action. */
 export declare const removeAction: (diagnostic: Diagnostic) => Diagnostic;
+/** removeAction: Add an removing the snippet action. */
+export declare const AddReplaceAction: (diagnostic: Diagnostic, replacement: string) => Diagnostic;
 /** explainAction: Add an explain the linting message action. */
 export declare const explainAction: (diagnostic: Diagnostic, callback: (Diagnostic: Diagnostic, Context: string) => void) => Diagnostic;
 //# sourceMappingURL=actions.d.ts.map
