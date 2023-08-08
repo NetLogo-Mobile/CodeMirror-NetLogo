@@ -109,28 +109,28 @@ export class GalapagosEditor {
       })
     );
     // One-line mode
-    if (this.Options.OneLine) {
-      Extensions.push(
-        EditorState.transactionFilter.of((Transaction) => {
-          if (Transaction.docChanged && Transaction.newDoc.lines > 1) {
-            var NewDoc = Transaction.newDoc.toString().replace('\n', ' ').trim();
-            return [
-              {
-                changes: {
-                  from: 0,
-                  to: this.CodeMirror.state.doc.length,
-                  insert: NewDoc,
-                },
-                selection: {
-                  anchor: NewDoc.length,
-                },
-              },
-            ];
-          }
-          return [Transaction];
-        })
-      );
-    }
+    // if (this.Options.OneLine) {
+    //   Extensions.push(
+    //     EditorState.transactionFilter.of((Transaction) => {
+    //       if (Transaction.docChanged && Transaction.newDoc.lines > 1) {
+    //         var NewDoc = Transaction.newDoc.toString().replace('\n', ' ').trim();
+    //         return [
+    //           {
+    //             changes: {
+    //               from: 0,
+    //               to: this.CodeMirror.state.doc.length,
+    //               insert: NewDoc,
+    //             },
+    //             selection: {
+    //               anchor: NewDoc.length,
+    //             },
+    //           },
+    //         ];
+    //       }
+    //       return [Transaction];
+    //     })
+    //   );
+    // }
     // Wrapping mode
     if (this.Options.Wrapping) Extensions.push(EditorView.lineWrapping);
     // Placeholder
