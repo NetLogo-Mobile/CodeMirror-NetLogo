@@ -26062,6 +26062,9 @@ if(!String.prototype.matchAll) {
         'Negation _': (Name) => `This expression looks like an incorrect negation. The correct format is "(- ${Name.substring(1)})".`,
         'Deprecated usage of ?': (Name) => `This expression looks like an incorrect anonymous procedure. The correct format looks like "[[ arg ] -> print arg]".`,
         'Incorrect usage of ,': (Name) => `In NetLogo, spaces " " are used to separate meanings. There is no need to use ",".`,
+        'Invalid report _': (Name) => `'Report' can only be used in a procedure beginning with 'to-report'.`,
+        'Invalid report warning _': (Name) => `'Report' can only be used in a procedure beginning with 'to-report'. Would you like to change to 'to-report'?`,
+        'Invalid to-report _': (Name) => `Any procedure beginning with 'to-report' must include the 'report' command. Would you like to change to 'to'?`,
         // Agent types and basic names
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -26231,6 +26234,9 @@ if(!String.prototype.matchAll) {
         'Negation _': (Name) => `取负值的方式不受支持。正确的格式是："(- ${Name.substring(1)})"。`,
         'Deprecated usage of ?': (Name) => `匿名函数的写法不受支持。正确的格式类似于 "[[ 参数 ] -> print 参数]".`,
         'Incorrect usage of ,': (Name) => `NetLogo 语言中使用空格分隔词义，无须使用 ","。`,
+        'Invalid report _': (Name) => `'Report' can only be used in a procedure beginning with 'to-report'.`,
+        'Invalid report warning _': (Name) => `'Report' can only be used in a procedure beginning with 'to-report'. Would you like to change to 'to-report'?`,
+        'Invalid to-report _': (Name) => `Any procedure beginning with 'to-report' must include the 'report' command. Would you like to change to 'to'?`,
         // Agent types and basic names
         Observer: () => '观察者',
         Turtle: () => '海龟',
@@ -31052,6 +31058,39 @@ if(!String.prototype.matchAll) {
         return diagnostics;
     };
 
+    // ReporterLinter: checks if all (and only) reporter procedures use 'report'
+    const ReporterLinter = (view, preprocessContext, lintContext) => {
+        var _a, _b;
+        const diagnostics = [];
+        (_b = (_a = syntaxTree(view.state)
+            .topNode) === null || _a === void 0 ? void 0 : _a.firstChild) === null || _b === void 0 ? void 0 : _b.getChildren('Procedure').map((proc) => {
+            let to_node = proc.node.getChild('To');
+            let is_reporter = getCodeName(view.state, to_node !== null && to_node !== void 0 ? to_node : proc.node) == 'to-report';
+            let found_report = false;
+            let reporter_node = null;
+            proc.cursor().iterate((node) => {
+                if (node.name == 'Command1Args' && getCodeName(view.state, node.node) == 'report') {
+                    found_report = true;
+                    reporter_node = node.node;
+                    // console.log(node.from,node.to)
+                }
+            });
+            if (is_reporter && !found_report && to_node) {
+                let diagnostic = getDiagnostic(view, to_node, 'Invalid to-report _', 'error', 'to-report');
+                AddReplaceAction(diagnostic, 'to');
+                diagnostics.push(diagnostic);
+            }
+            else if (!is_reporter && found_report && reporter_node && to_node) {
+                // console.log(reporter_node)
+                diagnostics.push(getDiagnostic(view, reporter_node, 'Invalid report _', 'error', 'report'));
+                let diagnostic = getDiagnostic(view, to_node, 'Invalid report warning _', 'warning', 'report');
+                AddReplaceAction(diagnostic, 'to-report');
+                diagnostics.push(diagnostic);
+            }
+        });
+        return diagnostics;
+    };
+
     const netlogoLinters = [
         UnrecognizedLinter,
         UnrecognizedGlobalLinter,
@@ -31064,6 +31103,7 @@ if(!String.prototype.matchAll) {
         ModeLinter,
         ContextLinter,
         CodeBlockLinter,
+        ReporterLinter,
     ];
 
     // CompilerLinter: Present all linting results from the compiler.
