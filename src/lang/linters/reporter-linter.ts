@@ -16,6 +16,7 @@ export const ReporterLinter: Linter = (view, preprocessContext, lintContext) => 
       let is_reporter = getCodeName(view.state, to_node ?? proc.node) == 'to-report';
       let found_report = false;
       let reporter_node = null;
+      // console.log()
       proc.cursor().iterate((node) => {
         if (node.name == 'Command1Args' && getCodeName(view.state, node.node) == 'report') {
           found_report = true;
@@ -30,9 +31,9 @@ export const ReporterLinter: Linter = (view, preprocessContext, lintContext) => 
       } else if (!is_reporter && found_report && reporter_node && to_node) {
         // console.log(reporter_node)
         diagnostics.push(getDiagnostic(view, reporter_node, 'Invalid report _', 'error', 'report'));
-        let diagnostic = getDiagnostic(view, to_node, 'Invalid report warning _', 'warning', 'report');
-        AddReplaceAction(diagnostic, 'to-report');
-        diagnostics.push(diagnostic);
+        // let diagnostic = getDiagnostic(view, to_node, 'Invalid report warning _', 'warning', 'report');
+        // AddReplaceAction(diagnostic, 'to-report');
+        // diagnostics.push(diagnostic);
       }
     });
   return diagnostics;
