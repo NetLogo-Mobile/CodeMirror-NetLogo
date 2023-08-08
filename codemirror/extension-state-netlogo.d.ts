@@ -53,6 +53,8 @@ export declare class StateNetLogo {
     private getContext;
     /** combineContext: Identify context of a block by combining with the previous context. */
     combineContext(node: SyntaxNode, state: EditorState, priorContext: AgentContexts, newContext: AgentContexts): AgentContexts[];
+    /** combineContext: Identify context of a block by combining with the previous context. */
+    OLDcombineContext(node: SyntaxNode, state: EditorState, priorContext: AgentContexts, newContext: AgentContexts): AgentContexts[];
     /** getPrimitiveContext: Identify context for a builtin primitive. */
     private getPrimitiveContext;
     /** gatherCodeBlocks: Gather all information about code blocks inside a given node. */
