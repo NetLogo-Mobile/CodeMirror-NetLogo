@@ -65,6 +65,8 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
         if (checkUnrecognizedWithSuggestions(diagnostics, view, node)) return;
         // nothing more to check, so it is an unrecognized identifier
         diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
+      } else if (noderef.name == 'SpecialCommandCreateTurtlePossible' && !parent?.name.includes('VariableName')) {
+        checkUndefinedBreed(diagnostics, context.preprocessState, view, noderef.node);
       }
     });
   return diagnostics;

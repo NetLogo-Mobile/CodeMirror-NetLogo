@@ -7,7 +7,6 @@ import {
   Let,
   To,
   End,
-  Directive,
   Command,
   Reporter,
   TurtleVar,
@@ -22,7 +21,6 @@ import {
   ReporterLeft1Args,
   ReporterLeft2Args,
   ReporterLeft1ArgsOpt,
-  PlusMinus,
   SpecialCommand,
   SpecialReporter,
   BreedToken,
@@ -32,6 +30,7 @@ import {
   APReporterVar,
   APReporter,
   UnsupportedPrim,
+  SpecialCommandCreateTurtlePossible,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './lang.terms.js';
@@ -109,8 +108,6 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     input.acceptToken(ReporterLeft1ArgsOpt);
   } else if (token == 'in-cone') {
     input.acceptToken(ReporterLeft2Args);
-  } else if (token == '-' || token == '+') {
-    input.acceptToken(PlusMinus);
   } else if (token == 'breed') {
     let offset = 0;
     let foundText = false;
@@ -132,8 +129,6 @@ export const keyword = new ExternalTokenizer((input, stack) => {
     }
   } else if (token == 'directed-link-breed' || token == 'undirected-link-breed') {
     input.acceptToken(BreedStr);
-  } else if (directives.indexOf(token) != -1) {
-    input.acceptToken(Directive);
   } else if (turtleVars.indexOf(token) != -1) {
     input.acceptToken(TurtleVar);
   } else if (patchVars.indexOf(token) != -1) {
@@ -168,6 +163,8 @@ export const keyword = new ExternalTokenizer((input, stack) => {
       return;
     } else if (match.Tag != 0) {
       input.acceptToken(match.Tag);
+    } else if (token.match(/^create-[^\?]+$/i)) {
+      input.acceptToken(SpecialCommandCreateTurtlePossible);
     } else if (token.indexOf(':') != -1 && primitives.GetExtensions().indexOf(token.split(':')[0]) == -1) {
       input.acceptToken(UnsupportedPrim);
     } else {

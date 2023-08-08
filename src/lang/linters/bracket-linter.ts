@@ -11,6 +11,9 @@ export const BracketLinter: Linter = (view, preprocessContext, lintContext) => {
     .cursor()
     .iterate((node) => {
       // Match the bracket/paren
+      // if (node.name=='Value'){
+      //   console.log(node.node.firstChild)
+      // }
       // if(['OpenParen','CloseParen'].includes(node.name)) {
       //   let parents: string[] = [];
       //   let curr= node.node

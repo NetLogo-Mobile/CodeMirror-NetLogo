@@ -1,14 +1,16 @@
 @precedence {
+  paren @left,
+  
   bestleft @left,
   bestright @right,
   best @right,
   cut @cut,
-  paren @left,
   open @left,
-  close @right,
+  close @left,
   leftArgs @left,
+  decl @left,
   lastArgs @left,
-  rightArgs @right,
+  rightArgs @left,
   worse,
   exponent @right,
   times @left,
@@ -25,7 +27,19 @@
     (ReporterStatement | Value) ~global
   } |
   Embedded {
-    (CommandStatement | OpenParen CommandStatement CloseParen)+ ~global
+    (CommandStatement | Parenthetical<CommandStatement>)+ ~global
+  }
+}
+
+Parenthetical<content> {
+  OpenParen !paren content !paren CloseParen
+}
+WorseParentheticals{
+  nonoptimal[@dynamicPrecedence=-1]{
+    OpenParen !paren (Value | ReporterStatement | CommandStatement) !paren CloseParen ~parenth
+  } |
+  loose[@dynamicPrecedence=-3]{
+    OpenParen
   }
 }
 
@@ -49,32 +63,6 @@ Misplaced {
   CommandStatement
 }
 
-specialReportersCommands {
-  SpecialReporter0Args |
-  SpecialReporter1Args |
-  SpecialReporter2Args |
-  SpecialReporter3Args |
-  SpecialReporter4Args |
-  SpecialReporter5Args |
-  SpecialReporter6Args |
-  SpecialReporter1ArgsBoth |
-  SpecialReporter0ArgsLink |
-  SpecialReporter1ArgsLink |
-  SpecialReporter2ArgsTurtle |
-  SpecialReporter0ArgsTurtle |
-  SpecialReporter1ArgsTurtle |
-  SpecialReporter0ArgsLinkP |
-  SpecialCommand0Args |
-  SpecialCommand1Args |
-  SpecialCommand2Args |
-  SpecialCommand3Args |
-  SpecialCommand4Args |
-  SpecialCommand5Args |
-  SpecialCommand6Args |
-  SpecialCommandCreateTurtle |
-  SpecialCommandCreateLink
-}
-
 BreedDeclarative {
   BreedStr | BreedToken
 }
@@ -87,10 +75,6 @@ BreedPlural {
   Identifier | SpecialReporter1Args | Reporter0Args
 }
 
-BreedVars {
-  Identifier | BreedFirst | BreedMiddle | BreedLast
-}
-
 Procedure {
   To ProcedureName Arguments? ProcedureContent* End
 }
@@ -101,13 +85,12 @@ ProcedureName {
 
 ProcedureContent {
   CommandStatement |
-  OpenParen CommandStatement CloseParen |
-  Error {globalStatement | BreedToken OpenBracket BreedPlural BreedSingular CloseBracket} ~statement
+  Parenthetical<CommandStatement> |
+  Error {globalStatement | BreedToken OpenBracket BreedPlural BreedSingular CloseBracket} 
 }
 
 ReporterContent {
-  ReporterStatement ~statement |
-  OpenParen ReporterStatement !close CloseParen
+  ReporterStatement
 }
 
 VariableDeclaration {
@@ -115,18 +98,36 @@ VariableDeclaration {
   SetVariable
 }
 
+varValue{
+  Value  | ReporterStatement
+}
+
 NewVariableDeclaration {
-  Let newVariableName Value ~statement |
-  Let newVariableName ReporterStatement ~statement
+  Let newVariableName !lastArgs varValue
+}
+
+SetVariable {
+  Set (VariableName|builtinPrims) varValue
+}
+
+VariableName {
+  Identifier ~identifier | 
+  PatchVar | 
+  TurtleVar | 
+  LinkVar |
+  BreedToken |
+  UnsupportedPrim ~unsupported |
+  SpecialCommandCreateTurtlePossible
 }
 
 newVariableName {
   Identifier |
-  UnsupportedPrim |
+  UnsupportedPrim ~unsupported|
   PatchVar | 
   TurtleVar | 
   LinkVar |
-  builtinPrims
+  builtinPrims |
+  SpecialCommandCreateTurtlePossible
 }
 
 builtinPrims {
@@ -166,34 +167,22 @@ builtinPrims {
   Command3ArgsVar2
 }
 
-SetVariable {
-  Set (VariableName|builtinPrims) Value ~statement |
-  Set (VariableName|builtinPrims) ReporterStatement ~statement
-}
 
-VariableName {
-  Identifier ~statement | 
-  PatchVar | 
-  TurtleVar | 
-  LinkVar |
-  BreedToken |
-  UnsupportedPrim
-}
 
 Arg {  
-  Value ~statement |
-  ReporterContent ~statement |
+  Value |
+  ReporterContent |
   ReporterBlock |
   Property
 }
 
 Value {
-  OpenParen !open Value !close CloseParen |
+  Parenthetical<Value> |
   List |
   CodeBlock |
   VariableName |
   Literal |
-  AnonymousProcedure
+  AnonymousProcedure ~anon
 }
 
 Literal {
@@ -203,11 +192,11 @@ Literal {
 }
 
 Arguments {
-  OpenBracket (Identifier|UnsupportedPrim)* ~bebracket CloseBracket ~endbracket
+  OpenBracket (Identifier|UnsupportedPrim ~unsupported)* ~bebracket CloseBracket ~endbracket
 }
 
 AnonArguments {
-  Arguments | (Identifier|UnsupportedPrim)* ~bebracket
+  Arguments | (Identifier|UnsupportedPrim ~unsupported)* ~bebracket
 }
 
 List { 
@@ -219,7 +208,7 @@ CodeBlock[@dynamicPrecedence=-1] {
 }
 
 ReporterBlock {
-  OpenBracket ReporterContent ~statement !close ~bebracket CloseBracket ~endbracket |
+  OpenBracket ReporterContent  !close ~bebracket CloseBracket ~endbracket |
   OpenBracket Value !close ~bebracket CloseBracket ~endbracket
 }
 
@@ -228,26 +217,28 @@ Property {
 }
 
 AnonymousProcedure {
-  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent* ~statement |Value~statement) ~bebracket CloseBracket ~endbracket
+  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*  |Value) ~bebracket CloseBracket ~endbracket
 }
 
 ShortAnonymousProcedure {
-  OpenBracket (ProcedureContent*|ReporterContent* ~statement |Value ~statement) ~bebracket CloseBracket ~endbracket
+  OpenBracket (ProcedureContent*|ReporterContent*  |Value ) ~bebracket CloseBracket ~endbracket
 }
 
 leftArg1Phrase {
   (ReporterLeft1Args | ReporterLeft1ArgsOpt) !lastArgs Arg
 }
+
+
 leftArg2Phrase{
   ReporterLeft2Args Arg !lastArgs Arg
 }
 
 ReporterStatement { 
-  OpenParen ReporterStatement !close CloseParen |
-  OpenParen leftArg1Phrase CloseParen |
+  Parenthetical<ReporterStatement> |
+  Parenthetical<leftArg1Phrase> |
   Arg !bestleft leftArg1Phrase ~left1 |
   Arg !bestleft leftArg2Phrase ~left2 |
-  SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP | UnsupportedPrim|
+  SpecialReporter0Args | SpecialReporter0ArgsLink | SpecialReporter0ArgsTurtle | SpecialReporter0ArgsLinkP | UnsupportedPrim ~unsupported|
   (Reporter1Args | SpecialReporter1Args | SpecialReporter1ArgsTurtle | SpecialReporter1ArgsLink | SpecialReporter1ArgsBoth) !lastArgs Arg |
   (Reporter2Args | SpecialReporter2Args | SpecialReporter2ArgsTurtle) Arg !lastArgs Arg |
   (Reporter3Args | SpecialReporter3Args) Arg Arg !lastArgs Arg |
@@ -255,7 +246,7 @@ ReporterStatement {
   (Reporter5Args |  SpecialReporter5Args) Arg Arg Arg Arg !lastArgs Arg |
   (Reporter6Args | SpecialReporter6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
   Reporter0Args |
-  (Reporter0ArgsVar) !lastArgs Arg* ~statement |
+  (Reporter0ArgsVar) !lastArgs Arg*  |
   (Reporter1ArgsVar | Reporter1ArgsVar0) !lastArgs Arg+ |
   (Reporter2ArgsVar | Reporter2ArgsVar0) Arg !lastArgs Arg+ |
   Reporter3ArgsVar Arg Arg !lastArgs Arg+ |
@@ -270,18 +261,18 @@ ReporterStatement {
 
 CommandStatement {
   SpecialCommand0Args | Command0Args |
-  UnsupportedPrim ~statement |
+  UnsupportedPrim  ~unsupported |
   (Command1Args | SpecialCommand1Args) !lastArgs Arg |
   (Command2Args | SpecialCommand2Args) Arg !lastArgs Arg |
   (Command3Args | SpecialCommand3Args) Arg Arg !lastArgs Arg |
   (Command4Args | SpecialCommand4Args) Arg Arg Arg !lastArgs Arg |
   (Command5Args | SpecialCommand5Args) Arg Arg Arg Arg !lastArgs Arg |
   (Command6Args | SpecialCommand6Args) Arg Arg Arg Arg Arg !lastArgs Arg |
-  turtle2 { SpecialCommandCreateTurtle Arg !best Arg } |
+  turtle2 { (SpecialCommandCreateTurtle|SpecialCommandCreateTurtlePossible) Arg !best Arg } |
   link2 { SpecialCommandCreateLink Arg !best Arg} |
-  turtle1 { SpecialCommandCreateTurtle Arg} |
+  turtle1 { (SpecialCommandCreateTurtle|SpecialCommandCreateTurtlePossible) Arg} |
   link1 { SpecialCommandCreateLink Arg} |
-  Command0ArgsVar !lastArgs Arg* ~statement |
+  Command0ArgsVar !lastArgs Arg*  |
   Command1ArgsVar !lastArgs Arg+ |
   Command2ArgsVar Arg !lastArgs Arg+ |
   (Command3ArgsVar | Command3ArgsVar2) Arg Arg !lastArgs Arg+ |
@@ -319,9 +310,9 @@ Commands {
   SpecialCommand6Args |
   SpecialCommandCreateTurtle |
   SpecialCommandCreateLink |
-  AnonymousProcedure ~statement |
+  AnonymousProcedure ~anon |
   ShortAnonymousProcedure |
-  Identifier ~statement
+  Identifier ~identifier
 }
 
 Reporters {
@@ -365,10 +356,6 @@ Reporters {
 
 @tokens {
 
-  MultiplyDivide {"*" |"/"}
-
-  Exponent {"^"}
-
   Numeric { $[-]? $[0-9]+ $[\.]? $[0-9]* ($[e] ($[+] | $[-])? $[0-9]+)? | $[-]? $[\.] $[0-9]+ ($[e] ($[+] | $[-])? $[0-9]+)?}
   
   String { '"' (!["\\] | "\\" _)* '"' }
@@ -383,8 +370,6 @@ Reporters {
 
   Arrow { "->" }
 
-  Comparative { "=" | "!=" | ">" | "<" | "<=" | ">="}
-
   OpenParen { "(" }
 
   CloseParen { ")" }
@@ -393,19 +378,6 @@ Reporters {
 
 }
 
-expression {
-  OpenParen expression CloseParen |
-  Identifier |
-  Command |
-  Reporter |
-  Numeric |
-  String |
-  Constant |
-  TurtleVar |
-  PatchVar |
-  LinkVar |
-  Unsupported
-}
 
 @external tokens keyword from "./tokenizer.js" { 
   ReporterLeft1Args,
@@ -414,19 +386,14 @@ expression {
   GlobalStr, 
   ExtensionStr, 
   BreedStr, 
-  PlusMinus,
   Own, 
   Set, 
   Let, 
   To, 
   End, 
-  And,
-  Or,
   Identifier, 
-  Directive,
   Command, 
-  Reporter, 
-  Extension, 
+  Reporter,  
   TurtleVar, 
   PatchVar, 
   LinkVar, 
@@ -449,7 +416,8 @@ expression {
   SpecialReporter2ArgsTurtle,
   SpecialReporter0ArgsTurtle,
   SpecialReporter1ArgsTurtle,
-  SpecialReporter0ArgsLinkP
+  SpecialReporter0ArgsLinkP,
+  SpecialCommandCreateTurtlePossible
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {

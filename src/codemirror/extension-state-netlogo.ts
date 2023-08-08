@@ -326,6 +326,78 @@ export class StateNetLogo {
   /** combineContext: Identify context of a block by combining with the previous context. */
   public combineContext(node: SyntaxNode, state: EditorState, priorContext: AgentContexts, newContext: AgentContexts) {
     let cursor = node.cursor();
+    cursor.iterate((child) => {
+      let context: AgentContexts | undefined = undefined;
+      let name: string | undefined = undefined;
+      // console.log(getCodeName(state, child.node),child.name)
+      if (child.name.includes('Block') || child.name == 'AnonymousProcedure') {
+        return false;
+      }
+      if (
+        (child.node.name.includes('Command') || child.node.name.includes('Reporter')) &&
+        !child.node.name.includes('Commands') &&
+        !child.node.name.includes('Reporters') &&
+        !child.node.name.includes('Special') &&
+        !child.node.name.includes('Content') &&
+        !child.node.name.includes('Statement')
+      ) {
+        name = getCodeName(state, child.node);
+        context = this.getPrimitiveContext(state, child.node, name);
+      } else if (child.node.name == 'VariableDeclaration') {
+        let n = child.node.getChild('SetVariable')?.getChild('VariableName');
+        if (n) {
+          name = getCodeName(state, n);
+          if (['shape', 'breed', 'hidden?', 'label', 'label-color', 'color'].includes(name)) {
+            context = new AgentContexts('-T-L');
+          } else if (n?.getChild('PatchVar')) {
+            context = new AgentContexts('-TP-');
+          } else if (n?.getChild('TurtleVar')) {
+            context = new AgentContexts('-T--');
+          } else if (n?.getChild('LinkVar')) {
+            context = new AgentContexts('---L');
+          } else {
+            context = this.Preprocess.GetBreedVariableContexts(name);
+          }
+        }
+      } else if (child.node.name.includes('Special')) {
+        name = getCodeName(state, child.node);
+        if (
+          !child.node.name.includes('Both') &&
+          !child.node.name.includes('Turtle') &&
+          !child.node.name.includes('Link')
+        ) {
+          context = this.Procedures.get(name)?.Context;
+        } else {
+          context = MatchBreed(name, this.Preprocess).Context;
+        }
+      }
+      // Combine and check the context
+      if (context) {
+        newContext = combineContexts(context, priorContext);
+        if (!noContext(newContext)) {
+          priorContext = newContext;
+          // console.log(priorContext,newContext,getCodeName(state, child.node),child.name)
+        } else {
+          this.ContextErrors.push(new ContextError(child.node.from, child.node.to, priorContext, context, name!));
+        }
+      }
+    });
+    // let child = cursor.firstChild();
+    // while (child) {
+
+    //   child = cursor.nextSibling();
+    // }
+    return [priorContext, newContext];
+  }
+
+  /** combineContext: Identify context of a block by combining with the previous context. */
+  public OLDcombineContext(
+    node: SyntaxNode,
+    state: EditorState,
+    priorContext: AgentContexts,
+    newContext: AgentContexts
+  ) {
+    let cursor = node.cursor();
     let child = cursor.firstChild();
     while (child) {
       let context: AgentContexts | undefined = undefined;

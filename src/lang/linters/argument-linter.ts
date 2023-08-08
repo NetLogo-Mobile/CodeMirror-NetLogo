@@ -57,8 +57,9 @@ export const ArgumentLinter: Linter = (view, preprocessContext, lintContext) => 
         }
       } else if (
         (noderef.name == 'ReporterStatement' || noderef.name == 'CommandStatement') &&
-        noderef.node.getChildren('Arg')
+        noderef.node.getChildren('Arg').length > 0
       ) {
+        // noderef.node.getChildren('Arg').map((arg)=> console.log(getCodeName(view.state, arg)))
         const Node = noderef.node;
         // Checking if missing command (it shows up as a specific grammatical structure)
         if (Node.firstChild?.name == '⚠') diagnostics.push(getDiagnostic(view, Node, 'Missing command _'));
