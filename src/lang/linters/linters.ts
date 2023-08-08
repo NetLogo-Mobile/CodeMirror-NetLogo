@@ -23,5 +23,5 @@ export const netlogoLinters = [
   ModeLinter,
   ContextLinter,
   CodeBlockLinter,
-  ReporterLinter,
+  // ReporterLinter,
 ];
