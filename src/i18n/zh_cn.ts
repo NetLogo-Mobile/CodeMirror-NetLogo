@@ -55,6 +55,11 @@ const zh_cn: Record<string, Function> = {
   'Negation _': (Name: string) => `取负值的方式不受支持。正确的格式是："(- ${Name.substring(1)})"。`,
   'Deprecated usage of ?': (Name: string) => `匿名函数的写法不受支持。正确的格式类似于 "[[ 参数 ] -> print 参数]".`,
   'Incorrect usage of ,': (Name: string) => `NetLogo 语言中使用空格分隔词义，无须使用 ","。`,
+  'Invalid report _': (Name: string) => `'Report' can only be used in a procedure beginning with 'to-report'.`,
+  'Invalid report warning _': (Name: string) =>
+    `'Report' can only be used in a procedure beginning with 'to-report'. Would you like to change to 'to-report'?`,
+  'Invalid to-report _': (Name: string) =>
+    `Any procedure beginning with 'to-report' must include the 'report' command. Would you like to change to 'to'?`,
 
   // Agent types and basic names
   Observer: () => '观察者',

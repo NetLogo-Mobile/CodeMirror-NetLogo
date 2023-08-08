@@ -71,6 +71,11 @@ const en_us: Record<string, Function> = {
     `This expression looks like an incorrect anonymous procedure. The correct format looks like "[[ arg ] -> print arg]".`,
   'Incorrect usage of ,': (Name: string) =>
     `In NetLogo, spaces " " are used to separate meanings. There is no need to use ",".`,
+  'Invalid report _': (Name: string) => `'Report' can only be used in a procedure beginning with 'to-report'.`,
+  'Invalid report warning _': (Name: string) =>
+    `'Report' can only be used in a procedure beginning with 'to-report'. Would you like to change to 'to-report'?`,
+  'Invalid to-report _': (Name: string) =>
+    `Any procedure beginning with 'to-report' must include the 'report' command. Would you like to change to 'to'?`,
 
   // Agent types and basic names
   Observer: () => 'Observer',

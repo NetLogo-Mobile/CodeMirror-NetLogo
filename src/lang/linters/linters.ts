@@ -9,6 +9,7 @@ import { BracketLinter } from './bracket-linter';
 import { ModeLinter } from './mode-linter';
 import { ContextLinter } from './context-linter';
 import { CodeBlockLinter } from './codeblock-linter';
+import { ReporterLinter } from './reporter-linter';
 
 export const netlogoLinters = [
   UnrecognizedLinter,
@@ -22,4 +23,5 @@ export const netlogoLinters = [
   ModeLinter,
   ContextLinter,
   CodeBlockLinter,
+  ReporterLinter,
 ];
