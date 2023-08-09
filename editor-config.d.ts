@@ -21,6 +21,8 @@ export interface EditorConfig {
     OnKeyDown?: (Event: KeyboardEvent, Editor: GalapagosEditor) => boolean | void;
     /** OnKeyUp: Handle the KeyUp event. */
     OnKeyUp?: (Event: KeyboardEvent, Editor: GalapagosEditor) => boolean | void;
+    /** OnClick: Handle the OnClick event. */
+    OnClick?: (Event: MouseEvent, Editor: GalapagosEditor) => boolean | void;
     /** OnFocused: Handle the focused event. */
     OnFocused?: (View: EditorView) => void;
     /** OnBlurred: Handle the blurred event. */

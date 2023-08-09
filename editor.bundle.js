@@ -34870,6 +34870,7 @@ if(!String.prototype.matchAll) {
             Extensions.push(EditorView.domEventHandlers({
                 keydown: (Event) => { var _a; return (_a = Options.OnKeyDown) === null || _a === void 0 ? void 0 : _a.call(Options, Event, this); },
                 keyup: (Event) => { var _a; return (_a = Options.OnKeyUp) === null || _a === void 0 ? void 0 : _a.call(Options, Event, this); },
+                click: (Event) => { var _a; return (_a = Options.OnClick) === null || _a === void 0 ? void 0 : _a.call(Options, Event, this); },
             }));
             // One-line mode
             // if (this.Options.OneLine) {
