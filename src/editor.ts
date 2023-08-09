@@ -106,6 +106,7 @@ export class GalapagosEditor {
       EditorView.domEventHandlers({
         keydown: (Event) => Options.OnKeyDown?.(Event, this),
         keyup: (Event) => Options.OnKeyUp?.(Event, this),
+        click: (Event) => Options.OnClick?.(Event, this),
       })
     );
     // One-line mode
