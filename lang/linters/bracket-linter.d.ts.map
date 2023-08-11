@@ -1,1 +1,1 @@
-{"version":3,"file":"bracket-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/bracket-linter.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,MAAM,EAAiB,MAAM,kBAAkB,CAAC;AAIzD,eAAO,MAAM,aAAa,EAAE,MAgD3B,CAAC"}
+{"version":3,"file":"bracket-linter.d.ts","sourceRoot":"","sources":["../../../../src/lang/linters/bracket-linter.ts"],"names":[],"mappings":"AAGA,OAAO,EAAE,MAAM,EAAiB,MAAM,kBAAkB,CAAC;AAKzD,eAAO,MAAM,aAAa,EAAE,MA2D3B,CAAC"}
