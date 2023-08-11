@@ -15,7 +15,10 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
-      if ((node.name == '⚠' || node.name == 'Error' || node.name == 'Misplaced') && node.to != node.from) {
+      if (
+        (node.name == '⚠' || node.name == 'Error' || node.name == 'Misplaced' || node.name == 'WorseParentheticals') &&
+        node.to != node.from
+      ) {
         let curr = node.node;
         let parents: string[] = [];
         while (curr.parent) {
@@ -63,6 +66,8 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
           } else {
             diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
           }
+        } else if (['[', ']', ')', '(', '"'].includes(value) && node.node.parent?.name == 'Breed') {
+          diagnostics.push(getDiagnostic(view, node.node.parent, 'Missing breed names _'));
         }
       }
     });

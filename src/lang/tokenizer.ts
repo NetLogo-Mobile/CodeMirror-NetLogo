@@ -109,6 +109,10 @@ export const keyword = new ExternalTokenizer((input, stack) => {
   } else if (token == 'in-cone') {
     input.acceptToken(ReporterLeft2Args);
   } else if (token == 'breed') {
+    if (stack.context.globalStatement) {
+      input.acceptToken(BreedStr);
+      return;
+    }
     let offset = 0;
     let foundText = false;
     let seenBracket = false;

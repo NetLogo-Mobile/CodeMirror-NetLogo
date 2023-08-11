@@ -32,15 +32,10 @@
 }
 
 Parenthetical<content> {
-  OpenParen !paren content !paren CloseParen
+  OpenParen !paren content !paren CloseParen ~parenth
 }
-WorseParentheticals{
-  nonoptimal[@dynamicPrecedence=-1]{
+WorseParentheticals[@dynamicPrecedence=-2]{
     OpenParen !paren (Value | ReporterStatement | CommandStatement) !paren CloseParen ~parenth
-  } |
-  loose[@dynamicPrecedence=-3]{
-    OpenParen
-  }
 }
 
 @detectDelim
@@ -86,6 +81,7 @@ ProcedureName {
 ProcedureContent {
   CommandStatement |
   Parenthetical<CommandStatement> |
+  WorseParentheticals |
   Error {globalStatement | BreedToken OpenBracket BreedPlural BreedSingular CloseBracket} 
 }
 
@@ -178,6 +174,7 @@ Arg {
 
 Value {
   Parenthetical<Value> |
+  WorseParentheticals |
   List |
   CodeBlock |
   VariableName |

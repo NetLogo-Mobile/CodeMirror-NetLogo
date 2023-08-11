@@ -60,6 +60,8 @@ const zh_cn: Record<string, Function> = {
     `'Report' can only be used in a procedure beginning with 'to-report'. Would you like to change to 'to-report'?`,
   'Invalid to-report _': (Name: string) =>
     `Any procedure beginning with 'to-report' must include the 'report' command. Would you like to change to 'to'?`,
+  'Missing breed names _': (Name: string) =>
+    `The breed statement must contain a plural and a singular name inside of the brackets.`,
 
   // Agent types and basic names
   Observer: () => '观察者',
