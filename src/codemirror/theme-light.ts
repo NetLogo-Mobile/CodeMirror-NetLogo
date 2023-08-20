@@ -48,6 +48,11 @@ const lightTheme = EditorView.theme({
     textDecorationColor: '#cc2200',
     textDecorationThickness: '2px',
   },
+  '.cm-gutters': {
+    userSelect: 'none',
+    webkitUserSelect: 'none',
+    msUserSelect: 'none',
+  },
 });
 
 export { lightTheme };

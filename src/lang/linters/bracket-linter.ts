@@ -1,8 +1,6 @@
 import { matchBrackets, syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { Localized } from '../../editor';
 import { Linter, getDiagnostic } from './linter-builder';
-import { getCodeName } from '../utils/code';
 import { SyntaxNodeRef } from '@lezer/common';
 
 // BracketLinter: Checks if all brackets/parentheses have matches
