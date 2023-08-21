@@ -14023,7 +14023,9 @@ if(!String.prototype.matchAll) {
 
     // FIXME profile adding a per-Tree TreeNode cache, validating it by
     // parent pointer
-    /// The default maximum length of a `TreeBuffer` node.
+    /**
+    The default maximum length of a `TreeBuffer` node.
+    */
     const DefaultBufferLength = 1024;
     let nextPropID = 0;
     class Range {
@@ -14032,11 +14034,15 @@ if(!String.prototype.matchAll) {
             this.to = to;
         }
     }
-    /// Each [node type](#common.NodeType) or [individual tree](#common.Tree)
-    /// can have metadata associated with it in props. Instances of this
-    /// class represent prop names.
+    /**
+    Each [node type](#common.NodeType) or [individual tree](#common.Tree)
+    can have metadata associated with it in props. Instances of this
+    class represent prop names.
+    */
     class NodeProp {
-        /// Create a new node prop type.
+        /**
+        Create a new node prop type.
+        */
         constructor(config = {}) {
             this.id = nextPropID++;
             this.perNode = !!config.perNode;
@@ -14044,13 +14050,15 @@ if(!String.prototype.matchAll) {
                 throw new Error("This node type doesn't define a deserialize function");
             });
         }
-        /// This is meant to be used with
-        /// [`NodeSet.extend`](#common.NodeSet.extend) or
-        /// [`LRParser.configure`](#lr.ParserConfig.props) to compute
-        /// prop values for each node type in the set. Takes a [match
-        /// object](#common.NodeType^match) or function that returns undefined
-        /// if the node type doesn't get this prop, and the prop's value if
-        /// it does.
+        /**
+        This is meant to be used with
+        [`NodeSet.extend`](#common.NodeSet.extend) or
+        [`LRParser.configure`](#lr.ParserConfig.props) to compute
+        prop values for each node type in the set. Takes a [match
+        object](#common.NodeType^match) or function that returns undefined
+        if the node type doesn't get this prop, and the prop's value if
+        it does.
+        */
         add(match) {
             if (this.perNode)
                 throw new RangeError("Can't add per-node props to node types");
@@ -14062,48 +14070,68 @@ if(!String.prototype.matchAll) {
             };
         }
     }
-    /// Prop that is used to describe matching delimiters. For opening
-    /// delimiters, this holds an array of node names (written as a
-    /// space-separated string when declaring this prop in a grammar)
-    /// for the node types of closing delimiters that match it.
+    /**
+    Prop that is used to describe matching delimiters. For opening
+    delimiters, this holds an array of node names (written as a
+    space-separated string when declaring this prop in a grammar)
+    for the node types of closing delimiters that match it.
+    */
     NodeProp.closedBy = new NodeProp({ deserialize: str => str.split(" ") });
-    /// The inverse of [`closedBy`](#common.NodeProp^closedBy). This is
-    /// attached to closing delimiters, holding an array of node names
-    /// of types of matching opening delimiters.
+    /**
+    The inverse of [`closedBy`](#common.NodeProp^closedBy). This is
+    attached to closing delimiters, holding an array of node names
+    of types of matching opening delimiters.
+    */
     NodeProp.openedBy = new NodeProp({ deserialize: str => str.split(" ") });
-    /// Used to assign node types to groups (for example, all node
-    /// types that represent an expression could be tagged with an
-    /// `"Expression"` group).
+    /**
+    Used to assign node types to groups (for example, all node
+    types that represent an expression could be tagged with an
+    `"Expression"` group).
+    */
     NodeProp.group = new NodeProp({ deserialize: str => str.split(" ") });
-    /// The hash of the [context](#lr.ContextTracker.constructor)
-    /// that the node was parsed in, if any. Used to limit reuse of
-    /// contextual nodes.
+    /**
+    The hash of the [context](#lr.ContextTracker.constructor)
+    that the node was parsed in, if any. Used to limit reuse of
+    contextual nodes.
+    */
     NodeProp.contextHash = new NodeProp({ perNode: true });
-    /// The distance beyond the end of the node that the tokenizer
-    /// looked ahead for any of the tokens inside the node. (The LR
-    /// parser only stores this when it is larger than 25, for
-    /// efficiency reasons.)
+    /**
+    The distance beyond the end of the node that the tokenizer
+    looked ahead for any of the tokens inside the node. (The LR
+    parser only stores this when it is larger than 25, for
+    efficiency reasons.)
+    */
     NodeProp.lookAhead = new NodeProp({ perNode: true });
-    /// This per-node prop is used to replace a given node, or part of a
-    /// node, with another tree. This is useful to include trees from
-    /// different languages in mixed-language parsers.
+    /**
+    This per-node prop is used to replace a given node, or part of a
+    node, with another tree. This is useful to include trees from
+    different languages in mixed-language parsers.
+    */
     NodeProp.mounted = new NodeProp({ perNode: true });
-    /// A mounted tree, which can be [stored](#common.NodeProp^mounted) on
-    /// a tree node to indicate that parts of its content are
-    /// represented by another tree.
+    /**
+    A mounted tree, which can be [stored](#common.NodeProp^mounted) on
+    a tree node to indicate that parts of its content are
+    represented by another tree.
+    */
     class MountedTree {
         constructor(
-        /// The inner tree.
+        /**
+        The inner tree.
+        */
         tree, 
-        /// If this is null, this tree replaces the entire node (it will
-        /// be included in the regular iteration instead of its host
-        /// node). If not, only the given ranges are considered to be
-        /// covered by this tree. This is used for trees that are mixed in
-        /// a way that isn't strictly hierarchical. Such mounted trees are
-        /// only entered by [`resolveInner`](#common.Tree.resolveInner)
-        /// and [`enter`](#common.SyntaxNode.enter).
+        /**
+        If this is null, this tree replaces the entire node (it will
+        be included in the regular iteration instead of its host
+        node). If not, only the given ranges are considered to be
+        covered by this tree. This is used for trees that are mixed in
+        a way that isn't strictly hierarchical. Such mounted trees are
+        only entered by [`resolveInner`](#common.Tree.resolveInner)
+        and [`enter`](#common.SyntaxNode.enter).
+        */
         overlay, 
-        /// The parser used to create this subtree.
+        /**
+        The parser used to create this subtree.
+        */
         parser) {
             this.tree = tree;
             this.overlay = overlay;
@@ -14111,28 +14139,42 @@ if(!String.prototype.matchAll) {
         }
     }
     const noProps = Object.create(null);
-    /// Each node in a syntax tree has a node type associated with it.
+    /**
+    Each node in a syntax tree has a node type associated with it.
+    */
     class NodeType {
-        /// @internal
+        /**
+        @internal
+        */
         constructor(
-        /// The name of the node type. Not necessarily unique, but if the
-        /// grammar was written properly, different node types with the
-        /// same name within a node set should play the same semantic
-        /// role.
+        /**
+        The name of the node type. Not necessarily unique, but if the
+        grammar was written properly, different node types with the
+        same name within a node set should play the same semantic
+        role.
+        */
         name, 
-        /// @internal
+        /**
+        @internal
+        */
         props, 
-        /// The id of this node in its set. Corresponds to the term ids
-        /// used in the parser.
+        /**
+        The id of this node in its set. Corresponds to the term ids
+        used in the parser.
+        */
         id, 
-        /// @internal
+        /**
+        @internal
+        */
         flags = 0) {
             this.name = name;
             this.props = props;
             this.id = id;
             this.flags = flags;
         }
-        /// Define a node type.
+        /**
+        Define a node type.
+        */
         static define(spec) {
             let props = spec.props && spec.props.length ? Object.create(null) : noProps;
             let flags = (spec.top ? 1 /* NodeFlag.Top */ : 0) | (spec.skipped ? 2 /* NodeFlag.Skipped */ : 0) |
@@ -14150,20 +14192,32 @@ if(!String.prototype.matchAll) {
                 }
             return type;
         }
-        /// Retrieves a node prop for this type. Will return `undefined` if
-        /// the prop isn't present on this node.
+        /**
+        Retrieves a node prop for this type. Will return `undefined` if
+        the prop isn't present on this node.
+        */
         prop(prop) { return this.props[prop.id]; }
-        /// True when this is the top node of a grammar.
+        /**
+        True when this is the top node of a grammar.
+        */
         get isTop() { return (this.flags & 1 /* NodeFlag.Top */) > 0; }
-        /// True when this node is produced by a skip rule.
+        /**
+        True when this node is produced by a skip rule.
+        */
         get isSkipped() { return (this.flags & 2 /* NodeFlag.Skipped */) > 0; }
-        /// Indicates whether this is an error node.
+        /**
+        Indicates whether this is an error node.
+        */
         get isError() { return (this.flags & 4 /* NodeFlag.Error */) > 0; }
-        /// When true, this node type doesn't correspond to a user-declared
-        /// named node, for example because it is used to cache repetition.
+        /**
+        When true, this node type doesn't correspond to a user-declared
+        named node, for example because it is used to cache repetition.
+        */
         get isAnonymous() { return (this.flags & 8 /* NodeFlag.Anonymous */) > 0; }
-        /// Returns true when this node's name or one of its
-        /// [groups](#common.NodeProp^group) matches the given string.
+        /**
+        Returns true when this node's name or one of its
+        [groups](#common.NodeProp^group) matches the given string.
+        */
         is(name) {
             if (typeof name == 'string') {
                 if (this.name == name)
@@ -14173,12 +14227,14 @@ if(!String.prototype.matchAll) {
             }
             return this.id == name;
         }
-        /// Create a function from node types to arbitrary values by
-        /// specifying an object whose property names are node or
-        /// [group](#common.NodeProp^group) names. Often useful with
-        /// [`NodeProp.add`](#common.NodeProp.add). You can put multiple
-        /// names, separated by spaces, in a single property name to map
-        /// multiple node names to a single value.
+        /**
+        Create a function from node types to arbitrary values by
+        specifying an object whose property names are node or
+        [group](#common.NodeProp^group) names. Often useful with
+        [`NodeProp.add`](#common.NodeProp.add). You can put multiple
+        names, separated by spaces, in a single property name to map
+        multiple node names to a single value.
+        */
         static match(map) {
             let direct = Object.create(null);
             for (let prop in map)
@@ -14193,29 +14249,39 @@ if(!String.prototype.matchAll) {
             };
         }
     }
-    /// An empty dummy node type to use when no actual type is available.
+    /**
+    An empty dummy node type to use when no actual type is available.
+    */
     NodeType.none = new NodeType("", Object.create(null), 0, 8 /* NodeFlag.Anonymous */);
-    /// A node set holds a collection of node types. It is used to
-    /// compactly represent trees by storing their type ids, rather than a
-    /// full pointer to the type object, in a numeric array. Each parser
-    /// [has](#lr.LRParser.nodeSet) a node set, and [tree
-    /// buffers](#common.TreeBuffer) can only store collections of nodes
-    /// from the same set. A set can have a maximum of 2**16 (65536) node
-    /// types in it, so that the ids fit into 16-bit typed array slots.
+    /**
+    A node set holds a collection of node types. It is used to
+    compactly represent trees by storing their type ids, rather than a
+    full pointer to the type object, in a numeric array. Each parser
+    [has](#lr.LRParser.nodeSet) a node set, and [tree
+    buffers](#common.TreeBuffer) can only store collections of nodes
+    from the same set. A set can have a maximum of 2**16 (65536) node
+    types in it, so that the ids fit into 16-bit typed array slots.
+    */
     class NodeSet {
-        /// Create a set with the given types. The `id` property of each
-        /// type should correspond to its position within the array.
+        /**
+        Create a set with the given types. The `id` property of each
+        type should correspond to its position within the array.
+        */
         constructor(
-        /// The node types in this set, by id.
+        /**
+        The node types in this set, by id.
+        */
         types) {
             this.types = types;
             for (let i = 0; i < types.length; i++)
                 if (types[i].id != i)
                     throw new RangeError("Node type ids should correspond to array positions when creating a node set");
         }
-        /// Create a copy of this set with some node properties added. The
-        /// arguments to this method can be created with
-        /// [`NodeProp.add`](#common.NodeProp.add).
+        /**
+        Create a copy of this set with some node properties added. The
+        arguments to this method can be created with
+        [`NodeProp.add`](#common.NodeProp.add).
+        */
         extend(...props) {
             let newTypes = [];
             for (let type of this.types) {
@@ -14234,61 +14300,87 @@ if(!String.prototype.matchAll) {
         }
     }
     const CachedNode = new WeakMap(), CachedInnerNode = new WeakMap();
-    /// Options that control iteration. Can be combined with the `|`
-    /// operator to enable multiple ones.
+    /**
+    Options that control iteration. Can be combined with the `|`
+    operator to enable multiple ones.
+    */
     var IterMode;
     (function (IterMode) {
-        /// When enabled, iteration will only visit [`Tree`](#common.Tree)
-        /// objects, not nodes packed into
-        /// [`TreeBuffer`](#common.TreeBuffer)s.
+        /**
+        When enabled, iteration will only visit [`Tree`](#common.Tree)
+        objects, not nodes packed into
+        [`TreeBuffer`](#common.TreeBuffer)s.
+        */
         IterMode[IterMode["ExcludeBuffers"] = 1] = "ExcludeBuffers";
-        /// Enable this to make iteration include anonymous nodes (such as
-        /// the nodes that wrap repeated grammar constructs into a balanced
-        /// tree).
+        /**
+        Enable this to make iteration include anonymous nodes (such as
+        the nodes that wrap repeated grammar constructs into a balanced
+        tree).
+        */
         IterMode[IterMode["IncludeAnonymous"] = 2] = "IncludeAnonymous";
-        /// By default, regular [mounted](#common.NodeProp^mounted) nodes
-        /// replace their base node in iteration. Enable this to ignore them
-        /// instead.
+        /**
+        By default, regular [mounted](#common.NodeProp^mounted) nodes
+        replace their base node in iteration. Enable this to ignore them
+        instead.
+        */
         IterMode[IterMode["IgnoreMounts"] = 4] = "IgnoreMounts";
-        /// This option only applies in
-        /// [`enter`](#common.SyntaxNode.enter)-style methods. It tells the
-        /// library to not enter mounted overlays if one covers the given
-        /// position.
+        /**
+        This option only applies in
+        [`enter`](#common.SyntaxNode.enter)-style methods. It tells the
+        library to not enter mounted overlays if one covers the given
+        position.
+        */
         IterMode[IterMode["IgnoreOverlays"] = 8] = "IgnoreOverlays";
     })(IterMode || (IterMode = {}));
-    /// A piece of syntax tree. There are two ways to approach these
-    /// trees: the way they are actually stored in memory, and the
-    /// convenient way.
-    ///
-    /// Syntax trees are stored as a tree of `Tree` and `TreeBuffer`
-    /// objects. By packing detail information into `TreeBuffer` leaf
-    /// nodes, the representation is made a lot more memory-efficient.
-    ///
-    /// However, when you want to actually work with tree nodes, this
-    /// representation is very awkward, so most client code will want to
-    /// use the [`TreeCursor`](#common.TreeCursor) or
-    /// [`SyntaxNode`](#common.SyntaxNode) interface instead, which provides
-    /// a view on some part of this data structure, and can be used to
-    /// move around to adjacent nodes.
+    /**
+    A piece of syntax tree. There are two ways to approach these
+    trees: the way they are actually stored in memory, and the
+    convenient way.
+
+    Syntax trees are stored as a tree of `Tree` and `TreeBuffer`
+    objects. By packing detail information into `TreeBuffer` leaf
+    nodes, the representation is made a lot more memory-efficient.
+
+    However, when you want to actually work with tree nodes, this
+    representation is very awkward, so most client code will want to
+    use the [`TreeCursor`](#common.TreeCursor) or
+    [`SyntaxNode`](#common.SyntaxNode) interface instead, which provides
+    a view on some part of this data structure, and can be used to
+    move around to adjacent nodes.
+    */
     class Tree {
-        /// Construct a new tree. See also [`Tree.build`](#common.Tree^build).
+        /**
+        Construct a new tree. See also [`Tree.build`](#common.Tree^build).
+        */
         constructor(
-        /// The type of the top node.
+        /**
+        The type of the top node.
+        */
         type, 
-        /// This node's child nodes.
+        /**
+        This node's child nodes.
+        */
         children, 
-        /// The positions (offsets relative to the start of this tree) of
-        /// the children.
+        /**
+        The positions (offsets relative to the start of this tree) of
+        the children.
+        */
         positions, 
-        /// The total length of this tree
+        /**
+        The total length of this tree
+        */
         length, 
-        /// Per-node [node props](#common.NodeProp) to associate with this node.
+        /**
+        Per-node [node props](#common.NodeProp) to associate with this node.
+        */
         props) {
             this.type = type;
             this.children = children;
             this.positions = positions;
             this.length = length;
-            /// @internal
+            /**
+            @internal
+            */
             this.props = null;
             if (props && props.length) {
                 this.props = Object.create(null);
@@ -14296,7 +14388,9 @@ if(!String.prototype.matchAll) {
                     this.props[typeof prop == "number" ? prop : prop.id] = value;
             }
         }
-        /// @internal
+        /**
+        @internal
+        */
         toString() {
             let mounted = this.prop(NodeProp.mounted);
             if (mounted && !mounted.overlay)
@@ -14314,15 +14408,19 @@ if(!String.prototype.matchAll) {
                 (/\W/.test(this.type.name) && !this.type.isError ? JSON.stringify(this.type.name) : this.type.name) +
                     (children.length ? "(" + children + ")" : "");
         }
-        /// Get a [tree cursor](#common.TreeCursor) positioned at the top of
-        /// the tree. Mode can be used to [control](#common.IterMode) which
-        /// nodes the cursor visits.
+        /**
+        Get a [tree cursor](#common.TreeCursor) positioned at the top of
+        the tree. Mode can be used to [control](#common.IterMode) which
+        nodes the cursor visits.
+        */
         cursor(mode = 0) {
             return new TreeCursor(this.topNode, mode);
         }
-        /// Get a [tree cursor](#common.TreeCursor) pointing into this tree
-        /// at the given position and side (see
-        /// [`moveTo`](#common.TreeCursor.moveTo).
+        /**
+        Get a [tree cursor](#common.TreeCursor) pointing into this tree
+        at the given position and side (see
+        [`moveTo`](#common.TreeCursor.moveTo).
+        */
         cursorAt(pos, side = 0, mode = 0) {
             let scope = CachedNode.get(this) || this.topNode;
             let cursor = new TreeCursor(scope);
@@ -14330,40 +14428,48 @@ if(!String.prototype.matchAll) {
             CachedNode.set(this, cursor._tree);
             return cursor;
         }
-        /// Get a [syntax node](#common.SyntaxNode) object for the top of the
-        /// tree.
+        /**
+        Get a [syntax node](#common.SyntaxNode) object for the top of the
+        tree.
+        */
         get topNode() {
             return new TreeNode(this, 0, 0, null);
         }
-        /// Get the [syntax node](#common.SyntaxNode) at the given position.
-        /// If `side` is -1, this will move into nodes that end at the
-        /// position. If 1, it'll move into nodes that start at the
-        /// position. With 0, it'll only enter nodes that cover the position
-        /// from both sides.
-        ///
-        /// Note that this will not enter
-        /// [overlays](#common.MountedTree.overlay), and you often want
-        /// [`resolveInner`](#common.Tree.resolveInner) instead.
+        /**
+        Get the [syntax node](#common.SyntaxNode) at the given position.
+        If `side` is -1, this will move into nodes that end at the
+        position. If 1, it'll move into nodes that start at the
+        position. With 0, it'll only enter nodes that cover the position
+        from both sides.
+        
+        Note that this will not enter
+        [overlays](#common.MountedTree.overlay), and you often want
+        [`resolveInner`](#common.Tree.resolveInner) instead.
+        */
         resolve(pos, side = 0) {
             let node = resolveNode(CachedNode.get(this) || this.topNode, pos, side, false);
             CachedNode.set(this, node);
             return node;
         }
-        /// Like [`resolve`](#common.Tree.resolve), but will enter
-        /// [overlaid](#common.MountedTree.overlay) nodes, producing a syntax node
-        /// pointing into the innermost overlaid tree at the given position
-        /// (with parent links going through all parent structure, including
-        /// the host trees).
+        /**
+        Like [`resolve`](#common.Tree.resolve), but will enter
+        [overlaid](#common.MountedTree.overlay) nodes, producing a syntax node
+        pointing into the innermost overlaid tree at the given position
+        (with parent links going through all parent structure, including
+        the host trees).
+        */
         resolveInner(pos, side = 0) {
             let node = resolveNode(CachedInnerNode.get(this) || this.topNode, pos, side, true);
             CachedInnerNode.set(this, node);
             return node;
         }
-        /// Iterate over the tree and its children, calling `enter` for any
-        /// node that touches the `from`/`to` region (if given) before
-        /// running over such a node's children, and `leave` (if given) when
-        /// leaving the node. When `enter` returns `false`, that node will
-        /// not have its children iterated over (or `leave` called).
+        /**
+        Iterate over the tree and its children, calling `enter` for any
+        node that touches the `from`/`to` region (if given) before
+        running over such a node's children, and `leave` (if given) when
+        leaving the node. When `enter` returns `false`, that node will
+        not have its children iterated over (or `leave` called).
+        */
         iterate(spec) {
             let { enter, leave, from = 0, to = this.length } = spec;
             let mode = spec.mode || 0, anon = (mode & IterMode.IncludeAnonymous) > 0;
@@ -14385,14 +14491,18 @@ if(!String.prototype.matchAll) {
                 }
             }
         }
-        /// Get the value of the given [node prop](#common.NodeProp) for this
-        /// node. Works with both per-node and per-type props.
+        /**
+        Get the value of the given [node prop](#common.NodeProp) for this
+        node. Works with both per-node and per-type props.
+        */
         prop(prop) {
             return !prop.perNode ? this.type.prop(prop) : this.props ? this.props[prop.id] : undefined;
         }
-        /// Returns the node's [per-node props](#common.NodeProp.perNode) in a
-        /// format that can be passed to the [`Tree`](#common.Tree)
-        /// constructor.
+        /**
+        Returns the node's [per-node props](#common.NodeProp.perNode) in a
+        format that can be passed to the [`Tree`](#common.Tree)
+        constructor.
+        */
         get propValues() {
             let result = [];
             if (this.props)
@@ -14400,18 +14510,24 @@ if(!String.prototype.matchAll) {
                     result.push([+id, this.props[id]]);
             return result;
         }
-        /// Balance the direct children of this tree, producing a copy of
-        /// which may have children grouped into subtrees with type
-        /// [`NodeType.none`](#common.NodeType^none).
+        /**
+        Balance the direct children of this tree, producing a copy of
+        which may have children grouped into subtrees with type
+        [`NodeType.none`](#common.NodeType^none).
+        */
         balance(config = {}) {
             return this.children.length <= 8 /* Balance.BranchFactor */ ? this :
                 balanceRange(NodeType.none, this.children, this.positions, 0, this.children.length, 0, this.length, (children, positions, length) => new Tree(this.type, children, positions, length, this.propValues), config.makeTree || ((children, positions, length) => new Tree(NodeType.none, children, positions, length)));
         }
-        /// Build a tree from a postfix-ordered buffer of node information,
-        /// or a cursor over such a buffer.
+        /**
+        Build a tree from a postfix-ordered buffer of node information,
+        or a cursor over such a buffer.
+        */
         static build(data) { return buildTree(data); }
     }
-    /// The empty tree
+    /**
+    The empty tree
+    */
     Tree.empty = new Tree(NodeType.none, [], [], 0);
     class FlatBufferCursor {
         constructor(buffer, index) {
@@ -14426,26 +14542,40 @@ if(!String.prototype.matchAll) {
         next() { this.index -= 4; }
         fork() { return new FlatBufferCursor(this.buffer, this.index); }
     }
-    /// Tree buffers contain (type, start, end, endIndex) quads for each
-    /// node. In such a buffer, nodes are stored in prefix order (parents
-    /// before children, with the endIndex of the parent indicating which
-    /// children belong to it).
+    /**
+    Tree buffers contain (type, start, end, endIndex) quads for each
+    node. In such a buffer, nodes are stored in prefix order (parents
+    before children, with the endIndex of the parent indicating which
+    children belong to it).
+    */
     class TreeBuffer {
-        /// Create a tree buffer.
+        /**
+        Create a tree buffer.
+        */
         constructor(
-        /// The buffer's content.
+        /**
+        The buffer's content.
+        */
         buffer, 
-        /// The total length of the group of nodes in the buffer.
+        /**
+        The total length of the group of nodes in the buffer.
+        */
         length, 
-        /// The node set used in this buffer.
+        /**
+        The node set used in this buffer.
+        */
         set) {
             this.buffer = buffer;
             this.length = length;
             this.set = set;
         }
-        /// @internal
+        /**
+        @internal
+        */
         get type() { return NodeType.none; }
-        /// @internal
+        /**
+        @internal
+        */
         toString() {
             let result = [];
             for (let index = 0; index < this.buffer.length;) {
@@ -14454,7 +14584,9 @@ if(!String.prototype.matchAll) {
             }
             return result.join(",");
         }
-        /// @internal
+        /**
+        @internal
+        */
         childString(index) {
             let id = this.buffer[index], endIndex = this.buffer[index + 3];
             let type = this.set.types[id], result = type.name;
@@ -14470,7 +14602,9 @@ if(!String.prototype.matchAll) {
             }
             return result + "(" + children.join(",") + ")";
         }
-        /// @internal
+        /**
+        @internal
+        */
         findChild(startIndex, endIndex, dir, pos, side) {
             let { buffer } = this, pick = -1;
             for (let i = startIndex; i != endIndex; i = buffer[i + 3]) {
@@ -14482,7 +14616,9 @@ if(!String.prototype.matchAll) {
             }
             return pick;
         }
-        /// @internal
+        /**
+        @internal
+        */
         slice(startI, endI, from) {
             let b = this.buffer;
             let copy = new Uint16Array(endI - startI), len = 0;
@@ -14641,7 +14777,9 @@ if(!String.prototype.matchAll) {
         getChildren(type, before = null, after = null) {
             return getChildren(this, type, before, after);
         }
-        /// @internal
+        /**
+        @internal
+        */
         toString() { return this._tree.toString(); }
         get node() { return this; }
         matchContext(context) { return matchNodeContext(this, context); }
@@ -14749,7 +14887,9 @@ if(!String.prototype.matchAll) {
             return resolveNode(this, pos, side, true);
         }
         enterUnfinishedNodesBefore(pos) { return enterUnfinishedNodesBefore(this, pos); }
-        /// @internal
+        /**
+        @internal
+        */
         toString() { return this.context.buffer.childString(this.index); }
         getChild(type, before = null, after = null) {
             let r = getChildren(this, type, before, after);
@@ -14761,20 +14901,32 @@ if(!String.prototype.matchAll) {
         get node() { return this; }
         matchContext(context) { return matchNodeContext(this, context); }
     }
-    /// A tree cursor object focuses on a given node in a syntax tree, and
-    /// allows you to move to adjacent nodes.
+    /**
+    A tree cursor object focuses on a given node in a syntax tree, and
+    allows you to move to adjacent nodes.
+    */
     class TreeCursor {
-        /// Shorthand for `.type.name`.
+        /**
+        Shorthand for `.type.name`.
+        */
         get name() { return this.type.name; }
-        /// @internal
+        /**
+        @internal
+        */
         constructor(node, 
-        /// @internal
+        /**
+        @internal
+        */
         mode = 0) {
             this.mode = mode;
-            /// @internal
+            /**
+            @internal
+            */
             this.buffer = null;
             this.stack = [];
-            /// @internal
+            /**
+            @internal
+            */
             this.index = 0;
             this.bufferNode = null;
             if (node instanceof TreeNode) {
@@ -14816,11 +14968,15 @@ if(!String.prototype.matchAll) {
             this.buffer = node.context;
             return this.yieldBuf(node.index, node.type);
         }
-        /// @internal
+        /**
+        @internal
+        */
         toString() {
             return this.buffer ? this.buffer.buffer.childString(this.index) : this._tree.toString();
         }
-        /// @internal
+        /**
+        @internal
+        */
         enterChild(dir, pos, side) {
             if (!this.buffer)
                 return this.yield(this._tree.nextChild(dir < 0 ? this._tree._tree.children.length - 1 : 0, dir, pos, side, this.mode));
@@ -14831,26 +14987,38 @@ if(!String.prototype.matchAll) {
             this.stack.push(this.index);
             return this.yieldBuf(index);
         }
-        /// Move the cursor to this node's first child. When this returns
-        /// false, the node has no child, and the cursor has not been moved.
+        /**
+        Move the cursor to this node's first child. When this returns
+        false, the node has no child, and the cursor has not been moved.
+        */
         firstChild() { return this.enterChild(1, 0, 4 /* Side.DontCare */); }
-        /// Move the cursor to this node's last child.
+        /**
+        Move the cursor to this node's last child.
+        */
         lastChild() { return this.enterChild(-1, 0, 4 /* Side.DontCare */); }
-        /// Move the cursor to the first child that ends after `pos`.
+        /**
+        Move the cursor to the first child that ends after `pos`.
+        */
         childAfter(pos) { return this.enterChild(1, pos, 2 /* Side.After */); }
-        /// Move to the last child that starts before `pos`.
+        /**
+        Move to the last child that starts before `pos`.
+        */
         childBefore(pos) { return this.enterChild(-1, pos, -2 /* Side.Before */); }
-        /// Move the cursor to the child around `pos`. If side is -1 the
-        /// child may end at that position, when 1 it may start there. This
-        /// will also enter [overlaid](#common.MountedTree.overlay)
-        /// [mounted](#common.NodeProp^mounted) trees unless `overlays` is
-        /// set to false.
+        /**
+        Move the cursor to the child around `pos`. If side is -1 the
+        child may end at that position, when 1 it may start there. This
+        will also enter [overlaid](#common.MountedTree.overlay)
+        [mounted](#common.NodeProp^mounted) trees unless `overlays` is
+        set to false.
+        */
         enter(pos, side, mode = this.mode) {
             if (!this.buffer)
                 return this.yield(this._tree.enter(pos, side, mode));
             return mode & IterMode.ExcludeBuffers ? false : this.enterChild(1, pos, side);
         }
-        /// Move to the node's parent node, if this isn't the top node.
+        /**
+        Move to the node's parent node, if this isn't the top node.
+        */
         parent() {
             if (!this.buffer)
                 return this.yieldNode((this.mode & IterMode.IncludeAnonymous) ? this._tree._parent : this._tree.parent);
@@ -14860,7 +15028,9 @@ if(!String.prototype.matchAll) {
             this.buffer = null;
             return this.yieldNode(parent);
         }
-        /// @internal
+        /**
+        @internal
+        */
         sibling(dir) {
             if (!this.buffer)
                 return !this._tree._parent ? false
@@ -14879,9 +15049,13 @@ if(!String.prototype.matchAll) {
             }
             return d < 0 ? this.yield(this.buffer.parent.nextChild(this.buffer.index + dir, dir, 0, 4 /* Side.DontCare */, this.mode)) : false;
         }
-        /// Move to this node's next sibling, if any.
+        /**
+        Move to this node's next sibling, if any.
+        */
         nextSibling() { return this.sibling(1); }
-        /// Move to this node's previous sibling, if any.
+        /**
+        Move to this node's previous sibling, if any.
+        */
         prevSibling() { return this.sibling(-1); }
         atLastNode(dir) {
             let index, parent, { buffer } = this;
@@ -14923,20 +15097,26 @@ if(!String.prototype.matchAll) {
                     return false;
             }
         }
-        /// Move to the next node in a
-        /// [pre-order](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)
-        /// traversal, going from a node to its first child or, if the
-        /// current node is empty or `enter` is false, its next sibling or
-        /// the next sibling of the first parent node that has one.
+        /**
+        Move to the next node in a
+        [pre-order](https://en.wikipedia.org/wiki/Tree_traversal#Pre-order,_NLR)
+        traversal, going from a node to its first child or, if the
+        current node is empty or `enter` is false, its next sibling or
+        the next sibling of the first parent node that has one.
+        */
         next(enter = true) { return this.move(1, enter); }
-        /// Move to the next node in a last-to-first pre-order traveral. A
-        /// node is followed by its last child or, if it has none, its
-        /// previous sibling or the previous sibling of the first parent
-        /// node that has one.
+        /**
+        Move to the next node in a last-to-first pre-order traveral. A
+        node is followed by its last child or, if it has none, its
+        previous sibling or the previous sibling of the first parent
+        node that has one.
+        */
         prev(enter = true) { return this.move(-1, enter); }
-        /// Move the cursor to the innermost node that covers `pos`. If
-        /// `side` is -1, it will enter nodes that end at `pos`. If it is 1,
-        /// it will enter nodes that start at `pos`.
+        /**
+        Move the cursor to the innermost node that covers `pos`. If
+        `side` is -1, it will enter nodes that end at `pos`. If it is 1,
+        it will enter nodes that start at `pos`.
+        */
         moveTo(pos, side = 0) {
             // Move up to a node that actually holds the position, if possible
             while (this.from == this.to ||
@@ -14948,8 +15128,10 @@ if(!String.prototype.matchAll) {
             while (this.enterChild(1, pos, side)) { }
             return this;
         }
-        /// Get a [syntax node](#common.SyntaxNode) at the cursor's current
-        /// position.
+        /**
+        Get a [syntax node](#common.SyntaxNode) at the cursor's current
+        position.
+        */
         get node() {
             if (!this.buffer)
                 return this._tree;
@@ -14971,16 +15153,20 @@ if(!String.prototype.matchAll) {
                 result = new BufferNode(this.buffer, result, this.stack[i]);
             return this.bufferNode = new BufferNode(this.buffer, result, this.index);
         }
-        /// Get the [tree](#common.Tree) that represents the current node, if
-        /// any. Will return null when the node is in a [tree
-        /// buffer](#common.TreeBuffer).
+        /**
+        Get the [tree](#common.Tree) that represents the current node, if
+        any. Will return null when the node is in a [tree
+        buffer](#common.TreeBuffer).
+        */
         get tree() {
             return this.buffer ? null : this._tree._tree;
         }
-        /// Iterate over the current node and all its descendants, calling
-        /// `enter` when entering a node and `leave`, if given, when leaving
-        /// one. When `enter` returns `false`, any children of that node are
-        /// skipped, and `leave` isn't called for it.
+        /**
+        Iterate over the current node and all its descendants, calling
+        `enter` when entering a node and `leave`, if given, when leaving
+        one. When `enter` returns `false`, any children of that node are
+        skipped, and `leave` isn't called for it.
+        */
         iterate(enter, leave) {
             for (let depth = 0;;) {
                 let mustLeave = false;
@@ -15006,9 +15192,11 @@ if(!String.prototype.matchAll) {
                 }
             }
         }
-        /// Test whether the current node matches a given context—a sequence
-        /// of direct parent node names. Empty strings in the context array
-        /// are treated as wildcards.
+        /**
+        Test whether the current node matches a given context—a sequence
+        of direct parent node names. Empty strings in the context array
+        are treated as wildcards.
+        */
         matchContext(context) {
             if (!this.buffer)
                 return matchNodeContext(this.node, context);
@@ -15283,9 +15471,11 @@ if(!String.prototype.matchAll) {
         divide(children, positions, from, to, 0);
         return (mkTop || mkTree)(localChildren, localPositions, length);
     }
-    /// Provides a way to associate values with pieces of trees. As long
-    /// as that part of the tree is reused, the associated values can be
-    /// retrieved from an updated tree.
+    /**
+    Provides a way to associate values with pieces of trees. As long
+    as that part of the tree is reused, the associated values can be
+    retrieved from an updated tree.
+    */
     class NodeWeakMap {
         constructor() {
             this.map = new WeakMap();
@@ -15300,57 +15490,77 @@ if(!String.prototype.matchAll) {
             let inner = this.map.get(buffer);
             return inner && inner.get(index);
         }
-        /// Set the value for this syntax node.
+        /**
+        Set the value for this syntax node.
+        */
         set(node, value) {
             if (node instanceof BufferNode)
                 this.setBuffer(node.context.buffer, node.index, value);
             else if (node instanceof TreeNode)
                 this.map.set(node.tree, value);
         }
-        /// Retrieve value for this syntax node, if it exists in the map.
+        /**
+        Retrieve value for this syntax node, if it exists in the map.
+        */
         get(node) {
             return node instanceof BufferNode ? this.getBuffer(node.context.buffer, node.index)
                 : node instanceof TreeNode ? this.map.get(node.tree) : undefined;
         }
-        /// Set the value for the node that a cursor currently points to.
+        /**
+        Set the value for the node that a cursor currently points to.
+        */
         cursorSet(cursor, value) {
             if (cursor.buffer)
                 this.setBuffer(cursor.buffer.buffer, cursor.index, value);
             else
                 this.map.set(cursor.tree, value);
         }
-        /// Retrieve the value for the node that a cursor currently points
-        /// to.
+        /**
+        Retrieve the value for the node that a cursor currently points
+        to.
+        */
         cursorGet(cursor) {
             return cursor.buffer ? this.getBuffer(cursor.buffer.buffer, cursor.index) : this.map.get(cursor.tree);
         }
     }
 
-    /// Tree fragments are used during [incremental
-    /// parsing](#common.Parser.startParse) to track parts of old trees
-    /// that can be reused in a new parse. An array of fragments is used
-    /// to track regions of an old tree whose nodes might be reused in new
-    /// parses. Use the static
-    /// [`applyChanges`](#common.TreeFragment^applyChanges) method to
-    /// update fragments for document changes.
+    /**
+    Tree fragments are used during [incremental
+    parsing](#common.Parser.startParse) to track parts of old trees
+    that can be reused in a new parse. An array of fragments is used
+    to track regions of an old tree whose nodes might be reused in new
+    parses. Use the static
+    [`applyChanges`](#common.TreeFragment^applyChanges) method to
+    update fragments for document changes.
+    */
     class TreeFragment {
-        /// Construct a tree fragment. You'll usually want to use
-        /// [`addTree`](#common.TreeFragment^addTree) and
-        /// [`applyChanges`](#common.TreeFragment^applyChanges) instead of
-        /// calling this directly.
+        /**
+        Construct a tree fragment. You'll usually want to use
+        [`addTree`](#common.TreeFragment^addTree) and
+        [`applyChanges`](#common.TreeFragment^applyChanges) instead of
+        calling this directly.
+        */
         constructor(
-        /// The start of the unchanged range pointed to by this fragment.
-        /// This refers to an offset in the _updated_ document (as opposed
-        /// to the original tree).
+        /**
+        The start of the unchanged range pointed to by this fragment.
+        This refers to an offset in the _updated_ document (as opposed
+        to the original tree).
+        */
         from, 
-        /// The end of the unchanged range.
+        /**
+        The end of the unchanged range.
+        */
         to, 
-        /// The tree that this fragment is based on.
+        /**
+        The tree that this fragment is based on.
+        */
         tree, 
-        /// The offset between the fragment's tree and the document that
-        /// this fragment can be used against. Add this when going from
-        /// document to tree positions, subtract it to go from tree to
-        /// document positions.
+        /**
+        The offset between the fragment's tree and the document that
+        this fragment can be used against. Add this when going from
+        document to tree positions, subtract it to go from tree to
+        document positions.
+        */
         offset, openStart = false, openEnd = false) {
             this.from = from;
             this.to = to;
@@ -15358,20 +15568,26 @@ if(!String.prototype.matchAll) {
             this.offset = offset;
             this.open = (openStart ? 1 /* Open.Start */ : 0) | (openEnd ? 2 /* Open.End */ : 0);
         }
-        /// Whether the start of the fragment represents the start of a
-        /// parse, or the end of a change. (In the second case, it may not
-        /// be safe to reuse some nodes at the start, depending on the
-        /// parsing algorithm.)
+        /**
+        Whether the start of the fragment represents the start of a
+        parse, or the end of a change. (In the second case, it may not
+        be safe to reuse some nodes at the start, depending on the
+        parsing algorithm.)
+        */
         get openStart() { return (this.open & 1 /* Open.Start */) > 0; }
-        /// Whether the end of the fragment represents the end of a
-        /// full-document parse, or the start of a change.
+        /**
+        Whether the end of the fragment represents the end of a
+        full-document parse, or the start of a change.
+        */
         get openEnd() { return (this.open & 2 /* Open.End */) > 0; }
-        /// Create a set of fragments from a freshly parsed tree, or update
-        /// an existing set of fragments by replacing the ones that overlap
-        /// with a tree with content from the new tree. When `partial` is
-        /// true, the parse is treated as incomplete, and the resulting
-        /// fragment has [`openEnd`](#common.TreeFragment.openEnd) set to
-        /// true.
+        /**
+        Create a set of fragments from a freshly parsed tree, or update
+        an existing set of fragments by replacing the ones that overlap
+        with a tree with content from the new tree. When `partial` is
+        true, the parse is treated as incomplete, and the resulting
+        fragment has [`openEnd`](#common.TreeFragment.openEnd) set to
+        true.
+        */
         static addTree(tree, fragments = [], partial = false) {
             let result = [new TreeFragment(0, tree.length, tree, 0, false, partial)];
             for (let f of fragments)
@@ -15379,9 +15595,11 @@ if(!String.prototype.matchAll) {
                     result.push(f);
             return result;
         }
-        /// Apply a set of edits to an array of fragments, removing or
-        /// splitting fragments as necessary to remove edited ranges, and
-        /// adjusting offsets for fragments that moved.
+        /**
+        Apply a set of edits to an array of fragments, removing or
+        splitting fragments as necessary to remove edited ranges, and
+        adjusting offsets for fragments that moved.
+        */
         static applyChanges(fragments, changes, minGap = 128) {
             if (!changes.length)
                 return fragments;
@@ -15411,23 +15629,29 @@ if(!String.prototype.matchAll) {
             return result;
         }
     }
-    /// A superclass that parsers should extend.
+    /**
+    A superclass that parsers should extend.
+    */
     class Parser {
-        /// Start a parse, returning a [partial parse](#common.PartialParse)
-        /// object. [`fragments`](#common.TreeFragment) can be passed in to
-        /// make the parse incremental.
-        ///
-        /// By default, the entire input is parsed. You can pass `ranges`,
-        /// which should be a sorted array of non-empty, non-overlapping
-        /// ranges, to parse only those ranges. The tree returned in that
-        /// case will start at `ranges[0].from`.
+        /**
+        Start a parse, returning a [partial parse](#common.PartialParse)
+        object. [`fragments`](#common.TreeFragment) can be passed in to
+        make the parse incremental.
+        
+        By default, the entire input is parsed. You can pass `ranges`,
+        which should be a sorted array of non-empty, non-overlapping
+        ranges, to parse only those ranges. The tree returned in that
+        case will start at `ranges[0].from`.
+        */
         startParse(input, fragments, ranges) {
             if (typeof input == "string")
                 input = new StringInput(input);
             ranges = !ranges ? [new Range(0, input.length)] : ranges.length ? ranges.map(r => new Range(r.from, r.to)) : [new Range(0, 0)];
             return this.createParse(input, fragments || [], ranges);
         }
-        /// Run a full parse, returning the resulting tree.
+        /**
+        Run a full parse, returning the resulting tree.
+        */
         parse(input, fragments, ranges) {
             let parse = this.startParse(input, fragments, ranges);
             for (;;) {
@@ -15447,11 +15671,13 @@ if(!String.prototype.matchAll) {
         read(from, to) { return this.string.slice(from, to); }
     }
 
-    /// Create a parse wrapper that, after the inner parse completes,
-    /// scans its tree for mixed language regions with the `nest`
-    /// function, runs the resulting [inner parses](#common.NestedParse),
-    /// and then [mounts](#common.NodeProp^mounted) their results onto the
-    /// tree.
+    /**
+    Create a parse wrapper that, after the inner parse completes,
+    scans its tree for mixed language regions with the `nest`
+    function, runs the resulting [inner parses](#common.NestedParse),
+    and then [mounts](#common.NodeProp^mounted) their results onto the
+    tree.
+    */
     function parseMixed(nest) {
         return (parse, input, fragments, ranges) => new MixedParse(parse, nest, input, fragments, ranges);
     }
@@ -17435,7 +17661,7 @@ if(!String.prototype.matchAll) {
                 return result;
         }
         let tree = syntaxTree(context.state);
-        return tree ? syntaxIndentation(context, tree, pos) : null;
+        return tree.length >= pos ? syntaxIndentation(context, tree, pos) : null;
     }
     /**
     Create a change set that auto-indents all lines touched by the
@@ -17874,11 +18100,16 @@ if(!String.prototype.matchAll) {
         update(folded, tr) {
             folded = folded.map(tr.changes);
             for (let e of tr.effects) {
-                if (e.is(foldEffect) && !foldExists(folded, e.value.from, e.value.to))
-                    folded = folded.update({ add: [foldWidget.range(e.value.from, e.value.to)] });
-                else if (e.is(unfoldEffect))
+                if (e.is(foldEffect) && !foldExists(folded, e.value.from, e.value.to)) {
+                    let { preparePlaceholder } = tr.state.facet(foldConfig);
+                    let widget = !preparePlaceholder ? foldWidget :
+                        Decoration.replace({ widget: new PreparedFoldWidget(preparePlaceholder(tr.state, e.value)) });
+                    folded = folded.update({ add: [widget.range(e.value.from, e.value.to)] });
+                }
+                else if (e.is(unfoldEffect)) {
                     folded = folded.update({ filter: (from, to) => e.value.from != from || e.value.to != to,
                         filterFrom: e.value.from, filterTo: e.value.to });
+                }
             }
             // Clear folded ranges that cover the selection head
             if (tr.selection) {
@@ -18013,6 +18244,7 @@ if(!String.prototype.matchAll) {
     ];
     const defaultConfig = {
         placeholderDOM: null,
+        preparePlaceholder: null,
         placeholderText: "…"
     };
     const foldConfig = /*@__PURE__*/Facet.define({
@@ -18027,27 +18259,36 @@ if(!String.prototype.matchAll) {
             result.push(foldConfig.of(config));
         return result;
     }
+    function widgetToDOM(view, prepared) {
+        let { state } = view, conf = state.facet(foldConfig);
+        let onclick = (event) => {
+            let line = view.lineBlockAt(view.posAtDOM(event.target));
+            let folded = findFold(view.state, line.from, line.to);
+            if (folded)
+                view.dispatch({ effects: unfoldEffect.of(folded) });
+            event.preventDefault();
+        };
+        if (conf.placeholderDOM)
+            return conf.placeholderDOM(view, onclick, prepared);
+        let element = document.createElement("span");
+        element.textContent = conf.placeholderText;
+        element.setAttribute("aria-label", state.phrase("folded code"));
+        element.title = state.phrase("unfold");
+        element.className = "cm-foldPlaceholder";
+        element.onclick = onclick;
+        return element;
+    }
     const foldWidget = /*@__PURE__*/Decoration.replace({ widget: /*@__PURE__*/new class extends WidgetType {
-            toDOM(view) {
-                let { state } = view, conf = state.facet(foldConfig);
-                let onclick = (event) => {
-                    let line = view.lineBlockAt(view.posAtDOM(event.target));
-                    let folded = findFold(view.state, line.from, line.to);
-                    if (folded)
-                        view.dispatch({ effects: unfoldEffect.of(folded) });
-                    event.preventDefault();
-                };
-                if (conf.placeholderDOM)
-                    return conf.placeholderDOM(view, onclick);
-                let element = document.createElement("span");
-                element.textContent = conf.placeholderText;
-                element.setAttribute("aria-label", state.phrase("folded code"));
-                element.title = state.phrase("unfold");
-                element.className = "cm-foldPlaceholder";
-                element.onclick = onclick;
-                return element;
-            }
+            toDOM(view) { return widgetToDOM(view, null); }
         } });
+    class PreparedFoldWidget extends WidgetType {
+        constructor(value) {
+            super();
+            this.value = value;
+        }
+        eq(other) { return this.value == other.value; }
+        toDOM(view) { return widgetToDOM(view, this.value); }
+    }
     const foldGutterDefaults = {
         openText: "⌄",
         closedText: "›",
@@ -22494,53 +22735,79 @@ if(!String.prototype.matchAll) {
     */
     const indentWithTab = { key: "Tab", run: indentMore, shift: indentLess };
 
-    /// A parse stack. These are used internally by the parser to track
-    /// parsing progress. They also provide some properties and methods
-    /// that external code such as a tokenizer can use to get information
-    /// about the parse state.
+    /**
+    A parse stack. These are used internally by the parser to track
+    parsing progress. They also provide some properties and methods
+    that external code such as a tokenizer can use to get information
+    about the parse state.
+    */
     class Stack {
-        /// @internal
+        /**
+        @internal
+        */
         constructor(
-        /// The parse that this stack is part of @internal
+        /**
+        The parse that this stack is part of @internal
+        */
         p, 
-        /// Holds state, input pos, buffer index triplets for all but the
-        /// top state @internal
+        /**
+        Holds state, input pos, buffer index triplets for all but the
+        top state @internal
+        */
         stack, 
-        /// The current parse state @internal
+        /**
+        The current parse state @internal
+        */
         state, 
         // The position at which the next reduce should take place. This
         // can be less than `this.pos` when skipped expressions have been
         // added to the stack (which should be moved outside of the next
         // reduction)
-        /// @internal
+        /**
+        @internal
+        */
         reducePos, 
-        /// The input position up to which this stack has parsed.
+        /**
+        The input position up to which this stack has parsed.
+        */
         pos, 
-        /// The dynamic score of the stack, including dynamic precedence
-        /// and error-recovery penalties
-        /// @internal
+        /**
+        The dynamic score of the stack, including dynamic precedence
+        and error-recovery penalties
+        @internal
+        */
         score, 
         // The output buffer. Holds (type, start, end, size) quads
         // representing nodes created by the parser, where `size` is
         // amount of buffer array entries covered by this node.
-        /// @internal
+        /**
+        @internal
+        */
         buffer, 
         // The base offset of the buffer. When stacks are split, the split
         // instance shared the buffer history with its parent up to
         // `bufferBase`, which is the absolute offset (including the
         // offset of previous splits) into the buffer at which this stack
         // starts writing.
-        /// @internal
+        /**
+        @internal
+        */
         bufferBase, 
-        /// @internal
+        /**
+        @internal
+        */
         curContext, 
-        /// @internal
+        /**
+        @internal
+        */
         lookAhead = 0, 
         // A parent stack from which this was split off, if any. This is
         // set up so that it always points to a stack that has some
         // additional buffer content, never to a stack with an equal
         // `bufferBase`.
-        /// @internal
+        /**
+        @internal
+        */
         parent) {
             this.p = p;
             this.stack = stack;
@@ -22554,30 +22821,40 @@ if(!String.prototype.matchAll) {
             this.lookAhead = lookAhead;
             this.parent = parent;
         }
-        /// @internal
+        /**
+        @internal
+        */
         toString() {
             return `[${this.stack.filter((_, i) => i % 3 == 0).concat(this.state)}]@${this.pos}${this.score ? "!" + this.score : ""}`;
         }
         // Start an empty stack
-        /// @internal
+        /**
+        @internal
+        */
         static start(p, state, pos = 0) {
             let cx = p.parser.context;
             return new Stack(p, [], state, pos, pos, 0, [], 0, cx ? new StackContext(cx, cx.start) : null, 0, null);
         }
-        /// The stack's current [context](#lr.ContextTracker) value, if
-        /// any. Its type will depend on the context tracker's type
-        /// parameter, or it will be `null` if there is no context
-        /// tracker.
+        /**
+        The stack's current [context](#lr.ContextTracker) value, if
+        any. Its type will depend on the context tracker's type
+        parameter, or it will be `null` if there is no context
+        tracker.
+        */
         get context() { return this.curContext ? this.curContext.context : null; }
         // Push a state onto the stack, tracking its start position as well
         // as the buffer base at that point.
-        /// @internal
+        /**
+        @internal
+        */
         pushState(state, start) {
             this.stack.push(this.state, start, this.bufferBase + this.buffer.length);
             this.state = state;
         }
         // Apply a reduce action
-        /// @internal
+        /**
+        @internal
+        */
         reduce(action) {
             var _a;
             let depth = action >> 19 /* Action.ReduceDepthShift */, type = action & 65535 /* Action.ValueMask */;
@@ -22633,7 +22910,9 @@ if(!String.prototype.matchAll) {
             this.reduceContext(type, start);
         }
         // Shift a value into the buffer
-        /// @internal
+        /**
+        @internal
+        */
         storeNode(term, start, end, size = 4, isReduce = false) {
             if (term == 0 /* Term.Err */ &&
                 (!this.stack.length || this.stack[this.stack.length - 1] < this.buffer.length + this.bufferBase)) {
@@ -22675,7 +22954,9 @@ if(!String.prototype.matchAll) {
             }
         }
         // Apply a shift action
-        /// @internal
+        /**
+        @internal
+        */
         shift(action, next, nextEnd) {
             let start = this.pos;
             if (action & 131072 /* Action.GotoFlag */) {
@@ -22701,7 +22982,9 @@ if(!String.prototype.matchAll) {
             }
         }
         // Apply an action
-        /// @internal
+        /**
+        @internal
+        */
         apply(action, next, nextEnd) {
             if (action & 65536 /* Action.ReduceFlag */)
                 this.reduce(action);
@@ -22709,7 +22992,9 @@ if(!String.prototype.matchAll) {
                 this.shift(action, next, nextEnd);
         }
         // Add a prebuilt (reused) node into the buffer.
-        /// @internal
+        /**
+        @internal
+        */
         useNode(value, next) {
             let index = this.p.reused.length - 1;
             if (index < 0 || this.p.reused[index] != value) {
@@ -22726,7 +23011,9 @@ if(!String.prototype.matchAll) {
         // Split the stack. Due to the buffer sharing and the fact
         // that `this.stack` tends to stay quite shallow, this isn't very
         // expensive.
-        /// @internal
+        /**
+        @internal
+        */
         split() {
             let parent = this;
             let off = parent.buffer.length;
@@ -22743,7 +23030,9 @@ if(!String.prototype.matchAll) {
             return new Stack(this.p, this.stack.slice(), this.state, this.reducePos, this.pos, this.score, buffer, base, this.curContext, this.lookAhead, parent);
         }
         // Try to recover from an error by 'deleting' (ignoring) one token.
-        /// @internal
+        /**
+        @internal
+        */
         recoverByDelete(next, nextEnd) {
             let isNode = next <= this.p.parser.maxNode;
             if (isNode)
@@ -22752,10 +23041,12 @@ if(!String.prototype.matchAll) {
             this.pos = this.reducePos = nextEnd;
             this.score -= 190 /* Recover.Delete */;
         }
-        /// Check if the given term would be able to be shifted (optionally
-        /// after some reductions) on this stack. This can be useful for
-        /// external tokenizers that want to make sure they only provide a
-        /// given token when it applies.
+        /**
+        Check if the given term would be able to be shifted (optionally
+        after some reductions) on this stack. This can be useful for
+        external tokenizers that want to make sure they only provide a
+        given token when it applies.
+        */
         canShift(term) {
             for (let sim = new SimulatedStack(this);;) {
                 let action = this.p.parser.stateSlot(sim.state, 4 /* ParseState.DefaultReduce */) || this.p.parser.hasAction(sim.state, term);
@@ -22768,7 +23059,9 @@ if(!String.prototype.matchAll) {
         }
         // Apply up to Recover.MaxNext recovery actions that conceptually
         // inserts some missing token or rule.
-        /// @internal
+        /**
+        @internal
+        */
         recoverByInsert(next) {
             if (this.stack.length >= 300 /* Recover.MaxInsertStackDepth */)
                 return [];
@@ -22803,7 +23096,9 @@ if(!String.prototype.matchAll) {
         }
         // Force a reduce, if possible. Return false if that can't
         // be done.
-        /// @internal
+        /**
+        @internal
+        */
         forceReduce() {
             let { parser } = this.p;
             let reduce = parser.stateSlot(this.state, 5 /* ParseState.ForcedReduce */);
@@ -22825,9 +23120,11 @@ if(!String.prototype.matchAll) {
             this.reduce(reduce);
             return true;
         }
-        /// Try to scan through the automaton to find some kind of reduction
-        /// that can be applied. Used when the regular ForcedReduce field
-        /// isn't a valid action. @internal
+        /**
+        Try to scan through the automaton to find some kind of reduction
+        that can be applied. Used when the regular ForcedReduce field
+        isn't a valid action. @internal
+        */
         findForcedReduction() {
             let { parser } = this.p, seen = [];
             let explore = (state, depth) => {
@@ -22853,7 +23150,9 @@ if(!String.prototype.matchAll) {
             };
             return explore(this.state, 0);
         }
-        /// @internal
+        /**
+        @internal
+        */
         forceAll() {
             while (!this.p.parser.stateFlag(this.state, 2 /* StateFlag.Accepting */)) {
                 if (!this.forceReduce()) {
@@ -22863,9 +23162,11 @@ if(!String.prototype.matchAll) {
             }
             return this;
         }
-        /// Check whether this state has no further actions (assumed to be a direct descendant of the
-        /// top state, since any other states must be able to continue
-        /// somehow). @internal
+        /**
+        Check whether this state has no further actions (assumed to be a direct descendant of the
+        top state, since any other states must be able to continue
+        somehow). @internal
+        */
         get deadEnd() {
             if (this.stack.length != 3)
                 return false;
@@ -22873,14 +23174,18 @@ if(!String.prototype.matchAll) {
             return parser.data[parser.stateSlot(this.state, 1 /* ParseState.Actions */)] == 65535 /* Seq.End */ &&
                 !parser.stateSlot(this.state, 4 /* ParseState.DefaultReduce */);
         }
-        /// Restart the stack (put it back in its start state). Only safe
-        /// when this.stack.length == 3 (state is directly below the top
-        /// state). @internal
+        /**
+        Restart the stack (put it back in its start state). Only safe
+        when this.stack.length == 3 (state is directly below the top
+        state). @internal
+        */
         restart() {
             this.state = this.stack[0];
             this.stack.length = 0;
         }
-        /// @internal
+        /**
+        @internal
+        */
         sameState(other) {
             if (this.state != other.state || this.stack.length != other.stack.length)
                 return false;
@@ -22889,10 +23194,14 @@ if(!String.prototype.matchAll) {
                     return false;
             return true;
         }
-        /// Get the parser used by this stack.
+        /**
+        Get the parser used by this stack.
+        */
         get parser() { return this.p.parser; }
-        /// Test whether a given dialect (by numeric ID, as exported from
-        /// the terms file) is enabled.
+        /**
+        Test whether a given dialect (by numeric ID, as exported from
+        the terms file) is enabled.
+        */
         dialectEnabled(dialectID) { return this.p.parser.dialect.flags[dialectID]; }
         shiftContext(term, start) {
             if (this.curContext)
@@ -22902,13 +23211,17 @@ if(!String.prototype.matchAll) {
             if (this.curContext)
                 this.updateContext(this.curContext.tracker.reduce(this.curContext.context, term, this, this.p.stream.reset(start)));
         }
-        /// @internal
+        /**
+        @internal
+        */
         emitContext() {
             let last = this.buffer.length - 1;
             if (last < 0 || this.buffer[last] != -3)
                 this.buffer.push(this.curContext.hash, this.pos, this.pos, -3);
         }
-        /// @internal
+        /**
+        @internal
+        */
         emitLookAhead() {
             let last = this.buffer.length - 1;
             if (last < 0 || this.buffer[last] != -4)
@@ -22922,14 +23235,18 @@ if(!String.prototype.matchAll) {
                 this.curContext = newCx;
             }
         }
-        /// @internal
+        /**
+        @internal
+        */
         setLookAhead(lookAhead) {
             if (lookAhead > this.lookAhead) {
                 this.emitLookAhead();
                 this.lookAhead = lookAhead;
             }
         }
-        /// @internal
+        /**
+        @internal
+        */
         close() {
             if (this.curContext && this.curContext.tracker.strict)
                 this.emitContext();
@@ -22944,16 +23261,6 @@ if(!String.prototype.matchAll) {
             this.hash = tracker.strict ? tracker.hash(context) : 0;
         }
     }
-    var Recover;
-    (function (Recover) {
-        Recover[Recover["Insert"] = 200] = "Insert";
-        Recover[Recover["Delete"] = 190] = "Delete";
-        Recover[Recover["Reduce"] = 100] = "Reduce";
-        Recover[Recover["MaxNext"] = 4] = "MaxNext";
-        Recover[Recover["MaxInsertStackDepth"] = 300] = "MaxInsertStackDepth";
-        Recover[Recover["DampenInsertStackDepth"] = 120] = "DampenInsertStackDepth";
-        Recover[Recover["MinBigReduction"] = 2000] = "MinBigReduction";
-    })(Recover || (Recover = {}));
     // Used to cheaply run some reductions to scan ahead without mutating
     // an entire stack
     class SimulatedStack {
@@ -23063,30 +23370,48 @@ if(!String.prototype.matchAll) {
         }
     }
     const nullToken = new CachedToken;
-    /// [Tokenizers](#lr.ExternalTokenizer) interact with the input
-    /// through this interface. It presents the input as a stream of
-    /// characters, tracking lookahead and hiding the complexity of
-    /// [ranges](#common.Parser.parse^ranges) from tokenizer code.
+    /**
+    [Tokenizers](#lr.ExternalTokenizer) interact with the input
+    through this interface. It presents the input as a stream of
+    characters, tracking lookahead and hiding the complexity of
+    [ranges](#common.Parser.parse^ranges) from tokenizer code.
+    */
     class InputStream {
-        /// @internal
+        /**
+        @internal
+        */
         constructor(
-        /// @internal
+        /**
+        @internal
+        */
         input, 
-        /// @internal
+        /**
+        @internal
+        */
         ranges) {
             this.input = input;
             this.ranges = ranges;
-            /// @internal
+            /**
+            @internal
+            */
             this.chunk = "";
-            /// @internal
+            /**
+            @internal
+            */
             this.chunkOff = 0;
-            /// Backup chunk
+            /**
+            Backup chunk
+            */
             this.chunk2 = "";
             this.chunk2Pos = 0;
-            /// The character code of the next code unit in the input, or -1
-            /// when the stream is at the end of the input.
+            /**
+            The character code of the next code unit in the input, or -1
+            when the stream is at the end of the input.
+            */
             this.next = -1;
-            /// @internal
+            /**
+            @internal
+            */
             this.token = nullToken;
             this.rangeIndex = 0;
             this.pos = this.chunkPos = ranges[0].from;
@@ -23094,7 +23419,9 @@ if(!String.prototype.matchAll) {
             this.end = ranges[ranges.length - 1].to;
             this.readNext();
         }
-        /// @internal
+        /**
+        @internal
+        */
         resolveOffset(offset, assoc) {
             let range = this.range, index = this.rangeIndex;
             let pos = this.pos + offset;
@@ -23114,7 +23441,9 @@ if(!String.prototype.matchAll) {
             }
             return pos;
         }
-        /// @internal
+        /**
+        @internal
+        */
         clipPos(pos) {
             if (pos >= this.range.from && pos < this.range.to)
                 return pos;
@@ -23123,15 +23452,17 @@ if(!String.prototype.matchAll) {
                     return Math.max(pos, range.from);
             return this.end;
         }
-        /// Look at a code unit near the stream position. `.peek(0)` equals
-        /// `.next`, `.peek(-1)` gives you the previous character, and so
-        /// on.
-        ///
-        /// Note that looking around during tokenizing creates dependencies
-        /// on potentially far-away content, which may reduce the
-        /// effectiveness incremental parsing—when looking forward—or even
-        /// cause invalid reparses when looking backward more than 25 code
-        /// units, since the library does not track lookbehind.
+        /**
+        Look at a code unit near the stream position. `.peek(0)` equals
+        `.next`, `.peek(-1)` gives you the previous character, and so
+        on.
+        
+        Note that looking around during tokenizing creates dependencies
+        on potentially far-away content, which may reduce the
+        effectiveness incremental parsing—when looking forward—or even
+        cause invalid reparses when looking backward more than 25 code
+        units, since the library does not track lookbehind.
+        */
         peek(offset) {
             let idx = this.chunkOff + offset, pos, result;
             if (idx >= 0 && idx < this.chunk.length) {
@@ -23160,9 +23491,11 @@ if(!String.prototype.matchAll) {
                 this.token.lookAhead = pos + 1;
             return result;
         }
-        /// Accept a token. By default, the end of the token is set to the
-        /// current stream position, but you can pass an offset (relative to
-        /// the stream position) to change that.
+        /**
+        Accept a token. By default, the end of the token is set to the
+        current stream position, but you can pass an offset (relative to
+        the stream position) to change that.
+        */
         acceptToken(token, endOffset = 0) {
             let end = endOffset ? this.resolveOffset(endOffset, -1) : this.pos;
             if (end == null || end < this.token.start)
@@ -23197,8 +23530,10 @@ if(!String.prototype.matchAll) {
             }
             return this.next = this.chunk.charCodeAt(this.chunkOff);
         }
-        /// Move the stream forward N (defaults to 1) code units. Returns
-        /// the new value of [`next`](#lr.InputStream.next).
+        /**
+        Move the stream forward N (defaults to 1) code units. Returns
+        the new value of [`next`](#lr.InputStream.next).
+        */
         advance(n = 1) {
             this.chunkOff += n;
             while (this.pos + n >= this.range.to) {
@@ -23219,7 +23554,9 @@ if(!String.prototype.matchAll) {
             this.chunk = "";
             return this.next = -1;
         }
-        /// @internal
+        /**
+        @internal
+        */
         reset(pos, token) {
             if (token) {
                 this.token = token;
@@ -23251,7 +23588,9 @@ if(!String.prototype.matchAll) {
             }
             return this;
         }
-        /// @internal
+        /**
+        @internal
+        */
         read(from, to) {
             if (from >= this.chunkPos && to <= this.chunkPos + this.chunk.length)
                 return this.chunk.slice(from - this.chunkPos, to - this.chunkPos);
@@ -23269,7 +23608,9 @@ if(!String.prototype.matchAll) {
             return result;
         }
     }
-    /// @internal
+    /**
+    @internal
+    */
     class TokenGroup {
         constructor(data, id) {
             this.data = data;
@@ -23281,7 +23622,9 @@ if(!String.prototype.matchAll) {
         }
     }
     TokenGroup.prototype.contextual = TokenGroup.prototype.fallback = TokenGroup.prototype.extend = false;
-    /// @hide
+    /**
+    @hide
+    */
     class LocalTokenGroup {
         constructor(data, precTable, elseToken) {
             this.precTable = precTable;
@@ -23310,16 +23653,22 @@ if(!String.prototype.matchAll) {
         }
     }
     LocalTokenGroup.prototype.contextual = TokenGroup.prototype.fallback = TokenGroup.prototype.extend = false;
-    /// `@external tokens` declarations in the grammar should resolve to
-    /// an instance of this class.
+    /**
+    `@external tokens` declarations in the grammar should resolve to
+    an instance of this class.
+    */
     class ExternalTokenizer {
-        /// Create a tokenizer. The first argument is the function that,
-        /// given an input stream, scans for the types of tokens it
-        /// recognizes at the stream's position, and calls
-        /// [`acceptToken`](#lr.InputStream.acceptToken) when it finds
-        /// one.
+        /**
+        Create a tokenizer. The first argument is the function that,
+        given an input stream, scans for the types of tokens it
+        recognizes at the stream's position, and calls
+        [`acceptToken`](#lr.InputStream.acceptToken) when it finds
+        one.
+        */
         constructor(
-        /// @internal
+        /**
+        @internal
+        */
         token, options = {}) {
             this.token = token;
             this.contextual = !!options.contextual;
@@ -23404,10 +23753,6 @@ if(!String.prototype.matchAll) {
     // Environment variable used to control console output
     const verbose = typeof process != "undefined" && process.env && /\bparse\b/.test(process.env.LOG);
     let stackIDs = null;
-    var Safety;
-    (function (Safety) {
-        Safety[Safety["Margin"] = 25] = "Margin";
-    })(Safety || (Safety = {}));
     function cutAt(tree, pos, side) {
         let cursor = tree.cursor(IterMode.IncludeAnonymous);
         cursor.moveTo(pos);
@@ -23623,25 +23968,6 @@ if(!String.prototype.matchAll) {
             return index;
         }
     }
-    var Rec;
-    (function (Rec) {
-        Rec[Rec["Distance"] = 5] = "Distance";
-        Rec[Rec["MaxRemainingPerStep"] = 3] = "MaxRemainingPerStep";
-        // When two stacks have been running independently long enough to
-        // add this many elements to their buffers, prune one.
-        Rec[Rec["MinBufferLengthPrune"] = 500] = "MinBufferLengthPrune";
-        Rec[Rec["ForceReduceLimit"] = 10] = "ForceReduceLimit";
-        // Once a stack reaches this depth (in .stack.length) force-reduce
-        // it back to CutTo to avoid creating trees that overflow the stack
-        // on recursive traversal.
-        Rec[Rec["CutDepth"] = 15000] = "CutDepth";
-        Rec[Rec["CutTo"] = 9000] = "CutTo";
-        Rec[Rec["MaxLeftAssociativeReductionCount"] = 300] = "MaxLeftAssociativeReductionCount";
-        // The maximum number of non-recovering stacks to explore (to avoid
-        // getting bogged down with exponentially multiplying stacks in
-        // ambiguous content)
-        Rec[Rec["MaxStackCount"] = 12] = "MaxStackCount";
-    })(Rec || (Rec = {}));
     class Parse {
         constructor(parser, input, fragments, ranges) {
             this.parser = parser;
@@ -23716,8 +24042,11 @@ if(!String.prototype.matchAll) {
             }
             if (!newStacks.length) {
                 let finished = stopped && findFinished(stopped);
-                if (finished)
+                if (finished) {
+                    if (verbose)
+                        console.log("Finish with " + this.stackID(finished));
                     return this.stackToTree(finished);
+                }
                 if (this.parser.strict) {
                     if (verbose && stopped)
                         console.log("Stuck with token " + (this.tokens.mainToken ? this.parser.getName(this.tokens.mainToken.value) : "none"));
@@ -23729,8 +24058,11 @@ if(!String.prototype.matchAll) {
             if (this.recovering && stopped) {
                 let finished = this.stoppedAt != null && stopped[0].pos > this.stoppedAt ? stopped[0]
                     : this.runRecovery(stopped, stoppedTokens, newStacks);
-                if (finished)
+                if (finished) {
+                    if (verbose)
+                        console.log("Force-finish " + this.stackID(finished));
                     return this.stackToTree(finished.forceAll());
+                }
             }
             if (this.recovering) {
                 let maxRemaining = this.recovering == 1 ? 1 : this.recovering * 3 /* Rec.MaxRemainingPerStep */;
@@ -23932,18 +24264,22 @@ if(!String.prototype.matchAll) {
         allows(term) { return !this.disabled || this.disabled[term] == 0; }
     }
     const id = x => x;
-    /// Context trackers are used to track stateful context (such as
-    /// indentation in the Python grammar, or parent elements in the XML
-    /// grammar) needed by external tokenizers. You declare them in a
-    /// grammar file as `@context exportName from "module"`.
-    ///
-    /// Context values should be immutable, and can be updated (replaced)
-    /// on shift or reduce actions.
-    ///
-    /// The export used in a `@context` declaration should be of this
-    /// type.
+    /**
+    Context trackers are used to track stateful context (such as
+    indentation in the Python grammar, or parent elements in the XML
+    grammar) needed by external tokenizers. You declare them in a
+    grammar file as `@context exportName from "module"`.
+
+    Context values should be immutable, and can be updated (replaced)
+    on shift or reduce actions.
+
+    The export used in a `@context` declaration should be of this
+    type.
+    */
     class ContextTracker {
-        /// Define a context tracker.
+        /**
+        Define a context tracker.
+        */
         constructor(spec) {
             this.start = spec.start;
             this.shift = spec.shift || id;
@@ -23953,14 +24289,20 @@ if(!String.prototype.matchAll) {
             this.strict = spec.strict !== false;
         }
     }
-    /// Holds the parse tables for a given grammar, as generated by
-    /// `lezer-generator`, and provides [methods](#common.Parser) to parse
-    /// content with.
+    /**
+    Holds the parse tables for a given grammar, as generated by
+    `lezer-generator`, and provides [methods](#common.Parser) to parse
+    content with.
+    */
     class LRParser extends Parser {
-        /// @internal
+        /**
+        @internal
+        */
         constructor(spec) {
             super();
-            /// @internal
+            /**
+            @internal
+            */
             this.wrappers = [];
             if (spec.version != 14 /* File.Version */)
                 throw new RangeError(`Parser version (${spec.version}) doesn't match runtime version (${14 /* File.Version */})`);
@@ -24032,7 +24374,9 @@ if(!String.prototype.matchAll) {
                 parse = w(parse, input, fragments, ranges);
             return parse;
         }
-        /// Get a goto table entry @internal
+        /**
+        Get a goto table entry @internal
+        */
         getGoto(state, term, loose = false) {
             let table = this.goto;
             if (term >= table[0])
@@ -24049,7 +24393,9 @@ if(!String.prototype.matchAll) {
                     return -1;
             }
         }
-        /// Check if this state has an action for a given terminal @internal
+        /**
+        Check if this state has an action for a given terminal @internal
+        */
         hasAction(state, terminal) {
             let data = this.data;
             for (let set = 0; set < 2; set++) {
@@ -24068,19 +24414,27 @@ if(!String.prototype.matchAll) {
             }
             return 0;
         }
-        /// @internal
+        /**
+        @internal
+        */
         stateSlot(state, slot) {
             return this.states[(state * 6 /* ParseState.Size */) + slot];
         }
-        /// @internal
+        /**
+        @internal
+        */
         stateFlag(state, flag) {
             return (this.stateSlot(state, 0 /* ParseState.Flags */) & flag) > 0;
         }
-        /// @internal
+        /**
+        @internal
+        */
         validAction(state, action) {
             return !!this.allActions(state, a => a == action ? true : null);
         }
-        /// @internal
+        /**
+        @internal
+        */
         allActions(state, action) {
             let deflt = this.stateSlot(state, 4 /* ParseState.DefaultReduce */);
             let result = deflt ? action(deflt) : undefined;
@@ -24095,8 +24449,10 @@ if(!String.prototype.matchAll) {
             }
             return result;
         }
-        /// Get the states that can follow this one through shift actions or
-        /// goto jumps. @internal
+        /**
+        Get the states that can follow this one through shift actions or
+        goto jumps. @internal
+        */
         nextStates(state) {
             let result = [];
             for (let i = this.stateSlot(state, 1 /* ParseState.Actions */);; i += 3) {
@@ -24114,9 +24470,11 @@ if(!String.prototype.matchAll) {
             }
             return result;
         }
-        /// Configure the parser. Returns a new parser instance that has the
-        /// given settings modified. Settings not provided in `config` are
-        /// kept from the original parser.
+        /**
+        Configure the parser. Returns a new parser instance that has the
+        given settings modified. Settings not provided in `config` are
+        kept from the original parser.
+        */
         configure(config) {
             // Hideous reflection-based kludge to make it easy to create a
             // slightly modified copy of a parser.
@@ -24157,29 +24515,41 @@ if(!String.prototype.matchAll) {
                 copy.bufferLength = config.bufferLength;
             return copy;
         }
-        /// Tells you whether any [parse wrappers](#lr.ParserConfig.wrap)
-        /// are registered for this parser.
+        /**
+        Tells you whether any [parse wrappers](#lr.ParserConfig.wrap)
+        are registered for this parser.
+        */
         hasWrappers() {
             return this.wrappers.length > 0;
         }
-        /// Returns the name associated with a given term. This will only
-        /// work for all terms when the parser was generated with the
-        /// `--names` option. By default, only the names of tagged terms are
-        /// stored.
+        /**
+        Returns the name associated with a given term. This will only
+        work for all terms when the parser was generated with the
+        `--names` option. By default, only the names of tagged terms are
+        stored.
+        */
         getName(term) {
             return this.termNames ? this.termNames[term] : String(term <= this.maxNode && this.nodeSet.types[term].name || term);
         }
-        /// The eof term id is always allocated directly after the node
-        /// types. @internal
+        /**
+        The eof term id is always allocated directly after the node
+        types. @internal
+        */
         get eofTerm() { return this.maxNode + 1; }
-        /// The type of top node produced by the parser.
+        /**
+        The type of top node produced by the parser.
+        */
         get topNode() { return this.nodeSet.types[this.top[1]]; }
-        /// @internal
+        /**
+        @internal
+        */
         dynamicPrecedence(term) {
             let prec = this.dynamicPrecedences;
             return prec == null ? 0 : prec[term] || 0;
         }
-        /// @internal
+        /**
+        @internal
+        */
         parseDialect(dialect) {
             let values = Object.keys(this.dialects), flags = values.map(() => false);
             if (dialect)
@@ -24196,8 +24566,10 @@ if(!String.prototype.matchAll) {
                 }
             return new Dialect(dialect, flags, disabled);
         }
-        /// Used by the output of the parser generator. Not available to
-        /// user code. @hide
+        /**
+        Used by the output of the parser generator. Not available to
+        user code. @hide
+        */
         static deserialize(spec) {
             return new LRParser(spec);
         }
@@ -26062,10 +26434,10 @@ if(!String.prototype.matchAll) {
         'Negation _': (Name) => `This expression looks like an incorrect negation. The correct format is "(- ${Name.substring(1)})".`,
         'Deprecated usage of ?': (Name) => `This expression looks like an incorrect anonymous procedure. The correct format looks like "[[ arg ] -> print arg]".`,
         'Incorrect usage of ,': (Name) => `In NetLogo, spaces " " are used to separate meanings. There is no need to use ",".`,
-        'Invalid report _': (Name) => `'Report' can only be used in a procedure beginning with 'to-report'.`,
-        'Invalid report warning _': (Name) => `'Report' can only be used in a procedure beginning with 'to-report'. Would you like to change to 'to-report'?`,
-        'Invalid to-report _': (Name) => `Any procedure beginning with 'to-report' must include the 'report' command. Would you like to change to 'to'?`,
-        'Missing breed names _': (Name) => `The breed statement must contain a plural and a singular name inside of the brackets.`,
+        'Invalid report _': (Name) => `"Report" can only be used in a procedure beginning with "to-report".`,
+        'Invalid report warning _': (Name) => `"report" can only be used in a procedure beginning with "to-report". Would you like to change to "to-report"?`,
+        'Invalid to-report _': (Name) => `Any procedure beginning with "to-report" must include the "report" command. Would you like to change to "to"?`,
+        'Missing breed names _': (Name) => `A breed statement must contain a plural and a singular name inside of the brackets, e.g. "breed [ sheep a-sheep ]".`,
         // Agent types and basic names
         Observer: () => 'Observer',
         Turtle: () => 'Turtle',
@@ -26235,10 +26607,10 @@ if(!String.prototype.matchAll) {
         'Negation _': (Name) => `取负值的方式不受支持。正确的格式是："(- ${Name.substring(1)})"。`,
         'Deprecated usage of ?': (Name) => `匿名函数的写法不受支持。正确的格式类似于 "[[ 参数 ] -> print 参数]".`,
         'Incorrect usage of ,': (Name) => `NetLogo 语言中使用空格分隔词义，无须使用 ","。`,
-        'Invalid report _': (Name) => `'Report' can only be used in a procedure beginning with 'to-report'.`,
-        'Invalid report warning _': (Name) => `'Report' can only be used in a procedure beginning with 'to-report'. Would you like to change to 'to-report'?`,
-        'Invalid to-report _': (Name) => `Any procedure beginning with 'to-report' must include the 'report' command. Would you like to change to 'to'?`,
-        'Missing breed names _': (Name) => `The breed statement must contain a plural and a singular name inside of the brackets.`,
+        'Invalid report _': (Name) => `'report' 只能在函数（to-report）中使用。`,
+        'Invalid report warning _': (Name) => `'report' 只能在函数（to-report）中使用。你想将过程（to）改为函数（to-report）吗？`,
+        'Invalid to-report _': (Name) => `函数（to-report）必须返回（report）一个值。你想将函数改为过程（to）吗?`,
+        'Missing breed names _': (Name) => `种类（breed）语句中必须包括一个复数和一个单数名称，例如 "breed [ sheep a-sheep ]"。`,
         // Agent types and basic names
         Observer: () => '观察者',
         Turtle: () => '海龟',
@@ -29156,6 +29528,11 @@ if(!String.prototype.matchAll) {
             textDecoration: 'overline underline',
             textDecorationColor: '#cc2200',
             textDecorationThickness: '2px',
+        },
+        '.cm-gutters': {
+            userSelect: 'none',
+            webkitUserSelect: 'none',
+            msUserSelect: 'none',
         },
     });
 
