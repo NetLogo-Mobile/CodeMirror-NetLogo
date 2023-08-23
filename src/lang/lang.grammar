@@ -369,8 +369,6 @@ Reporters {
 
   CloseParen { ")" }
 
-  "[" "]"
-
 }
 
 
@@ -412,8 +410,7 @@ Reporters {
   SpecialReporter0ArgsTurtle,
   SpecialReporter1ArgsTurtle,
   SpecialReporter0ArgsLinkP,
-  SpecialCommandCreateTurtlePossible,
-  Command1_2ArgsOpt
+  SpecialCommandCreateTurtlePossible
 }
 
 @external specialize {Reporter} specializeReporter from './specializer' {
@@ -460,7 +457,8 @@ Reporters {
   Command4ArgsVar,
   Command5ArgsVar,
   Command6ArgsVar,
-  Command3ArgsVar2
+  Command3ArgsVar2,
+  Command1_2ArgsOpt
 }
 
 @external specialize {SpecialCommand} specializeSpecialCommand from './specializer' {

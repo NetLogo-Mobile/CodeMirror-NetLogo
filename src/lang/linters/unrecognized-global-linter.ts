@@ -2,6 +2,7 @@ import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
 import { Localized } from '../../editor';
 import { Linter } from './linter-builder';
+import { getCodeName } from '../utils/code';
 
 // UnrecognizedGlobalLinter: Checks if something at the top layer isn't a procedure, global, etc.
 export const UnrecognizedGlobalLinter: Linter = (view, preprocessContext, lintContext) => {
@@ -51,6 +52,19 @@ export const UnrecognizedGlobalLinter: Linter = (view, preprocessContext, lintCo
         });
       }
     }
+    cursor.node.getChildren('Breed').map((child) => {
+      let sing = child.getChild('BreedSingular');
+      let plural = child.getChild('BreedPlural');
+      if (sing && plural && sing.to - sing.from > 0 && plural.to - plural.from > 0) {
+      } else {
+        diagnostics.push({
+          from: child.from,
+          to: child.to,
+          severity: 'error',
+          message: Localized.Get('Missing breed names _', 'breed'),
+        });
+      }
+    });
   }
   return diagnostics;
 };

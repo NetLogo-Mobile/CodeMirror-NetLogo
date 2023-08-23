@@ -78,6 +78,7 @@ const en_us: Record<string, Function> = {
     `Any procedure beginning with "to-report" must include the "report" command. Would you like to change to "to"?`,
   'Missing breed names _': (Name: string) =>
     `A breed statement must contain a plural and a singular name inside of the brackets, e.g. "breed [ sheep a-sheep ]".`,
+  'Invalid breed type _': (Name: string) => `This breed type cannot be used in this type of command`,
 
   // Agent types and basic names
   Observer: () => 'Observer',

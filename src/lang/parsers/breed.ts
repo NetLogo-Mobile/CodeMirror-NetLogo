@@ -27,6 +27,7 @@ import {
   SpecialCommand6Args,
   SpecialCommandCreateTurtle,
   SpecialCommandCreateLink,
+  SpecialCommandCreateTurtlePossible,
   // eslint-disable-next-line @typescript-eslint/ban-ts-comment
   // @ts-ignore
 } from './../lang.terms.js';
@@ -255,6 +256,7 @@ export function MatchBreed(token: string, context: PreprocessContext, guessing: 
   var valid = true;
   for (let rule of BreedStatementRules) {
     let match = token.match(rule.Match);
+
     if (match) {
       var name = match[rule.Position + 1];
       // Find the breed
@@ -283,7 +285,8 @@ export function MatchBreed(token: string, context: PreprocessContext, guessing: 
       type = context.BreedTypes.get(plural);
       if (typeof type === 'undefined' && guessing) type = rule.Type; // Guess if needed
       if (type == BreedType.DirectedLink) type = BreedType.UndirectedLink;
-      if (typeof rule.Type !== 'undefined' && type !== rule.Type) return { Tag: 0, Valid: false };
+      if (typeof rule.Type !== 'undefined' && type !== rule.Type)
+        return { Tag: SpecialCommandCreateTurtlePossible, Valid: false };
       // Produce the prototype
       switch (type) {
         case BreedType.Turtle:

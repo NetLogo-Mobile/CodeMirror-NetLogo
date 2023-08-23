@@ -62,13 +62,15 @@ export const IdentifierLinter: Linter = (view, preprocessContext, lintContext) =
           diagnostics.push(getDiagnostic(view, noderef, 'Incorrect usage of ,'));
           return;
         }
-        // check if the identifier looks like a breed procedure (e.g. "create-___")
-        if (checkUndefinedBreed(diagnostics, context.preprocessState, view, node)) return;
         // check if a suggestion exists
         if (checkUnrecognizedWithSuggestions(diagnostics, view, node)) return;
+        // check if the identifier looks like a breed procedure (e.g. "create-___")
+        if (checkUndefinedBreed(diagnostics, context.preprocessState, view, node)) return;
+
         // nothing more to check, so it is an unrecognized identifier
         diagnostics.push(getDiagnostic(view, noderef, 'Unrecognized identifier _'));
       } else if (noderef.name == 'SpecialCommandCreateTurtlePossible' && !parent?.name.includes('VariableName')) {
+        if (checkUnrecognizedWithSuggestions(diagnostics, view, noderef.node)) return;
         checkUndefinedBreed(diagnostics, context.preprocessState, view, noderef.node);
       }
     });

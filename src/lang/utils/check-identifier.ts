@@ -135,6 +135,10 @@ export function checkUndefinedBreed(
       diagnostics.push(diagnostic);
     }
     return true;
+  } else if (!info.Valid && info.Tag != 0) {
+    let diagnostic = getDiagnostic(view, noderef, 'Invalid breed type _', 'error');
+    diagnostics.push(diagnostic);
+    return true;
   } else return false;
 }
 
