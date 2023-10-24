@@ -16,7 +16,7 @@ export const ModeLinter: Linter = (view, preprocessContext, lintContext, state) 
   if (node.name != 'Program') return diagnostics;
   // Check if the recognized mode matches the expected one
   var unexpected: SyntaxNode | null = null;
-  unexpected = unexpected ?? CheckMode(node, 'OnelineReporter', mode);
+  unexpected = unexpected ?? CheckMode(node, 'Reporter', mode);
   unexpected = unexpected ?? CheckMode(node, 'Embedded', mode);
   unexpected = unexpected ?? CheckMode(node, 'Normal', mode);
   if (unexpected != null) {
@@ -44,6 +44,6 @@ const CheckMode = function (Node: SyntaxNode, Mode: string, Expected: ParseMode)
   var Current = GetMode(Node, Mode);
   if (Current == null) return null;
   if (Expected == Mode) return null;
-  if (Expected == ParseMode.Oneline && (Mode == 'OnelineReporter' || Mode == 'Embedded')) return null;
+  if (Expected == ParseMode.Oneline && (Mode == 'Reporter' || Mode == 'Embedded')) return null;
   return Current;
 };

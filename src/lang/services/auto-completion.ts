@@ -189,7 +189,7 @@ export class AutoCompletion {
     Log(node.name + '/' + parents.join('/'));
 
     if (
-      (parents.includes('OnelineReporter') && this.Editor.Options.ParseMode == ParseMode.Normal) ||
+      (parents.includes('Reporter') && this.Editor.Options.ParseMode == ParseMode.Normal) ||
       (grandparentName == 'Normal' && parentName == '⚠')
     ) {
       parentName = 'Program';

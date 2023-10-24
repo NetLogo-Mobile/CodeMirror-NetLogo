@@ -98,7 +98,7 @@ export class StateNetLogo {
       case 'Embedded':
         this.RecognizedMode = 'Command';
         break;
-      case 'OnelineReporter':
+      case 'Reporter':
         this.RecognizedMode = 'Reporter';
         break;
       case 'Normal':
@@ -177,7 +177,7 @@ export class StateNetLogo {
         let procedure = this.gatherEmbeddedProcedure(Cursor.node, State);
         this.Procedures.set(procedure.Name, procedure);
       } else if (this.RecognizedMode == 'Reporter') {
-        let procedure = this.gatherOnelineProcedure(Cursor.node, State);
+        let procedure = this.gatherEmbeddedReporter(Cursor.node, State);
         this.Procedures.set(procedure.Name, procedure);
       }
       // Handle the context of one-line things
@@ -215,13 +215,13 @@ export class StateNetLogo {
     return procedure;
   }
 
-  /** gatherOnelineProcedure: Gather all information about a procedure in embedded mode. */
-  private gatherOnelineProcedure(Node: SyntaxNode, State: EditorState): Procedure {
+  /** gatherEmbeddedReporter: Gather all information about a reporter in embedded mode. */
+  private gatherEmbeddedReporter(Node: SyntaxNode, State: EditorState): Procedure {
     let procedure = new Procedure();
     procedure.PositionStart = Node.from;
     procedure.PositionEnd = Node.to;
     procedure.IsCommand = false;
-    procedure.Name = '⚠OnelineReporter⚠';
+    procedure.Name = '⚠EmbeddedReporter⚠';
     procedure.Arguments = [];
     procedure.Variables = this.getLocalVarsCommand(Node, State, false);
     procedure.AnonymousProcedures = this.gatherAnonProcedures(Node, State, procedure);

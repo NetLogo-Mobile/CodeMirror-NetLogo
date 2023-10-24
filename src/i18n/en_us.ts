@@ -25,8 +25,8 @@ const en_us: Record<string, Function> = {
   'Invalid for Normal mode _': (Value: string) => `This editor mode expects a full NetLogo model.`,
   'Invalid for Embedded mode _': (Value: string) => `This editor mode expects a few command statements.`,
   'Invalid for Oneline mode _': (Value: string) =>
-    `This editor mode expects command statements or a single reporter statement.`,
-  'Invalid for OnelineReporter mode _': (Value: string) => `This editor mode expects a single reporter statement.`,
+    `This editor mode expects command statements or a single expression.`,
+  'Invalid for Reporter mode _': (Value: string) => `This editor mode expects a single expression.`,
   'Problem identifying primitive _. Expected _, found _.': (Name: string, Expected: string, Actual: string) =>
     `"${Name}" is not a valid primitive. Expected ${Expected} but found ${Actual}.`,
   'Left args for _. Expected _, found _.': (Name: string, Expected: string, Actual: string) =>

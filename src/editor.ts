@@ -40,6 +40,7 @@ export class GalapagosEditor {
   private readonly Editable: Compartment;
   /** ThemeConfig: Compartment of Editor themes */
   private readonly ThemeConfig: Compartment;
+  /** Language: The language support of this editor. */
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
   public readonly Parent: HTMLElement;
@@ -112,29 +113,6 @@ export class GalapagosEditor {
         click: (Event) => Options.OnClick?.(Event, this),
       })
     );
-    // One-line mode
-    // if (this.Options.OneLine) {
-    //   Extensions.push(
-    //     EditorState.transactionFilter.of((Transaction) => {
-    //       if (Transaction.docChanged && Transaction.newDoc.lines > 1) {
-    //         var NewDoc = Transaction.newDoc.toString().replace('\n', ' ').trim();
-    //         return [
-    //           {
-    //             changes: {
-    //               from: 0,
-    //               to: this.CodeMirror.state.doc.length,
-    //               insert: NewDoc,
-    //             },
-    //             selection: {
-    //               anchor: NewDoc.length,
-    //             },
-    //           },
-    //         ];
-    //       }
-    //       return [Transaction];
-    //     })
-    //   );
-    // }
     // Wrapping mode
     if (this.Options.Wrapping) Extensions.push(EditorView.lineWrapping);
     // Placeholder
@@ -193,7 +171,7 @@ export class GalapagosEditor {
     this.CodeMirror.dispatch({
       effects: this.Editable.reconfigure(EditorView.editable.of(!Status)),
     });
-    if(Status) {
+    if (Status) {
       (document.querySelector('.cm-editor') as HTMLElement).style.backgroundColor = '#f5f5f5';
       (document.querySelector('.cm-editor') as HTMLElement).style.color = '#888';
     } else {
@@ -205,7 +183,7 @@ export class GalapagosEditor {
   AddChild(Child: GalapagosEditor) {
     if (Child.Children.length > 0) throw new Error('Cannot add an editor that already has children as child.');
     this.Children.push(Child);
-    Child.ID = this.Children.length;
+    Child.ID = ++this.NextChildID;
     Child.ParentEditor = this;
     Child.CodeMirror.state.field(stateExtension).EditorID = Child.ID;
     // Generative editors are sort of independent
@@ -214,6 +192,32 @@ export class GalapagosEditor {
       Child.PreprocessContext = this.PreprocessContext;
       Child.GetState(false).Preprocess = this.PreprocessContext;
     }
+  }
+  /** RemoveChild: Remove a child editor. */
+  RemoveChild(Child: GalapagosEditor) {
+    // Remove from the list
+    if (Child.ParentEditor !== this) throw new Error('Cannot remove an editor that is not my child.');
+    var Index = this.Children.indexOf(Child);
+    if (Index === -1) throw new Error('Cannot remove an editor that is not my child.');
+    this.Children.splice(Index, 1);
+    // Remove the context
+    Child.ParentEditor = null;
+    // Generative editors are sort of independent
+    if (Child.Options.ParseMode !== ParseMode.Generative) {
+      Child.LintContext = new LintContext();
+      Child.PreprocessContext = new PreprocessContext();
+      Child.GetState(false).Preprocess = Child.PreprocessContext;
+    }
+  }
+  /** GetChild: Get the child editor by ID. */
+  GetChild(ID: number) {
+    if (ID == this.ID) return this;
+    return this.Children.find((child) => child.ID == ID);
+  }
+  /** Detach: Detach the editor from its parent. */
+  Detach() {
+    if (this.ParentEditor == null) throw new Error('Cannot remove an editor that is not a child.');
+    this.ParentEditor.RemoveChild(this);
   }
   /** SyncContext: Sync the context of the child editor. */
   SyncContext(Child: GalapagosEditor) {
@@ -315,6 +319,8 @@ export class GalapagosEditor {
   private ID: number = 0;
   /** Children: The connected editors. */
   public readonly Children: GalapagosEditor[] = [];
+  /** NextChildID: The next child ID. */
+  private NextChildID: number = 0;
   /** ParentEditor: The parent editor of this instance. */
   public ParentEditor: GalapagosEditor | null = null;
   /** PreprocessContext: The combined preprocessed context of this editor. */
@@ -328,7 +334,7 @@ export class GalapagosEditor {
   /** SetContext: Set the context of the editor for one-line modes. */
   public SetContext(context: string) {
     if (
-      (this.Options.ParseMode == ParseMode.Oneline || this.Options.ParseMode == ParseMode.OnelineReporter) &&
+      (this.Options.ParseMode == ParseMode.Oneline || this.Options.ParseMode == ParseMode.Reporter) &&
       this.GetState(false).SetContext(context)
     ) {
       this.ForceParse();
