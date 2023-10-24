@@ -44,8 +44,8 @@ export declare class StateNetLogo {
     ParseState(State: EditorState): StateNetLogo;
     /** gatherEmbeddedProcedure: Gather all information about a procedure in embedded mode. */
     private gatherEmbeddedProcedure;
-    /** gatherOnelineProcedure: Gather all information about a procedure in embedded mode. */
-    private gatherOnelineProcedure;
+    /** gatherEmbeddedReporter: Gather all information about a reporter in embedded mode. */
+    private gatherEmbeddedReporter;
     /** gatherProcedure: Gather all information about a procedure. */
     private gatherProcedure;
     private checkReporterContext;

@@ -21,6 +21,7 @@ export declare class GalapagosEditor {
     private readonly Editable;
     /** ThemeConfig: Compartment of Editor themes */
     private readonly ThemeConfig;
+    /** Language: The language support of this editor. */
     readonly Language: LanguageSupport;
     /** Parent: Parent HTMLElement of the EditorView. */
     readonly Parent: HTMLElement;
@@ -54,6 +55,12 @@ export declare class GalapagosEditor {
     SetReadOnly(Status: boolean): void;
     /** AddChild: Add a child editor. */
     AddChild(Child: GalapagosEditor): void;
+    /** RemoveChild: Remove a child editor. */
+    RemoveChild(Child: GalapagosEditor): void;
+    /** GetChild: Get the child editor by ID. */
+    GetChild(ID: number): GalapagosEditor | undefined;
+    /** Detach: Detach the editor from its parent. */
+    Detach(): void;
     /** SyncContext: Sync the context of the child editor. */
     SyncContext(Child: GalapagosEditor): void;
     /** Blur: Make the editor lose the focus (if any). */
@@ -76,6 +83,8 @@ export declare class GalapagosEditor {
     private ID;
     /** Children: The connected editors. */
     readonly Children: GalapagosEditor[];
+    /** NextChildID: The next child ID. */
+    private NextChildID;
     /** ParentEditor: The parent editor of this instance. */
     ParentEditor: GalapagosEditor | null;
     /** PreprocessContext: The combined preprocessed context of this editor. */
