@@ -96,8 +96,14 @@ export class GalapagosEditor {
         this.Linters = netlogoLinters.map((linter) => buildLinter(linter, this));
         // Special case: One-line mode
         if (this.Options.OneLine) {
-          Extensions.unshift(Prec.highest(keymap.of([{ key: 'Enter', run: () => true }])));
-          Extensions.unshift(Prec.highest(keymap.of([{ key: 'Tab', run: acceptCompletion }])));
+          Extensions.unshift(
+            Prec.highest(
+              keymap.of([
+                { key: 'Enter', run: () => true },
+                { key: 'Tab', run: acceptCompletion },
+              ])
+            )
+          );
         }
         Extensions.push(...this.Linters);
         Extensions.push(linter(CompilerLinter));
@@ -105,6 +111,8 @@ export class GalapagosEditor {
         Extensions.push(lintGutter());
     }
     Extensions.push(this.Language);
+    // Keybindings
+    if (this.Options.KeyBindings) Extensions.push(keymap.of(this.Options.KeyBindings));
     // DOM handlers
     Extensions.push(
       EditorView.domEventHandlers({

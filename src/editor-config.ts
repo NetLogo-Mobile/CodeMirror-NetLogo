@@ -1,4 +1,4 @@
-import { EditorView, ViewUpdate } from '@codemirror/view';
+import { EditorView, KeyBinding, ViewUpdate } from '@codemirror/view';
 import { Diagnostic } from '@codemirror/lint';
 import { GalapagosEditor } from './editor';
 
@@ -33,6 +33,8 @@ export interface EditorConfig {
   OnExplain?: (Diagnostic: Diagnostic, Context: string) => void;
   /** OnDictionaryClick: Triggers when a dictionary tooltip is clicked. */
   OnDictionaryClick?: (Key: string) => void;
+  /** KeyBindings: Custom key mappings (with the highest priority). */
+  KeyBindings?: KeyBinding[];
 }
 
 /** EditorLanguage: Language. */
