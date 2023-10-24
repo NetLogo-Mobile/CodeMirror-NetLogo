@@ -19,6 +19,8 @@ export declare class GalapagosEditor {
     readonly Options: EditorConfig;
     /** Editable: Compartment of the EditorView. */
     private readonly Editable;
+    /** ThemeConfig: Compartment of Editor themes */
+    private readonly ThemeConfig;
     readonly Language: LanguageSupport;
     /** Parent: Parent HTMLElement of the EditorView. */
     readonly Parent: HTMLElement;
