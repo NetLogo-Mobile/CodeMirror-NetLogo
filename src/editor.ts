@@ -38,6 +38,8 @@ export class GalapagosEditor {
   public readonly Options: EditorConfig;
   /** Editable: Compartment of the EditorView. */
   private readonly Editable: Compartment;
+  /** ThemeConfig: Compartment of Editor themes */
+  private readonly ThemeConfig: Compartment;
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
   public readonly Parent: HTMLElement;
@@ -57,6 +59,7 @@ export class GalapagosEditor {
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
     this.Editable = new Compartment();
+    this.ThemeConfig = new Compartment();
     this.Parent = Parent;
     this.Options = Options;
     // Extensions
@@ -190,6 +193,13 @@ export class GalapagosEditor {
     this.CodeMirror.dispatch({
       effects: this.Editable.reconfigure(EditorView.editable.of(!Status)),
     });
+    if(Status) {
+      (document.querySelector('.cm-editor') as HTMLElement).style.backgroundColor = '#f5f5f5';
+      (document.querySelector('.cm-editor') as HTMLElement).style.color = '#888';
+    } else {
+      (document.querySelector('.cm-editor') as HTMLElement).style.backgroundColor = '#fff';
+      (document.querySelector('.cm-editor') as HTMLElement).style.color = '#000';
+    }
   }
   /** AddChild: Add a child editor. */
   AddChild(Child: GalapagosEditor) {
