@@ -30,6 +30,7 @@ import { SemanticFeatures } from './features/semantics';
 import { CodeEditing } from './lang/services/code-editing';
 import { basicSetup } from 'codemirror';
 import { Breed } from './lang/classes/structures';
+import { ColorPickerPlugin } from './codemirror/cp-widget-extension';
 
 export class GalapagosEditor {
   /** CodeMirror: The CodeMirror 6 component. */
@@ -111,6 +112,7 @@ export class GalapagosEditor {
         Extensions.push(lintGutter());
     }
     Extensions.push(this.Language);
+    Extensions.push(ColorPickerPlugin);
     // Keybindings
     if (this.Options.KeyBindings) Extensions.push(keymap.of(this.Options.KeyBindings));
     // DOM handlers
