@@ -153,8 +153,6 @@ export const ColorPickerPlugin = ViewPlugin.fromClass(
     update(update: ViewUpdate) {
       if (update.docChanged || update.viewportChanged) this.decorations = colorWidgets(update.view, this.posToWidget);
     }
-
-    // Define your mousedown handler as a method of the class
     handleMousedown(e: MouseEvent, view: EditorView) {
       let target = e.target as HTMLElement;
       if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('netlogo-colorpicker')) {
@@ -164,10 +162,8 @@ export const ColorPickerPlugin = ViewPlugin.fromClass(
   },
   {
     decorations: (v) => v.decorations,
-    // Reference the method here
     eventHandlers: {
       mousedown: function (e, view) {
-        // @ts-ignore: 'this' implicitly has type 'any'
         this.handleMousedown(e, view);
       },
     },
