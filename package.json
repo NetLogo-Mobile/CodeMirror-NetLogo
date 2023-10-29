@@ -33,7 +33,7 @@
     "release": "ts-node --esm src/lang/primitives/importer.ts && lezer-generator ./src/lang/lang.grammar -o ./src/lang/lang.js && rollup -c rollup.config.release.js",
     "import": "ts-node --esm src/lang/primitives/importer.ts",
     "test": "ts-node --esm src/tests/export.ts",
-    "publish": "cp dist/editor.bundle.js codemirror-netlogo.js && npm publish --access public"
+    "rename-and-publish": "cp dist/editor.bundle.js codemirror-netlogo.js && npm publish --access public"
   },
   "dependencies": {
     "@codemirror/commands": "^6.2.4",
