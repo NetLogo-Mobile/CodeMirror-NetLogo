@@ -14,6 +14,26 @@ var colorTimesTen: number;
 var baseIndex: number;
 var r, g, b: number;
 var step: number;
+
+const baseColorsToRGB: { [key: string]: number[] } = {
+  gray: [140, 140, 140],
+  red: [215, 48, 39],
+  orange: [241, 105, 19],
+  brown: [156, 109, 70],
+  yellow: [237, 237, 47],
+  green: [87, 176, 58],
+  lime: [42, 209, 57],
+  turquoise: [27, 158, 119],
+  cyan: [82, 196, 196],
+  sky: [43, 140, 190],
+  blue: [50, 92, 168],
+  violet: [123, 78, 163],
+  magenta: [166, 25, 105],
+  pink: [224, 126, 149],
+  black: [0, 0, 0],
+  white: [255, 255, 255],
+};
+
 const netlogoBaseColors: [number, number, number][] = [
   [140, 140, 140], // gray       (5)
   [215, 48, 39], // red       (15)
@@ -61,11 +81,11 @@ function netlogoToRGB(netlogoColor: number): number[] {
 
 /* ColorPickerWidget: Decoration Widget to open ColorPicker */
 class ColorPickerWidget extends WidgetType {
-  private color: string;
+  private color: number[]; // rgb or rgba string 
   private length: number;
   // true if the color associated with the widget is a netlogo color
   private isNetLogoColor: boolean;
-  constructor(widgetColor: string, length: number, type: boolean) {
+  constructor(widgetColor: number[], length: number, type: boolean) {
     super();
     this.color = widgetColor;
     this.length = length;
@@ -80,6 +100,14 @@ class ColorPickerWidget extends WidgetType {
     return this.isNetLogoColor;
   }
 
+  getColor(): number[] {
+    if(this.color.length == 4) {
+      return this.color;
+    } else {
+      return [this.color[0], this.color[1], this.color[2], 255];
+    }
+  }
+
   toDOM(): HTMLElement {
     let wrap = document.createElement('span');
     wrap.setAttribute('aria-hidden', 'true');
@@ -89,8 +117,14 @@ class ColorPickerWidget extends WidgetType {
     box.style.height = '9px';
     box.style.border = '1px solid gray';
     box.style.borderRadius = '20%';
-    box.style.backgroundColor = this.color;
-    box.style.backgroundColor = this.color;
+    let color = this.color;
+    if(this.color.length == 3) {
+      box.style.backgroundColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+    } else {
+      // rgba
+      box.style.backgroundColor = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
+    }
+    // box.style.backgroundColor = `rgb${}`
     box.style.display = 'inline-block';
     box.style.cursor = 'pointer';
     box.style.marginLeft = '5px';
@@ -128,7 +162,7 @@ function getNodeColor(node: SyntaxNodeRef, view: EditorView, cursor: TreeCursor)
   ) {
     return nodeVal;
   } else if(node.name == 'Numeric') {
-    if(parseFloat(nodeVal) > 140 || parseFloat(nodeVal) < 0) {
+    if(parseFloat(nodeVal) >= 140 || parseFloat(nodeVal) < 0) {
       return '';
     }
     // check if previous word is 'color'
@@ -139,38 +173,6 @@ function getNodeColor(node: SyntaxNodeRef, view: EditorView, cursor: TreeCursor)
   return '';
 }
 
-// function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidget>): DecorationSet {
-//   let widgets: Range<Decoration>[] = [];
-//   posToWidget.clear(); // create new mappings on change in view
-//   for (let { from, to } of view.visibleRanges) {
-//     let cursor: TreeCursor = syntaxTree(view.state).cursor(); // create a cursor per change in view
-//     syntaxTree(view.state).iterate({
-//       from,
-//       to,
-//       enter: (node) => {
-//         if (nodeIsColor(node, view, cursor)) {
-//           let parseVal: string = view.state.doc.sliceString(node.from, node.to);
-//           let widgetColor: number;
-//           let textType: string;
-//           if (Number.isNaN(parseFloat(parseVal))) {
-//             textType = 'string';
-//           } else {
-//             widgetColor = parseFloat(parseVal);
-//             textType = 'number';
-//           }
-//           let cp_widget = new ColorPickerWidget('blue', parseVal.length, textType);
-//           let deco = Decoration.widget({
-//             widget: cp_widget,
-//             side: 1,
-//           });
-//           widgets.push(deco.range(node.to));
-//           posToWidget.set(node.to, cp_widget);
-//         }
-//       },
-//     });
-//   }
-//   return Decoration.set(widgets);
-// }
 
 function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidget>): DecorationSet {
   let widgets: Range<Decoration>[] = [];
@@ -191,10 +193,13 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
             isNetLogo = true;
           }
           // translate to rgb if netlogoColor 
-          let color:string = nodeVal;
+          let color:number[];
           if(isNetLogo) {
-            let rgb = netlogoToRGB(parseFloat(nodeVal));
-            color = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+            color = netlogoToRGB(parseFloat(nodeVal));
+          } else {
+            // it is a string 
+            console.log(nodeVal);
+            color = baseColorsToRGB[nodeVal]
           }
           let cpWidget = new ColorPickerWidget(color, nodeVal.length, isNetLogo);
           let deco = Decoration.widget({
@@ -236,7 +241,7 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
     } else {
     }
     cpDiv.remove();
-  }, [25, 25, 245, 255]); // Initial color
+  }, widget.getColor()); // Initial color
 }
 
 
