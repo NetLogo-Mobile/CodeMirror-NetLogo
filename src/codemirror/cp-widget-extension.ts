@@ -147,7 +147,19 @@ class ColorPickerWidget extends WidgetType {
 
 3) Make the colorPicker widget change the color based on the callback 
 
-4) -- color picker itself have the right color based on the starting color 
+4) -- color picker itself have the right color based on the starting color  -- done 
+
+5) Make it accept colors of the form : set color [255 0 0 125]
+
+6) Make it accept colors of the form: red + 4;
+
+7) make it load the pictures 
+
+colors:
+3 modes
+1) text representation: red, red +2 
+2) netlogo color representation: 5, 25
+3) rgb representatio: [255, 255, 255]
 */
 
 
