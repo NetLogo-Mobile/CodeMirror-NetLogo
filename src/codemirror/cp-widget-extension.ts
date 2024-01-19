@@ -102,43 +102,36 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
   return Decoration.set(widgets);
 }
 
-function initiliazeCP(view: EditorView, pos: number, widget: ColorPickerWidget) {
-  // check for netlogoC
+function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) {
+  // Check if the ColorPicker is already open
   let CPOpen = document.querySelector('#colorPickerDiv');
-  if (!CPOpen) {
-    let cpDiv = document.createElement('div');
-    cpDiv.id = 'colorPickerDiv';
-    cpDiv.style.position = 'absolute';
-    cpDiv.style.top = '0px';
-    cpDiv.style.left = '0px';
-    //  transform: translate(-50%, -50%); do this in js
-    cpDiv.style.transform = 'translate(-50%, -50%)';
-    view.dom.appendChild(cpDiv);
-    new Promise<number>((resolve) => {
-      const colorPicker = new ColorPicker(cpDiv);
-      const closeButton = document.querySelector('.cp-closeIcon');
-      closeButton?.addEventListener('click', () => {
-        //resolve(colorPicker.getCurrentColor());
-      });
-    }).then((color: number) => {
-      // update the text in the editor
-      let change;
-      let length = widget.getLength();
-      let textType = widget.getTextType();
-      if (textType == 'number') {
-        change = { from: pos - length, to: pos, insert: color.toString() };
-      } else {
-        //do nothing
-        //change = {from: pos - length, to: pos, insert: closestColor(color)};
-      }
-      view.dispatch({ changes: change });
-      // remove cpDiv
-      cpDiv.remove();
-    });
-  } else {
-    return; // cp is already open
+  if (CPOpen) {
+    return; // ColorPicker is already open
   }
+
+  // Create and append the ColorPicker div
+  let cpDiv = document.createElement('div');
+  cpDiv.id = 'colorPickerDiv';
+  cpDiv.style.position = 'absolute';
+  view.dom.appendChild(cpDiv);
+
+  // Initialize the ColorPicker with a callback
+  const colorPicker = new ColorPicker(cpDiv, (selectedColor) => {
+    console.log(selectedColor);
+
+    let change;
+    let length = widget.getLength();
+    let textType = widget.getTextType();
+
+    if (textType === 'number') {
+      change = { from: pos - length, to: pos, insert: selectedColor.toString() };
+      view.dispatch({ changes: change });
+    } else {
+    }
+    cpDiv.remove();
+  }, [25, 25, 245, 255]); // Initial color
 }
+
 
 export const ColorPickerPlugin = ViewPlugin.fromClass(
   class {
@@ -156,7 +149,7 @@ export const ColorPickerPlugin = ViewPlugin.fromClass(
     handleMousedown(e: MouseEvent, view: EditorView) {
       let target = e.target as HTMLElement;
       if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('netlogo-colorpicker')) {
-        initiliazeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!);
+        initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!);
       }
     }
   },
