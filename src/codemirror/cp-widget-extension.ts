@@ -83,21 +83,25 @@ function netlogoToRGB(netlogoColor: number): number[] {
 class ColorPickerWidget extends WidgetType {
   private color: number[]; // rgb or rgba string 
   private length: number;
-  // true if the color associated with the widget is a netlogo color
-  private isNetLogoColor: boolean;
-  constructor(widgetColor: number[], length: number, type: boolean) {
+  /** colorType: the representation of the color:
+   * 'text' --> anything like red, red + 3
+   * 'number' --> netlogo color value: 45, 139.9
+   * 'rgb' --> rgba or rgb values : [25, 13, 25], [35, 17, 25, 255]
+   */
+  private colorType: string; 
+  constructor(widgetColor: number[], length: number, type: string) {
     super();
     this.color = widgetColor;
     this.length = length;
-    this.isNetLogoColor = type;
+    this.colorType = type;
   }
 
   getLength(): number {
     return this.length;
   }
 
-  isNetLogo() {
-    return this.isNetLogoColor;
+  getColorType(): string {
+    return this.colorType;
   }
 
   getColor(): number[] {
@@ -197,23 +201,25 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
       to,
       enter: (node) => {
         if((nodeVal = getNodeColor(node, view, cursor)) != '') {
-          // determine the color type
-          let isNetLogo;
+          // determine the color type (representation);
+          let colorType: string; 
           if(Number.isNaN(parseFloat(nodeVal))) {
-            isNetLogo = false;  // isNetLogo color 
+            // either a text representation: red / red + 5 or an rgb representation 
+            // for now assume it is a text representation
+            colorType = 'text';
           }else {
-            isNetLogo = true;
+            colorType = 'number';
           }
           // translate to rgb if netlogoColor 
           let color:number[];
-          if(isNetLogo) {
+          if(colorType == 'number') {
             color = netlogoToRGB(parseFloat(nodeVal));
           } else {
             // it is a string 
             console.log(nodeVal);
             color = baseColorsToRGB[nodeVal]
           }
-          let cpWidget = new ColorPickerWidget(color, nodeVal.length, isNetLogo);
+          let cpWidget = new ColorPickerWidget(color, nodeVal.length, colorType);
           let deco = Decoration.widget({
             widget: cpWidget,
             side: 1,
@@ -247,7 +253,7 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
     let change;
     let length = widget.getLength();
 
-    if (widget.isNetLogo()) {
+    if (widget.getColorType() == 'number') {
       change = { from: pos - length, to: pos, insert: selectedColor.toString() };
       view.dispatch({ changes: change });
     } else {
