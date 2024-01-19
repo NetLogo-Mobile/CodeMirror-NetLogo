@@ -79,10 +79,23 @@ function netlogoToRGB(netlogoColor: number): number[] {
   return [temp[0], temp[1], temp[2]];
 }
 
-function netlogoToText(netlogoColor: number) : string{
-  let colors = Object.keys(baseColorsToRGB);
-  return colors[Math.floor(netlogoColor / 10)];
-} 
+function netlogoToText(netlogoColor: number): string {
+  let baseColorIndex = Math.floor(netlogoColor / 10);
+  let baseColorName = Object.keys(baseColorsToRGB)[baseColorIndex];
+  let offset = (netlogoColor % 10) - 5;
+
+  if (offset === 0) {
+    // If the color is a base color, return only the base color name
+    return baseColorName;
+  } else if (offset > 0) {
+    // For positive offset, include a space before the offset
+    return `${baseColorName} + ${offset}`;
+  } else {
+    // For negative offset, include a space before the negative offset
+    return `${baseColorName} - ${Math.abs(offset)}`;
+  }
+}
+
 
 /* ColorPickerWidget: Decoration Widget to open ColorPicker */
 class ColorPickerWidget extends WidgetType {
