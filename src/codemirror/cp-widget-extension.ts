@@ -34,6 +34,25 @@ const baseColorsToRGB: { [key: string]: number[] } = {
   white: [255, 255, 255],
 };
 
+const colorToNumberMapping: {[key:string]: number} = {
+  'gray': 5,
+  'red': 15,
+  'orange': 25,
+  'brown': 35,
+  'yellow': 45,
+  'green': 55,
+  'lime': 65,
+  'turquoise': 75,
+  'cyan': 85,
+  'sky': 95,
+  'blue': 105,
+  'violet': 115,
+  'magenta': 125,
+  'pink': 135,
+  'black': 145,
+  'white': 155,
+};
+
 const netlogoBaseColors: [number, number, number][] = [
   [140, 140, 140], // gray       (5)
   [215, 48, 39], // red       (15)
@@ -185,71 +204,75 @@ colors:
 */
 
 
-
-/** getNodeColor: returns the color of a node given the node as a string. Returns empty string if not a color*/
-function getNodeColor(node: SyntaxNodeRef, view: EditorView, cursor: TreeCursor): string {
+function getNodeColor(node: SyntaxNodeRef, view: EditorView, cursor: TreeCursor): number[] {
   const ignore = ['true', 'false', 'nobody', 'e', 'pi']; //constants to ignore
   let nodeVal = view.state.doc.sliceString(node.from, node.to);
-  if(
-    node.name == 'Constant' && 
-    !ignore.includes(nodeVal.toLowerCase()) 
-  ) {
-    return nodeVal;
-  } else if(node.name == 'Numeric') {
+  if(node.name == 'Numeric') {
     if(parseFloat(nodeVal) >= 140 || parseFloat(nodeVal) < 0) {
-      return '';
+      return [];
     }
-    // check if previous word is 'color'
+    // check if previous word is color 
     cursor.moveTo(node.from, 1);
     cursor.prev();
-    if(view.state.doc.sliceString(cursor.from, cursor.to).includes('color')) return nodeVal;
+    if(view.state.doc.sliceString(cursor.from, cursor.to).includes('color')) return [node.to, nodeVal.length, 0]
+  } else if(node.name == 'Constant' && !ignore.includes(nodeVal.toLowerCase())) {
+    // test if its of the form color + number 
+    cursor.moveTo(node.to, 1);
+    const colorPattern = /^[a-zA-Z]+ \+ [0-5]$/;
+    if(colorPattern.test(view.state.doc.sliceString(cursor.from, cursor.to))) {
+      return [cursor.to, cursor.to - cursor.from, 2];
+    }
+    return [node.to, nodeVal.length, 1];
   }
-  return '';
+  return [];
 }
-
 
 function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidget>): DecorationSet {
   let widgets: Range<Decoration>[] = [];
   posToWidget.clear();
-  let nodeVal: string;
-  for (let { from, to } of view.visibleRanges) {
+  let colorNodeInfo: number[];
+  for(let { from, to } of view.visibleRanges) {
     let cursor: TreeCursor = syntaxTree(view.state).cursor();
     syntaxTree(view.state).iterate({
       from,
       to,
       enter: (node) => {
-        if((nodeVal = getNodeColor(node, view, cursor)) != '') {
-          // determine the color type (representation);
-          let colorType: string; 
-          if(Number.isNaN(parseFloat(nodeVal))) {
-            // either a text representation: red / red + 5 or an rgb representation 
-            // for now assume it is a text representation
+        if((colorNodeInfo = getNodeColor(node, view, cursor)).length != 0) {
+          let colorType;
+          let color;
+          if(colorNodeInfo[2] == 0) {
+            // regular netlogo numeric color
+            color = netlogoToRGB(parseFloat(view.state.doc.sliceString(node.from, node.to)));
+            colorType = 'number'
+          } else if(colorNodeInfo[2] == 1) {
+            // regular base color
+            color = baseColorsToRGB[view.state.doc.sliceString(node.from, node.to)];
             colorType = 'text';
-          }else {
-            colorType = 'number';
-          }
-          // translate to rgb if netlogoColor 
-          let color:number[];
-          if(colorType == 'number') {
-            color = netlogoToRGB(parseFloat(nodeVal));
           } else {
-            // it is a string 
-            console.log(nodeVal);
-            color = baseColorsToRGB[nodeVal]
+            // the color is of form rgb + 5 
+            colorType = 'text';
+            let string = view.state.doc.sliceString(colorNodeInfo[0] - colorNodeInfo[1], colorNodeInfo[1]);
+            let stringSplit = string.split(" ");
+            if(stringSplit[1] == '+') {
+              color = netlogoToRGB(colorToNumberMapping[stringSplit[0]] + Number(stringSplit[2]));
+            } else {
+              color = netlogoToRGB(colorToNumberMapping[stringSplit[0]] - Number(stringSplit[2]));
+            }
           }
-          let cpWidget = new ColorPickerWidget(color, nodeVal.length, colorType);
+          let cpWidget = new ColorPickerWidget(color, colorNodeInfo[1], colorType);
           let deco = Decoration.widget({
             widget: cpWidget,
             side: 1,
           });
-          widgets.push(deco.range(node.to));
-          posToWidget.set(node.to, cpWidget);
+          widgets.push(deco.range(colorNodeInfo[0]));
+          posToWidget.set(colorNodeInfo[0], cpWidget);
         }
-      },
-    });
+      }
+    })
   }
   return Decoration.set(widgets);
 }
+
 
 function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) {
   // Check if the ColorPicker is already open
