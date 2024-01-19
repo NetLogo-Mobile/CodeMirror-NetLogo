@@ -79,6 +79,11 @@ function netlogoToRGB(netlogoColor: number): number[] {
   return [temp[0], temp[1], temp[2]];
 }
 
+function netlogoToText(netlogoColor: number) : string{
+  let colors = Object.keys(baseColorsToRGB);
+  return colors[Math.floor(netlogoColor / 10)];
+} 
+
 /* ColorPickerWidget: Decoration Widget to open ColorPicker */
 class ColorPickerWidget extends WidgetType {
   private color: number[]; // rgb or rgba string 
@@ -249,15 +254,17 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
   // Initialize the ColorPicker with a callback
   const colorPicker = new ColorPicker(cpDiv, (selectedColor) => {
     console.log(selectedColor);
-
-    let change;
-    let length = widget.getLength();
-
+    let newValue;
     if (widget.getColorType() == 'number') {
-      change = { from: pos - length, to: pos, insert: selectedColor.toString() };
-      view.dispatch({ changes: change });
-    } else {
+      // newValue should be the color as netLogocolor
+      newValue = String(selectedColor[1]);
+    } 
+    else if(widget.getColorType() == 'text') {
+      // take the netlogo color and map it to the correct text
+      newValue = netlogoToText(selectedColor[1]);
     }
+    let change = {from: pos - widget.getLength(), to: pos, insert: newValue}
+    view.dispatch({changes: change})
     cpDiv.remove();
   }, widget.getColor()); // Initial color
 }
