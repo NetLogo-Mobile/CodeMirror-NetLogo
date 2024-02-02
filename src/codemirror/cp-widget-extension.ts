@@ -1,19 +1,19 @@
 import { WidgetType, EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
 import { syntaxTree } from "@codemirror/language";
 import { Range } from "@codemirror/rangeset";
-import { netlogoToRGB, baseColorsToRGB, compoundToRGB, netlogoArrToRGB, extractRGBValues } from "src/utils/colors";
+import { netlogoToRGB, baseColorsToRGB, compoundToRGB, netlogoArrToRGB, extractRGBValues, netlogoToText } from "src/utils/colors";
 import { ColorPicker } from "@netlogo/netlogo-color-picker";
 
 class ColorPickerWidget extends WidgetType {
   private color: string;  // color of the section associated with the widget 
   private length: number; // length of the color section associated with the widget 
   /** colorType: the representation of the color:
-   * 'base' --> netlogo base color ( red )
    * 'compound' --> netlogo compound color ( red + 5 )
    * 'numeric' --> netlogo color numeric value: ( 45 )
    * 'array' --> rgba or rgb values : [25 13 12], [25 89 97 24]
    */
   private colorType: string;
+
   constructor(color: string, length: number, type: string) { 
     super();
     this.color = color;
@@ -27,6 +27,10 @@ class ColorPickerWidget extends WidgetType {
 
   getLength(): number {
     return this.length;
+  }
+
+  getColorType(): string {
+    return this.colorType;
   }
 
   toDOM() {
@@ -57,7 +61,7 @@ function testValidColor(content: string): string[] {
   // check if its a netlogo numeric color
   if(!isNaN(number) && (number >= 0 && number < 140)) return [netlogoToRGB(number), 'numeric'];
   // check if its one of the constants base color
-  if(baseColorsToRGB[content]) return [baseColorsToRGB[content], 'base'];
+  if(baseColorsToRGB[content]) return [baseColorsToRGB[content], 'compound'];
   // check if its of form array 
   let arrAsRGB = netlogoArrToRGB(content);
   if(arrAsRGB) return [arrAsRGB, 'array'];
@@ -82,7 +86,7 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
               if(color[0] == '') {
                 return;
               }
-              let cpWidget = new ColorPickerWidget(color[0], node.to - node.from, color[1]);
+              let cpWidget = new ColorPickerWidget(color[0], sibling.to - sibling.from, color[1]);
               let deco = Decoration.widget({
                 widget: cpWidget,
                 side: 1
@@ -110,11 +114,24 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
   cpDiv.id = 'colorPickerDiv';
   cpDiv.style.position = 'absolute';
   view.dom.appendChild(cpDiv);
+  console.log(widget.getLength());
 
   const colorPicker = new ColorPicker(cpDiv, (selectedColor) => {
-    let newValue = '';
+    let newValue;
+    console.log(selectedColor);
+    // format corectly based on cpDiv
+    switch(widget.getColorType()) {
+      case 'compound':
+        newValue = netlogoToText(selectedColor[1]);
+        break;
+      case 'numeric':
+        newValue = selectedColor[1].toString();
+        break;
+      case 'array':
+        newValue = `[${selectedColor[0][0]} ${selectedColor[0][1]} ${selectedColor[0][2]} ${selectedColor[0][3]}]`;
+    }
     let change = {from: pos - widget.getLength(), to: pos, insert: newValue}
-    view.dispatch({changes: change})
+    view.dispatch({changes: change});
     cpDiv.remove();
   }, extractRGBValues(widget.getColor())); // Initial color
 }
