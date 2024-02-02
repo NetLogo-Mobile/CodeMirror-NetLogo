@@ -45,6 +45,8 @@ class ColorPickerWidget extends WidgetType {
     box.style.marginLeft = '5px';
     return wrap;
   }
+
+  ignoreEvent() { return false }
 }
 
 /** testValidColor: returns the color of a SyntaxNode's text as rgba string. If the text is not a valid color, returns an empty string  */
@@ -64,7 +66,7 @@ function testValidColor(content: string): string[] {
 }
 
 
-function colorWidgets(view: EditorView) {
+function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidget>) {
   let widgets: Range<Decoration>[] = [];
   for (let {from, to} of view.visibleRanges) {
     syntaxTree(view.state).iterate({
@@ -80,11 +82,14 @@ function colorWidgets(view: EditorView) {
               if(color[0] == '') {
                 return;
               }
+              let cpWidget = new ColorPickerWidget(color[0], node.to - node.from, color[1]);
               let deco = Decoration.widget({
-                widget: new ColorPickerWidget(color[0], node.to - node.from, color[1]),
+                widget: cpWidget,
                 side: 1
               })
               widgets.push(deco.range(sibling.to));
+              // add widget to the hashmap
+              posToWidget.set(sibling.to, cpWidget);
             }
           }
         }
@@ -117,24 +122,36 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
 /** ColorPickerPlugin: creates  */
 const ColorPickerPlugin = ViewPlugin.fromClass(
   class {
-    decorations: DecorationSet
-
+    decorations: DecorationSet;
+    posToWidget: Map<number, ColorPickerWidget>;
     constructor(view: EditorView) {
-      this.decorations = colorWidgets(view);
+      this.posToWidget = new Map();
+      this.decorations = colorWidgets(view, this.posToWidget);
     }
 
     update(update: ViewUpdate) {
       if(update.docChanged || update.viewportChanged || syntaxTree(update.startState) != syntaxTree(update.state))
-        this.decorations = colorWidgets(update.view);
+        // update, refresh the map
+        this.posToWidget.clear();
+        this.decorations = colorWidgets(update.view, this.posToWidget);
+    }
+
+    handleMouseDown(e: MouseEvent, view: EditorView) {
+      let target = e.target as HTMLElement;
+      if(target.nodeName == "DIV" && target.parentElement!.classList.contains("netlogo-color-picker-widget")) {
+        console.log(this.posToWidget);
+        initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!);
+      }
     }
   }, {
     decorations: v => v.decorations,
 
     eventHandlers: {
-      mousedown: (e: MouseEvent, view: EditorView) => {
-      }
-    }
-})
+      mousedown: function (e: MouseEvent, view: EditorView) {
+        this.handleMouseDown(e, view);
+      },
+    },
+});
 
 
 
