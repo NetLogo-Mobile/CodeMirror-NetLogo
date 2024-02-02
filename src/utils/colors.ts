@@ -5,24 +5,25 @@ var baseIndex: number;
 var r, g, b: number;
 var step: number;
 
-const baseColorsToRGB: { [key: string]: number[] } = {
-  gray: [140, 140, 140],
-  red: [215, 48, 39],
-  orange: [241, 105, 19],
-  brown: [156, 109, 70],
-  yellow: [237, 237, 47],
-  green: [87, 176, 58],
-  lime: [42, 209, 57],
-  turquoise: [27, 158, 119],
-  cyan: [82, 196, 196],
-  sky: [43, 140, 190],
-  blue: [50, 92, 168],
-  violet: [123, 78, 163],
-  magenta: [166, 25, 105],
-  pink: [224, 126, 149],
-  black: [0, 0, 0],
-  white: [255, 255, 255],
+const baseColorsToRGB: {[key:string]: string}= {
+  gray: 'rgb(140, 140, 140)',
+  red: 'rgb(215, 48, 39)',
+  orange: 'rgb(241, 105, 19)',
+  brown: 'rgb(156, 109, 70)',
+  yellow: 'rgb(237, 237, 47)',
+  green: 'rgb(87, 176, 58)',
+  lime: 'rgb(42, 209, 57)',
+  turquoise: 'rgb(27, 158, 119)',
+  cyan: 'rgb(82, 196, 196)',
+  sky: 'rgb(43, 140, 190)',
+  blue: 'rgb(50, 92, 168)',
+  violet: 'rgb(123, 78, 163)',
+  magenta: 'rgb(166, 25, 105)',
+  pink: 'rgb(224, 126, 149)',
+  black: 'rgb(0, 0, 0)',
+  white: 'rgb(255, 255, 255)',
 };
+
 
 const colorToNumberMapping: {[key:string]: number} = {
   'gray': 5,
@@ -83,9 +84,45 @@ let cachedNetlogoColors = (function () {
 })();
 let cached: number[][] = cachedNetlogoColors;
 
-function netlogoToRGB(netlogoColor: number): number[] {
+function netlogoToRGB(netlogoColor: number): string {
   let temp: number[] = cached[Math.floor(netlogoColor * 10)];
-  return [temp[0], temp[1], temp[2]];
+  return `rgb(${temp[0]}, ${temp[1]}, ${temp[2]})`;
+}
+
+/* return the compound string (red + 5) to a regular number */
+function compoundToRGB(content: string): string {
+  let stringSplit = content.split(" ");
+  try {
+    if(stringSplit[1] == '+') {
+      return netlogoToRGB(colorToNumberMapping[stringSplit[0]] + Number(stringSplit[2]));
+    } else if (stringSplit[1] == '-') {
+      return netlogoToRGB(colorToNumberMapping[stringSplit[0]] - Number(stringSplit[2]));
+    }
+  } catch {
+    return '';
+  }
+  return '';
+}
+
+/** netlogoArrToRGB: returns the rgb string from a netlogo color array */
+function netlogoArrToRGB(inputString: string) {
+  // Check for valid opening and closing brackets
+  if (!inputString.startsWith('[') || !inputString.endsWith(']')) {
+    return '';
+  }
+  const numbers = inputString.slice(1, -1).split(/\s+/).filter(n => n);
+  if (numbers.length === 3 || numbers.length === 4) {
+    const validNumbers = numbers.map(Number).every(num => !isNaN(num) && num >= 0 && num <= 255);
+
+    if (validNumbers) {
+      if (numbers.length === 3) {
+        return `rgb(${numbers.join(', ')})`;
+      } else {
+        return `rgba(${numbers.join(', ')})`;
+      }
+    }
+  }
+  return '';
 }
 
 function netlogoToText(netlogoColor: number): string {
@@ -105,4 +142,16 @@ function netlogoToText(netlogoColor: number): string {
   }
 }
 
-export {netlogoToText, netlogoBaseColors, netlogoToRGB, cachedNetlogoColors, colorToNumberMapping}
+/**  extractRGBValues: takes an rgb string andr returns an rgba array*/
+function extractRGBValues(rgbString: string) {
+  const regex = /rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})(?:,\s*(\d{1,3}|\d\.\d+))?\)/;
+
+  const match = rgbString.match(regex);
+  if (match) {
+    const values = match.slice(1).filter(n => n !== undefined).map(Number);
+    return values;
+  }
+  return [];
+}
+
+export {netlogoToText, netlogoBaseColors, netlogoToRGB, cachedNetlogoColors, colorToNumberMapping, baseColorsToRGB, compoundToRGB, netlogoArrToRGB, extractRGBValues}
