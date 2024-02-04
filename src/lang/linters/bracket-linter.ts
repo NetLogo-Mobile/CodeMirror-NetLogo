@@ -66,11 +66,15 @@ export const BracketLinter: Linter = (view, preprocessContext, lintContext) => {
 };
 
 const test_function = function (node: SyntaxNodeRef, name: string, match_name: string) {
+  let num_paren = 1;
+  if (node.node.parent?.name && ['NewVariableDeclaration', 'SetVariable'].includes(node.node.parent?.name)) {
+    num_paren = 2;
+  }
   return (
     node.name == name &&
     ((node.node.parent?.name != '⚠' &&
-      node.node.parent?.getChildren(match_name).length != 1 &&
-      node.node.parent?.getChild('⚠')?.getChildren(match_name).length != 1) ||
+      node.node.parent?.getChildren(match_name).length != num_paren &&
+      node.node.parent?.getChild('⚠')?.getChildren(match_name).length != num_paren) ||
       (node.node.parent?.name == '⚠' &&
         node.node.parent?.getChildren(match_name).length != 1 &&
         node.node.parent?.parent?.getChildren(match_name).length != 1))
