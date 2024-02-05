@@ -13,7 +13,11 @@ npm install rollup --global
 
 ### Building the Project
 
-To build the project, run `npm build` or `npm release`. The second command creates an uglified and compressed bundle.
+To build the project, run `npm run build` or `npm run release`. The second command creates an uglified and compressed bundle.
+
+### Commiting to the Repository
+
+After you finish your work, please first build and run the project; then, run `npm run precommit` for automatic check and prettifying.
 
 ### Acknowledgment
 

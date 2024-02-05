@@ -98,7 +98,7 @@ export class StateNetLogo {
       case 'Embedded':
         this.RecognizedMode = 'Command';
         break;
-      case 'Reporter':
+      case 'OneLineReporter':
         this.RecognizedMode = 'Reporter';
         break;
       case 'Normal':
@@ -108,6 +108,7 @@ export class StateNetLogo {
         this.RecognizedMode = 'Unknown';
         break;
     }
+
     // Parse the state
     if (this.RecognizedMode == 'Model') {
       if (!Cursor.firstChild()) return this;

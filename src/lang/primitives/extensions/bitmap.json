@@ -86,6 +86,11 @@
       "name": "get-pixel",
       "argTypes": ["wildcard", "number", "number"],
       "returnType": "list"
+    },
+    {
+      "name": "resized",
+      "argTypes": ["wildcard", "number", "number"],
+      "returnType": "wildcard"
     }
   ]
 }

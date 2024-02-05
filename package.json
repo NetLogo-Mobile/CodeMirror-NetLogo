@@ -1,5 +1,28 @@
 {
+  "name": "@netlogo/codemirror-netlogo",
+  "description": "This repository contains work in progress by Ruth Bagley (@rbagley), Haylie Wu (@wubbalubbadu), and John Chen (@CIVITAS-John), aimed at providing NetLogo language support for CodeMirror 6.",
+  "version": "0.3.0",
   "type": "module",
+  "main": "codemirror-netlogo.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NetLogo-Mobile/CodeMirror-NetLogo.git"
+  },
+  "keywords": [
+    "code",
+    "editor",
+    "netlogo",
+    "galapagos"
+  ],
+  "license": "GPL-2.0",
+  "bugs": {
+    "url": "https://github.com/NetLogo-Mobile/CodeMirror-NetLogo/issues"
+  },
+  "homepage": "https://github.com/NetLogo-Mobile/CodeMirror-NetLogo#readme",
+  "files": [
+    "codemirror-netlogo.js",
+    "README.md"
+  ],
   "scripts": {
     "precommit": "pretty-quick --staged",
     "prepare": "husky install && chmod ug+x .husky/*",
@@ -9,7 +32,8 @@
     "build": "lezer-generator ./src/lang/lang.grammar -o ./src/lang/lang.js && rollup -c",
     "release": "ts-node --esm src/lang/primitives/importer.ts && lezer-generator ./src/lang/lang.grammar -o ./src/lang/lang.js && rollup -c rollup.config.release.js",
     "import": "ts-node --esm src/lang/primitives/importer.ts",
-    "test": "ts-node --esm src/tests/export.ts"
+    "test": "ts-node --esm src/tests/export.ts",
+    "rename-and-publish": "cp dist/editor.bundle.js codemirror-netlogo.js && npm publish --access public"
   },
   "dependencies": {
     "@codemirror/commands": "^6.2.4",

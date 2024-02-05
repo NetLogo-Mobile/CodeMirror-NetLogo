@@ -26,7 +26,7 @@
   Normal {
     (globalStatement | Misplaced | Procedure)* ~global
   } |
-  Reporter {
+  OneLineReporter {
     (ReporterStatement | Value) ~global
   }
 }
@@ -58,10 +58,6 @@ Misplaced {
   CommandStatement
 }
 
-BreedDeclarative {
-  BreedStr | BreedToken
-}
-
 BreedSingular {
   Identifier | SpecialReporter1Args
 }
@@ -85,10 +81,6 @@ ProcedureContent {
   Error {globalStatement | BreedToken OpenBracket BreedPlural BreedSingular CloseBracket} 
 }
 
-ReporterContent {
-  ReporterStatement
-}
-
 VariableDeclaration {
   NewVariableDeclaration |
   SetVariable
@@ -99,11 +91,13 @@ varValue{
 }
 
 NewVariableDeclaration {
-  Let newVariableName !lastArgs varValue
+  Let newVariableName !lastArgs varValue | 
+  Let OpenBracket newVariableName+ CloseBracket !lastArgs OpenBracket varValue+ CloseBracket
 }
 
 SetVariable {
-  Set (VariableName|builtinPrims) varValue
+  Set (VariableName|builtinPrims) varValue |
+  Set OpenBracket (VariableName|builtinPrims)+ CloseBracket !lastArgs OpenBracket varValue+ CloseBracket
 }
 
 VariableName {
@@ -167,7 +161,7 @@ builtinPrims {
 
 Arg {  
   Value |
-  ReporterContent |
+  ReporterStatement |
   ReporterBlock |
   Property
 }
@@ -205,7 +199,7 @@ CodeBlock[@dynamicPrecedence=-1] {
 }
 
 ReporterBlock {
-  OpenBracket ReporterContent  !close ~bebracket CloseBracket ~endbracket |
+  OpenBracket ReporterStatement  !close ~bebracket CloseBracket ~endbracket |
   OpenBracket Value !close ~bebracket CloseBracket ~endbracket
 }
 
@@ -214,11 +208,11 @@ Property {
 }
 
 AnonymousProcedure {
-  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterContent*  |Value) ~bebracket CloseBracket ~endbracket
+  OpenBracket AnonArguments Arrow (ProcedureContent*|ReporterStatement*  |Value) ~bebracket CloseBracket ~endbracket
 }
 
 ShortAnonymousProcedure {
-  OpenBracket (ProcedureContent*|ReporterContent*  |Value ) ~bebracket CloseBracket ~endbracket
+  OpenBracket (ProcedureContent*|ReporterStatement*  |Value ) ~bebracket CloseBracket ~endbracket
 }
 
 leftArg1Phrase {
