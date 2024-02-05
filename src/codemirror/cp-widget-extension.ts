@@ -3,7 +3,7 @@ import { syntaxTree } from "@codemirror/language";
 import { Range } from "@codemirror/rangeset";
 import { ColorPicker } from "@netlogo/netlogo-color-picker";
 
-/** Color helpers (temporary) --> where can we get netlogo colors to rgb? */
+/** Color conversion helper functions (temporary) --> where can we get netlogo colors to rgb? */
 /** netlogoColorToHex: Converts NetLogo color to its hex string. */
 var colorTimesTen: number;
 var baseIndex: number;
@@ -29,7 +29,7 @@ const baseColorsToRGB: {[key:string]: string}= {
   white: 'rgb(255, 255, 255)',
 };
 
-
+/** colorToNumberMapping: maps the NetLogo Base colors to their corresponding numeric value  */
 const colorToNumberMapping: {[key:string]: number} = {
   'gray': 5,
   'red': 15,
@@ -49,6 +49,7 @@ const colorToNumberMapping: {[key:string]: number} = {
   'white': 155,
 };
 
+/** netlogoBaseColors: Map of NetLogo Base colors to [r, g, b] form */
 const netlogoBaseColors: [number, number, number][] = [
   [140, 140, 140], // gray       (5)
   [215, 48, 39], // red       (15)
@@ -67,6 +68,8 @@ const netlogoBaseColors: [number, number, number][] = [
   [0, 0, 0], // black
   [255, 255, 255], // white
 ];
+
+/**  cachedNetlogoColors: Creates a cache of netlogo colors */
 let cachedNetlogoColors = (function () {
   var k, results;
   results = [];
@@ -89,12 +92,13 @@ let cachedNetlogoColors = (function () {
 })();
 let cached: number[][] = cachedNetlogoColors;
 
+/** netlogoToRGB: converts netlogo colors to rgb string  */
 function netlogoToRGB(netlogoColor: number): string {
   let temp: number[] = cached[Math.floor(netlogoColor * 10)];
   return `rgb(${temp[0]}, ${temp[1]}, ${temp[2]})`;
 }
 
-/* return the compound string (red + 5) to a regular number */
+/* compoundToRGB: return the compound string (red + 5) to a regular number */
 function compoundToRGB(content: string): string {
   let stringSplit = content.split(" ");
   try {
@@ -130,36 +134,39 @@ function netlogoArrToRGB(inputString: string) {
   return '';
 }
 
-function netlogoToText(netlogoColor: number): string {
+/** netlogoToCompound: Converts a numeric NetLogo Color to a compound color string */
+function netlogoToCompound(netlogoColor: number): string {
   let baseColorIndex = Math.floor(netlogoColor / 10);
   let baseColorName = Object.keys(baseColorsToRGB)[baseColorIndex];
-  let offset = (netlogoColor % 10) - 5;
+  // Calculate offset and immediately round to one decimal point
+  let offset = Number(((netlogoColor % 10) - 5).toFixed(1));
 
   if (offset === 0) {
     // If the color is a base color, return only the base color name
     return baseColorName;
   } else if (offset > 0) {
-    // For positive offset, include a space before the offset
     return `${baseColorName} + ${offset}`;
   } else {
-    // For negative offset, include a space before the negative offset
     return `${baseColorName} - ${Math.abs(offset)}`;
   }
 }
 
+
 /**  extractRGBValues: takes an rgb string andr returns an rgba array*/
 function extractRGBValues(rgbString: string) {
   const regex = /rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})(?:,\s*(\d{1,3}|\d\.\d+))?\)/;
-
   const match = rgbString.match(regex);
   if (match) {
-    const values = match.slice(1).filter(n => n !== undefined).map(Number);
+    let values = match.slice(1, 4).map(Number);
+    // Check if the alpha value exists; if not, default to 255
+    const alpha = match[4] === undefined ? 255 : Number(match[4]);
+    values.push(alpha);
     return values;
   }
   return [];
 }
 
-
+/** ColorPickerWidget: Defines a ColorPicker widget of WidgetType */
 class ColorPickerWidget extends WidgetType {
   private color: string;  // color of the section associated with the widget 
   private length: number; // length of the color section associated with the widget 
@@ -189,6 +196,7 @@ class ColorPickerWidget extends WidgetType {
     return this.colorType;
   }
 
+  /** toDOM: defines the DOM appearance of the widget. Not connected to the widget as per CodeMirror documentation */
   toDOM() {
     let wrap = document.createElement("span");
     wrap.setAttribute("aria-hidden", "true");
@@ -221,11 +229,10 @@ function testValidColor(content: string): string[] {
   // check if its of form array 
   let arrAsRGB = netlogoArrToRGB(content);
   if(arrAsRGB) return [arrAsRGB, 'array'];
-  // check if its one of the compound colors (red + 5 ), otherwise it will return ''
   return [compoundToRGB(content), 'compound'];
 }
 
-
+/** colorWidgets: Parses the visibleRange of the editor looking for colorWidget positions  */
 function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidget>) {
   let widgets: Range<Decoration>[] = [];
   for (let {from, to} of view.visibleRanges) {
@@ -274,11 +281,10 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
 
   const colorPicker = new ColorPicker(cpDiv, (selectedColor) => {
     let newValue;
-    console.log(selectedColor);
     // format corectly based on cpDiv
     switch(widget.getColorType()) {
       case 'compound':
-        newValue = netlogoToText(selectedColor[1]);
+        newValue = netlogoToCompound(selectedColor[1]);
         break;
       case 'numeric':
         newValue = selectedColor[1].toString();
@@ -292,7 +298,7 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
   }, extractRGBValues(widget.getColor())); // Initial color
 }
 
-/** ColorPickerPlugin: creates  */
+/** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
 const ColorPickerPlugin = ViewPlugin.fromClass(
   class {
     decorations: DecorationSet;
