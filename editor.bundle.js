@@ -36161,6 +36161,2030 @@ if(!String.prototype.matchAll) {
         ])
     ])();
 
+    /** HTMLSkeloton.ts: The HTML body of the ColorPicker */
+    /** bodyHTML: The HTML body of the ColorPicker as a string */
+    let bodyHTML = `
+<div class='color-picker-body'>
+    <div class="color-picker-headerOfPicker ">
+        <div class="cp-icon-name-container">
+            <div class='color-picker-main-icon'></div>
+            <span class="color-picker-headerText"> Color Swatches </span> 
+        </div>
+        <div class='cp-closeIcon'></div>
+    </div>
+    <div class="color-picker-selectionSection">
+    <div class="color-picker-selectionOptions ">
+        <div class="color-picker-selectionMode">
+            <div class="cp-grid-icon color-picker-mode-icon"></div>
+            Grid
+        </div>
+        <div class="color-picker-selectionMode">
+            <div class="cp-wheel-icon color-picker-mode-icon"></div>
+            Wheel
+        </div>
+        <div class="color-picker-selectionMode">
+            <div class="cp-slider-icon color-picker-mode-icon"></div>
+            Slider
+        </div>
+    </div>
+    <div class="cp-modelBackgroundIndicatorButton">
+        <div class="color-picker-selectionMode cp-modelIndicator" >Model Color Selected</div>
+    </div>
+    </div>
+    <div class="color-picker-parametersSection"> <!--The stuff below the selection mode-->
+    <div class="color-picker-display">
+    <div class="cp-displayContainer"> </div>
+    <div class="cp-incrementAndNumbersContainer">
+        <div class="cp-numbersOrIncrement"></div>
+        <div class="cp-numbersOrIncrement"></div>
+    </div>
+    <div class="cp-incrementAndNumbersContainer"></div>
+    <div class="cp-savedColorsContainer"></div>
+    </div>
+    <div class="color-picker-preview">
+        <svg viewBox="0 0 100 100" width = "100%" height="13em">
+            <rect x="0" y="0" width="100%" height="100%" fill="white" rx="3" class="cp-backgroundPreview" ></rect>
+            <path xmlns="http://www.w3.org/2000/svg" class="cp-turtlePreview" fill="white" d="M 50.069 9.889 L 14.945 89.069 L 50.71 65.458 L 86.458 89.73 L 50.069 9.889 Z"/>
+        </svg>
+        <div style="padding-top:0.5rem"></div>
+        <div class="cp-alphaSliderContainer"></div>
+        <div class="cp-colorParametersSection">
+            <div class="cp-ColorparameterText">Color Parameters</div>
+            <div class="cp-valuesDisplay">
+                <a class="cp-valuesDisplay-type">RGBA &dtrif;</a> 
+                <div class="cp-valuesDisplay-text"></div> 
+            </div>
+            <div class="cp-valuesDisplay">
+                <a class="cp-valuesDisplay-type">NetLogo &dtrif;</a> 
+                <div class="cp-valuesDisplay-text cp-valuesDisplay-type-2"></div> 
+            </div>
+        </div>
+    </div>
+    </div>
+</div>`;
+
+    /** colors.ts: Supplies all the basic color functionalities used in the colorPicker. */
+    /** From colors.coffee, used in NetLogo color conversions. */
+    var colorTimesTen$1;
+    var baseIndex$1;
+    var r$1, g$1, b$1;
+    var step$1;
+    /** netlogoBaseColors: The array of NetLogo base colors in [r, g, b] form. */
+    const netlogoBaseColors$1 = [
+        [140, 140, 140], // gray       (5)
+        [215, 48, 39], // red       (15)
+        [241, 105, 19], // orange    (25)
+        [156, 109, 70], // brown     (35)
+        [237, 237, 47], // yellow    (45)
+        [87, 176, 58], // green     (55)
+        [42, 209, 57], // lime      (65)
+        [27, 158, 119], // turquoise (75)
+        [82, 196, 196], // cyan      (85)
+        [43, 140, 190], // sky       (95)
+        [50, 92, 168], // blue     (105)
+        [123, 78, 163], // violet   (115)
+        [166, 25, 105], // magenta  (125)
+        [224, 126, 149], // pink     (135)
+        [0, 0, 0], // black
+        [255, 255, 255], // white
+    ];
+    /** colorsString: String array of the names corresponding to each NetLogo base color (5, 15, 25 etc...). */
+    var colorsString = [
+        'Gray',
+        'Red',
+        'Orange',
+        'Brown',
+        'Yellow',
+        'Green',
+        'Lime',
+        'Turqoise',
+        'Cyan',
+        'Sky',
+        'Blue',
+        'Violet',
+        'Magenta',
+        'Pink',
+    ];
+    /** mappedColors: Maps the name of the base colors to their corresponding NetLogo representation*/
+    var mappedColors = {
+        gray: 5,
+        red: 15,
+        orange: 25,
+        brown: 35,
+        yellow: 45,
+        green: 55,
+        lime: 65,
+        turqoise: 75,
+        cyan: 85,
+        sky: 95,
+        blue: 105,
+        violet: 115,
+        magenta: 125,
+        pink: 135,
+    };
+    /** cachedNetlogoColors: Returns [r, g, b] form of Netlogo colors in a 2d array. */
+    let cachedNetlogoColors$1 = (function () {
+        var k, results;
+        results = [];
+        for (colorTimesTen$1 = k = 0; k <= 1400; colorTimesTen$1 = ++k) {
+            baseIndex$1 = Math.floor(colorTimesTen$1 / 100);
+            [r$1, g$1, b$1] = netlogoBaseColors$1[baseIndex$1];
+            step$1 = ((colorTimesTen$1 % 100) - 50) / 50.48 + 0.012;
+            if (step$1 < 0) {
+                r$1 += Math.floor(r$1 * step$1);
+                g$1 += Math.floor(g$1 * step$1);
+                b$1 += Math.floor(b$1 * step$1);
+            }
+            else {
+                r$1 += Math.floor((0xff - r$1) * step$1);
+                g$1 += Math.floor((0xff - g$1) * step$1);
+                b$1 += Math.floor((0xff - b$1) * step$1);
+            }
+            results.push([r$1, g$1, b$1]);
+        }
+        return results;
+    })();
+    /** componentToHex: Converts one component of a rgb color to its hex string. */
+    function componentToHex(c) {
+        let hex = c.toString(16);
+        return hex.length == 1 ? '0' + hex : hex;
+    }
+    /** rgbToHex: Converts rgb color to its hex string. */
+    function rgbToHex(r, g, b) {
+        let ans = '#' + componentToHex(r) + componentToHex(g) + componentToHex(b);
+        return ans.toUpperCase();
+    }
+    function rgbToNetlogo([r, g, b]) {
+        if (r == 0 && g == 0 && b == 0) {
+            return 0;
+        }
+        // Calculate the Euclidean distance between current color and each NetLogo color
+        let minDistance = Infinity;
+        let closestNetlogoColor = 0;
+        for (let i = 0; i < cachedNetlogoColors$1.length; i++) {
+            const [netR, netG, netB] = cachedNetlogoColors$1[i];
+            const distance = Math.sqrt(Math.pow(r - netR, 2) + Math.pow(g - netG, 2) + Math.pow(b - netB, 2));
+            if (distance < minDistance) {
+                minDistance = distance;
+                closestNetlogoColor = i;
+            }
+        }
+        // Return the closest NetLogo color value
+        return closestNetlogoColor / 10;
+    }
+    /** rgbaToHex: Converts rgba color to its hex string. */
+    function rgbaToHex(r, g, b, a) {
+        let alpha = (a | (1 << 8)).toString(16).slice(1);
+        let ans = '#' + componentToHex(r) + componentToHex(g) + componentToHex(b) + alpha;
+        return ans.toUpperCase();
+    }
+    /** cached: 2d array of NetLogo colors in rgb form. */
+    let cached$1 = cachedNetlogoColors$1;
+    /**  netlogoToCSS: converts NetLogo color to an rgb string css accepts. */
+    function netlogoToCSS(netlogoColor) {
+        var a, array, b, g, r;
+        [r, g, b] = array = cachedNetlogoColors$1[Math.floor(netlogoColor * 10)];
+        a = array.length > 3 ? array[3] : 255;
+        if (a < 255) {
+            return `rgba(${r}, ${g}, ${b}, ${a / 255})`;
+        }
+        else {
+            return `rgba(${r}, ${g}, ${b}, 255)`;
+        }
+    }
+    /** netlogoColorToHex: Converts NetLogo color to its hex string. */
+    function netlogoColorToHex(netlogoColor) {
+        let temp = cached$1[Math.floor(netlogoColor * 10)];
+        return rgbToHex(temp[0], temp[1], temp[2]);
+    }
+    /** RGBAToHSLA: Converts rgba color to hsla color array. */
+    function RGBAToHSLA(r, g, b, a) {
+        // turn into fractionss
+        r /= 255;
+        g /= 255;
+        b /= 255;
+        a /= 255;
+        // find max and min
+        let cmax = Math.max(r, g, b), cmin = Math.min(r, g, b), delta = cmax - cmin;
+        let h, s, l = 0; // initialize
+        // calculate hue
+        if (delta == 0)
+            h = 0;
+        else if (cmax == r)
+            h = ((g - b) / delta) % 6;
+        else if (cmax == g)
+            h = (b - r) / delta + 2;
+        else
+            h = (r - g) / delta + 4;
+        h = Math.round(h * 60);
+        if (h < 0)
+            h += 360;
+        // calculate lightness
+        l = (cmax + cmin) / 2;
+        // calculate saturation
+        s = delta == 0 ? 0 : delta / (1 - Math.abs(2 * l - 1));
+        // multiply l and s by 100
+        s = +(s * 100).toFixed(1);
+        l = +(l * 100).toFixed(1);
+        // multiply a by 100
+        a = +(a * 100).toFixed(1);
+        return [h, s, l, a];
+    }
+    /** HSLAToRGBA: Converts hsla color array to rgba color array. */
+    function HSLAToRGBA(h, s, l) {
+        // divide h, s, and l by 360, 100, and 100 respectively
+        h /= 360;
+        s /= 100;
+        l /= 100;
+        let r, g, b;
+        if (s === 0) {
+            // if saturation is 0, it's an achromatic color (gray)
+            r = g = b = l;
+        }
+        else {
+            const hueToRGB = (p, q, t) => {
+                if (t < 0)
+                    t += 1;
+                if (t > 1)
+                    t -= 1;
+                if (t < 1 / 6)
+                    return p + (q - p) * 6 * t;
+                if (t < 1 / 2)
+                    return q;
+                if (t < 2 / 3)
+                    return p + (q - p) * (2 / 3 - t) * 6;
+                return p;
+            };
+            const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            const p = 2 * l - q;
+            r = hueToRGB(p, q, h + 1 / 3) * 255;
+            g = hueToRGB(p, q, h) * 255;
+            b = hueToRGB(p, q, h - 1 / 3) * 255;
+        }
+        return [Math.round(r), Math.round(g), Math.round(b)];
+    }
+    /** netlogoColorToRGBA: Converts NetLogo color to rgba color array. */
+    function netlogoColorToRGBA(netlogoColor, alpha = 255) {
+        let temp = cached$1[Math.floor(netlogoColor * 10)];
+        return [temp[0], temp[1], temp[2], alpha];
+    }
+
+    /** ColorMode: Base class for each ColorPicker Mode. */
+    class ColorMode {
+        /** Constructor: Create a ColorMode Instance */
+        constructor(parent, rgba, netlogoColor, backgroundElement, turtleElement, alpha, changeTurtleColor, colorParameterType, netlogoParameterType) {
+            this.parent = parent;
+            this.rgba = rgba;
+            this.netlogoColor = netlogoColor; //might not be applicable in every case
+            this.backgroundElement = backgroundElement;
+            this.turtleElement = turtleElement;
+            this.alpha = alpha;
+            this.changeTurtleColor = changeTurtleColor;
+            this.colorPrmType = colorParameterType;
+            this.nlogoPrmType = netlogoParameterType;
+        }
+        /** getParent: Get the parent field of the ColorMode instance */
+        getParent() {
+            return this.parent;
+        }
+        /** setParent: Sets the parent field of the ColorMode instance */
+        setParent(parent) {
+            this.parent = parent;
+        }
+        /** getRGBA: Gets the rgba field of the ColorMode instance */
+        getRgba() {
+            return this.rgba;
+        }
+        /** getRgbaString: Returns the rgba field in the form 'rgba(r, g, b, a) */
+        getRgbaString() {
+            return `rgba(${this.rgba[0]}, ${this.rgba[1]}, ${this.rgba[2]}, ${this.rgba[3] / 255} )`;
+        }
+        /** getAlpha: Gets the alpha field of the ColorMode instance */
+        getAlpha() {
+            return this.alpha;
+        }
+        /** setAlpha: Sets the alpha field of the ColorMode instance */
+        setAlpha(alpha) {
+            this.alpha = alpha;
+        }
+        /** rgbaStringToRgba: Converts an rgba string to an rgba array */
+        rgbaStringToRgba(rgbaString) {
+            let rgbaArray = rgbaString
+                .replace('rgba(', '')
+                .replace(')', '')
+                .split(',')
+                .map((value) => parseInt(value.trim()));
+            return rgbaArray;
+        }
+        /** rgbaArrToString: Converts an rgba array to an rgba string */
+        rgbaArrToString(rgba) {
+            return `rgba(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3] / 255})`;
+        }
+        /** setRgba: Sets the rgba field of the ColorMode instance */
+        setRgba(rgba) {
+            this.rgba = rgba;
+        }
+        /** getNetlogoColor: Gets the NetlogoColor field of the ColorMode instance */
+        getNetlogoColor() {
+            return this.netlogoColor;
+        }
+        /** setNetlogoColor: Sets the NetlogoColor field of the ColorMode instance */
+        setNetlogoColor(netlogoColor) {
+            this.netlogoColor = Number(netlogoColor.toFixed(1));
+        }
+        /** getBackgroundElement: Gets the backgroundElement field of the ColorMode instance */
+        getBackgroundElement() {
+            return this.backgroundElement;
+        }
+        /** setBackgroundElement: Sets the backgroundElement field of the ColorMode instance */
+        setBackgroundElement(backgroundElement) {
+            this.backgroundElement = backgroundElement;
+        }
+        /** getTurtleElement: Gets the turtleElement field of the ColorMode instance */
+        getTurtleElement() {
+            return this.turtleElement;
+        }
+        /** setTurtleElement: Sets the turtleElement field of the ColorMode instance */
+        setTurtleElement(turtleElement) {
+            this.backgroundElement = turtleElement;
+        }
+        /** getChangeTurtleColor: Gets the changeTurtleColor field of the ColorMode instance */
+        getChangeTurtleColor() {
+            return this.changeTurtleColor;
+        }
+        /** updateDisplay: updates the display based on the currentColors */
+        updateDisplay() {
+            this.getTurtleElement().style.fill = this.getRgbaString();
+        }
+        /** setChangeTurtleColor: Sets the changeTurtleColor field of the ColorMode instance */
+        setChangeTurtleColor(changeTurtleColor) {
+            this.changeTurtleColor = changeTurtleColor;
+        }
+        /** updateDisplayValues: Updates the values in the "Color Parameters" section of the ColorPicker */
+        updateDisplayValues() {
+            let displayElements = Array.from(document.querySelectorAll('.cp-valuesDisplay-text'));
+            let rgba = this.getRgba();
+            // color parameter type dipslay
+            if (this.getColorPrmType() == 'rgba') {
+                displayElements[0].textContent = `(${rgba[0]}, ${rgba[1]}, ${rgba[2]}, ${rgba[3]})`;
+            }
+            else if (this.getColorPrmType() == 'hex') {
+                displayElements[0].textContent = rgbaToHex(rgba[0], rgba[1], rgba[2], rgba[3]);
+                // turn it into hex string
+            }
+            else {
+                // turn into hsla
+                let hsla = RGBAToHSLA(rgba[0], rgba[1], rgba[2], rgba[3]);
+                displayElements[0].textContent = `(${Math.round(hsla[0])}, ${Math.round(hsla[1])}%, ${Math.round(hsla[2])}%, ${Math.round(hsla[3])}%)`;
+            }
+            // if we are displaying string turn netlogo color to format [color_string] + netlogoColor % 5 to display
+            if (this.nlogoPrmType == 'string') {
+                let formattedString;
+                if (this.netlogoColor == -1) {
+                    displayElements[1].textContent = '-';
+                }
+                else if (this.netlogoColor % 10 == 5) {
+                    formattedString = '';
+                }
+                else {
+                    let value = (this.netlogoColor % 10) - 5;
+                    if (!Number.isInteger(value)) {
+                        value = Number(value.toFixed(1));
+                    }
+                    if (value < 0) {
+                        formattedString = `- ${Math.abs(value)}`;
+                    }
+                    else {
+                        formattedString = `+ ${value}`;
+                    }
+                }
+                displayElements[1].textContent = `${colorsString[Math.floor(this.netlogoColor / 10)]} ${formattedString}`;
+            }
+            else if (this.nlogoPrmType == 'number') {
+                displayElements[1].textContent = `${this.netlogoColor}`;
+            }
+        }
+        /** getColorPrmType: Gets the colorPrmType field of the ColorMode instance */
+        getColorPrmType() {
+            return this.colorPrmType;
+        }
+        /** setColorPrmType: Sets the colorPrmType field of the ColorMode instance */
+        setColorPrmType(colorPrmType) {
+            this.colorPrmType = colorPrmType;
+        }
+        /** setNetlogoParameterType: Sets the nlogoPrmType field of the ColorMode instance. */
+        setNetlogoParameterType(nlogoPrmType) {
+            this.nlogoPrmType = nlogoPrmType;
+        }
+        /** getNetlogoParameterType: Gets the nlogoPrmType field of the ColorMode instance. */
+        getNlogoPrmType() {
+            return this.nlogoPrmType;
+        }
+        /** changeColor: Changes the color of the ColorPicker preview. To be implemented in subclasses.*/
+        changeColor(alpha = 255) {
+            throw new Error('Change Color not implemented.');
+        }
+        /** showNumbers: Shows the numbers in the ColorPicker previe. To be implemented in subclasses.*/
+        showNumbers() {
+            throw new Error('Method not implemented.');
+        }
+        /** hideNumbers: Hides the numbers in the ColorPicker preview. To be implemented in subclasses. */
+        hideNumbers() {
+            throw new Error('Method not implemented.');
+        }
+    }
+
+    /** GridMode: Class for the 'Grid' ColorPicker mode */
+    class GridMode extends ColorMode {
+        /** Constructor: Creeate a GridMode instance. */
+        constructor(parent = document.querySelector('.cp-displayContainer'), rgba = [255, 255, 255, 255], netlogoColor = 139.9, background = document.querySelector('.cp-backgroundPreview'), turtle = document.querySelector('.cp-turtlePreview'), changeTurtleColor = true, alpha = 255, colorParameterType = 'rgba', netlogoParameterType = 'string', increment = 1) {
+            super(parent, rgba, netlogoColor, background, turtle, alpha, changeTurtleColor, colorParameterType, netlogoParameterType);
+            /** colorArray: The array of grid colors in row major order. Colors in NetLogo color form. */
+            this.colorArray = [];
+            /** hexArray: The array of grid colors in row major order. Colors in hex form. */
+            this.hexArray = [];
+            /** textElements: Array of SVGTextElements that are the "numbers" of each cell in the grid. */
+            this.textElements = [];
+            document
+                .querySelector('.cp-incrementAndNumbersContainer')
+                .classList.remove('color-picker-invisibleElement');
+            this.increment = increment;
+            this.getParent().replaceChildren();
+            let numbers = document.querySelector('.cp-numbersCheckbox');
+            let numbersContainer = document.querySelectorAll('.cp-numbersOrIncrement')[0];
+            if (this.increment == 0.1) {
+                // make the numbers uninteractable
+                numbers.style.pointerEvents = 'none';
+                numbersContainer.style.opacity = '0.5';
+            }
+            else {
+                numbers.style.pointerEvents = 'auto';
+                numbersContainer.style.opacity = '1';
+            }
+            document.querySelector('.cp-savedColorsContainer').replaceChildren();
+            // create the grid based on the increment
+            let numRows = 14;
+            let colorsPerRow = 10 / this.increment + 1;
+            let verticalIncrement = 300 / numRows;
+            let horizontalIncrement = 400 / colorsPerRow;
+            const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 400 300');
+            svg.setAttribute('width', '400px');
+            svg.setAttribute('height', '300px');
+            svg.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+            this.getParent().appendChild(svg);
+            /** hover: Event handler for hovering over a cell. Creates the hovering "selecting" effect. */
+            function hover(e) {
+                if (e.target instanceof SVGRectElement) {
+                    let rect = e.target;
+                    let hoverColor;
+                    if (Number(rect.dataset.value) % colorsPerRow <
+                        (colorsPerRow + 1) / 3) {
+                        hoverColor = 'white'; // the color should be white
+                    }
+                    else {
+                        hoverColor = 'black';
+                    }
+                    rect.setAttribute('stroke-width', '2');
+                    rect.setAttribute('stroke', hoverColor);
+                }
+            }
+            /** hover_off: Event handler for leaving hover. Removes the hovering "selecting" effect. */
+            function hover_off(e) {
+                if (e.target instanceof SVGRectElement) {
+                    let rect = e.target;
+                    rect.setAttribute('stroke-width', '');
+                    rect.setAttribute('stroke', '');
+                }
+            }
+            /** changeColor: Event handler for "click" of a cell. Changes the color of the GridMode. */
+            function changeColor(modeObj, e) {
+                let rect = e.target;
+                let netlogoColor = modeObj.colorArray[Number(rect.dataset.value)];
+                modeObj.setNetlogoColor(netlogoColor); // get the netlogo color and set it
+                console.log(modeObj.getNetlogoColor());
+                let colorArr = modeObj.rgbaStringToRgba(netlogoToCSS(netlogoColor)); // get the rgba value of the netlogo color
+                colorArr[3] = modeObj.getAlpha();
+                modeObj.setRgba(colorArr);
+                modeObj.changeColor(modeObj.getAlpha());
+            }
+            let textHorizontalOffset = horizontalIncrement / 2;
+            let textVerticalOffset = verticalIncrement / 1.5;
+            for (let j = 0; j < numRows; j++) {
+                // generate the row
+                for (let i = 0; i < colorsPerRow; i++) {
+                    let number = j * 10 + i * this.increment;
+                    if (i == colorsPerRow - 1) {
+                        number -= 0.1;
+                    }
+                    // draw an svg rect at each location
+                    let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.classList.add('color-picker-pointer');
+                    rect.setAttribute('x', `${horizontalIncrement * i}`);
+                    rect.setAttribute('y', `${verticalIncrement * j}`);
+                    rect.setAttribute('width', `${horizontalIncrement}`);
+                    rect.setAttribute('height', `${verticalIncrement}`);
+                    rect.setAttribute('fill', netlogoColorToHex(number));
+                    rect.setAttribute('data-value', '' + (j * colorsPerRow + i)); //we are storing the index (row major order) of the cell's color in the corresponding colorArray
+                    rect.addEventListener('mouseover', hover);
+                    rect.addEventListener('mouseleave', hover_off);
+                    rect.addEventListener('click', changeColor.bind(null, this));
+                    svg.appendChild(rect);
+                    this.colorArray.push(number);
+                    this.hexArray.push(netlogoColorToHex(number));
+                    if (this.increment != 0.1) {
+                        let textElement = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                        textElement.setAttribute('x', `${horizontalIncrement * i + textHorizontalOffset}`);
+                        textElement.setAttribute('y', `${verticalIncrement * j + textVerticalOffset}`);
+                        if (i < (colorsPerRow + 1) / 3) {
+                            textElement.setAttribute('fill', 'white');
+                        }
+                        if (this.increment == 1) {
+                            textElement.setAttribute('font-size', '8px');
+                        }
+                        else {
+                            textElement.setAttribute('font-size', '6px');
+                        }
+                        textElement.setAttribute('font-family', 'Arial');
+                        textElement.setAttribute('text-anchor', 'middle');
+                        textElement.classList.add('color-picker-notSelectable');
+                        textElement.textContent = `${number}`;
+                        textElement.classList.add('color-picker-invisibleElement');
+                        this.textElements.push(textElement);
+                        svg.appendChild(textElement);
+                    }
+                }
+            }
+        }
+        //** changeColor: Changes current color of GridMode. Updates rgba, and NetLogo values, and updates the display of the ColorPicker. */
+        changeColor(alpha) {
+            this.setAlpha(alpha);
+            // change rgba value to reflect change in alpha
+            let currentRgba = this.getRgba();
+            currentRgba[3] = alpha;
+            this.setRgba(currentRgba);
+            // change color of colorPicker based on if we are changing the background or the model
+            if (this.getChangeTurtleColor()) {
+                this.getTurtleElement().style.fill = this.getRgbaString();
+            }
+            else {
+                this.getBackgroundElement().style.fill = this.getRgbaString();
+            }
+            this.updateDisplayValues();
+        }
+        /** getIncrement: Gets the increment of the GridMode instance */
+        getIncrement() {
+            return this.increment;
+        }
+        /** showNumbers: Makes the numbers of each cell visible. */
+        showNumbers() {
+            this.textElements.forEach((element) => {
+                element.classList.remove('color-picker-invisibleElement');
+            });
+        }
+        /** hideNumbers: Hides the numbers of each cell */
+        hideNumbers() {
+            this.textElements.forEach((element) => {
+                element.classList.add('color-picker-invisibleElement');
+            });
+        }
+    }
+
+    /** dragHelpers.ts: defines helper functions useful for the dragging and clicking feature of the Wheel Mode */
+    /** getMousePosition: Gets the mouse position of an MouseEvent(evt) in an SVG element(svg) */
+    function getMousePosition(evt, svg) {
+        evt = evt; // standardize evt as MouseEvent
+        let CTM = svg.getScreenCTM();
+        if (CTM != null) {
+            return {
+                x: (evt.clientX - CTM.e) / CTM.a,
+                y: (evt.clientY - CTM.f) / CTM.d,
+            };
+        }
+    }
+    /** distance: Calculates the distance between two points with coordinates (x1, y1), and (x2, y2) */
+    function distance(x1, y1, x2, y2) {
+        return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+    }
+    /** findAngle: Calculates the angle between three points with coordinates (a, b), (c, d), and (e, f) */
+    function findAngle(a, b, c, d, e, f) {
+        let AB = Math.sqrt(Math.pow(c - a, 2) + Math.pow(d - b, 2));
+        let BC = Math.sqrt(Math.pow(c - e, 2) + Math.pow(d - f, 2));
+        let AC = Math.sqrt(Math.pow(e - a, 2) + Math.pow(f - b, 2));
+        let outOf180Degrees = Math.acos((BC * BC + AB * AB - AC * AC) / (2 * BC * AB)) *
+            (180 / Math.PI);
+        // if we are "positive" relative to the axis -- the center point to the top "zero" point, then we just return, else we return 360 - outOf180
+        if (e < c) {
+            return 360 - outOf180Degrees;
+        }
+        return outOf180Degrees;
+    }
+
+    class WheelMode extends ColorMode {
+        constructor(parent = document.querySelector('.cp-displayContainer'), rgba = [255, 255, 255, 255], netlogoColor = 139.9, background = document.querySelector('.cp-backgroundPreview'), turtle = document.querySelector('.cp-turtlePreview'), changeTurtleColor = true, alpha = 255, colorParameterType = 'string', netlogoParameterType = 'string', increment = 1) {
+            super(parent, rgba, netlogoColor, background, turtle, alpha, changeTurtleColor, colorParameterType, netlogoParameterType);
+            /** outerWheelColors: the current set of RGBA numbers on the outer wheel */
+            this.outerWheelColors = [];
+            /** outerWheelNetlogo: the current set of NetLogo colors on the outer wheel */
+            this.outerWheelNetlogo = [];
+            /** innerNumbers: the text elements for the inner wheel */
+            this.innerNumbers = [];
+            /** outerNumbers: the text elements for the outer wheel */
+            this.outerNumbers = [];
+            /** center: the center of the wheel (SVG coordinates) */
+            this.center = [50, 50];
+            this.getParent().replaceChildren();
+            this.increment = increment;
+            //remove saved colors section
+            document.querySelector('.cp-savedColorsContainer').replaceChildren();
+            // remove increment section 
+            document
+                .querySelector('.cp-incrementAndNumbersContainer')
+                .classList.remove('color-picker-invisibleElement');
+            // Create interactable SVG HTML portion
+            let svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.setAttribute('viewBox', '0 0 100 100');
+            svg.setAttribute('width', '300');
+            svg.setAttribute('height', '300');
+            let clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+            clipPath.setAttribute('id', 'cp-outerWheelclipPath');
+            let path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M 50 2 a 48 48 0 0 1 0 96 48 48 0 0 1 0 -96 v 4 a 44 44 0 0 0 0 88 44 44 0 0 0 0 -88');
+            clipPath.appendChild(path);
+            let foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+            foreignObject.setAttribute('x', '0');
+            foreignObject.setAttribute('y', '0');
+            foreignObject.setAttribute('width', '100');
+            foreignObject.setAttribute('height', '100');
+            foreignObject.setAttribute('clip-path', 'url(#cp-outerWheelclipPath)');
+            let div = document.createElement('div');
+            div.classList.add('color-picker-wheelStyling');
+            this.outerWheel = div;
+            foreignObject.appendChild(div);
+            svg.appendChild(clipPath);
+            svg.appendChild(foreignObject);
+            this.getParent().appendChild(svg);
+            clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+            clipPath.setAttribute('id', 'cp-innerWheelClipPath');
+            path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', 'M 50 10 A 40 40 0 1 0 50 90 A 40 40 0 1 0 50 10 Z M 50 30 A 20 20 0 1 1 50 70 A 20 20 0 1 1 50 30 Z');
+            clipPath.appendChild(path);
+            this.SVG = svg;
+            foreignObject = document.createElementNS('http://www.w3.org/2000/svg', 'foreignObject');
+            foreignObject.setAttribute('x', '0');
+            foreignObject.setAttribute('y', '0');
+            foreignObject.setAttribute('width', '100');
+            foreignObject.setAttribute('height', '100');
+            foreignObject.setAttribute('clip-path', 'url(#cp-innerWheelClipPath)');
+            div = document.createElement('div');
+            div.classList.add('color-picker-wheelStyling');
+            this.innerWheel = div;
+            svg.appendChild(clipPath);
+            svg.appendChild(foreignObject);
+            foreignObject.appendChild(div);
+            // set up colors based on current netlogo color
+            this.innerWheelSetup();
+            this.numbersSetup();
+            let thumbs = this.setThumbs();
+            this.innerThumb = thumbs[0];
+            this.outerThumb = thumbs[1];
+            this.SVG.appendChild(this.innerThumb);
+            this.SVG.appendChild(this.outerThumb);
+            this.updateInnerWheel();
+            this.updateOuterWheel();
+            this.makeDraggable(this);
+            this.makeClickable();
+        }
+        /** svgMousePosition: get (SVG) coordinates of the cursor */
+        svgMousePosition(evt) {
+            var CTM = this.SVG.getScreenCTM();
+            return {
+                x: (evt.clientX - CTM.e) / CTM.a,
+                y: (evt.clientY - CTM.f) / CTM.d,
+            };
+        }
+        /** innerWheelSetup: Sets up the inner wheel  */
+        innerWheelSetup() {
+            let netlogoColors = Object.keys(mappedColors);
+            let hexColors = [];
+            for (let i = 0; i < netlogoColors.length; i++) {
+                hexColors.push(netlogoColorToHex(Number(mappedColors[netlogoColors[i]])));
+            }
+            let degreesPerSV = 360 / netlogoColors.length;
+            let cssFormat = `background-image: conic-gradient(`;
+            let degreeTracker = 0;
+            for (let i = 0; i < netlogoColors.length - 1; i++) {
+                cssFormat +=
+                    hexColors[i] +
+                        ` ${degreeTracker}deg ${degreeTracker + degreesPerSV}deg, `;
+                degreeTracker += degreesPerSV;
+            }
+            cssFormat +=
+                hexColors[netlogoColors.length - 1] + ` ${degreeTracker}deg 0deg`;
+            this.innerWheel
+                .setAttribute('style', cssFormat + `);`);
+        }
+        /** outerWheelSetup: Update the outerwheel based on the increment and current netlogo color  */
+        outerWheelSetup(baseColor) {
+            // find the "base color" based on the current netlogo color, ex 90 the base color would be 95
+            let numColors = 10 / this.increment + 1;
+            this.outerWheelNetlogo = [];
+            this.outerWheelColors = [];
+            for (let i = 0; i < numColors - 1; i++) {
+                this.outerWheelColors.push(netlogoColorToRGBA(baseColor + i * this.increment));
+                this.outerWheelNetlogo.push(baseColor + i * this.increment);
+            }
+            this.outerWheelColors.push(netlogoColorToRGBA(baseColor + 9.9));
+            this.outerWheelNetlogo.push(baseColor + 9.9);
+            let degreesPerSV = 360 / numColors; // the arc length each color takes up in the color wheel
+            let cssFormat = `background-image: conic-gradient(`;
+            let degreeTracker = 0;
+            for (let i = 0; i < numColors - 1; i++) {
+                cssFormat +=
+                    this.rgbaArrToString(this.outerWheelColors[i]) +
+                        ` ${degreeTracker}deg ${degreeTracker + degreesPerSV}deg, `;
+                degreeTracker += degreesPerSV;
+            }
+            cssFormat +=
+                this.rgbaArrToString(this.outerWheelColors[numColors - 1]) +
+                    ` ${degreeTracker}deg 0deg`;
+            this.outerWheel
+                .setAttribute('style', cssFormat + `);`);
+            // update textElement values for the outer wheel
+            for (let i = 0; i < numColors; i++) {
+                this.outerNumbers[i].textContent = this.outerWheelNetlogo[i].toString();
+            }
+        }
+        /** numbersSetup: sets up & updates the appropriate numbers for the wheel */
+        numbersSetup() {
+            let radius = 35;
+            let degreesPerIncrement = 360 / 14;
+            let angle = 1.5 * degreesPerIncrement;
+            let center = [48, 52];
+            let angleInRadians = (angle * Math.PI) / 180;
+            for (let i = 0; i < 14; i++) {
+                angle = i * degreesPerIncrement + degreesPerIncrement / 2;
+                angleInRadians = (angle * Math.PI) / 180;
+                let x = center[0] + radius * Math.sin(angleInRadians);
+                let y = center[1] - radius * Math.cos(angleInRadians);
+                let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                text.setAttribute('x', x.toString());
+                text.setAttribute('y', y.toString());
+                text.classList.add('cp-wheelNumbers');
+                text.classList.add('color-picker-invisibleElement');
+                text.textContent = (i * 10 + 5).toString();
+                this.SVG.appendChild(text);
+                this.innerNumbers.push(text);
+            }
+            // creat textElements for the outer wheel --> only need to create once because changing increment creates a new instance of wheelMode
+            let numberOfIncrements = 10 / this.increment + 1;
+            degreesPerIncrement = 360 / numberOfIncrements;
+            radius = 47;
+            let arcOffsetFactor = (this.increment == 1) ? 1.75 : 1.6;
+            for (let i = 0; i < numberOfIncrements + 1; i++) {
+                angle = i * degreesPerIncrement + degreesPerIncrement / arcOffsetFactor;
+                angleInRadians = (angle * Math.PI) / 180;
+                let x = center[0] + radius * Math.sin(angleInRadians);
+                let y = center[1] - radius * Math.cos(angleInRadians);
+                let text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                // if increment is sufficiently big, we should change the color to black
+                text.setAttribute('x', x.toString());
+                text.setAttribute('y', y.toString());
+                text.setAttribute('text-anchor', 'middle');
+                let textOffsetX = x + 2;
+                let textOffsetY = y - 2;
+                // add rotation to text so it fits the circle
+                text.setAttribute('transform', `rotate(${angle}, ${textOffsetX}, ${textOffsetY})`);
+                text.classList.add('cp-wheelNumbers');
+                if (i > (numberOfIncrements) / 3) {
+                    text.style.fill = "black";
+                }
+                text.classList.add('cp-outerWheelNumbers');
+                text.classList.add('color-picker-invisibleElement');
+                this.SVG.appendChild(text);
+                this.outerNumbers.push(text);
+            }
+        }
+        /** setThunbsOnNetlogo: takes the current Netlogo color, and places the two draggable thumbs in the approximate location they should be in the color wheel, based on the netlogo color  */
+        setThumbsOnNetlogo(isInner) {
+            // we are setting the coordinates of the inner thumb
+            let radius, degreesPerIncrement, baseColorIndex, angle;
+            let center = [50, 50];
+            if (isInner) {
+                radius = 30; // the inner thumb is going to be here.
+                degreesPerIncrement = 360 / 14;
+                baseColorIndex = Math.floor(this.getNetlogoColor() / 10);
+                angle = baseColorIndex * degreesPerIncrement + degreesPerIncrement / 2;
+            }
+            else {
+                radius = 50 - 4.1; // the outer thumb is restricted to this circle (radius from center)
+                let value = this.getNetlogoColor() % 10;
+                if (Math.abs(value - 9.9) < 0.00001)
+                    value = 10;
+                let index = Math.floor(value / this.increment);
+                let degreesPerIncrement = 360 / (10 / this.increment + 1);
+                angle = index * degreesPerIncrement + degreesPerIncrement / 2;
+            }
+            // find location of the thumb
+            let angleInRadians = (angle * Math.PI) / 180;
+            let x = center[0] + radius * Math.sin(angleInRadians);
+            let y = center[1] - radius * Math.cos(angleInRadians);
+            return [x, y];
+        }
+        /** setThumbs: sets the thumbs to the current netlogo color (by approximating location)
+         */
+        setThumbs() {
+            // create inner thumb
+            let innerThumb = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            let innerThumbCor = this.setThumbsOnNetlogo(true);
+            innerThumb.setAttribute('cx', innerThumbCor[0].toString());
+            innerThumb.setAttribute('cy', innerThumbCor[1].toString());
+            innerThumb.setAttribute('r', '2');
+            innerThumb.setAttribute('fill', 'black');
+            innerThumb.setAttribute('stroke', 'white');
+            innerThumb.style.cursor = 'pointer';
+            innerThumb.setAttribute('stroke-width', '1.2');
+            // create outer thumb
+            let outerThumb = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+            let outerThumbCor = this.setThumbsOnNetlogo(false);
+            outerThumb.setAttribute('cx', outerThumbCor[0].toString());
+            outerThumb.setAttribute('cy', outerThumbCor[1].toString());
+            outerThumb.setAttribute('r', '2');
+            outerThumb.setAttribute('fill', 'white');
+            outerThumb.setAttribute('stroke', '#D3D3D3');
+            outerThumb.style.cursor = 'pointer';
+            outerThumb.setAttribute('stroke-width', '0.5');
+            return [innerThumb, outerThumb];
+        }
+        //** updateInnerWheel: updates the color of the wheel based on location of the inner thumb*/
+        updateInnerWheel() {
+            let innerX = Number(this.innerThumb.getAttribute('cx')); // get coordinates of the inner thumb
+            let innerY = Number(this.innerThumb.getAttribute('cy'));
+            let angle = findAngle(50, 20, 50, 50, innerX, innerY);
+            let degreesPerIndex = 360 / 14;
+            let innerColor = netlogoBaseColors$1[Math.floor(angle / degreesPerIndex)];
+            this.innerThumb.setAttribute('fill', `rgba(${innerColor[0]}, ${innerColor[1]}, ${innerColor[2]}, 255)`);
+            // change outerwheel colors
+            this.outerWheelSetup(Math.floor(angle / degreesPerIndex) * 10);
+        }
+        /** updateOuterWheel: updates the color of the wheel based on location of the outer thumb */
+        updateOuterWheel() {
+            // calculate outer thumb angle
+            let outerX = Number(Number(this.outerThumb.getAttribute('cx')).toFixed(4));
+            let outerY = Math.round(Number(this.outerThumb.getAttribute('cy')));
+            let angle = findAngle(50, 20, 50, 50, outerX, outerY);
+            let degreesPerIndex = 360 / (10 / this.increment + 1);
+            let index = Math.floor(angle / degreesPerIndex);
+            let color = this.outerWheelColors[index];
+            let alpha = this.getAlpha();
+            color[3] = alpha;
+            // set rgba to current color
+            this.setRgba(color);
+            if (this.getChangeTurtleColor()) {
+                this.getTurtleElement().style.fill = this.getRgbaString();
+            }
+            else {
+                this.getBackgroundElement().style.fill = this.getRgbaString();
+            }
+            // set netlogo color to current color
+            this.setNetlogoColor(this.outerWheelNetlogo[index]);
+            this.updateDisplayValues();
+        }
+        changeColor(alpha = 255) {
+            this.setAlpha(alpha);
+            this.updateOuterWheel();
+        }
+        makeDraggable(wheel) {
+            this.innerThumb.classList.add('cp-wheelMode-draggable');
+            this.innerThumb.classList.add('cp-innerWheelThumb');
+            this.outerThumb.classList.add('cp-wheelMode-draggable');
+            this.outerThumb.classList.add('cp-outerWheelThumb');
+            let center = [50, 50];
+            function makeDraggable(svg, colorPickerWindow) {
+                function confinement(x, y, thumb) {
+                    let xRestrict = x;
+                    let yRestrict = y;
+                    let angle = findAngle(50, 20, 50, 50, x, y);
+                    let angleInRadians = (angle * Math.PI) / 180;
+                    // outer thumb confinement
+                    if (thumb == 'outer') {
+                        let outerThumbRadius = 50 - 4.1;
+                        xRestrict = center[0] + outerThumbRadius * Math.sin(angleInRadians);
+                        yRestrict = center[1] - outerThumbRadius * Math.cos(angleInRadians);
+                    }
+                    else {
+                        // inner thumb confinement
+                        let innerLowerBound = 20; // lowerbound of where the inner thumb can be (radius from center)
+                        let innerUpperBound = 40;
+                        let dist = distance(x, y, center[0], center[1]);
+                        if (dist > 40) {
+                            // we are too far from the center
+                            xRestrict = center[0] + innerUpperBound * Math.sin(angleInRadians);
+                            yRestrict = center[1] - innerUpperBound * Math.cos(angleInRadians);
+                        }
+                        else if (dist < 20) {
+                            // we are too close to the center
+                            xRestrict = center[0] + innerLowerBound * Math.sin(angleInRadians);
+                            yRestrict = center[1] - innerLowerBound * Math.cos(angleInRadians);
+                        }
+                    }
+                    return { x: xRestrict, y: yRestrict };
+                }
+                // event listeners
+                colorPickerWindow.addEventListener('mousedown', startDrag);
+                colorPickerWindow.addEventListener('mousemove', drag);
+                colorPickerWindow.addEventListener('mouseup', endDrag);
+                colorPickerWindow.addEventListener('mouseleave', endDrag);
+                // event listeners for touch events
+                colorPickerWindow.addEventListener('touchstart', startDrag);
+                colorPickerWindow.addEventListener('touchmove', drag);
+                colorPickerWindow.addEventListener('touchend', endDrag);
+                colorPickerWindow.addEventListener('touchcancel', endDrag);
+                let selectedElement = null;
+                /** startDrag: start drag event for draggable elements */
+                function startDrag(evt) {
+                    let element = evt.target;
+                    // select the element, and make sure it is a dragable element
+                    if (element.classList.contains('cp-wheelMode-draggable')) {
+                        selectedElement = element;
+                    }
+                }
+                /** drag: drag event for draggable elements */
+                function drag(evt) {
+                    if (selectedElement != null) {
+                        // we have selected a draggable elemenet, and can start the drag
+                        evt.preventDefault();
+                        let mousePosition = getMousePosition(evt, wheel.SVG);
+                        if (mousePosition != null) {
+                            let x = mousePosition.x;
+                            let y = mousePosition.y;
+                            // find confiment for outer thumb
+                            if (selectedElement.classList.contains('cp-outerWheelThumb')) {
+                                let restrict = confinement(x, y, 'outer');
+                                x = restrict.x;
+                                y = restrict.y;
+                            }
+                            else {
+                                // we are moving the inner thumb
+                                let restrict = confinement(x, y, 'inner');
+                                x = restrict.x;
+                                y = restrict.y;
+                            }
+                            selectedElement.setAttribute('cx', x.toString());
+                            selectedElement.setAttribute('cy', y.toString());
+                            if (selectedElement.classList.contains('cp-innerWheelThumb')) {
+                                wheel.updateInnerWheel();
+                            }
+                            wheel.updateOuterWheel();
+                        }
+                    }
+                }
+                /** endDrag: end drag event for draggable elements */
+                function endDrag(evt) {
+                    selectedElement = null;
+                }
+            }
+            let display = document.querySelector('.color-picker-body');
+            makeDraggable(this.SVG, display);
+            this.innerWheel.addEventListener('click', (e) => {
+                let mousePosition = this.svgMousePosition(e);
+                this.innerThumb.setAttribute('cx', mousePosition.x.toString());
+                this.innerThumb.setAttribute('cy', mousePosition.y.toString());
+                console.log('wtf');
+                this.updateInnerWheel();
+                this.updateOuterWheel();
+            });
+            this.outerWheel.addEventListener('click', (e) => {
+                let mousePosition = this.svgMousePosition(e);
+                this.outerThumb.setAttribute('cx', mousePosition.x.toString());
+                this.outerThumb.setAttribute('cy', mousePosition.y.toString());
+                this.updateOuterWheel();
+            });
+        }
+        /** showNumbers: make the netlogo color element visible*/
+        showNumbers() {
+            if (this.increment == 0.1)
+                return; // do nothing, no numbers for increment 0.1
+            this.innerNumbers.forEach((element) => {
+                element.classList.remove('color-picker-invisibleElement');
+            });
+            this.outerNumbers.forEach((element) => {
+                element.classList.remove('color-picker-invisibleElement');
+            });
+        }
+        /** hideNumbers: hide the netlogo color element */
+        hideNumbers() {
+            this.innerNumbers.forEach((element) => {
+                element.classList.add('color-picker-invisibleElement');
+            });
+            this.outerNumbers.forEach((element) => {
+                element.classList.add('color-picker-invisibleElement');
+            });
+        }
+        /** makeClickable: Allow clicking of parts of the wheel to move the thumbs & change color */
+        makeClickable() {
+            this.SVG.addEventListener('click', (e) => {
+                let evtCords = getMousePosition(e, this.SVG); // get the coordinates of the event
+                if (evtCords == null) {
+                    return;
+                }
+                let evtDist = distance(evtCords.x, evtCords.y, 50, 50);
+                // check if we are clicking on the inner wheel or outer wheel
+                if (evtDist > 20 && evtDist < 40) {
+                    // inner wheel clicked because within the inner wheel valid radii
+                    this.innerThumb.setAttribute('cx', evtCords.x.toString());
+                    this.innerThumb.setAttribute('cy', evtCords.y.toString());
+                    this.updateInnerWheel();
+                    this.updateOuterWheel();
+                }
+                else if (evtDist > 43.5 && evtDist < 49) { /** arbitrarily set bounds for the outerWheel */
+                    // outer wheel clicked because outside of the inner wheel valid radii
+                    // get the angle of the click
+                    let angle = findAngle(50, 20, 50, 50, evtCords.x, evtCords.y);
+                    let angleInRadians = (angle * Math.PI) / 180;
+                    let radius = 50 - 4.1;
+                    this.outerThumb.setAttribute('cx', String(this.center[0] + radius * Math.sin(angleInRadians)));
+                    this.outerThumb.setAttribute('cy', String(this.center[1] - radius * Math.cos(angleInRadians)));
+                    this.updateOuterWheel();
+                }
+            });
+        }
+    }
+
+    /** Slider: The Slider class, used to create the physical slider components in the ColorPicker. */
+    class Slider {
+        /** Constructor: Creates a Slider instance */
+        constructor(parent, startValue, min, max, sliderColor, sliderWidth, text, hasDisplay = true) {
+            /** valueDisplayElement: Element that displays the current value of the slider. Does not exist (null) if instance of Alpha slider. */
+            this.valueDisplayElement = null;
+            /** valueBubble: Value bubble that follows the thumb. Only used in alpha slider */
+            this.valueBubble = null;
+            /** sliderChangedValue: Updates slider value when thumb is moved. */
+            this.sliderChangedValue = () => {
+                this.inputElement.style.setProperty('--value', this.inputElement.value);
+                return this.inputElement.value;
+            };
+            this.color = sliderColor;
+            let r = document.querySelector(':root');
+            r.style.setProperty('--slider', sliderColor);
+            this.parent = parent;
+            // create the slider
+            this.inputElement = document.createElement('input');
+            this.inputElement.type = 'range';
+            this.inputElement.style.width = sliderWidth;
+            this.inputElement.value = startValue;
+            this.inputElement.min = min;
+            this.inputElement.max = max;
+            this.inputElement.classList.add('cp-styled-slider');
+            if (sliderColor == 'alpha') {
+                // use the smaller slider size css
+                this.inputElement.classList.add('alphaSlider');
+            }
+            else {
+                // use the larger slider size css
+                this.inputElement.classList.add('colorSlider');
+            }
+            // add color to slider TRACK
+            switch (sliderColor) {
+                case 'Red':
+                    this.inputElement.classList.add('color-red');
+                    break;
+                case 'Green':
+                    this.inputElement.classList.add('color-green');
+                    break;
+                case 'Blue':
+                    this.inputElement.classList.add('color-blue');
+                    break;
+                case 'alpha':
+                    this.inputElement.classList.add('color-alpha');
+                    break;
+                case 'Hue':
+                    this.inputElement.classList.add('color-hue');
+                    break;
+                case 'Saturation':
+                    this.inputElement.classList.add('color-saturation');
+                    break;
+                case 'Luminance':
+                    this.inputElement.classList.add('grayscaleSlider');
+                    break;
+            }
+            this.inputElement.classList.add('slider-progress');
+            this.inputElement.addEventListener('input', (event) => this.rangeSlide(event));
+            // create a div to hold the slider
+            let sliderContainer = document.createElement('div');
+            sliderContainer.classList.add('cp-slider-container'); // div for juist the slider and the text
+            //create the text element
+            if (text != '') {
+                let textElement = document.createElement('div');
+                textElement.innerHTML = text;
+                textElement.classList.add('cp-slider-text');
+                sliderContainer.appendChild(textElement);
+            }
+            sliderContainer.appendChild(this.inputElement);
+            // create a div to hold slider and display
+            let sliderDisplayContainer = document.createElement('div');
+            sliderDisplayContainer.classList.add('cp-slider-display-container'); //container for display and slider
+            sliderDisplayContainer.appendChild(sliderContainer);
+            if (hasDisplay) {
+                this.valueDisplayElement = document.createElement('input');
+                this.valueDisplayElement.classList.add('cp-sliderValueDisplayContainer');
+                this.valueDisplayElement.type = 'number';
+                this.valueDisplayElement.value = startValue;
+                sliderDisplayContainer.appendChild(this.valueDisplayElement);
+            }
+            else {
+                //slider has no display, so it is an alpha slider. 
+                // add sliding value tooltip that follows thumb
+                // create value "bubble" to show user alpha value 
+                let valueBubble = document.createElement('output');
+                valueBubble.classList.add('color-picker-Popover');
+                valueBubble.classList.add('color-picker-AlphaMsg');
+                sliderContainer.appendChild(valueBubble);
+                this.valueBubble = valueBubble;
+            }
+            this.parent.appendChild(sliderDisplayContainer);
+            this.finalize();
+        }
+        /** rangeSlide: Updates the value of the slider when the user moves the thumb. */
+        rangeSlide(event) {
+            const target = event.target;
+            let val = target.value;
+            if (this.valueDisplayElement != null)
+                this.valueDisplayElement.value = val;
+            else if (this.valueBubble != null) {
+                // alpha slider, so update the value bubble
+                this.valueBubble.innerHTML = val;
+                // move the value bubble to follow the thumb
+                let min = Number(this.inputElement.min);
+                let max = Number(this.inputElement.max);
+                let newVal = Number(((Number(val) - min) * 100) / (max - min));
+                this.valueBubble.style.left = `calc(${newVal}% + (${8 - newVal * 0.25}px))`;
+            }
+        }
+        /** finalize: Changes appearance & progress support when slider thumb is moved */
+        finalize() {
+            let e = this.inputElement;
+            e.style.setProperty('--value', e.value);
+            e.style.setProperty('--min', e.min == '' ? '0' : e.min);
+            e.style.setProperty('--max', e.max == '' ? '100' : e.max);
+            e.addEventListener('input', this.sliderChangedValue.bind(this));
+        }
+        /** setValue: Sets the value of the slider. Also updates appearance of other components */
+        setValue(value) {
+            // Make sure the value is within the slider's range
+            const min = parseFloat(this.inputElement.min);
+            const max = parseFloat(this.inputElement.max);
+            value = Math.min(Math.max(value, min), max);
+            // Update the input element and display element
+            this.inputElement.value = value.toString();
+            if (this.valueDisplayElement != null)
+                this.valueDisplayElement.value = value.toString();
+            this.inputElement.style.setProperty('--value', '' + value);
+        }
+    }
+
+    class SliderMode extends ColorMode {
+        /** Constructor for the SliderMode of the cp */
+        constructor(parent = document.querySelector('.cp-displayContainer'), rgba = [255, 255, 255, 255], netlogoColor = 139.9, background = document.querySelector('.cp-backgroundPreview'), turtle = document.querySelector('.cp-turtlePreview'), changeTurtleColor, alpha = 255, colorParameterType = 'string', netlogoParameterType = 'string', isRGB = true, saved = [
+            [241, 241, 241, 255],
+            [241, 241, 241, 255],
+            [241, 241, 241, 255],
+            [241, 241, 241, 255],
+        ]) {
+            super(parent, rgba, netlogoColor, background, turtle, alpha, changeTurtleColor, colorParameterType, netlogoParameterType);
+            /** sliderValues: array of the current values of the sliders */
+            this.sliderValues = [0, 0, 0];
+            this.isRGBMode = isRGB;
+            this.savedColors = saved;
+            this.getParent().replaceChildren();
+            //create the slidercolor display
+            this.sliderColorDisplay = document.createElement('div');
+            this.sliderColorDisplay.classList.add('cp-sliderColorDisplay');
+            // remove the increment container because no increments in slider mode
+            document
+                .querySelector('.cp-incrementAndNumbersContainer')
+                .classList.add('color-picker-invisibleElement');
+            this.sliderModeContainer = document.createElement('div');
+            this.sliderModeContainer.classList.add('cp-slider-mode-container');
+            this.sliderModeContainer.appendChild(this.sliderColorDisplay);
+            // create the RGB or HSL drop down
+            let dropDown = document.createElement('div');
+            dropDown.classList.add('cp-valuesDisplay-type');
+            dropDown.classList.add('cp-dropDown');
+            dropDown.style.fontSize = '10px';
+            dropDown.innerText = 'RGBA \u25BE';
+            this.sliderModeContainer.appendChild(dropDown);
+            // create the container for sliders
+            let sliderContainer = document.createElement('div');
+            sliderContainer.classList.add('cp-sliderSet');
+            this.sliderModeContainer.appendChild(sliderContainer);
+            // event listener for the drop down
+            dropDown.addEventListener('click', () => {
+                if (this.isRGBMode) {
+                    this.isRGBMode = false;
+                    dropDown.innerText = 'HSLA \u25BE';
+                    this.createSliders(sliderContainer);
+                }
+                else {
+                    this.isRGBMode = true;
+                    dropDown.innerText = 'RGBA \u25BE';
+                }
+                let sliders = this.createSliders(sliderContainer);
+                this.slider1 = sliders[0];
+                this.slider2 = sliders[1];
+                this.slider3 = sliders[2];
+                this.updateSliders();
+            });
+            // create sliders
+            let sliders = this.createSliders(sliderContainer);
+            this.slider1 = sliders[0];
+            this.slider2 = sliders[1];
+            this.slider3 = sliders[2];
+            this.updateSliders();
+            this.sliderColorDisplay.style.backgroundColor = this.getRgbaString();
+            this.savedColorsSetup();
+        }
+        /**  Creates the Slider HTML boilercode and adds it to the color picker body
+         * Returns an array of the slider objects
+         */
+        createSliders(container) {
+            container.replaceChildren();
+            let sliderColors;
+            let sliderMaxVals;
+            if (this.isRGBMode) {
+                sliderColors = ['Red', 'Green', 'Blue'];
+                sliderMaxVals = ['255', '255', '255'];
+            }
+            else {
+                //HSL mode
+                sliderColors = ['Hue', 'Saturation', 'Luminance'];
+                sliderMaxVals = ['360', '100', '100'];
+            }
+            let slider1 = new Slider(container, '0', '0', sliderMaxVals[0], sliderColors[0], '250px', sliderColors[0]);
+            let slider2 = new Slider(container, '0', '0', sliderMaxVals[1], sliderColors[1], '250px', sliderColors[1]);
+            let slider3 = new Slider(container, '0', '0', sliderMaxVals[2], sliderColors[2], '250px', sliderColors[2]);
+            slider1.inputElement.addEventListener('input', () => {
+                this.sliderValues[0] = Number(slider1.inputElement.value);
+                this.changeColor(this.getAlpha());
+            });
+            slider2.inputElement.addEventListener('input', () => {
+                this.sliderValues[1] = Number(slider2.inputElement.value);
+                this.changeColor(this.getAlpha());
+            });
+            slider3.inputElement.addEventListener('input', () => {
+                this.sliderValues[2] = Number(slider3.inputElement.value);
+                this.changeColor(this.getAlpha());
+            });
+            this.getParent().appendChild(this.sliderModeContainer);
+            return [slider1, slider2, slider3];
+        }
+        /** updateSliders: updates the appearance of the sliders based on the current rgba color */
+        updateSliders() {
+            let numbers = this.isRGBMode
+                ? this.getRgba()
+                : RGBAToHSLA(this.getRgba()[0], this.getRgba()[1], this.getRgba()[2], this.getRgba()[3]);
+            this.slider1.setValue(numbers[0]);
+            this.slider2.setValue(numbers[1]);
+            this.slider3.setValue(numbers[2]);
+            //update sliderValues
+            this.sliderValues[0] = numbers[0];
+            this.sliderValues[1] = numbers[1];
+            this.sliderValues[2] = numbers[2];
+            let alphaSlider = document.querySelector('.cp-alphaSlider');
+            alphaSlider.value = String(this.getAlpha());
+        }
+        /** changeColor: updates the color of both color previews when a slider input value is changed  */
+        changeColor(alpha = 255) {
+            this.setAlpha(alpha);
+            let colorAsRgba = this.isRGBMode
+                ? this.sliderValues
+                : HSLAToRGBA(this.sliderValues[0], this.sliderValues[1], this.sliderValues[2]);
+            this.setRgba([colorAsRgba[0], colorAsRgba[1], colorAsRgba[2], alpha]);
+            function rgbToNetlogo(modeObj, cachedNetlogoColors$1$1 = cachedNetlogoColors$1) {
+                // Parse RGB values from string 
+                let [r, g, b] = [
+                    modeObj.sliderValues[0],
+                    modeObj.sliderValues[1],
+                    modeObj.sliderValues[2],
+                ];
+                if (r == 0 && g == 0 && b == 0) {
+                    return 0;
+                }
+                // Calculate the Euclidean distance between current color and each NetLogo color
+                let minDistance = Infinity;
+                let closestNetlogoColor = 0;
+                for (let i = 0; i < cachedNetlogoColors$1$1.length; i++) {
+                    const [netR, netG, netB] = cachedNetlogoColors$1$1[i];
+                    const distance = Math.sqrt(Math.pow(r - netR, 2) + Math.pow(g - netG, 2) + Math.pow(b - netB, 2));
+                    if (distance < minDistance) {
+                        minDistance = distance;
+                        closestNetlogoColor = i;
+                    }
+                }
+                // Return the closest NetLogo color value
+                return closestNetlogoColor / 10;
+            }
+            this.setNetlogoColor(rgbToNetlogo(this));
+            this.sliderColorDisplay.style.backgroundColor = this.getRgbaString();
+            if (this.getChangeTurtleColor()) {
+                this.getTurtleElement().style.fill = this.getRgbaString();
+            }
+            else {
+                this.getBackgroundElement().style.fill = this.getRgbaString();
+            }
+            this.updateDisplayValues();
+        }
+        /** savedColorsSetup: setup saved colors section of the SliderMode */
+        savedColorsSetup() {
+            let savedColorsContainer = document.createElement('div');
+            savedColorsContainer.classList.add('cp-savedColors');
+            // create 5 inner squares
+            for (let i = 0; i < 4; i++) {
+                let square = document.createElement('div');
+                square.classList.add('cp-savedColorSquare');
+                // set the color equal to the saved color
+                square.style.backgroundColor = this.rgbaArrToString(this.savedColors[3 - i]); // when creating the saved color grids, make each square's color equal to the saved color so that it remembers previous state
+                savedColorsContainer.appendChild(square);
+                // add event listener to each square
+                square.addEventListener('click', (e) => {
+                    this.useSavedColor(e);
+                });
+                // add index to each square. The index is the index of the saved color that represents that square in the savedColors array
+                square.dataset.data = String(3 - i);
+            }
+            let square = document.createElement('div');
+            square.classList.add('cp-savedColor-addSquare');
+            square.addEventListener('click', () => {
+                this.updateSavedColors();
+            });
+            savedColorsContainer.appendChild(square);
+            let container = document.querySelector('.cp-savedColorsContainer');
+            if (container != null) {
+                container.appendChild(savedColorsContainer);
+            }
+        }
+        useSavedColor(e) {
+            let div = e.target;
+            let savedColorRGBA = this.savedColors[Number(div.dataset.data)];
+            // saved colors is in RGBA. If we are in rgb mode, we can just use the saved color. If we are in hsl mode, we need to convert the saved color to hsl
+            let colorArray = this.isRGBMode
+                ? savedColorRGBA
+                : RGBAToHSLA(savedColorRGBA[0], savedColorRGBA[1], savedColorRGBA[2], savedColorRGBA[3]);
+            this.sliderValues[0] = colorArray[0];
+            this.sliderValues[1] = colorArray[1];
+            this.sliderValues[2] = colorArray[2];
+            this.changeColor(savedColorRGBA[3]); //we are keeping the same alpha value
+            this.updateSliders();
+        }
+        updateSavedColors() {
+            //shift own every value by 1
+            for (let i = this.savedColors.length - 1; i > 0; i--) {
+                this.savedColors[i] = this.savedColors[i - 1];
+            }
+            this.savedColors[0] = this.getRgba();
+            //update the colors of each
+            let colorSquares = document.querySelectorAll('.cp-savedColorSquare');
+            for (let i = colorSquares.length - 1; i >= 0; i--) {
+                let square = colorSquares[i];
+                square.style.backgroundColor = this.rgbaArrToString(this.savedColors[this.savedColors.length - 1 - i]);
+            }
+        }
+        /** Makes the netlogo color element visible*/
+        showNumbers() {
+            // do nothing, slider mode does not have "numbers"
+        }
+        /** Hides the netlogo color element */
+        hideNumbers() {
+            // do nothing, slider mode does not have "numbers"
+        }
+    }
+
+    /** ColorPicker: The Color Picker component for NetLogo Web */
+    class ColorPicker {
+        /** Constructor: create a ColorPicker instance */
+        constructor(parent, onColorSelect, initColor) {
+            var _a, _b, _c, _d;
+            /**  currentMode: The current ColorMode of the ColorPicker */
+            this.currentMode = null;
+            /** savedColors: The array of saved colors to be displayed in the Slider Mode */
+            this.savedColors = [
+                [241, 241, 241, 255],
+                [241, 241, 241, 255],
+                [241, 241, 241, 255],
+                [241, 241, 241, 255],
+            ];
+            /** cssRule: css for body of ColorPicker */
+            this.parent = parent;
+            this.bodySetup();
+            this.numbersSetup();
+            this.onColorSelectCallback = onColorSelect;
+            this.incrementSetup();
+            this.addEventHandlers();
+            this.alphaSliderSetup();
+            this.nextMode = 'grid';
+            this.increment = 1;
+            this.numbersOn = false;
+            // map increment values to the increment buttons
+            this.incrementMap = new Map();
+            this.incrementMap.set(1, document.querySelectorAll('.cp-incrementCheckbox')[1]);
+            this.incrementMap.set(0.5, document.querySelectorAll('.cp-incrementCheckbox')[2]);
+            this.incrementMap.set(0.1, document.querySelectorAll('.cp-incrementCheckbox')[3]);
+            // create an instance of the ColorGrid by default on launch with increment 1
+            document.querySelectorAll('.color-picker-selectionMode')[0].click();
+            // set up display modes
+            this.displayModesSetup();
+            if (initColor.length == 4) {
+                (_a = this.currentMode) === null || _a === void 0 ? void 0 : _a.setRgba(initColor);
+                (_b = this.currentMode) === null || _b === void 0 ? void 0 : _b.setNetlogoColor(rgbToNetlogo(initColor));
+            }
+            (_c = this.currentMode) === null || _c === void 0 ? void 0 : _c.updateDisplayValues(); // have the color picker display the "current values" based on the default color grid
+            (_d = this.currentMode) === null || _d === void 0 ? void 0 : _d.updateDisplay();
+        }
+        /** bodySetup: set up the HTML body of the color picker */
+        bodySetup() {
+            this.parent.innerHTML = bodyHTML;
+        }
+        /** addEventHandlers: adds eventhandlers to appropriate buttons */
+        addEventHandlers() {
+            /** changeButtonColor: toggles button color */
+            function changeButtonColor(button, isPressed) {
+                if (isPressed) {
+                    button.style.backgroundColor = '#5A648D';
+                    button.style.color = 'white';
+                    let image = button.querySelector('.color-picker-mode-icon');
+                    if (image != null) {
+                        image.style.filter = 'invert(100%)';
+                    }
+                }
+                else {
+                    button.style.backgroundColor = '#E5E5E5';
+                    button.style.color = 'black';
+                    let image = button.querySelector('.color-picker-mode-icon');
+                    if (image != null) {
+                        image.style.filter = 'invert(0%)';
+                    }
+                }
+            }
+            // event handler for the model indicator --> changing the color of turtle or background
+            let button = document.querySelector('.cp-modelIndicator');
+            button.addEventListener('click', () => {
+                var _a;
+                (_a = this.currentMode) === null || _a === void 0 ? void 0 : _a.setChangeTurtleColor(!this.currentMode.getChangeTurtleColor());
+                if (this.currentMode.getChangeTurtleColor()) {
+                    button.textContent = 'Model Color Selected';
+                    changeButtonColor(button, false);
+                }
+                else {
+                    button.textContent = 'Background Color Selected';
+                    changeButtonColor(button, true);
+                }
+            }, { passive: true });
+            let buttons = document.querySelectorAll('.color-picker-selectionMode');
+            // add event handlers for mode buttons
+            let gridButton = buttons[0];
+            let wheelButton = buttons[1];
+            let sliderButton = buttons[2];
+            gridButton.addEventListener('click', () => {
+                var _a;
+                changeButtonColor(gridButton, true);
+                changeButtonColor(wheelButton, false);
+                changeButtonColor(sliderButton, false);
+                if (this.currentMode instanceof SliderMode) {
+                    this.savedColors = this.currentMode.savedColors;
+                }
+                this.nextMode = 'grid';
+                if (!(this.currentMode instanceof GridMode)) {
+                    //change currentmode to new instance of gridmode
+                    //done in the cp-incrementCheckbox event handler (because changing increment also creates a new instance)
+                    (_a = this.incrementMap.get(this.increment)) === null || _a === void 0 ? void 0 : _a.click();
+                }
+            }, { passive: true });
+            wheelButton.addEventListener('click', () => {
+                var _a;
+                if (this.currentMode instanceof SliderMode) {
+                    this.savedColors = this.currentMode.savedColors;
+                }
+                if (!(this.currentMode instanceof WheelMode)) {
+                    changeButtonColor(gridButton, false);
+                    changeButtonColor(wheelButton, true);
+                    changeButtonColor(sliderButton, false);
+                    // create a new instance of the wheel mode using checkbox for the right increment
+                    this.nextMode = 'wheel';
+                    (_a = this.incrementMap.get(this.increment)) === null || _a === void 0 ? void 0 : _a.click();
+                }
+            }, { passive: true });
+            sliderButton.addEventListener('click', () => {
+                var _a;
+                if (this.currentMode instanceof SliderMode) {
+                    return;
+                }
+                if (!(this.currentMode instanceof SliderMode)) {
+                    changeButtonColor(gridButton, false);
+                    changeButtonColor(wheelButton, false);
+                    changeButtonColor(sliderButton, true);
+                    this.nextMode = 'slider';
+                    // create a new instance of the slider mode using checkbox for the right increment
+                    (_a = this.incrementMap.get(this.increment)) === null || _a === void 0 ? void 0 : _a.click();
+                }
+            }, { passive: true });
+            // event handler to close Color Picker
+            let closeBtn = document.querySelector('.cp-closeIcon');
+            closeBtn === null || closeBtn === void 0 ? void 0 : closeBtn.addEventListener('click', () => {
+                var _a, _b;
+                this.parent.replaceChildren();
+                // call the callback function to close the color picker
+                this.onColorSelectCallback([(_a = this.currentMode) === null || _a === void 0 ? void 0 : _a.getRgba(), (_b = this.currentMode) === null || _b === void 0 ? void 0 : _b.getNetlogoColor()]);
+            });
+        }
+        /** numbersSetup: set up the HTML body of the "Numbers" section */
+        numbersSetup() {
+            let numbersContainer = document.querySelectorAll('.cp-numbersOrIncrement')[0];
+            let checkboxContainer = document.createElement('div');
+            checkboxContainer.classList.add('cp-checkboxContainer');
+            let checkbox = document.createElement('div');
+            checkbox.classList.add('cp-incrementCheckbox');
+            checkbox.classList.add('cp-numbersCheckbox'); // just for numbers identifier
+            checkboxContainer.appendChild(checkbox);
+            let label = document.createElement('span');
+            label.classList.add('cp-incrementLabel');
+            label.textContent = 'Numbers';
+            checkboxContainer.appendChild(label);
+            numbersContainer.appendChild(checkboxContainer);
+            // add event handler for the numbers checkbox
+            checkbox.addEventListener('click', () => {
+                var _a, _b;
+                this.numbersOn = !this.numbersOn; // toggle value of numbersOn
+                if (this.numbersOn) {
+                    checkbox.style.backgroundColor = '#C0C0C0';
+                    (_a = this.currentMode) === null || _a === void 0 ? void 0 : _a.showNumbers();
+                }
+                else {
+                    checkbox.style.backgroundColor = 'white';
+                    (_b = this.currentMode) === null || _b === void 0 ? void 0 : _b.hideNumbers();
+                }
+            });
+        }
+        /** incrementSetup: set up the HTML body of the "Increment" section
+          * note: The increment event handlers are responsible for creating the new instances of the color grid, wheel, and slider
+         */
+        incrementSetup() {
+            let incrementContainer = document.querySelectorAll('.cp-numbersOrIncrement')[1];
+            // 3 checkbox containers, each with a checkbox and a label, and then a span called increment
+            for (let i = 0; i < 3; i++) {
+                let checkboxContainer = document.createElement('div');
+                checkboxContainer.classList.add('cp-checkboxContainer');
+                let checkbox = document.createElement('div');
+                checkbox.classList.add('cp-incrementCheckbox');
+                checkboxContainer.appendChild(checkbox);
+                let textContent;
+                switch (i) {
+                    case 0:
+                        textContent = 1;
+                        break;
+                    case 1:
+                        textContent = 0.5;
+                        break;
+                    default:
+                        textContent = 0.1;
+                        break;
+                }
+                let label = document.createElement('span');
+                label.classList.add('cp-incrementLabel');
+                label.textContent = `${textContent}`;
+                checkbox.addEventListener('click', () => {
+                    var _a, _b;
+                    this.increment = textContent;
+                    // grey out the numbers checkbox if it is 0.1
+                    let numbers = document.querySelector('.cp-numbersCheckbox');
+                    let numbersContainer = document.querySelectorAll('.cp-numbersOrIncrement')[0];
+                    if (this.increment == 0.1) {
+                        numbers.style.pointerEvents = 'none';
+                        numbersContainer.style.opacity = '0.5';
+                    }
+                    else {
+                        // the increment is not 0.1 so numbers can be there
+                        numbers.style.pointerEvents = 'auto';
+                        numbersContainer.style.opacity = '1';
+                    }
+                    checkbox.style.backgroundColor = '#C0C0C0';
+                    this.incrementMap.forEach((value, key) => {
+                        if (key != this.increment) {
+                            value.style.backgroundColor = 'white'; // the current increment is not this checbox value so it should be unclicked
+                        }
+                    });
+                    document.querySelector('.cp-displayContainer').firstChild.remove();
+                    if (this.currentMode == null) {
+                        this.currentMode = new GridMode(); // default increment 1
+                    }
+                    else {
+                        if (this.nextMode == 'grid') {
+                            this.currentMode = new GridMode(document.querySelector('.cp-displayContainer'), this.currentMode.getRgba(), this.currentMode.getNetlogoColor(), this.currentMode.getBackgroundElement(), this.currentMode.getTurtleElement(), this.currentMode.getChangeTurtleColor(), this.currentMode.getAlpha(), this.currentMode.getColorPrmType(), this.currentMode.getNlogoPrmType(), textContent);
+                        }
+                        else if (this.nextMode == 'wheel') {
+                            this.currentMode = new WheelMode(document.querySelector('.cp-displayContainer'), this.currentMode.getRgba(), this.currentMode.getNetlogoColor(), this.currentMode.getBackgroundElement(), this.currentMode.getTurtleElement(), this.currentMode.getChangeTurtleColor(), this.currentMode.getAlpha(), this.currentMode.getColorPrmType(), this.currentMode.getNlogoPrmType(), textContent);
+                        }
+                        else if (this.nextMode == 'slider') {
+                            this.currentMode = new SliderMode(document.querySelector('.cp-displayContainer'), (_a = this.currentMode) === null || _a === void 0 ? void 0 : _a.getRgba(), (_b = this.currentMode) === null || _b === void 0 ? void 0 : _b.getNetlogoColor(), this.currentMode.getBackgroundElement(), this.currentMode.getTurtleElement(), this.currentMode.getChangeTurtleColor(), this.currentMode.getAlpha(), this.currentMode.getColorPrmType(), this.currentMode.getNlogoPrmType(), true, // is rgb mode
+                            this.savedColors);
+                        }
+                        // display numbers if numbersOn is true
+                        if (this.numbersOn) {
+                            this.currentMode.showNumbers();
+                        }
+                    }
+                });
+                checkboxContainer.appendChild(label);
+                incrementContainer.appendChild(checkboxContainer);
+            }
+        }
+        /** alphaSliderSetup: set up the HTML body of the alpha slider */
+        alphaSliderSetup() {
+            let alphaSliderContainer = document.querySelector('.cp-alphaSliderContainer');
+            let textNode = document.createElement('span');
+            textNode.textContent = 'Alpha';
+            textNode.classList.add('color-picker-alphaSliderText');
+            alphaSliderContainer.appendChild(textNode);
+            let alphaSlider = new Slider(alphaSliderContainer, '0', '0', '255', 'alpha', '150px', '', false);
+            // Color picker starts with alpha at 255
+            alphaSlider.setValue(255);
+            alphaSlider.inputElement.classList.add('cp-alphaSlider');
+            // make the alpha slider's tool tip invisible, unless user is giving input to the slider
+            alphaSlider.valueBubble.style.opacity = '0';
+            alphaSlider.inputElement.addEventListener('input', () => {
+                var _a;
+                let value = alphaSlider.inputElement.value;
+                // input being given to slider, so make the tool tip visible
+                alphaSlider.valueBubble.style.opacity = '1';
+                (_a = this.currentMode) === null || _a === void 0 ? void 0 : _a.changeColor(Number(value)); // change color with value
+            });
+            // when user stops giving input to slider (mouseup), make the tool tip invisible
+            alphaSlider.inputElement.addEventListener('mouseup', () => {
+                // make the tool tip invisible
+                alphaSlider.valueBubble.style.opacity = '0';
+            });
+        }
+        /** displayModesSetup: Sets up event handler determining what parameter type is displayed (rgba, hex, hsl)*/
+        displayModesSetup() {
+            let parameterTypeBtns = document.querySelectorAll('.cp-valuesDisplay-type'); // find the parameter drop down
+            let colorDrpdowN = parameterTypeBtns[0]; // RGBA display of color parameter
+            let netlogoDrpdowN = parameterTypeBtns[1];
+            // add event handler for which type of parameter is displayed
+            colorDrpdowN.addEventListener('click', () => {
+                var _a, _b;
+                switch ((_a = this.currentMode) === null || _a === void 0 ? void 0 : _a.getColorPrmType()) {
+                    case 'rgba':
+                        this.currentMode.setColorPrmType('hex'); // current mode is rgba, pressing it switches to hex
+                        colorDrpdowN.innerHTML = 'HEX &dtrif;';
+                        break;
+                    case 'hex':
+                        this.currentMode.setColorPrmType('hsla'); // current mode is hex, pressing it switches to hsl
+                        colorDrpdowN.innerHTML = 'HSLA &dtrif;';
+                        break;
+                    case 'hsla':
+                        this.currentMode.setColorPrmType('rgba'); // current mode is hsl, pressing it switches to rgba
+                        colorDrpdowN.innerHTML = 'RGBA &dtrif;';
+                        break;
+                }
+                (_b = this.currentMode) === null || _b === void 0 ? void 0 : _b.updateDisplayValues();
+            });
+            netlogoDrpdowN.addEventListener('click', () => {
+                var _a, _b;
+                switch ((_a = this.currentMode) === null || _a === void 0 ? void 0 : _a.getNlogoPrmType()) {
+                    case 'string':
+                        this.currentMode.setNetlogoParameterType('number'); // current mode is string, pressing it switches to number
+                        netlogoDrpdowN.innerHTML = 'Number &dtrif;';
+                        break;
+                    case 'number':
+                        this.currentMode.setNetlogoParameterType('string'); // current mode is number, pressing it switches to string
+                        netlogoDrpdowN.innerHTML = 'NetLogo &dtrif;';
+                        break;
+                }
+                (_b = this.currentMode) === null || _b === void 0 ? void 0 : _b.updateDisplayValues(); //update the display value with the new parameter type
+            });
+            // click on the color text to copy the color to clipboard
+            let colorDisplays = document.querySelectorAll('.cp-valuesDisplay-text');
+            colorDisplays[0].addEventListener('click', () => {
+                navigator.clipboard.writeText(colorDisplays[0].firstChild.textContent);
+            });
+            colorDisplays[1].addEventListener('click', () => {
+                navigator.clipboard.writeText(colorDisplays[1].textContent);
+            });
+            // hover message: "Click to Copy"
+            let popOver = document.createElement('div');
+            popOver.classList.add('color-picker-Popover');
+            // add fade animation 
+            popOver.classList.add('color-picker-CopyMsg');
+            colorDisplays[0].addEventListener('mouseover', () => {
+                popOver.textContent = 'Click to Copy';
+                colorDisplays[0].appendChild(popOver);
+            });
+            colorDisplays[0].addEventListener('mouseout', () => {
+                colorDisplays[0].removeChild(popOver);
+            });
+        }
+    }
+
+    /** Color conversion helper functions (temporary) --> where can we get netlogo colors to rgb? */
+    /** netlogoColorToHex: Converts NetLogo color to its hex string. */
+    var colorTimesTen;
+    var baseIndex;
+    var r, g, b;
+    var step;
+    const baseColorsToRGB = {
+        gray: 'rgb(140, 140, 140)',
+        red: 'rgb(215, 48, 39)',
+        orange: 'rgb(241, 105, 19)',
+        brown: 'rgb(156, 109, 70)',
+        yellow: 'rgb(237, 237, 47)',
+        green: 'rgb(87, 176, 58)',
+        lime: 'rgb(42, 209, 57)',
+        turquoise: 'rgb(27, 158, 119)',
+        cyan: 'rgb(82, 196, 196)',
+        sky: 'rgb(43, 140, 190)',
+        blue: 'rgb(50, 92, 168)',
+        violet: 'rgb(123, 78, 163)',
+        magenta: 'rgb(166, 25, 105)',
+        pink: 'rgb(224, 126, 149)',
+        black: 'rgb(0, 0, 0)',
+        white: 'rgb(255, 255, 255)',
+    };
+    /** colorToNumberMapping: maps the NetLogo Base colors to their corresponding numeric value  */
+    const colorToNumberMapping = {
+        'gray': 5,
+        'red': 15,
+        'orange': 25,
+        'brown': 35,
+        'yellow': 45,
+        'green': 55,
+        'lime': 65,
+        'turquoise': 75,
+        'cyan': 85,
+        'sky': 95,
+        'blue': 105,
+        'violet': 115,
+        'magenta': 125,
+        'pink': 135,
+        'black': 145,
+        'white': 155,
+    };
+    /** netlogoBaseColors: Map of NetLogo Base colors to [r, g, b] form */
+    const netlogoBaseColors = [
+        [140, 140, 140],
+        [215, 48, 39],
+        [241, 105, 19],
+        [156, 109, 70],
+        [237, 237, 47],
+        [87, 176, 58],
+        [42, 209, 57],
+        [27, 158, 119],
+        [82, 196, 196],
+        [43, 140, 190],
+        [50, 92, 168],
+        [123, 78, 163],
+        [166, 25, 105],
+        [224, 126, 149],
+        [0, 0, 0],
+        [255, 255, 255], // white
+    ];
+    /**  cachedNetlogoColors: Creates a cache of netlogo colors */
+    let cachedNetlogoColors = (function () {
+        var k, results;
+        results = [];
+        for (colorTimesTen = k = 0; k <= 1400; colorTimesTen = ++k) {
+            baseIndex = Math.floor(colorTimesTen / 100);
+            [r, g, b] = netlogoBaseColors[baseIndex];
+            step = ((colorTimesTen % 100) - 50) / 50.48 + 0.012;
+            if (step < 0) {
+                r += Math.floor(r * step);
+                g += Math.floor(g * step);
+                b += Math.floor(b * step);
+            }
+            else {
+                r += Math.floor((0xff - r) * step);
+                g += Math.floor((0xff - g) * step);
+                b += Math.floor((0xff - b) * step);
+            }
+            results.push([r, g, b]);
+        }
+        return results;
+    })();
+    let cached = cachedNetlogoColors;
+    /** netlogoToRGB: converts netlogo colors to rgb string  */
+    function netlogoToRGB(netlogoColor) {
+        let temp = cached[Math.floor(netlogoColor * 10)];
+        return `rgb(${temp[0]}, ${temp[1]}, ${temp[2]})`;
+    }
+    /* compoundToRGB: return the compound string (red + 5) to a regular number */
+    function compoundToRGB(content) {
+        let stringSplit = content.split(" ");
+        try {
+            if (stringSplit[1] == '+') {
+                return netlogoToRGB(colorToNumberMapping[stringSplit[0]] + Number(stringSplit[2]));
+            }
+            else if (stringSplit[1] == '-') {
+                return netlogoToRGB(colorToNumberMapping[stringSplit[0]] - Number(stringSplit[2]));
+            }
+        }
+        catch (_a) {
+            return '';
+        }
+        return '';
+    }
+    /** netlogoArrToRGB: returns the rgb string from a netlogo color array */
+    function netlogoArrToRGB(inputString) {
+        // Check for valid opening and closing brackets
+        if (!inputString.startsWith('[') || !inputString.endsWith(']')) {
+            return '';
+        }
+        const numbers = inputString.slice(1, -1).split(/\s+/).filter(n => n);
+        if (numbers.length === 3 || numbers.length === 4) {
+            const validNumbers = numbers.map(Number).every(num => !isNaN(num) && num >= 0 && num <= 255);
+            if (validNumbers) {
+                if (numbers.length === 3) {
+                    return `rgb(${numbers.join(', ')})`;
+                }
+                else {
+                    return `rgba(${numbers.join(', ')})`;
+                }
+            }
+        }
+        return '';
+    }
+    /** netlogoToCompound: Converts a numeric NetLogo Color to a compound color string */
+    function netlogoToCompound(netlogoColor) {
+        let baseColorIndex = Math.floor(netlogoColor / 10);
+        let baseColorName = Object.keys(baseColorsToRGB)[baseColorIndex];
+        // Calculate offset and immediately round to one decimal point
+        let offset = Number(((netlogoColor % 10) - 5).toFixed(1));
+        if (offset === 0) {
+            // If the color is a base color, return only the base color name
+            return baseColorName;
+        }
+        else if (offset > 0) {
+            return `${baseColorName} + ${offset}`;
+        }
+        else {
+            return `${baseColorName} - ${Math.abs(offset)}`;
+        }
+    }
+    /**  extractRGBValues: takes an rgb string andr returns an rgba array*/
+    function extractRGBValues(rgbString) {
+        const regex = /rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})(?:,\s*(\d{1,3}|\d\.\d+))?\)/;
+        const match = rgbString.match(regex);
+        if (match) {
+            let values = match.slice(1, 4).map(Number);
+            // Check if the alpha value exists; if not, default to 255
+            const alpha = match[4] === undefined ? 255 : Number(match[4]);
+            values.push(alpha);
+            return values;
+        }
+        return [];
+    }
+    /** ColorPickerWidget: Defines a ColorPicker widget of WidgetType */
+    class ColorPickerWidget extends WidgetType {
+        constructor(color, length, type) {
+            super();
+            this.color = color;
+            this.length = length;
+            this.colorType = type;
+        }
+        getColor() {
+            return this.color;
+        }
+        getLength() {
+            return this.length;
+        }
+        getColorType() {
+            return this.colorType;
+        }
+        /** toDOM: defines the DOM appearance of the widget. Not connected to the widget as per CodeMirror documentation */
+        toDOM() {
+            let wrap = document.createElement("span");
+            wrap.setAttribute("aria-hidden", "true");
+            wrap.className = "netlogo-color-picker-widget";
+            let box = wrap.appendChild(document.createElement('div'));
+            box.style.width = '9px';
+            box.style.height = '9px';
+            box.style.border = '1px solid gray';
+            box.style.borderRadius = '20%';
+            box.style.backgroundColor = this.color;
+            box.style.backgroundColor = this.color;
+            box.style.display = 'inline-block';
+            box.style.cursor = 'pointer';
+            box.style.marginLeft = '5px';
+            return wrap;
+        }
+        ignoreEvent() { return false; }
+    }
+    /** testValidColor: returns the color of a SyntaxNode's text as rgba string. If the text is not a valid color, returns an empty string  */
+    function testValidColor(content) {
+        content = content.trim();
+        if (!content)
+            return [''];
+        let number = Number(content);
+        // check if its a netlogo numeric color
+        if (!isNaN(number) && (number >= 0 && number < 140))
+            return [netlogoToRGB(number), 'numeric'];
+        // check if its one of the constants base color
+        if (baseColorsToRGB[content])
+            return [baseColorsToRGB[content], 'compound'];
+        // check if its of form array 
+        let arrAsRGB = netlogoArrToRGB(content);
+        if (arrAsRGB)
+            return [arrAsRGB, 'array'];
+        return [compoundToRGB(content), 'compound'];
+    }
+    /** colorWidgets: Parses the visibleRange of the editor looking for colorWidget positions  */
+    function colorWidgets(view, posToWidget) {
+        let widgets = [];
+        for (let { from, to } of view.visibleRanges) {
+            syntaxTree(view.state).iterate({
+                from, to,
+                enter: (node) => {
+                    if (node.name == "VariableName") {
+                        let nodeStr = view.state.doc.sliceString(node.from, node.to);
+                        if (nodeStr.includes("color")) {
+                            let sibling = node.node.nextSibling;
+                            // check if node color is valid
+                            if (sibling) {
+                                let color = testValidColor(view.state.doc.sliceString(sibling.from, sibling.to)); // [<color as rgb>, <color type>]
+                                if (color[0] == '') {
+                                    return;
+                                }
+                                let cpWidget = new ColorPickerWidget(color[0], sibling.to - sibling.from, color[1]);
+                                let deco = Decoration.widget({
+                                    widget: cpWidget,
+                                    side: 1
+                                });
+                                widgets.push(deco.range(sibling.to));
+                                // add widget to the hashmap
+                                posToWidget.set(sibling.to, cpWidget);
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        return Decoration.set(widgets);
+    }
+    /** intializeCP: creates an instance of a ColorPicker */
+    function initializeCP(view, pos, widget) {
+        // Check if the ColorPicker is already open
+        let CPOpen = document.querySelector('#colorPickerDiv');
+        if (CPOpen) {
+            return; // ColorPicker is already open
+        }
+        let cpDiv = document.createElement('div');
+        cpDiv.id = 'colorPickerDiv';
+        cpDiv.style.position = 'absolute';
+        view.dom.appendChild(cpDiv);
+        console.log(widget.getLength());
+        new ColorPicker(cpDiv, (selectedColor) => {
+            let newValue;
+            // format corectly based on cpDiv
+            switch (widget.getColorType()) {
+                case 'compound':
+                    newValue = netlogoToCompound(selectedColor[1]);
+                    break;
+                case 'numeric':
+                    newValue = selectedColor[1].toString();
+                    break;
+                case 'array':
+                    newValue = `[${selectedColor[0][0]} ${selectedColor[0][1]} ${selectedColor[0][2]} ${selectedColor[0][3]}]`;
+            }
+            let change = { from: pos - widget.getLength(), to: pos, insert: newValue };
+            view.dispatch({ changes: change });
+            cpDiv.remove();
+        }, extractRGBValues(widget.getColor())); // Initial color
+    }
+    /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
+    const ColorPickerPlugin = ViewPlugin.fromClass(class {
+        constructor(view) {
+            this.posToWidget = new Map();
+            this.decorations = colorWidgets(view, this.posToWidget);
+        }
+        update(update) {
+            if (update.docChanged || update.viewportChanged || syntaxTree(update.startState) != syntaxTree(update.state))
+                // update, refresh the map
+                this.posToWidget.clear();
+            this.decorations = colorWidgets(update.view, this.posToWidget);
+        }
+        handleMouseDown(e, view) {
+            let target = e.target;
+            if (target.nodeName == "DIV" && target.parentElement.classList.contains("netlogo-color-picker-widget")) {
+                console.log(this.posToWidget);
+                initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target)));
+            }
+        }
+    }, {
+        decorations: v => v.decorations,
+        eventHandlers: {
+            mousedown: function (e, view) {
+                this.handleMouseDown(e, view);
+            },
+        },
+    });
+
     class GalapagosEditor {
         /** Constructor: Create an editor instance. */
         constructor(Parent, Options) {
@@ -36237,6 +38261,7 @@ if(!String.prototype.matchAll) {
                     Extensions.push(lintGutter());
             }
             Extensions.push(this.Language);
+            Extensions.push(ColorPickerPlugin);
             // Keybindings
             if (this.Options.KeyBindings)
                 Extensions.push(keymap.of(this.Options.KeyBindings));
