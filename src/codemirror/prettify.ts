@@ -154,7 +154,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
   syntaxTree(view.state)
     .cursor()
     .iterate((node) => {
-      console.log(node.name, "'" + getCodeName(view.state, node.node) + "'");
+      // console.log(node.name, "'" + getCodeName(view.state, node.node) + "'");
       if (node.from >= from && node.to <= to) {
         if (
           ((node.node.parent?.name == 'Program' && node.name != 'LineComment') ||
@@ -167,7 +167,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
           // console.log("A")
           changes.push({ from: node.from, to: node.from, insert: '\n' });
         } else if (node.name == 'CodeBlock') {
-          //console.log("CODEBLOCK",doc.substring(node.from,node.to))
+          // console.log("CODEBLOCK",doc.substring(node.from,node.to),doc.substring(node.from, node.to).match(/^\s*\[\s*[^\s]+\s*\]/g))
           if (doc.substring(node.from, node.to).match(/^\s*\[\s*[^\s]+\s*\]/g)) {
             let replacement =
               '[ ' +
@@ -195,13 +195,14 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
             // console.log(getCodeName(view.state,node.node))
             for (var name of ['ProcedureContent', 'CloseBracket']) {
               node.node.getChildren(name).map((child) => {
+                // console.log(getCodeName(view.state,child),doc.substring(child.from-15,child.from).replace(/[ ]/g, ''))
                 if (
-                  doc
+                  !doc
                     .substring(Math.max(0, child.from - 15), child.from)
-                    .trim()
+                    .replace(/[ ]/g, '')
                     .endsWith('\n')
                 ) {
-                  // console.log("C",doc.substring(child.from-15,child.from).trim().endsWith('\n'))
+                  // console.log("C","'"+doc.substring(child.from-15,child.from).replace(/[ ]/g, '')+"'",doc.substring(child.from-15,child.from).replace(/[ ]/g, '').endsWith('\n'))
                   changes.push({
                     from: child.from,
                     to: child.from,
@@ -211,8 +212,8 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
               });
             }
           }
-        } else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterContent', doc, lineWidth)) {
-          for (var name of ['ReporterContent', 'CloseBracket']) {
+        } else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterStatement', doc, lineWidth)) {
+          for (var name of ['ReporterStatement', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               if (doc[child.from - 1] != '\n') {
                 // console.log("D")
@@ -330,10 +331,10 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
           // });
         } else if (
           node.name == 'AnonymousProcedure' &&
-          (checkBlock(node.node, 'ReporterContent', doc, lineWidth) ||
+          (checkBlock(node.node, 'ReporterStatement', doc, lineWidth) ||
             checkBlock(node.node, 'ProcedureContent', doc, lineWidth))
         ) {
-          for (var name of ['ProcedureContent', 'ReporterContent', 'CloseBracket']) {
+          for (var name of ['ProcedureContent', 'ReporterStatement', 'CloseBracket']) {
             node.node.getChildren(name).map((child) => {
               // console.log("E")
               if (doc[child.from - 1] != '\n') {
@@ -395,6 +396,7 @@ const addSpacing = function (view: EditorView, from: number, to: number, lineWid
         }
       }
     });
+  // console.log(changes)
   return changes;
 };
 
@@ -409,7 +411,7 @@ const checkBlock = function (node: SyntaxNode, childName: string, doc: string, l
       doc.substring(child.from, child.to).includes('\n') ||
       doc.substring(child.from, child.to).length > lineWidth ||
       multiline;
-
+    // console.log(multiline+" "+child.name+" "+doc.substring(child.from, child.to).length+" "+lineWidth)
     child.getChildren('CommandStatement').map((node) => {
       node.getChildren('Arg').map((subnode) => {
         if (subnode.getChildren('CodeBlock').length > 0) {
@@ -420,5 +422,6 @@ const checkBlock = function (node: SyntaxNode, childName: string, doc: string, l
       });
     });
   });
+  // console.log(((multiline || multilineChildren) && count == 1) || count > 1)
   return ((multiline || multilineChildren) && count == 1) || count > 1;
 };

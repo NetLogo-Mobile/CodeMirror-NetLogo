@@ -379,7 +379,7 @@ export async function FixGeneratedCode(
   Editor.Operations.ChangeCode(changes);
 
   // I just realized that we cannot do this in the current fashion. e.g. When there are multiple breed fixes with the same name, we might introduce multiple statements.
-  /*// Fourth pass: lint the code and apply the actions
+  // Fourth pass: lint the code and apply the actions
   let Errors = await Editor.ForceLintAsync();
   console.log(Errors);
   let did_actions = false;
@@ -390,7 +390,7 @@ export async function FixGeneratedCode(
     }
   });
   // If there were actions, run the auto-fix again
-  if (did_actions && try_again) await FixGeneratedCode(Editor, Editor.CodeMirror.state.doc.toString(), Parent, false);*/
+  if (did_actions && try_again) await FixGeneratedCode(Editor, Editor.CodeMirror.state.doc.toString(), Parent, false);
 
   // Fifth pass: re-introduce the snapshot
   IntegrateSnapshot(Editor, Snapshot);

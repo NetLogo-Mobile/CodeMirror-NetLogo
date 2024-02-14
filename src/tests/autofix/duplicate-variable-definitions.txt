@@ -8,7 +8,5 @@ end
 globals [ something-else ]
 breed [ trains train ]
 to setup-trains
-  create-trains 100 [
-    set color red
-  ]
+  create-trains 100 [ set color red ]
 end

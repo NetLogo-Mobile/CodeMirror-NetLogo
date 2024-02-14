@@ -1,7 +1,7 @@
-import { WidgetType, EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
-import { syntaxTree } from "@codemirror/language";
-import { Range } from "@codemirror/rangeset";
-import { ColorPicker } from "@netlogo/netlogo-color-picker";
+import { WidgetType, EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
+import { syntaxTree } from '@codemirror/language';
+import { Range } from '@codemirror/rangeset';
+import { ColorPicker } from '@netlogo/netlogo-color-picker';
 
 /** Color conversion helper functions (temporary) --> where can we get netlogo colors to rgb? */
 /** netlogoColorToHex: Converts NetLogo color to its hex string. */
@@ -10,7 +10,7 @@ var baseIndex: number;
 var r, g, b: number;
 var step: number;
 
-const baseColorsToRGB: {[key:string]: string}= {
+const baseColorsToRGB: { [key: string]: string } = {
   gray: 'rgb(140, 140, 140)',
   red: 'rgb(215, 48, 39)',
   orange: 'rgb(241, 105, 19)',
@@ -30,23 +30,23 @@ const baseColorsToRGB: {[key:string]: string}= {
 };
 
 /** colorToNumberMapping: maps the NetLogo Base colors to their corresponding numeric value  */
-const colorToNumberMapping: {[key:string]: number} = {
-  'gray': 5,
-  'red': 15,
-  'orange': 25,
-  'brown': 35,
-  'yellow': 45,
-  'green': 55,
-  'lime': 65,
-  'turquoise': 75,
-  'cyan': 85,
-  'sky': 95,
-  'blue': 105,
-  'violet': 115,
-  'magenta': 125,
-  'pink': 135,
-  'black': 145,
-  'white': 155,
+const colorToNumberMapping: { [key: string]: number } = {
+  gray: 5,
+  red: 15,
+  orange: 25,
+  brown: 35,
+  yellow: 45,
+  green: 55,
+  lime: 65,
+  turquoise: 75,
+  cyan: 85,
+  sky: 95,
+  blue: 105,
+  violet: 115,
+  magenta: 125,
+  pink: 135,
+  black: 145,
+  white: 155,
 };
 
 /** netlogoBaseColors: Map of NetLogo Base colors to [r, g, b] form */
@@ -100,9 +100,9 @@ function netlogoToRGB(netlogoColor: number): string {
 
 /* compoundToRGB: return the compound string (red + 5) to a regular number */
 function compoundToRGB(content: string): string {
-  let stringSplit = content.split(" ");
+  let stringSplit = content.split(' ');
   try {
-    if(stringSplit[1] == '+') {
+    if (stringSplit[1] == '+') {
       return netlogoToRGB(colorToNumberMapping[stringSplit[0]] + Number(stringSplit[2]));
     } else if (stringSplit[1] == '-') {
       return netlogoToRGB(colorToNumberMapping[stringSplit[0]] - Number(stringSplit[2]));
@@ -119,9 +119,12 @@ function netlogoArrToRGB(inputString: string) {
   if (!inputString.startsWith('[') || !inputString.endsWith(']')) {
     return '';
   }
-  const numbers = inputString.slice(1, -1).split(/\s+/).filter(n => n);
+  const numbers = inputString
+    .slice(1, -1)
+    .split(/\s+/)
+    .filter((n) => n);
   if (numbers.length === 3 || numbers.length === 4) {
-    const validNumbers = numbers.map(Number).every(num => !isNaN(num) && num >= 0 && num <= 255);
+    const validNumbers = numbers.map(Number).every((num) => !isNaN(num) && num >= 0 && num <= 255);
 
     if (validNumbers) {
       if (numbers.length === 3) {
@@ -151,7 +154,6 @@ function netlogoToCompound(netlogoColor: number): string {
   }
 }
 
-
 /**  extractRGBValues: takes an rgb string andr returns an rgba array*/
 function extractRGBValues(rgbString: string) {
   const regex = /rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})(?:,\s*(\d{1,3}|\d\.\d+))?\)/;
@@ -168,8 +170,8 @@ function extractRGBValues(rgbString: string) {
 
 /** ColorPickerWidget: Defines a ColorPicker widget of WidgetType */
 class ColorPickerWidget extends WidgetType {
-  private color: string;  // color of the section associated with the widget 
-  private length: number; // length of the color section associated with the widget 
+  private color: string; // color of the section associated with the widget
+  private length: number; // length of the color section associated with the widget
   /** colorType: the representation of the color:
    * 'compound' --> netlogo compound color ( red + 5 )
    * 'numeric' --> netlogo color numeric value: ( 45 )
@@ -177,7 +179,7 @@ class ColorPickerWidget extends WidgetType {
    */
   private colorType: string;
 
-  constructor(color: string, length: number, type: string) { 
+  constructor(color: string, length: number, type: string) {
     super();
     this.color = color;
     this.length = length;
@@ -198,9 +200,9 @@ class ColorPickerWidget extends WidgetType {
 
   /** toDOM: defines the DOM appearance of the widget. Not connected to the widget as per CodeMirror documentation */
   toDOM() {
-    let wrap = document.createElement("span");
-    wrap.setAttribute("aria-hidden", "true");
-    wrap.className = "netlogo-color-picker-widget";
+    let wrap = document.createElement('span');
+    wrap.setAttribute('aria-hidden', 'true');
+    wrap.className = 'netlogo-color-picker-widget';
     let box = wrap.appendChild(document.createElement('div'));
     box.style.width = '9px';
     box.style.height = '9px';
@@ -214,7 +216,9 @@ class ColorPickerWidget extends WidgetType {
     return wrap;
   }
 
-  ignoreEvent() { return false }
+  ignoreEvent() {
+    return false;
+  }
 }
 
 /** testValidColor: returns the color of a SyntaxNode's text as rgba string. If the text is not a valid color, returns an empty string  */
@@ -223,45 +227,46 @@ function testValidColor(content: string): string[] {
   if (!content) return [''];
   let number = Number(content);
   // check if its a netlogo numeric color
-  if(!isNaN(number) && (number >= 0 && number < 140)) return [netlogoToRGB(number), 'numeric'];
+  if (!isNaN(number) && number >= 0 && number < 140) return [netlogoToRGB(number), 'numeric'];
   // check if its one of the constants base color
-  if(baseColorsToRGB[content]) return [baseColorsToRGB[content], 'compound'];
-  // check if its of form array 
+  if (baseColorsToRGB[content]) return [baseColorsToRGB[content], 'compound'];
+  // check if its of form array
   let arrAsRGB = netlogoArrToRGB(content);
-  if(arrAsRGB) return [arrAsRGB, 'array'];
+  if (arrAsRGB) return [arrAsRGB, 'array'];
   return [compoundToRGB(content), 'compound'];
 }
 
 /** colorWidgets: Parses the visibleRange of the editor looking for colorWidget positions  */
 function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidget>) {
   let widgets: Range<Decoration>[] = [];
-  for (let {from, to} of view.visibleRanges) {
+  for (let { from, to } of view.visibleRanges) {
     syntaxTree(view.state).iterate({
-      from, to,
+      from,
+      to,
       enter: (node) => {
-        if(node.name == "VariableName") {
+        if (node.name == 'VariableName') {
           let nodeStr = view.state.doc.sliceString(node.from, node.to);
-          if(nodeStr.includes("color")) {
+          if (nodeStr.includes('color')) {
             let sibling = node.node.nextSibling;
             // check if node color is valid
-            if(sibling) {
+            if (sibling) {
               let color: string[] = testValidColor(view.state.doc.sliceString(sibling.from, sibling.to)); // [<color as rgb>, <color type>]
-              if(color[0] == '') {
+              if (color[0] == '') {
                 return;
               }
               let cpWidget = new ColorPickerWidget(color[0], sibling.to - sibling.from, color[1]);
               let deco = Decoration.widget({
                 widget: cpWidget,
-                side: 1
-              })
+                side: 1,
+              });
               widgets.push(deco.range(sibling.to));
               // add widget to the hashmap
               posToWidget.set(sibling.to, cpWidget);
             }
           }
         }
-      }
-    })
+      },
+    });
   }
   return Decoration.set(widgets);
 }
@@ -279,23 +284,27 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
   view.dom.appendChild(cpDiv);
   console.log(widget.getLength());
 
-  const colorPicker = new ColorPicker(cpDiv, (selectedColor) => {
-    let newValue;
-    // format corectly based on cpDiv
-    switch(widget.getColorType()) {
-      case 'compound':
-        newValue = netlogoToCompound(selectedColor[1]);
-        break;
-      case 'numeric':
-        newValue = selectedColor[1].toString();
-        break;
-      case 'array':
-        newValue = `[${selectedColor[0][0]} ${selectedColor[0][1]} ${selectedColor[0][2]} ${selectedColor[0][3]}]`;
-    }
-    let change = {from: pos - widget.getLength(), to: pos, insert: newValue}
-    view.dispatch({changes: change});
-    cpDiv.remove();
-  }, extractRGBValues(widget.getColor())); // Initial color
+  const colorPicker = new ColorPicker(
+    cpDiv,
+    (selectedColor) => {
+      let newValue;
+      // format corectly based on cpDiv
+      switch (widget.getColorType()) {
+        case 'compound':
+          newValue = netlogoToCompound(selectedColor[1]);
+          break;
+        case 'numeric':
+          newValue = selectedColor[1].toString();
+          break;
+        case 'array':
+          newValue = `[${selectedColor[0][0]} ${selectedColor[0][1]} ${selectedColor[0][2]} ${selectedColor[0][3]}]`;
+      }
+      let change = { from: pos - widget.getLength(), to: pos, insert: newValue };
+      view.dispatch({ changes: change });
+      cpDiv.remove();
+    },
+    extractRGBValues(widget.getColor())
+  ); // Initial color
 }
 
 /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
@@ -309,29 +318,29 @@ const ColorPickerPlugin = ViewPlugin.fromClass(
     }
 
     update(update: ViewUpdate) {
-      if(update.docChanged || update.viewportChanged || syntaxTree(update.startState) != syntaxTree(update.state))
+      if (update.docChanged || update.viewportChanged || syntaxTree(update.startState) != syntaxTree(update.state))
         // update, refresh the map
         this.posToWidget.clear();
-        this.decorations = colorWidgets(update.view, this.posToWidget);
+      this.decorations = colorWidgets(update.view, this.posToWidget);
     }
 
     handleMouseDown(e: MouseEvent, view: EditorView) {
       let target = e.target as HTMLElement;
-      if(target.nodeName == "DIV" && target.parentElement!.classList.contains("netlogo-color-picker-widget")) {
+      if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('netlogo-color-picker-widget')) {
         console.log(this.posToWidget);
         initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!);
       }
     }
-  }, {
-    decorations: v => v.decorations,
+  },
+  {
+    decorations: (v) => v.decorations,
 
     eventHandlers: {
       mousedown: function (e: MouseEvent, view: EditorView) {
         this.handleMouseDown(e, view);
       },
     },
-});
+  }
+);
 
-
-
-export { ColorPickerPlugin }
+export { ColorPickerPlugin };
