@@ -7450,6 +7450,7 @@ if(!String.prototype.matchAll) {
         }
         get editable() { return true; }
         get estimatedHeight() { return this.height; }
+        ignoreEvent() { return false; }
     }
     function findCompositionNode(view, headPos) {
         let sel = view.observer.selectionRange;
@@ -10464,12 +10465,16 @@ if(!String.prototype.matchAll) {
                     !contains(view.contentDOM, domSel.anchorNode)
                     ? view.state.selection.main.anchor
                     : view.docView.posFromDOM(domSel.anchorNode, domSel.anchorOffset);
-                // iOS will refuse to select the block gaps when doing select-all
+                // iOS will refuse to select the block gaps when doing
+                // select-all.
+                // Chrome will put the selection *inside* them, confusing
+                // posFromDOM
                 let vp = view.viewport;
-                if (browser.ios && view.state.selection.main.empty && head != anchor &&
+                if ((browser.ios || browser.chrome) && view.state.selection.main.empty && head != anchor &&
                     (vp.from > 0 || vp.to < view.state.doc.length)) {
-                    let offFrom = vp.from - Math.min(head, anchor), offTo = vp.to - Math.max(head, anchor);
-                    if ((offFrom == 0 || offFrom == 1) && (offTo == 0 || offTo == -1)) {
+                    let from = Math.min(head, anchor), to = Math.max(head, anchor);
+                    let offFrom = vp.from - from, offTo = vp.to - to;
+                    if ((offFrom == 0 || offFrom == 1 || from == 0) && (offTo == 0 || offTo == -1 || to == view.state.doc.length)) {
                         head = 0;
                         anchor = view.state.doc.length;
                     }
@@ -13405,7 +13410,8 @@ if(!String.prototype.matchAll) {
             this.removeTooltipView = removeTooltipView;
             this.input = view.state.facet(facet);
             this.tooltips = this.input.filter(t => t);
-            this.tooltipViews = this.tooltips.map(createTooltipView);
+            let prev = null;
+            this.tooltipViews = this.tooltips.map(t => prev = createTooltipView(t, prev));
         }
         update(update, above) {
             var _a;
@@ -13428,7 +13434,7 @@ if(!String.prototype.matchAll) {
                         known = i;
                 }
                 if (known < 0) {
-                    tooltipViews[i] = this.createTooltipView(tip);
+                    tooltipViews[i] = this.createTooltipView(tip, i ? tooltipViews[i - 1] : null);
                     if (newAbove)
                         newAbove[i] = !!tip.above;
                 }
@@ -13485,7 +13491,7 @@ if(!String.prototype.matchAll) {
             this.createContainer();
             this.measureReq = { read: this.readMeasure.bind(this), write: this.writeMeasure.bind(this), key: this };
             this.resizeObserver = typeof ResizeObserver == "function" ? new ResizeObserver(() => this.measureSoon()) : null;
-            this.manager = new TooltipViewManager(view, showTooltip, t => this.createTooltip(t), t => {
+            this.manager = new TooltipViewManager(view, showTooltip, (t, p) => this.createTooltip(t, p), t => {
                 if (this.resizeObserver)
                     this.resizeObserver.unobserve(t.dom);
                 t.dom.remove();
@@ -13554,18 +13560,19 @@ if(!String.prototype.matchAll) {
             if (shouldMeasure)
                 this.maybeMeasure();
         }
-        createTooltip(tooltip) {
+        createTooltip(tooltip, prev) {
             let tooltipView = tooltip.create(this.view);
+            let before = prev ? prev.dom : null;
             tooltipView.dom.classList.add("cm-tooltip");
             if (tooltip.arrow && !tooltipView.dom.querySelector(".cm-tooltip > .cm-tooltip-arrow")) {
                 let arrow = document.createElement("div");
                 arrow.className = "cm-tooltip-arrow";
-                tooltipView.dom.appendChild(arrow);
+                tooltipView.dom.insertBefore(arrow, before);
             }
             tooltipView.dom.style.position = this.position;
             tooltipView.dom.style.top = Outside;
             tooltipView.dom.style.left = "0px";
-            this.container.appendChild(tooltipView.dom);
+            this.container.insertBefore(tooltipView.dom, before);
             if (tooltipView.mount)
                 tooltipView.mount(this.view);
             if (this.resizeObserver)
@@ -13785,7 +13792,9 @@ if(!String.prototype.matchAll) {
     const showTooltip = /*@__PURE__*/Facet.define({
         enables: [tooltipPlugin, baseTheme$5]
     });
-    const showHoverTooltip = /*@__PURE__*/Facet.define();
+    const showHoverTooltip = /*@__PURE__*/Facet.define({
+        combine: inputs => inputs.reduce((a, i) => a.concat(i), [])
+    });
     class HoverTooltipHost {
         // Needs to be static so that host tooltip instances always match
         static create(view) {
@@ -13796,12 +13805,12 @@ if(!String.prototype.matchAll) {
             this.mounted = false;
             this.dom = document.createElement("div");
             this.dom.classList.add("cm-tooltip-hover");
-            this.manager = new TooltipViewManager(view, showHoverTooltip, t => this.createHostedView(t), t => t.dom.remove());
+            this.manager = new TooltipViewManager(view, showHoverTooltip, (t, p) => this.createHostedView(t, p), t => t.dom.remove());
         }
-        createHostedView(tooltip) {
+        createHostedView(tooltip, prev) {
             let hostedView = tooltip.create(this.view);
             hostedView.dom.classList.add("cm-tooltip-section");
-            this.dom.appendChild(hostedView.dom);
+            this.dom.insertBefore(hostedView.dom, prev ? prev.dom.nextSibling : this.dom.firstChild);
             if (this.mounted && hostedView.mount)
                 hostedView.mount(this.view);
             return hostedView;
@@ -13846,7 +13855,7 @@ if(!String.prototype.matchAll) {
         get resize() { return this.passProp("resize"); }
     }
     const showHoverTooltipHost = /*@__PURE__*/showTooltip.compute([showHoverTooltip], state => {
-        let tooltips = state.facet(showHoverTooltip).filter(t => t);
+        let tooltips = state.facet(showHoverTooltip);
         if (tooltips.length === 0)
             return null;
         return {
@@ -13884,7 +13893,7 @@ if(!String.prototype.matchAll) {
         }
         checkHover() {
             this.hoverTimeout = -1;
-            if (this.active)
+            if (this.active.length)
                 return;
             let hovered = Date.now() - this.lastMove.time;
             if (hovered < this.hoverTime)
@@ -13922,13 +13931,13 @@ if(!String.prototype.matchAll) {
                 open.then(result => {
                     if (this.pending == pending) {
                         this.pending = null;
-                        if (result)
-                            view.dispatch({ effects: this.setHover.of(result) });
+                        if (result && !(Array.isArray(result) && !result.length))
+                            view.dispatch({ effects: this.setHover.of(Array.isArray(result) ? result : [result]) });
                     }
                 }, e => logException(view.state, e, "hover tooltip"));
             }
-            else if (open) {
-                view.dispatch({ effects: this.setHover.of(open) });
+            else if (open && !(Array.isArray(open) && !open.length)) {
+                view.dispatch({ effects: this.setHover.of(Array.isArray(open) ? open : [open]) });
             }
         }
         get tooltip() {
@@ -13937,16 +13946,16 @@ if(!String.prototype.matchAll) {
             return index > -1 ? plugin.manager.tooltipViews[index] : null;
         }
         mousemove(event) {
-            var _a;
+            var _a, _b;
             this.lastMove = { x: event.clientX, y: event.clientY, target: event.target, time: Date.now() };
             if (this.hoverTimeout < 0)
                 this.hoverTimeout = setTimeout(this.checkHover, this.hoverTime);
             let { active, tooltip } = this;
-            if (active && tooltip && !isInTooltip(tooltip.dom, event) || this.pending) {
-                let { pos } = active || this.pending, end = (_a = active === null || active === void 0 ? void 0 : active.end) !== null && _a !== void 0 ? _a : pos;
+            if (active.length && tooltip && !isInTooltip(tooltip.dom, event) || this.pending) {
+                let { pos } = active[0] || this.pending, end = (_b = (_a = active[0]) === null || _a === void 0 ? void 0 : _a.end) !== null && _b !== void 0 ? _b : pos;
                 if ((pos == end ? this.view.posAtCoords(this.lastMove) != pos
                     : !isOverRange(this.view, pos, end, event.clientX, event.clientY))) {
-                    this.view.dispatch({ effects: this.setHover.of(null) });
+                    this.view.dispatch({ effects: this.setHover.of([]) });
                     this.pending = null;
                 }
             }
@@ -13955,11 +13964,11 @@ if(!String.prototype.matchAll) {
             clearTimeout(this.hoverTimeout);
             this.hoverTimeout = -1;
             let { active } = this;
-            if (active) {
+            if (active.length) {
                 let { tooltip } = this;
                 let inTooltip = tooltip && tooltip.dom.contains(event.relatedTarget);
                 if (!inTooltip)
-                    this.view.dispatch({ effects: this.setHover.of(null) });
+                    this.view.dispatch({ effects: this.setHover.of([]) });
                 else
                     this.watchTooltipLeave(tooltip.dom);
             }
@@ -13967,8 +13976,8 @@ if(!String.prototype.matchAll) {
         watchTooltipLeave(tooltip) {
             let watch = (event) => {
                 tooltip.removeEventListener("mouseleave", watch);
-                if (this.active && !this.view.dom.contains(event.relatedTarget))
-                    this.view.dispatch({ effects: this.setHover.of(null) });
+                if (this.active.length && !this.view.dom.contains(event.relatedTarget))
+                    this.view.dispatch({ effects: this.setHover.of([]) });
             };
             tooltip.addEventListener("mouseleave", watch);
         }
@@ -14008,26 +14017,30 @@ if(!String.prototype.matchAll) {
     function hoverTooltip(source, options = {}) {
         let setHover = StateEffect.define();
         let hoverState = StateField.define({
-            create() { return null; },
+            create() { return []; },
             update(value, tr) {
-                if (value && (options.hideOnChange && (tr.docChanged || tr.selection) ||
-                    options.hideOn && options.hideOn(tr, value)))
-                    return null;
-                if (value && tr.docChanged) {
-                    let newPos = tr.changes.mapPos(value.pos, -1, MapMode.TrackDel);
-                    if (newPos == null)
-                        return null;
-                    let copy = Object.assign(Object.create(null), value);
-                    copy.pos = newPos;
-                    if (value.end != null)
-                        copy.end = tr.changes.mapPos(value.end);
-                    value = copy;
+                if (value.length) {
+                    if (options.hideOnChange && (tr.docChanged || tr.selection))
+                        value = [];
+                    else if (options.hideOn)
+                        value = value.filter(v => !options.hideOn(tr, v));
+                    if (tr.docChanged) {
+                        for (let tooltip of value) {
+                            let newPos = tr.changes.mapPos(tooltip.pos, -1, MapMode.TrackDel);
+                            if (newPos != null) {
+                                let copy = Object.assign(Object.create(null), tooltip);
+                                copy.pos = newPos;
+                                if (copy.end != null)
+                                    copy.end = tr.changes.mapPos(copy.end);
+                            }
+                        }
+                    }
                 }
                 for (let effect of tr.effects) {
                     if (effect.is(setHover))
                         value = effect.value;
                     if (effect.is(closeHoverTooltipEffect))
-                        value = null;
+                        value = [];
                 }
                 return value;
             },
@@ -32580,7 +32593,7 @@ if(!String.prototype.matchAll) {
                 let norm = this.normalize(str);
                 for (let i = 0, pos = start;; i++) {
                     let code = norm.charCodeAt(i);
-                    let match = this.match(code, pos);
+                    let match = this.match(code, pos, this.bufferPos + this.bufferStart);
                     if (i == norm.length - 1) {
                         if (match) {
                             this.value = match;
@@ -32593,13 +32606,13 @@ if(!String.prototype.matchAll) {
                 }
             }
         }
-        match(code, pos) {
+        match(code, pos, end) {
             let match = null;
             for (let i = 0; i < this.matches.length; i += 2) {
                 let index = this.matches[i], keep = false;
                 if (this.query.charCodeAt(index) == code) {
                     if (index == this.query.length - 1) {
-                        match = { from: this.matches[i + 1], to: pos + 1 };
+                        match = { from: this.matches[i + 1], to: end };
                     }
                     else {
                         this.matches[i]++;
@@ -32613,7 +32626,7 @@ if(!String.prototype.matchAll) {
             }
             if (this.query.charCodeAt(0) == code) {
                 if (this.query.length == 1)
-                    match = { from: pos, to: pos + 1 };
+                    match = { from: pos, to: end };
                 else
                     this.matches.push(1, pos);
             }
@@ -32961,12 +32974,12 @@ if(!String.prototype.matchAll) {
                 if (conf.wholeWords) {
                     query = state.sliceDoc(range.from, range.to); // TODO: allow and include leading/trailing space?
                     check = state.charCategorizer(range.head);
-                    if (!(insideWordBoundaries(check, state, range.from, range.to)
-                        && insideWord(check, state, range.from, range.to)))
+                    if (!(insideWordBoundaries(check, state, range.from, range.to) &&
+                        insideWord(check, state, range.from, range.to)))
                         return Decoration.none;
                 }
                 else {
-                    query = state.sliceDoc(range.from, range.to).trim();
+                    query = state.sliceDoc(range.from, range.to);
                     if (!query)
                         return Decoration.none;
                 }
@@ -33848,6 +33861,8 @@ if(!String.prototype.matchAll) {
     function Diff() {}
     Diff.prototype = {
       diff: function diff(oldString, newString) {
+        var _options$timeout;
+
         var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
         var callback = options.callback;
 
@@ -33884,64 +33899,96 @@ if(!String.prototype.matchAll) {
           maxEditLength = Math.min(maxEditLength, options.maxEditLength);
         }
 
+        var maxExecutionTime = (_options$timeout = options.timeout) !== null && _options$timeout !== void 0 ? _options$timeout : Infinity;
+        var abortAfterTimestamp = Date.now() + maxExecutionTime;
         var bestPath = [{
-          newPos: -1,
-          components: []
+          oldPos: -1,
+          lastComponent: undefined
         }]; // Seed editLength = 0, i.e. the content starts with the same values
 
-        var oldPos = this.extractCommon(bestPath[0], newString, oldString, 0);
+        var newPos = this.extractCommon(bestPath[0], newString, oldString, 0);
 
-        if (bestPath[0].newPos + 1 >= newLen && oldPos + 1 >= oldLen) {
+        if (bestPath[0].oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
           // Identity per the equality and tokenizer
           return done([{
             value: this.join(newString),
             count: newString.length
           }]);
-        } // Main worker method. checks all permutations of a given edit length for acceptance.
+        } // Once we hit the right edge of the edit graph on some diagonal k, we can
+        // definitely reach the end of the edit graph in no more than k edits, so
+        // there's no point in considering any moves to diagonal k+1 any more (from
+        // which we're guaranteed to need at least k+1 more edits).
+        // Similarly, once we've reached the bottom of the edit graph, there's no
+        // point considering moves to lower diagonals.
+        // We record this fact by setting minDiagonalToConsider and
+        // maxDiagonalToConsider to some finite value once we've hit the edge of
+        // the edit graph.
+        // This optimization is not faithful to the original algorithm presented in
+        // Myers's paper, which instead pointlessly extends D-paths off the end of
+        // the edit graph - see page 7 of Myers's paper which notes this point
+        // explicitly and illustrates it with a diagram. This has major performance
+        // implications for some common scenarios. For instance, to compute a diff
+        // where the new text simply appends d characters on the end of the
+        // original text of length n, the true Myers algorithm will take O(n+d^2)
+        // time while this optimization needs only O(n+d) time.
 
+
+        var minDiagonalToConsider = -Infinity,
+            maxDiagonalToConsider = Infinity; // Main worker method. checks all permutations of a given edit length for acceptance.
 
         function execEditLength() {
-          for (var diagonalPath = -1 * editLength; diagonalPath <= editLength; diagonalPath += 2) {
+          for (var diagonalPath = Math.max(minDiagonalToConsider, -editLength); diagonalPath <= Math.min(maxDiagonalToConsider, editLength); diagonalPath += 2) {
             var basePath = void 0;
+            var removePath = bestPath[diagonalPath - 1],
+                addPath = bestPath[diagonalPath + 1];
 
-            var addPath = bestPath[diagonalPath - 1],
-                removePath = bestPath[diagonalPath + 1],
-                _oldPos = (removePath ? removePath.newPos : 0) - diagonalPath;
-
-            if (addPath) {
+            if (removePath) {
               // No one else is going to attempt to use this value, clear it
               bestPath[diagonalPath - 1] = undefined;
             }
 
-            var canAdd = addPath && addPath.newPos + 1 < newLen,
-                canRemove = removePath && 0 <= _oldPos && _oldPos < oldLen;
+            var canAdd = false;
+
+            if (addPath) {
+              // what newPos will be after we do an insertion:
+              var addPathNewPos = addPath.oldPos - diagonalPath;
+              canAdd = addPath && 0 <= addPathNewPos && addPathNewPos < newLen;
+            }
+
+            var canRemove = removePath && removePath.oldPos + 1 < oldLen;
 
             if (!canAdd && !canRemove) {
               // If this path is a terminal then prune
               bestPath[diagonalPath] = undefined;
               continue;
             } // Select the diagonal that we want to branch from. We select the prior
-            // path whose position in the new string is the farthest from the origin
+            // path whose position in the old string is the farthest from the origin
             // and does not pass the bounds of the diff graph
+            // TODO: Remove the `+ 1` here to make behavior match Myers algorithm
+            //       and prefer to order removals before insertions.
 
 
-            if (!canAdd || canRemove && addPath.newPos < removePath.newPos) {
-              basePath = clonePath(removePath);
-              self.pushComponent(basePath.components, undefined, true);
+            if (!canRemove || canAdd && removePath.oldPos + 1 < addPath.oldPos) {
+              basePath = self.addToPath(addPath, true, undefined, 0);
             } else {
-              basePath = addPath; // No need to clone, we've pulled it from the list
-
-              basePath.newPos++;
-              self.pushComponent(basePath.components, true, undefined);
+              basePath = self.addToPath(removePath, undefined, true, 1);
             }
 
-            _oldPos = self.extractCommon(basePath, newString, oldString, diagonalPath); // If we have hit the end of both strings, then we are done
+            newPos = self.extractCommon(basePath, newString, oldString, diagonalPath);
 
-            if (basePath.newPos + 1 >= newLen && _oldPos + 1 >= oldLen) {
-              return done(buildValues(self, basePath.components, newString, oldString, self.useLongestToken));
+            if (basePath.oldPos + 1 >= oldLen && newPos + 1 >= newLen) {
+              // If we have hit the end of both strings, then we are done
+              return done(buildValues(self, basePath.lastComponent, newString, oldString, self.useLongestToken));
             } else {
-              // Otherwise track this path as a potential candidate and continue.
               bestPath[diagonalPath] = basePath;
+
+              if (basePath.oldPos + 1 >= oldLen) {
+                maxDiagonalToConsider = Math.min(maxDiagonalToConsider, diagonalPath - 1);
+              }
+
+              if (newPos + 1 >= newLen) {
+                minDiagonalToConsider = Math.max(minDiagonalToConsider, diagonalPath + 1);
+              }
             }
           }
 
@@ -33955,7 +34002,7 @@ if(!String.prototype.matchAll) {
         if (callback) {
           (function exec() {
             setTimeout(function () {
-              if (editLength > maxEditLength) {
+              if (editLength > maxEditLength || Date.now() > abortAfterTimestamp) {
                 return callback();
               }
 
@@ -33965,7 +34012,7 @@ if(!String.prototype.matchAll) {
             }, 0);
           })();
         } else {
-          while (editLength <= maxEditLength) {
+          while (editLength <= maxEditLength && Date.now() <= abortAfterTimestamp) {
             var ret = execEditLength();
 
             if (ret) {
@@ -33974,30 +34021,36 @@ if(!String.prototype.matchAll) {
           }
         }
       },
-      pushComponent: function pushComponent(components, added, removed) {
-        var last = components[components.length - 1];
+      addToPath: function addToPath(path, added, removed, oldPosInc) {
+        var last = path.lastComponent;
 
         if (last && last.added === added && last.removed === removed) {
-          // We need to clone here as the component clone operation is just
-          // as shallow array clone
-          components[components.length - 1] = {
-            count: last.count + 1,
-            added: added,
-            removed: removed
+          return {
+            oldPos: path.oldPos + oldPosInc,
+            lastComponent: {
+              count: last.count + 1,
+              added: added,
+              removed: removed,
+              previousComponent: last.previousComponent
+            }
           };
         } else {
-          components.push({
-            count: 1,
-            added: added,
-            removed: removed
-          });
+          return {
+            oldPos: path.oldPos + oldPosInc,
+            lastComponent: {
+              count: 1,
+              added: added,
+              removed: removed,
+              previousComponent: last
+            }
+          };
         }
       },
       extractCommon: function extractCommon(basePath, newString, oldString, diagonalPath) {
         var newLen = newString.length,
             oldLen = oldString.length,
-            newPos = basePath.newPos,
-            oldPos = newPos - diagonalPath,
+            oldPos = basePath.oldPos,
+            newPos = oldPos - diagonalPath,
             commonCount = 0;
 
         while (newPos + 1 < newLen && oldPos + 1 < oldLen && this.equals(newString[newPos + 1], oldString[oldPos + 1])) {
@@ -34007,13 +34060,14 @@ if(!String.prototype.matchAll) {
         }
 
         if (commonCount) {
-          basePath.components.push({
-            count: commonCount
-          });
+          basePath.lastComponent = {
+            count: commonCount,
+            previousComponent: basePath.lastComponent
+          };
         }
 
-        basePath.newPos = newPos;
-        return oldPos;
+        basePath.oldPos = oldPos;
+        return newPos;
       },
       equals: function equals(left, right) {
         if (this.options.comparator) {
@@ -34044,7 +34098,20 @@ if(!String.prototype.matchAll) {
       }
     };
 
-    function buildValues(diff, components, newString, oldString, useLongestToken) {
+    function buildValues(diff, lastComponent, newString, oldString, useLongestToken) {
+      // First we convert our linked list of components in reverse order to an
+      // array in the right order:
+      var components = [];
+      var nextComponent;
+
+      while (lastComponent) {
+        components.push(lastComponent);
+        nextComponent = lastComponent.previousComponent;
+        delete lastComponent.previousComponent;
+        lastComponent = nextComponent;
+      }
+
+      components.reverse();
       var componentPos = 0,
           componentLen = components.length,
           newPos = 0,
@@ -34087,21 +34154,14 @@ if(!String.prototype.matchAll) {
       // This is only available for string mode.
 
 
-      var lastComponent = components[componentLen - 1];
+      var finalComponent = components[componentLen - 1];
 
-      if (componentLen > 1 && typeof lastComponent.value === 'string' && (lastComponent.added || lastComponent.removed) && diff.equals('', lastComponent.value)) {
-        components[componentLen - 2].value += lastComponent.value;
+      if (componentLen > 1 && typeof finalComponent.value === 'string' && (finalComponent.added || finalComponent.removed) && diff.equals('', finalComponent.value)) {
+        components[componentLen - 2].value += finalComponent.value;
         components.pop();
       }
 
       return components;
-    }
-
-    function clonePath(path) {
-      return {
-        newPos: path.newPos,
-        components: path.components.slice(0)
-      };
     }
 
     function generateOptions(options, defaults) {
@@ -34176,6 +34236,11 @@ if(!String.prototype.matchAll) {
     var lineDiff = new Diff();
 
     lineDiff.tokenize = function (value) {
+      if (this.options.stripTrailingCr) {
+        // remove one \r before \n to match GNU diff's --strip-trailing-cr behavior
+        value = value.replace(/\r\n/g, '\n');
+      }
+
       var retLines = [],
           linesAndNewlines = value.split(/(\n|\r\n)/); // Ignore the final empty token that occurs if the string ends with a new line
 
@@ -35269,7 +35334,7 @@ if(!String.prototype.matchAll) {
             .cursor()
             .iterate((node) => {
             var _a, _b, _c;
-            console.log(node.name, "'" + getCodeName(view.state, node.node) + "'");
+            // console.log(node.name, "'" + getCodeName(view.state, node.node) + "'");
             if (node.from >= from && node.to <= to) {
                 if (((((_a = node.node.parent) === null || _a === void 0 ? void 0 : _a.name) == 'Program' && node.name != 'LineComment') ||
                     node.name == 'To' ||
@@ -35281,7 +35346,7 @@ if(!String.prototype.matchAll) {
                     changes.push({ from: node.from, to: node.from, insert: '\n' });
                 }
                 else if (node.name == 'CodeBlock') {
-                    //console.log("CODEBLOCK",doc.substring(node.from,node.to))
+                    // console.log("CODEBLOCK",doc.substring(node.from,node.to),doc.substring(node.from, node.to).match(/^\s*\[\s*[^\s]+\s*\]/g))
                     if (doc.substring(node.from, node.to).match(/^\s*\[\s*[^\s]+\s*\]/g)) {
                         let replacement = '[ ' +
                             doc
@@ -35310,11 +35375,12 @@ if(!String.prototype.matchAll) {
                         // console.log(getCodeName(view.state,node.node))
                         for (var name of ['ProcedureContent', 'CloseBracket']) {
                             node.node.getChildren(name).map((child) => {
-                                if (doc
+                                // console.log(getCodeName(view.state,child),doc.substring(child.from-15,child.from).replace(/[ ]/g, ''))
+                                if (!doc
                                     .substring(Math.max(0, child.from - 15), child.from)
-                                    .trim()
+                                    .replace(/[ ]/g, '')
                                     .endsWith('\n')) {
-                                    // console.log("C",doc.substring(child.from-15,child.from).trim().endsWith('\n'))
+                                    // console.log("C","'"+doc.substring(child.from-15,child.from).replace(/[ ]/g, '')+"'",doc.substring(child.from-15,child.from).replace(/[ ]/g, '').endsWith('\n'))
                                     changes.push({
                                         from: child.from,
                                         to: child.from,
@@ -35325,8 +35391,8 @@ if(!String.prototype.matchAll) {
                         }
                     }
                 }
-                else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterContent', doc, lineWidth)) {
-                    for (var name of ['ReporterContent', 'CloseBracket']) {
+                else if (node.name == 'ReporterBlock' && checkBlock(node.node, 'ReporterStatement', doc, lineWidth)) {
+                    for (var name of ['ReporterStatement', 'CloseBracket']) {
                         node.node.getChildren(name).map((child) => {
                             if (doc[child.from - 1] != '\n') {
                                 // console.log("D")
@@ -35440,9 +35506,9 @@ if(!String.prototype.matchAll) {
                     // });
                 }
                 else if (node.name == 'AnonymousProcedure' &&
-                    (checkBlock(node.node, 'ReporterContent', doc, lineWidth) ||
+                    (checkBlock(node.node, 'ReporterStatement', doc, lineWidth) ||
                         checkBlock(node.node, 'ProcedureContent', doc, lineWidth))) {
-                    for (var name of ['ProcedureContent', 'ReporterContent', 'CloseBracket']) {
+                    for (var name of ['ProcedureContent', 'ReporterStatement', 'CloseBracket']) {
                         node.node.getChildren(name).map((child) => {
                             // console.log("E")
                             if (doc[child.from - 1] != '\n') {
@@ -35506,6 +35572,7 @@ if(!String.prototype.matchAll) {
                 }
             }
         });
+        // console.log(changes)
         return changes;
     };
     /** checkBlock: checks if code block needs to be multiline. */
@@ -35519,6 +35586,7 @@ if(!String.prototype.matchAll) {
                 doc.substring(child.from, child.to).includes('\n') ||
                     doc.substring(child.from, child.to).length > lineWidth ||
                     multiline;
+            // console.log(multiline+" "+child.name+" "+doc.substring(child.from, child.to).length+" "+lineWidth)
             child.getChildren('CommandStatement').map((node) => {
                 node.getChildren('Arg').map((subnode) => {
                     if (subnode.getChildren('CodeBlock').length > 0) {
@@ -35530,6 +35598,7 @@ if(!String.prototype.matchAll) {
                 });
             });
         });
+        // console.log(((multiline || multilineChildren) && count == 1) || count > 1)
         return ((multiline || multilineChildren) && count == 1) || count > 1;
     };
 
@@ -35930,18 +35999,19 @@ if(!String.prototype.matchAll) {
             // Send in the changes
             Editor.Operations.ChangeCode(changes);
             // I just realized that we cannot do this in the current fashion. e.g. When there are multiple breed fixes with the same name, we might introduce multiple statements.
-            /*// Fourth pass: lint the code and apply the actions
-            let Errors = await Editor.ForceLintAsync();
+            // Fourth pass: lint the code and apply the actions
+            let Errors = yield Editor.ForceLintAsync();
             console.log(Errors);
             let did_actions = false;
             Errors.map((error) => {
-              if (error.actions) {
-                did_actions = true;
-                error.actions[0].apply(Editor.CodeMirror, error.from, error.to);
-              }
+                if (error.actions) {
+                    did_actions = true;
+                    error.actions[0].apply(Editor.CodeMirror, error.from, error.to);
+                }
             });
             // If there were actions, run the auto-fix again
-            if (did_actions && try_again) await FixGeneratedCode(Editor, Editor.CodeMirror.state.doc.toString(), Parent, false);*/
+            if (did_actions && try_again)
+                yield FixGeneratedCode(Editor, Editor.CodeMirror.state.doc.toString(), Parent, false);
             // Fifth pass: re-introduce the snapshot
             IntegrateSnapshot(Editor, Snapshot);
             if (Parent)
@@ -37939,22 +38009,22 @@ if(!String.prototype.matchAll) {
     };
     /** colorToNumberMapping: maps the NetLogo Base colors to their corresponding numeric value  */
     const colorToNumberMapping = {
-        'gray': 5,
-        'red': 15,
-        'orange': 25,
-        'brown': 35,
-        'yellow': 45,
-        'green': 55,
-        'lime': 65,
-        'turquoise': 75,
-        'cyan': 85,
-        'sky': 95,
-        'blue': 105,
-        'violet': 115,
-        'magenta': 125,
-        'pink': 135,
-        'black': 145,
-        'white': 155,
+        gray: 5,
+        red: 15,
+        orange: 25,
+        brown: 35,
+        yellow: 45,
+        green: 55,
+        lime: 65,
+        turquoise: 75,
+        cyan: 85,
+        sky: 95,
+        blue: 105,
+        violet: 115,
+        magenta: 125,
+        pink: 135,
+        black: 145,
+        white: 155,
     };
     /** netlogoBaseColors: Map of NetLogo Base colors to [r, g, b] form */
     const netlogoBaseColors = [
@@ -38005,7 +38075,7 @@ if(!String.prototype.matchAll) {
     }
     /* compoundToRGB: return the compound string (red + 5) to a regular number */
     function compoundToRGB(content) {
-        let stringSplit = content.split(" ");
+        let stringSplit = content.split(' ');
         try {
             if (stringSplit[1] == '+') {
                 return netlogoToRGB(colorToNumberMapping[stringSplit[0]] + Number(stringSplit[2]));
@@ -38025,9 +38095,12 @@ if(!String.prototype.matchAll) {
         if (!inputString.startsWith('[') || !inputString.endsWith(']')) {
             return '';
         }
-        const numbers = inputString.slice(1, -1).split(/\s+/).filter(n => n);
+        const numbers = inputString
+            .slice(1, -1)
+            .split(/\s+/)
+            .filter((n) => n);
         if (numbers.length === 3 || numbers.length === 4) {
-            const validNumbers = numbers.map(Number).every(num => !isNaN(num) && num >= 0 && num <= 255);
+            const validNumbers = numbers.map(Number).every((num) => !isNaN(num) && num >= 0 && num <= 255);
             if (validNumbers) {
                 if (numbers.length === 3) {
                     return `rgb(${numbers.join(', ')})`;
@@ -38088,9 +38161,9 @@ if(!String.prototype.matchAll) {
         }
         /** toDOM: defines the DOM appearance of the widget. Not connected to the widget as per CodeMirror documentation */
         toDOM() {
-            let wrap = document.createElement("span");
-            wrap.setAttribute("aria-hidden", "true");
-            wrap.className = "netlogo-color-picker-widget";
+            let wrap = document.createElement('span');
+            wrap.setAttribute('aria-hidden', 'true');
+            wrap.className = 'netlogo-color-picker-widget';
             let box = wrap.appendChild(document.createElement('div'));
             box.style.width = '9px';
             box.style.height = '9px';
@@ -38103,7 +38176,9 @@ if(!String.prototype.matchAll) {
             box.style.marginLeft = '5px';
             return wrap;
         }
-        ignoreEvent() { return false; }
+        ignoreEvent() {
+            return false;
+        }
     }
     /** testValidColor: returns the color of a SyntaxNode's text as rgba string. If the text is not a valid color, returns an empty string  */
     function testValidColor(content) {
@@ -38112,12 +38187,12 @@ if(!String.prototype.matchAll) {
             return [''];
         let number = Number(content);
         // check if its a netlogo numeric color
-        if (!isNaN(number) && (number >= 0 && number < 140))
+        if (!isNaN(number) && number >= 0 && number < 140)
             return [netlogoToRGB(number), 'numeric'];
         // check if its one of the constants base color
         if (baseColorsToRGB[content])
             return [baseColorsToRGB[content], 'compound'];
-        // check if its of form array 
+        // check if its of form array
         let arrAsRGB = netlogoArrToRGB(content);
         if (arrAsRGB)
             return [arrAsRGB, 'array'];
@@ -38128,11 +38203,12 @@ if(!String.prototype.matchAll) {
         let widgets = [];
         for (let { from, to } of view.visibleRanges) {
             syntaxTree(view.state).iterate({
-                from, to,
+                from,
+                to,
                 enter: (node) => {
-                    if (node.name == "VariableName") {
+                    if (node.name == 'VariableName') {
                         let nodeStr = view.state.doc.sliceString(node.from, node.to);
-                        if (nodeStr.includes("color")) {
+                        if (nodeStr.includes('color')) {
                             let sibling = node.node.nextSibling;
                             // check if node color is valid
                             if (sibling) {
@@ -38143,7 +38219,7 @@ if(!String.prototype.matchAll) {
                                 let cpWidget = new ColorPickerWidget(color[0], sibling.to - sibling.from, color[1]);
                                 let deco = Decoration.widget({
                                     widget: cpWidget,
-                                    side: 1
+                                    side: 1,
                                 });
                                 widgets.push(deco.range(sibling.to));
                                 // add widget to the hashmap
@@ -38151,7 +38227,7 @@ if(!String.prototype.matchAll) {
                             }
                         }
                     }
-                }
+                },
             });
         }
         return Decoration.set(widgets);
@@ -38200,13 +38276,13 @@ if(!String.prototype.matchAll) {
         }
         handleMouseDown(e, view) {
             let target = e.target;
-            if (target.nodeName == "DIV" && target.parentElement.classList.contains("netlogo-color-picker-widget")) {
+            if (target.nodeName == 'DIV' && target.parentElement.classList.contains('netlogo-color-picker-widget')) {
                 console.log(this.posToWidget);
                 initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target)));
             }
         }
     }, {
-        decorations: v => v.decorations,
+        decorations: (v) => v.decorations,
         eventHandlers: {
             mousedown: function (e, view) {
                 this.handleMouseDown(e, view);

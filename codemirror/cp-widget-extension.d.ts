@@ -1,4 +1,4 @@
-import { WidgetType, EditorView, DecorationSet, ViewPlugin, ViewUpdate } from "@codemirror/view";
+import { WidgetType, EditorView, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
 /** ColorPickerWidget: Defines a ColorPicker widget of WidgetType */
 declare class ColorPickerWidget extends WidgetType {
     private color;
