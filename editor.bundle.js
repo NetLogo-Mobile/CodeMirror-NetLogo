@@ -31715,7 +31715,7 @@ if(!String.prototype.matchAll) {
         syntaxTree(view.state)
             .cursor()
             .iterate((node) => {
-            var _a, _b, _c, _d, _e;
+            var _a, _b, _c, _d, _e, _f, _g;
             if ((node.name == '⚠' || node.name == 'Error' || node.name == 'Misplaced' || node.name == 'WorseParentheticals') &&
                 node.to != node.from) {
                 let curr = node.node;
@@ -31766,10 +31766,20 @@ if(!String.prototype.matchAll) {
                         diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));
                     }
                     else {
-                        diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
+                        // console.log("HERE!!!!")
+                        if (((_e = node.node.firstChild) === null || _e === void 0 ? void 0 : _e.node.name) == 'Identifier' &&
+                            ((_f = node.node.lastChild) === null || _f === void 0 ? void 0 : _f.node.name) == 'Identifier' &&
+                            node.node.getChildren('Identifier').length == 1) {
+                            // console.log("1")
+                            diagnostics.push(getDiagnostic(view, node, 'Unrecognized identifier _'));
+                        }
+                        else {
+                            // console.log(node.node.getChildren('Identifier').length,node.node.lastChild,node.node.firstChild)
+                            diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
+                        }
                     }
                 }
-                else if (['[', ']', ')', '(', '"'].includes(value) && ((_e = node.node.parent) === null || _e === void 0 ? void 0 : _e.name) == 'Breed') {
+                else if (['[', ']', ')', '(', '"'].includes(value) && ((_g = node.node.parent) === null || _g === void 0 ? void 0 : _g.name) == 'Breed') {
                     diagnostics.push(getDiagnostic(view, node.node.parent, 'Missing breed names _'));
                 }
             }
