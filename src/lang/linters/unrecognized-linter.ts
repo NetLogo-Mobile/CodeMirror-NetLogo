@@ -64,7 +64,18 @@ export const UnrecognizedLinter: Linter = (view, preprocessContext, lintContext)
           if (node.node.parent?.name == 'Normal') {
             diagnostics.push(getDiagnostic(view, node, 'Unrecognized global statement _'));
           } else {
-            diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
+            // console.log("HERE!!!!")
+            if (
+              node.node.firstChild?.node.name == 'Identifier' &&
+              node.node.lastChild?.node.name == 'Identifier' &&
+              node.node.getChildren('Identifier').length == 1
+            ) {
+              // console.log("1")
+              diagnostics.push(getDiagnostic(view, node, 'Unrecognized identifier _'));
+            } else {
+              // console.log(node.node.getChildren('Identifier').length,node.node.lastChild,node.node.firstChild)
+              diagnostics.push(getDiagnostic(view, node, 'Unrecognized statement _'));
+            }
           }
         } else if (['[', ']', ')', '(', '"'].includes(value) && node.node.parent?.name == 'Breed') {
           diagnostics.push(getDiagnostic(view, node.node.parent, 'Missing breed names _'));
