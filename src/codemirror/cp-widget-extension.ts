@@ -1,7 +1,7 @@
 import { WidgetType, EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
 import { syntaxTree } from '@codemirror/language';
 import { Range } from '@codemirror/rangeset';
-import { ColorPicker } from '@netlogo/netlogo-color-picker';
+import ColorPicker from '@netlogo/netlogo-color-picker';
 
 /** Color conversion helper functions (temporary) --> where can we get netlogo colors to rgb? */
 /** netlogoColorToHex: Converts NetLogo color to its hex string. */
@@ -280,31 +280,26 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
   }
   let cpDiv = document.createElement('div');
   cpDiv.id = 'colorPickerDiv';
-  cpDiv.style.position = 'absolute';
   view.dom.appendChild(cpDiv);
   console.log(widget.getLength());
 
-  const colorPicker = new ColorPicker(
-    cpDiv,
-    (selectedColor) => {
-      let newValue;
-      // format corectly based on cpDiv
-      switch (widget.getColorType()) {
-        case 'compound':
-          newValue = netlogoToCompound(selectedColor[1]);
-          break;
-        case 'numeric':
-          newValue = selectedColor[1].toString();
-          break;
-        case 'array':
-          newValue = `[${selectedColor[0][0]} ${selectedColor[0][1]} ${selectedColor[0][2]} ${selectedColor[0][3]}]`;
-      }
-      let change = { from: pos - widget.getLength(), to: pos, insert: newValue };
-      view.dispatch({ changes: change });
-      cpDiv.remove();
-    },
-    extractRGBValues(widget.getColor())
-  ); // Initial color
+  const colorPicker = new ColorPicker(cpDiv, extractRGBValues(widget.getColor()), (selectedColor) => {
+    let newValue;
+    // format corectly based on cpDiv
+    switch (widget.getColorType()) {
+      case 'compound':
+        newValue = netlogoToCompound(selectedColor[1]);
+        break;
+      case 'numeric':
+        newValue = selectedColor[1].toString();
+        break;
+      case 'array':
+        newValue = `[${selectedColor[0][0]} ${selectedColor[0][1]} ${selectedColor[0][2]} ${selectedColor[0][3]}]`;
+    }
+    let change = { from: pos - widget.getLength(), to: pos, insert: newValue };
+    view.dispatch({ changes: change });
+    cpDiv.remove();
+  }); // Initial color
 }
 
 /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
