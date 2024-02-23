@@ -137,6 +137,25 @@ function netlogoArrToRGB(inputString: string) {
   return '';
 }
 
+function rgbToNetlogo([r, g, b]: number[]) {
+  if (r == 0 && g == 0 && b == 0) {
+    return 0;
+  }
+  // Calculate the Euclidean distance between current color and each NetLogo color
+  let minDistance = Infinity;
+  let closestNetlogoColor = 0;
+  for (let i = 0; i < cachedNetlogoColors.length; i++) {
+    const [netR, netG, netB] = cachedNetlogoColors[i];
+    const distance = Math.sqrt(Math.pow(r - netR, 2) + Math.pow(g - netG, 2) + Math.pow(b - netB, 2));
+    if (distance < minDistance) {
+      minDistance = distance;
+      closestNetlogoColor = i;
+    }
+  }
+  // Return the closest NetLogo color value
+  return closestNetlogoColor / 10;
+}
+
 /** netlogoToCompound: Converts a numeric NetLogo Color to a compound color string */
 function netlogoToCompound(netlogoColor: number): string {
   let baseColorIndex = Math.floor(netlogoColor / 10);
@@ -284,17 +303,17 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
   console.log(widget.getLength());
 
   const colorPicker = new ColorPicker(cpDiv, extractRGBValues(widget.getColor()), (selectedColor) => {
-    let newValue;
+    let newValue: string = '';
     // format corectly based on cpDiv
     switch (widget.getColorType()) {
       case 'compound':
-        newValue = netlogoToCompound(selectedColor[1]);
+        newValue = netlogoToCompound(rgbToNetlogo(selectedColor));
         break;
       case 'numeric':
-        newValue = selectedColor[1].toString();
+        newValue = rgbToNetlogo(selectedColor).toString();
         break;
       case 'array':
-        newValue = `[${selectedColor[0][0]} ${selectedColor[0][1]} ${selectedColor[0][2]} ${selectedColor[0][3]}]`;
+        newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
     }
     let change = { from: pos - widget.getLength(), to: pos, insert: newValue };
     view.dispatch({ changes: change });
