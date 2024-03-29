@@ -2,176 +2,10 @@ import { WidgetType, EditorView, Decoration, DecorationSet, ViewPlugin, ViewUpda
 import { syntaxTree } from '@codemirror/language';
 import { Range } from '@codemirror/rangeset';
 import ColorPicker from '@netlogo/netlogo-color-picker';
+import * as colors from '@netlogo/netlogo-color-picker/dist/helpers/colors';
 
-/** Color conversion helper functions (temporary) --> where can we get netlogo colors to rgb? */
-/** netlogoColorToHex: Converts NetLogo color to its hex string. */
-var colorTimesTen: number;
-var baseIndex: number;
-var r, g, b: number;
-var step: number;
 
-const baseColorsToRGB: { [key: string]: string } = {
-  gray: 'rgb(140, 140, 140)',
-  red: 'rgb(215, 48, 39)',
-  orange: 'rgb(241, 105, 19)',
-  brown: 'rgb(156, 109, 70)',
-  yellow: 'rgb(237, 237, 47)',
-  green: 'rgb(87, 176, 58)',
-  lime: 'rgb(42, 209, 57)',
-  turquoise: 'rgb(27, 158, 119)',
-  cyan: 'rgb(82, 196, 196)',
-  sky: 'rgb(43, 140, 190)',
-  blue: 'rgb(50, 92, 168)',
-  violet: 'rgb(123, 78, 163)',
-  magenta: 'rgb(166, 25, 105)',
-  pink: 'rgb(224, 126, 149)',
-  black: 'rgb(0, 0, 0)',
-  white: 'rgb(255, 255, 255)',
-};
-
-/** colorToNumberMapping: maps the NetLogo Base colors to their corresponding numeric value  */
-const colorToNumberMapping: { [key: string]: number } = {
-  gray: 5,
-  red: 15,
-  orange: 25,
-  brown: 35,
-  yellow: 45,
-  green: 55,
-  lime: 65,
-  turquoise: 75,
-  cyan: 85,
-  sky: 95,
-  blue: 105,
-  violet: 115,
-  magenta: 125,
-  pink: 135,
-  black: 145,
-  white: 155,
-};
-
-/** netlogoBaseColors: Map of NetLogo Base colors to [r, g, b] form */
-const netlogoBaseColors: [number, number, number][] = [
-  [140, 140, 140], // gray       (5)
-  [215, 48, 39], // red       (15)
-  [241, 105, 19], // orange    (25)
-  [156, 109, 70], // brown     (35)
-  [237, 237, 47], // yellow    (45)
-  [87, 176, 58], // green     (55)
-  [42, 209, 57], // lime      (65)
-  [27, 158, 119], // turquoise (75)
-  [82, 196, 196], // cyan      (85)
-  [43, 140, 190], // sky       (95)
-  [50, 92, 168], // blue     (105)
-  [123, 78, 163], // violet   (115)
-  [166, 25, 105], // magenta  (125)
-  [224, 126, 149], // pink     (135)
-  [0, 0, 0], // black
-  [255, 255, 255], // white
-];
-
-/**  cachedNetlogoColors: Creates a cache of netlogo colors */
-let cachedNetlogoColors = (function () {
-  var k, results;
-  results = [];
-  for (colorTimesTen = k = 0; k <= 1400; colorTimesTen = ++k) {
-    baseIndex = Math.floor(colorTimesTen / 100);
-    [r, g, b] = netlogoBaseColors[baseIndex];
-    step = ((colorTimesTen % 100) - 50) / 50.48 + 0.012;
-    if (step < 0) {
-      r += Math.floor(r * step);
-      g += Math.floor(g * step);
-      b += Math.floor(b * step);
-    } else {
-      r += Math.floor((0xff - r) * step);
-      g += Math.floor((0xff - g) * step);
-      b += Math.floor((0xff - b) * step);
-    }
-    results.push([r, g, b]);
-  }
-  return results;
-})();
-let cached: number[][] = cachedNetlogoColors;
-
-/** netlogoToRGB: converts netlogo colors to rgb string  */
-function netlogoToRGB(netlogoColor: number): string {
-  let temp: number[] = cached[Math.floor(netlogoColor * 10)];
-  return `rgb(${temp[0]}, ${temp[1]}, ${temp[2]})`;
-}
-
-/* compoundToRGB: return the compound string (red + 5) to a regular number */
-function compoundToRGB(content: string): string {
-  let stringSplit = content.split(' ');
-  try {
-    if (stringSplit[1] == '+') {
-      return netlogoToRGB(colorToNumberMapping[stringSplit[0]] + Number(stringSplit[2]));
-    } else if (stringSplit[1] == '-') {
-      return netlogoToRGB(colorToNumberMapping[stringSplit[0]] - Number(stringSplit[2]));
-    }
-  } catch {
-    return '';
-  }
-  return '';
-}
-
-/** netlogoArrToRGB: returns the rgb string from a netlogo color array */
-function netlogoArrToRGB(inputString: string) {
-  // Check for valid opening and closing brackets
-  if (!inputString.startsWith('[') || !inputString.endsWith(']')) {
-    return '';
-  }
-  const numbers = inputString
-    .slice(1, -1)
-    .split(/\s+/)
-    .filter((n) => n);
-  if (numbers.length === 3 || numbers.length === 4) {
-    const validNumbers = numbers.map(Number).every((num) => !isNaN(num) && num >= 0 && num <= 255);
-
-    if (validNumbers) {
-      if (numbers.length === 3) {
-        return `rgb(${numbers.join(', ')})`;
-      } else {
-        return `rgba(${numbers.join(', ')})`;
-      }
-    }
-  }
-  return '';
-}
-
-function rgbToNetlogo([r, g, b]: number[]) {
-  if (r == 0 && g == 0 && b == 0) {
-    return 0;
-  }
-  // Calculate the Euclidean distance between current color and each NetLogo color
-  let minDistance = Infinity;
-  let closestNetlogoColor = 0;
-  for (let i = 0; i < cachedNetlogoColors.length; i++) {
-    const [netR, netG, netB] = cachedNetlogoColors[i];
-    const distance = Math.sqrt(Math.pow(r - netR, 2) + Math.pow(g - netG, 2) + Math.pow(b - netB, 2));
-    if (distance < minDistance) {
-      minDistance = distance;
-      closestNetlogoColor = i;
-    }
-  }
-  // Return the closest NetLogo color value
-  return closestNetlogoColor / 10;
-}
-
-/** netlogoToCompound: Converts a numeric NetLogo Color to a compound color string */
-function netlogoToCompound(netlogoColor: number): string {
-  let baseColorIndex = Math.floor(netlogoColor / 10);
-  let baseColorName = Object.keys(baseColorsToRGB)[baseColorIndex];
-  // Calculate offset and immediately round to one decimal point
-  let offset = Number(((netlogoColor % 10) - 5).toFixed(1));
-
-  if (offset === 0) {
-    // If the color is a base color, return only the base color name
-    return baseColorName;
-  } else if (offset > 0) {
-    return `${baseColorName} + ${offset}`;
-  } else {
-    return `${baseColorName} - ${Math.abs(offset)}`;
-  }
-}
+var savedColors: number[][] = [];
 
 /**  extractRGBValues: takes an rgb string andr returns an rgba array*/
 function extractRGBValues(rgbString: string) {
@@ -203,6 +37,7 @@ class ColorPickerWidget extends WidgetType {
     this.color = color;
     this.length = length;
     this.colorType = type;
+    console.log(this.color);
   }
 
   getColor(): string {
@@ -246,13 +81,16 @@ function testValidColor(content: string): string[] {
   if (!content) return [''];
   let number = Number(content);
   // check if its a netlogo numeric color
-  if (!isNaN(number) && number >= 0 && number < 140) return [netlogoToRGB(number), 'numeric'];
+  if (!isNaN(number) && number >= 0 && number < 140) return [colors.netlogoToRGB(number), 'numeric'];
   // check if its one of the constants base color
-  if (baseColorsToRGB[content]) return [baseColorsToRGB[content], 'compound'];
+  if (colors.baseColorsToRGB[content]) {
+    console.log("we are returning compound number, " + colors.baseColorsToRGB[content])
+    return [colors.baseColorsToRGB[content], 'compound'];
+  }
   // check if its of form array
-  let arrAsRGB = netlogoArrToRGB(content);
+  let arrAsRGB = colors.netlogoArrToRGB(content);
   if (arrAsRGB) return [arrAsRGB, 'array'];
-  return [compoundToRGB(content), 'compound'];
+  return [colors.compoundToRGB(content), 'compound'];
 }
 
 /** colorWidgets: Parses the visibleRange of the editor looking for colorWidget positions  */
@@ -302,15 +140,18 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
   view.dom.appendChild(cpDiv);
   console.log(widget.getLength());
 
-  const colorPicker = new ColorPicker(cpDiv, extractRGBValues(widget.getColor()), (selectedColor) => {
+  const colorPicker = new ColorPicker(cpDiv, extractRGBValues(widget.getColor()), (cpReturn) => {
     let newValue: string = '';
+    // cpReturn is an array of the selected color as well as the saved colors array
+    const selectedColor = cpReturn[0];
+    savedColors = cpReturn[1];
     // format corectly based on cpDiv
     switch (widget.getColorType()) {
       case 'compound':
-        newValue = netlogoToCompound(rgbToNetlogo(selectedColor));
+        newValue = colors.netlogoToCompound(colors.rgbToNetlogo(selectedColor));
         break;
       case 'numeric':
-        newValue = rgbToNetlogo(selectedColor).toString();
+        newValue = colors.rgbToNetlogo(selectedColor).toString();
         break;
       case 'array':
         newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
@@ -318,7 +159,7 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
     let change = { from: pos - widget.getLength(), to: pos, insert: newValue };
     view.dispatch({ changes: change });
     cpDiv.remove();
-  }); // Initial color
+  }, savedColors);
 }
 
 /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
@@ -341,7 +182,6 @@ const ColorPickerPlugin = ViewPlugin.fromClass(
     handleMouseDown(e: MouseEvent, view: EditorView) {
       let target = e.target as HTMLElement;
       if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('netlogo-color-picker-widget')) {
-        console.log(this.posToWidget);
         initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!);
       }
     }
