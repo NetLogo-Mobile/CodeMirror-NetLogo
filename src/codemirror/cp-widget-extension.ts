@@ -4,7 +4,6 @@ import { Range } from '@codemirror/rangeset';
 import ColorPicker from '@netlogo/netlogo-color-picker';
 import * as colors from '@netlogo/netlogo-color-picker/dist/helpers/colors';
 
-
 var savedColors: number[][] = [];
 
 /**  extractRGBValues: takes an rgb string andr returns an rgba array*/
@@ -84,7 +83,7 @@ function testValidColor(content: string): string[] {
   if (!isNaN(number) && number >= 0 && number < 140) return [colors.netlogoToRGB(number), 'numeric'];
   // check if its one of the constants base color
   if (colors.baseColorsToRGB[content]) {
-    console.log("we are returning compound number, " + colors.baseColorsToRGB[content])
+    console.log('we are returning compound number, ' + colors.baseColorsToRGB[content]);
     return [colors.baseColorsToRGB[content], 'compound'];
   }
   // check if its of form array
@@ -140,26 +139,31 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
   view.dom.appendChild(cpDiv);
   console.log(widget.getLength());
 
-  const colorPicker = new ColorPicker(cpDiv, extractRGBValues(widget.getColor()), (cpReturn) => {
-    let newValue: string = '';
-    // cpReturn is an array of the selected color as well as the saved colors array
-    const selectedColor = cpReturn[0];
-    savedColors = cpReturn[1];
-    // format corectly based on cpDiv
-    switch (widget.getColorType()) {
-      case 'compound':
-        newValue = colors.netlogoToCompound(colors.rgbToNetlogo(selectedColor));
-        break;
-      case 'numeric':
-        newValue = colors.rgbToNetlogo(selectedColor).toString();
-        break;
-      case 'array':
-        newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
-    }
-    let change = { from: pos - widget.getLength(), to: pos, insert: newValue };
-    view.dispatch({ changes: change });
-    cpDiv.remove();
-  }, savedColors);
+  const colorPicker = new ColorPicker(
+    cpDiv,
+    extractRGBValues(widget.getColor()),
+    (cpReturn) => {
+      let newValue: string = '';
+      // cpReturn is an array of the selected color as well as the saved colors array
+      const selectedColor = cpReturn[0];
+      savedColors = cpReturn[1];
+      // format corectly based on cpDiv
+      switch (widget.getColorType()) {
+        case 'compound':
+          newValue = colors.netlogoToCompound(colors.rgbToNetlogo(selectedColor));
+          break;
+        case 'numeric':
+          newValue = colors.rgbToNetlogo(selectedColor).toString();
+          break;
+        case 'array':
+          newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
+      }
+      let change = { from: pos - widget.getLength(), to: pos, insert: newValue };
+      view.dispatch({ changes: change });
+      cpDiv.remove();
+    },
+    savedColors
+  );
 }
 
 /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
