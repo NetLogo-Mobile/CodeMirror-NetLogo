@@ -128,15 +128,9 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
 }
 
 /** intializeCP: creates an instance of a ColorPicker */
-function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) {
-  // Check if the ColorPicker is already open
-  let CPOpen = document.querySelector('#colorPickerDiv');
-  if (CPOpen) {
-    return; // ColorPicker is already open
-  }
+function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) : HTMLElement {
   let cpDiv = document.createElement('div');
   cpDiv.id = 'colorPickerDiv';
-  view.dom.appendChild(cpDiv);
   console.log(widget.getLength());
 
   const colorPicker = new ColorPicker(
@@ -164,6 +158,14 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
     },
     savedColors
   );
+  return cpDiv 
+}
+
+// some test function 
+function attachCP(view: EditorView, cpDiv: HTMLElement) {
+  // do some stuff with cpDiv 
+  cpDiv.style.transform = 'scale(0.5)'
+  view.
 }
 
 /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
@@ -186,7 +188,7 @@ const ColorPickerPlugin = ViewPlugin.fromClass(
     handleMouseDown(e: MouseEvent, view: EditorView) {
       let target = e.target as HTMLElement;
       if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('netlogo-color-picker-widget')) {
-        initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!);
+        let div = initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!);
       }
     }
   },
