@@ -134,31 +134,39 @@ function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) 
   console.log(widget.getLength());
   attachCP(view, cpDiv)
 
-  const colorPicker = new ColorPicker(
-    cpDiv,
-    extractRGBValues(widget.getColor()),
-    (cpReturn) => {
-      let newValue: string = '';
-      // cpReturn is an array of the selected color as well as the saved colors array
-      const selectedColor = cpReturn[0];
-      savedColors = cpReturn[1];
-      // format corectly based on cpDiv
-      switch (widget.getColorType()) {
-        case 'compound':
-          newValue = colors.netlogoToCompound(colors.rgbToNetlogo(selectedColor));
-          break;
-        case 'numeric':
-          newValue = colors.rgbToNetlogo(selectedColor).toString();
-          break;
-        case 'array':
-          newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
-      }
-      let change = { from: pos - widget.getLength(), to: pos, insert: newValue };
-      view.dispatch({ changes: change });
-      cpDiv.remove();
+  const colorPickerConfig = {
+    parent: cpDiv,
+    initColor: extractRGBValues(widget.getColor()),
+    onColorSelect: (cpReturn: [number[], number[][]]) => {
+        let newValue: string = '';
+        // cpReturn is an array of the selected color as well as the saved colors array
+        const selectedColor = cpReturn[0];
+        savedColors = cpReturn[1];
+
+        // format correctly based on cpDiv
+        switch (widget.getColorType()) {
+            case 'compound':
+                newValue = colors.netlogoToCompound(colors.rgbToNetlogo(selectedColor));
+                break;
+            case 'numeric':
+                newValue = colors.rgbToNetlogo(selectedColor).toString();
+                break;
+            case 'array':
+                newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
+        }
+
+        let change = {
+            from: pos - widget.getLength(),
+            to: pos,
+            insert: newValue
+        };
+        view.dispatch({ changes: change });
+        cpDiv.remove();
     },
-    savedColors
-  );
+    savedColors: savedColors
+};
+
+const colorPicker = new ColorPicker(colorPickerConfig);
   return cpDiv 
 }
 

@@ -35,6 +35,8 @@ export interface EditorConfig {
   OnDictionaryClick?: (Key: string) => void;
   /** KeyBindings: Custom key mappings (with the highest priority). */
   KeyBindings?: KeyBinding[];
+  /** HandleCPElement: Handles the creation of the Color Picker Element  */
+  HandleCPElement?: (cpDiv: HTMLElement) => void;
 }
 
 /** EditorLanguage: Language. */
