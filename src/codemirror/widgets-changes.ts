@@ -3,7 +3,10 @@ import { Text } from '@codemirror/text';
 
 /* TextWidget: A CM6 Widget representing some text and its styling. */
 export class TextWidget extends WidgetType {
-  constructor(private text: string, private className: string = '') {
+  constructor(
+    private text: string,
+    private className: string = ''
+  ) {
     super();
   }
   toDOM() {

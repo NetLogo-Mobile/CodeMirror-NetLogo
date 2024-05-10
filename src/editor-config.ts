@@ -34,9 +34,9 @@ export interface EditorConfig {
   /** OnDictionaryClick: Triggers when a dictionary tooltip is clicked. */
   OnDictionaryClick?: (Key: string) => void;
   /** KeyBindings: Custom key mappings (with the highest priority). */
+  /** OnColorPickerCreate: Handles the creation of the Color Picker Element */
+  OnColorPickerCreate?: (cpDiv: HTMLElement) => void;
   KeyBindings?: KeyBinding[];
-  /** HandleCPElement: Handles the creation of the Color Picker Element  */
-  HandleCPElement?: (cpDiv: HTMLElement) => void;
 }
 
 /** EditorLanguage: Language. */

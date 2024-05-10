@@ -36,7 +36,6 @@ class ColorPickerWidget extends WidgetType {
     this.color = color;
     this.length = length;
     this.colorType = type;
-    console.log(this.color);
   }
 
   getColor(): string {
@@ -83,7 +82,6 @@ function testValidColor(content: string): string[] {
   if (!isNaN(number) && number >= 0 && number < 140) return [colors.netlogoToRGB(number), 'numeric'];
   // check if its one of the constants base color
   if (colors.baseColorsToRGB[content]) {
-    console.log('we are returning compound number, ' + colors.baseColorsToRGB[content]);
     return [colors.baseColorsToRGB[content], 'compound'];
   }
   // check if its of form array
@@ -128,90 +126,84 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
 }
 
 /** intializeCP: creates an instance of a ColorPicker */
-function initializeCP(view: EditorView, pos: number, widget: ColorPickerWidget) : HTMLElement {
+function initializeCP(
+  view: EditorView,
+  pos: number,
+  widget: ColorPickerWidget,
+  OnColorPickerCreate?: (cpDiv: HTMLElement) => void
+): HTMLElement {
   let cpDiv = document.createElement('div');
   cpDiv.id = 'colorPickerDiv';
-  console.log(widget.getLength());
-  attachCP(view, cpDiv)
 
   const colorPickerConfig = {
     parent: cpDiv,
     initColor: extractRGBValues(widget.getColor()),
     onColorSelect: (cpReturn: [number[], number[][]]) => {
-        let newValue: string = '';
-        // cpReturn is an array of the selected color as well as the saved colors array
-        const selectedColor = cpReturn[0];
-        savedColors = cpReturn[1];
+      let newValue: string = '';
+      // cpReturn is an array of the selected color as well as the saved colors array
+      const selectedColor = cpReturn[0];
+      savedColors = cpReturn[1];
 
-        // format correctly based on cpDiv
-        switch (widget.getColorType()) {
-            case 'compound':
-                newValue = colors.netlogoToCompound(colors.rgbToNetlogo(selectedColor));
-                break;
-            case 'numeric':
-                newValue = colors.rgbToNetlogo(selectedColor).toString();
-                break;
-            case 'array':
-                newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
-        }
+      // format correctly based on cpDiv
+      switch (widget.getColorType()) {
+        case 'compound':
+          newValue = colors.netlogoToCompound(colors.rgbToNetlogo(selectedColor));
+          break;
+        case 'numeric':
+          newValue = colors.rgbToNetlogo(selectedColor).toString();
+          break;
+        case 'array':
+          newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
+      }
 
-        let change = {
-            from: pos - widget.getLength(),
-            to: pos,
-            insert: newValue
-        };
-        view.dispatch({ changes: change });
-        cpDiv.remove();
+      let change = {
+        from: pos - widget.getLength(),
+        to: pos,
+        insert: newValue,
+      };
+      view.dispatch({ changes: change });
+      cpDiv.remove();
     },
-    savedColors: savedColors
-};
+    savedColors: savedColors,
+  };
 
-const colorPicker = new ColorPicker(colorPickerConfig);
-  return cpDiv 
-}
-
-// some test function 
-function attachCP(view: EditorView, cpDiv: HTMLElement) {
-  // do some stuff with cpDiv 
-  cpDiv.style.transform = `translate(-50%, -50%) scale(1})`
-  console.log(cpDiv);
-  view.dom.appendChild(cpDiv);
+  const colorPicker = new ColorPicker(colorPickerConfig);
+  if(OnColorPickerCreate) {
+    OnColorPickerCreate(cpDiv)
+  }
+  return cpDiv;
 }
 
 /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
-const ColorPickerPlugin = ViewPlugin.fromClass(
-  class {
-    decorations: DecorationSet;
-    posToWidget: Map<number, ColorPickerWidget>;
-    constructor(view: EditorView) {
-      this.posToWidget = new Map();
-      this.decorations = colorWidgets(view, this.posToWidget);
-    }
+function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => void) {
+  return ViewPlugin.fromClass(
+    class {
+      decorations: DecorationSet;
+      posToWidget: Map<number, ColorPickerWidget>;
 
-    update(update: ViewUpdate) {
-      if (update.docChanged || update.viewportChanged || syntaxTree(update.startState) != syntaxTree(update.state))
-        // update, refresh the map
-        this.posToWidget.clear();
-      this.decorations = colorWidgets(update.view, this.posToWidget);
-    }
-
-    handleMouseDown(e: MouseEvent, view: EditorView) {
-      let target = e.target as HTMLElement;
-      if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('netlogo-color-picker-widget')) {
-        let div = initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!);
-        //attachCP(view, div)
+      constructor(view: EditorView) {
+        this.posToWidget = new Map();
+        this.decorations = colorWidgets(view, this.posToWidget);
       }
-    }
-  },
-  {
-    decorations: (v) => v.decorations,
 
-    eventHandlers: {
-      mousedown: function (e: MouseEvent, view: EditorView) {
-        this.handleMouseDown(e, view);
-      },
+      update(update: ViewUpdate) {
+        if (update.docChanged || update.viewportChanged || syntaxTree(update.startState) != syntaxTree(update.state))
+          this.posToWidget.clear();
+        this.decorations = colorWidgets(update.view, this.posToWidget);
+      }
     },
-  }
-);
+    {
+      decorations: (v) => v.decorations,
+      eventHandlers: {
+        mousedown: function (e: MouseEvent, view: EditorView) {
+          let target = e.target as HTMLElement;
+          if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('netlogo-color-picker-widget')) {
+            let div = initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!, OnColorPickerCreate);
+          }
+        },
+      },
+    }
+  );
+}
 
-export { ColorPickerPlugin };
+export { createColorPickerPlugin };

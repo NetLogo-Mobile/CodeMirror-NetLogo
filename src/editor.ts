@@ -1,4 +1,4 @@
-import { EditorView, ViewUpdate, keymap, placeholder } from '@codemirror/view';
+import { EditorView, ViewUpdate, keymap, placeholder, ViewPlugin } from '@codemirror/view';
 import { closeCompletion, acceptCompletion } from '@codemirror/autocomplete';
 import { forceParsing, LanguageSupport } from '@codemirror/language';
 import { Diagnostic, linter, lintGutter } from '@codemirror/lint';
@@ -30,7 +30,7 @@ import { SemanticFeatures } from './features/semantics';
 import { CodeEditing } from './lang/services/code-editing';
 import { basicSetup } from 'codemirror';
 import { Breed } from './lang/classes/structures';
-import { ColorPickerPlugin } from './codemirror/cp-widget-extension';
+import { createColorPickerPlugin } from './codemirror/cp-widget-extension';
 
 export class GalapagosEditor {
   /** CodeMirror: The CodeMirror 6 component. */
@@ -112,7 +112,7 @@ export class GalapagosEditor {
         Extensions.push(lintGutter());
     }
     Extensions.push(this.Language);
-    Extensions.push(ColorPickerPlugin);
+    Extensions.push(createColorPickerPlugin(Options.OnColorPickerCreate));
     // Keybindings
     if (this.Options.KeyBindings) Extensions.push(keymap.of(this.Options.KeyBindings));
     // DOM handlers
