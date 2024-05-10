@@ -132,9 +132,5 @@ function findDiagnostic(
 }
 
 class SelectedDiagnostic {
-  constructor(
-    readonly from: number,
-    readonly to: number,
-    readonly diagnostic: Diagnostic
-  ) {}
+  constructor(readonly from: number, readonly to: number, readonly diagnostic: Diagnostic) {}
 }

@@ -168,8 +168,8 @@ function initializeCP(
   };
 
   const colorPicker = new ColorPicker(colorPickerConfig);
-  if(OnColorPickerCreate) {
-    OnColorPickerCreate(cpDiv)
+  if (OnColorPickerCreate) {
+    OnColorPickerCreate(cpDiv);
   }
   return cpDiv;
 }
@@ -198,7 +198,12 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
         mousedown: function (e: MouseEvent, view: EditorView) {
           let target = e.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('netlogo-color-picker-widget')) {
-            let div = initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!, OnColorPickerCreate);
+            let div = initializeCP(
+              view,
+              view.posAtDOM(target),
+              this.posToWidget.get(view.posAtDOM(target))!,
+              OnColorPickerCreate
+            );
           }
         },
       },
