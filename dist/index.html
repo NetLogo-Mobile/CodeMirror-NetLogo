@@ -65,10 +65,10 @@
           OnUpdate: (Changed, Update) => {
             if (Changed) console.log(Update);
           },
-          // OnColorPickerCreate: (cpDiv) => {
-          //   view = Editor.CodeMirror;
-          //   view.dom.appendChild(cpDiv);
-          // },
+          OnColorPickerCreate: (cpDiv) => {
+            view = Editor.CodeMirror;
+            view.dom.appendChild(cpDiv);
+          },
           ParseMode: 'Generative',
         });
         EditorDictionary.Initialize({});

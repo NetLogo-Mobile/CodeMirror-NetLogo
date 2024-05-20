@@ -84,7 +84,7 @@ function renderDiagnostic(view: EditorView, diagnostic: Diagnostic, inPanel: boo
     elt(
       'span',
       { class: 'cm-diagnosticText' },
-      diagnostic.renderMessage ? diagnostic.renderMessage() : diagnostic.message
+      diagnostic.renderMessage ? diagnostic.renderMessage(view) : diagnostic.message
     ),
     diagnostic.actions?.map((action, i) => {
       let fired = false,
