@@ -1,4 +1,4 @@
-import { WidgetType, EditorView, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
+import { WidgetType, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
 /** ColorPickerWidget: Defines a ColorPicker widget of WidgetType */
 declare class ColorPickerWidget extends WidgetType {
     private color;
@@ -18,11 +18,10 @@ declare class ColorPickerWidget extends WidgetType {
     ignoreEvent(): boolean;
 }
 /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
-declare const ColorPickerPlugin: ViewPlugin<{
+declare function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => void): ViewPlugin<{
     decorations: DecorationSet;
     posToWidget: Map<number, ColorPickerWidget>;
     update(update: ViewUpdate): void;
-    handleMouseDown(e: MouseEvent, view: EditorView): void;
 }>;
-export { ColorPickerPlugin };
+export { createColorPickerPlugin };
 //# sourceMappingURL=cp-widget-extension.d.ts.map
