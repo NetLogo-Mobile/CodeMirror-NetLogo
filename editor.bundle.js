@@ -36769,8 +36769,6 @@ if(!String.prototype.matchAll) {
                     let colorIndex = Number(rect.dataset.value);
                     // Convert the selected color to RGBA format
                     let newColor = netlogoColorToRGBA(this.colorArray[colorIndex]);
-                    console.log(this.colorArray.length);
-                    console.log(this.colorArray[colorIndex]);
                     // netlogoColor defaults to 255 for the alpha value
                     newColor[3] = this.state.currentColor[3];
                     // Use setState to update the currentColor in the component's state
@@ -38281,7 +38279,9 @@ if(!String.prototype.matchAll) {
                     Extensions.push(lintGutter());
             }
             Extensions.push(this.Language);
-            Extensions.push(createColorPickerPlugin(Options.OnColorPickerCreate));
+            if (Options.OnColorPickerCreate) {
+                Extensions.push(createColorPickerPlugin(Options.OnColorPickerCreate));
+            }
             // Keybindings
             if (this.Options.KeyBindings)
                 Extensions.push(keymap.of(this.Options.KeyBindings));
