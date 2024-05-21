@@ -112,7 +112,9 @@ export class GalapagosEditor {
         Extensions.push(lintGutter());
     }
     Extensions.push(this.Language);
-    Extensions.push(createColorPickerPlugin(Options.OnColorPickerCreate));
+    if (Options.OnColorPickerCreate) {
+      Extensions.push(createColorPickerPlugin(Options.OnColorPickerCreate));
+    }
     // Keybindings
     if (this.Options.KeyBindings) Extensions.push(keymap.of(this.Options.KeyBindings));
     // DOM handlers
