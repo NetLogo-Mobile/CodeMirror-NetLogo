@@ -61,11 +61,11 @@ class ColorPickerWidget extends WidgetType {
     box.style.border = '1px solid gray';
     box.style.borderRadius = '20%';
     box.style.backgroundColor = this.color;
-    box.style.backgroundColor = this.color; 
+    box.style.backgroundColor = this.color;
     box.style.display = 'inline-block';
     box.style.cursor = 'pointer';
     box.style.marginLeft = '5px';
-    box.classList.add("cp-widget-box");
+    box.classList.add('cp-widget-box');
     return wrap;
   }
 
@@ -114,8 +114,8 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
               let color_start = sibling.from;
               if (color[1] == 'compound') {
                 let colorStr = view.state.doc.sliceString(sibling.from, sibling.to);
-                let colorStrArr = colorStr.split(" ");
-                // get the first number before the space 
+                let colorStrArr = colorStr.split(' ');
+                // get the first number before the space
                 if (colorStrArr.length > 3) {
                   let spaceIndex = colorStr.indexOf(colorStrArr[2]);
                   // there is a space, so we should ignore it, account for the length of the number as well
@@ -182,8 +182,8 @@ function initializeCP(
   };
 
   const colorPicker = new ColorPicker(colorPickerConfig);
-  if(OnColorPickerCreate) {
-    OnColorPickerCreate(cpDiv)
+  if (OnColorPickerCreate) {
+    OnColorPickerCreate(cpDiv);
   }
   return cpDiv;
 }
@@ -212,7 +212,12 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
         mousedown: function (e: MouseEvent, view: EditorView) {
           let target = e.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
-            let div = initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!, OnColorPickerCreate);
+            let div = initializeCP(
+              view,
+              view.posAtDOM(target),
+              this.posToWidget.get(view.posAtDOM(target))!,
+              OnColorPickerCreate
+            );
           }
         },
       },
