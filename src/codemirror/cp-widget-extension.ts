@@ -54,17 +54,18 @@ class ColorPickerWidget extends WidgetType {
   toDOM() {
     let wrap = document.createElement('span');
     wrap.setAttribute('aria-hidden', 'true');
-    wrap.className = 'netlogo-color-picker-widget';
+    wrap.className = 'cp-widget-wrap';
     let box = wrap.appendChild(document.createElement('div'));
     box.style.width = '9px';
     box.style.height = '9px';
     box.style.border = '1px solid gray';
     box.style.borderRadius = '20%';
     box.style.backgroundColor = this.color;
-    box.style.backgroundColor = this.color;
+    box.style.backgroundColor = this.color; 
     box.style.display = 'inline-block';
     box.style.cursor = 'pointer';
     box.style.marginLeft = '5px';
+    box.classList.add("cp-widget-box");
     return wrap;
   }
 
@@ -108,12 +109,28 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
               if (color[0] == '') {
                 return;
               }
-              let cpWidget = new ColorPickerWidget(color[0], sibling.to - sibling.from, color[1]);
+              // if the color is a compound color, make sure to split by whitespace if it exists
+              let color_end = sibling.to;
+              let color_start = sibling.from;
+              if (color[1] == 'compound') {
+                let colorStr = view.state.doc.sliceString(sibling.from, sibling.to);
+                let colorStrArr = colorStr.split(" ");
+                console.log(colorStrArr);
+                // get the first number before the space 
+                if (colorStrArr.length > 3) {
+                  console.log("special case");
+                  let spaceIndex = colorStr.indexOf(colorStrArr[2]);
+                  // there is a space, so we should ignore it, account for the length of the number as well
+                  color_end = sibling.from + spaceIndex + colorStrArr[2].length;
+                }
+                console.log(view.state.doc.sliceString(color_start, color_end))
+              }
+              let cpWidget = new ColorPickerWidget(color[0], color_end - color_start, color[1]);
               let deco = Decoration.widget({
                 widget: cpWidget,
                 side: 1,
               });
-              widgets.push(deco.range(sibling.to));
+              widgets.push(deco.range(color_end));
               // add widget to the hashmap
               posToWidget.set(sibling.to, cpWidget);
             }
@@ -197,7 +214,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
       eventHandlers: {
         mousedown: function (e: MouseEvent, view: EditorView) {
           let target = e.target as HTMLElement;
-          if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('netlogo-color-picker-widget')) {
+          if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
             let div = initializeCP(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target))!, OnColorPickerCreate);
           }
         },
