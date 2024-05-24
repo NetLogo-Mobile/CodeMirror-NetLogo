@@ -67,7 +67,10 @@
           },
           OnColorPickerCreate: (cpDiv) => {
             view = Editor.CodeMirror;
-            view.dom.appendChild(cpDiv);
+            // check if a cpDiv is already open, only open one if not 
+            if(!view.dom.querySelector("#colorPickerDiv")) {
+              view.dom.appendChild(cpDiv);
+            }
           },
           ParseMode: 'Generative',
         });
