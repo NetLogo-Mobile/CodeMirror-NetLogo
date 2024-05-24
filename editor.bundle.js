@@ -38088,7 +38088,7 @@ if(!String.prototype.matchAll) {
             box.style.display = 'inline-block';
             box.style.cursor = 'pointer';
             box.style.marginLeft = '5px';
-            box.classList.add("cp-widget-box");
+            box.classList.add('cp-widget-box');
             return wrap;
         }
         ignoreEvent() {
@@ -38137,8 +38137,8 @@ if(!String.prototype.matchAll) {
                                 let color_start = sibling.from;
                                 if (color[1] == 'compound') {
                                     let colorStr = view.state.doc.sliceString(sibling.from, sibling.to);
-                                    let colorStrArr = colorStr.split(" ");
-                                    // get the first number before the space 
+                                    let colorStrArr = colorStr.split(' ');
+                                    // get the first number before the space
                                     if (colorStrArr.length > 3) {
                                         let spaceIndex = colorStr.indexOf(colorStrArr[2]);
                                         // there is a space, so we should ignore it, account for the length of the number as well
