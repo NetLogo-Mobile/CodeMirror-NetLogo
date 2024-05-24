@@ -38138,15 +38138,12 @@ if(!String.prototype.matchAll) {
                                 if (color[1] == 'compound') {
                                     let colorStr = view.state.doc.sliceString(sibling.from, sibling.to);
                                     let colorStrArr = colorStr.split(" ");
-                                    console.log(colorStrArr);
                                     // get the first number before the space 
                                     if (colorStrArr.length > 3) {
-                                        console.log("special case");
                                         let spaceIndex = colorStr.indexOf(colorStrArr[2]);
                                         // there is a space, so we should ignore it, account for the length of the number as well
                                         color_end = sibling.from + spaceIndex + colorStrArr[2].length;
                                     }
-                                    console.log(view.state.doc.sliceString(color_start, color_end));
                                 }
                                 let cpWidget = new ColorPickerWidget(color[0], color_end - color_start, color[1]);
                                 let deco = Decoration.widget({
