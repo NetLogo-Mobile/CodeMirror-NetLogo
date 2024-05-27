@@ -12,6 +12,12 @@
       "returnType": "wildcard"
     },
     {
+      "name": "copy-to",
+      "argTypes": ["wildcard", "wildcard", { "type": "number", "isRepeatable": true }],
+      "defaultArgCount": 2,
+      "returnType": "unit"
+    },
+    {
       "name": "copy-to-drawing",
       "argTypes": ["wildcard", "number", "number"],
       "returnType": "unit"
@@ -26,6 +32,11 @@
       "argTypes": ["wildcard", "string", { "type": "boolean", "isRepeatable": true }],
       "defaultArgCount": 2,
       "returnType": "unit"
+    },
+    {
+      "name": "create",
+      "argTypes": ["number", "number"],
+      "returnType": "wildcard"
     },
     {
       "name": "difference-rgb",
@@ -86,11 +97,6 @@
       "name": "get-pixel",
       "argTypes": ["wildcard", "number", "number"],
       "returnType": "list"
-    },
-    {
-      "name": "resized",
-      "argTypes": ["wildcard", "number", "number"],
-      "returnType": "wildcard"
     }
   ]
 }

@@ -9,6 +9,7 @@ To set up the environment, use `npm install`. You might also need to install `ro
 ```
 npm install @lezer/generator --global
 npm install rollup --global
+npx husky init
 ```
 
 ### Building the Project

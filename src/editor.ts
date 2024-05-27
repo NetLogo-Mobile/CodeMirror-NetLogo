@@ -95,28 +95,23 @@ export class GalapagosEditor {
         Extensions.push(buildToolTips(this));
         Dictionary.ClickHandler = Dictionary.ClickHandler ?? Options.OnDictionaryClick;
         this.Linters = netlogoLinters.map((linter) => buildLinter(linter, this));
-        // Special case: One-line mode
-        if (this.Options.OneLine) {
-          Extensions.unshift(
-            Prec.highest(
-              keymap.of([
-                { key: 'Enter', run: () => true },
-                { key: 'Tab', run: acceptCompletion },
-              ])
-            )
-          );
-        }
         Extensions.push(...this.Linters);
         Extensions.push(linter(CompilerLinter));
         Extensions.push(linter(RuntimeLinter));
         Extensions.push(lintGutter());
     }
     Extensions.push(this.Language);
-    if (Options.OnColorPickerCreate) {
-      Extensions.push(createColorPickerPlugin(Options.OnColorPickerCreate));
-    }
+    // Color picker
+    if (Options.OnColorPickerCreate) Extensions.push(createColorPickerPlugin(Options.OnColorPickerCreate));
     // Keybindings
-    if (this.Options.KeyBindings) Extensions.push(keymap.of(this.Options.KeyBindings));
+    var KeyBindings = Options.KeyBindings ?? [];
+    if (this.Options.OneLine) {
+      if (KeyBindings.findIndex((Binding) => Binding.key === 'Enter') === -1)
+        KeyBindings.push({ key: 'Enter', run: () => true });
+      if (KeyBindings.findIndex((Binding) => Binding.key === 'Tab') === -1)
+        KeyBindings.push({ key: 'Tab', run: acceptCompletion });
+    }
+    Extensions.push(keymap.of(KeyBindings));
     // DOM handlers
     Extensions.push(
       EditorView.domEventHandlers({
