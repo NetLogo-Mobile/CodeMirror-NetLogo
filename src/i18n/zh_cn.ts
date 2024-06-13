@@ -195,6 +195,24 @@ const zh_cn: Record<string, Function> = {
   'Talk to the computer in natural languages': () => `用**自然语言**写代码`,
   'Look for the documentation': () => `查看 NetLogo 语言的**帮助文档**`,
   'Ask questions about NetLogo': () => `询问关于 NetLogo 的**问题**`,
+
+  // Color picker messages
+  Grid: () => `网格`,
+  Wheel: () => `色轮`,
+  Slider: () => `滑块`,
+  Red: () => `R`,
+  Blue: () => `B`,
+  Green: () => `G`,
+  Alpha: () => `A`,
+  Hue: () => `H 色相`,
+  Saturation: () => `S 饱和度`,
+  Luminance: () => `L 亮度`,
+  'Color Parameters': () => `颜色值`,
+  'Color Swatches': () => `色板`,
+  'Model Color Selected': () => `模型颜色已选`,
+  'Background Color Selected': () => `背景颜色已选`,
+  Increment: () => `增量`,
+  Numbers: () => `数字`,
 };
 
 export { zh_cn };
