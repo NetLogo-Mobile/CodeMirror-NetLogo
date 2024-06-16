@@ -152,10 +152,10 @@ function initializeCP(
   const colorPickerConfig = {
     parent: cpDiv,
     initColor: extractRGBValues(widget.getColor()),
-    onColorSelect: (cpReturn: [number[], number[][]]) => {
+    onColorSelect: (cpReturn: [any, number[][]]) => {
       let newValue: string = '';
       // cpReturn is an array of the selected color as well as the saved colors array
-      const selectedColor = cpReturn[0];
+      const selectedColor: number[] = cpReturn[0].rgba;
       savedColors = cpReturn[1];
 
       // format correctly based on cpDiv
