@@ -218,6 +218,24 @@ const en_us: Record<string, Function> = {
   'Talk to the computer in natural languages': () => `Talk to the computer in **natural languages**`,
   'Look for the documentation': () => `Look for the **learning materials** of NetLogo`,
   'Ask questions about NetLogo': () => `Ask **questions** about NetLogo`,
+
+  //Color picker messages
+  Grid: () => `Grid`,
+  Wheel: () => `Wheel`,
+  Slider: () => `Slider`,
+  Red: () => `Red`,
+  Blue: () => `Blue`,
+  Green: () => `Green`,
+  Alpha: () => `Alpha`,
+  Hue: () => `Hue`,
+  Saturation: () => `Saturation`,
+  Luminance: () => `Luminance`,
+  'Color Parameters': () => `Color Parameters`,
+  'Color Swatches': () => `Color Swatches`,
+  'Model Color Selected': () => `Model Color Selected`,
+  'Background Color Selected': () => `Background Color Selected`,
+  Increment: () => `Increment`,
+  Numbers: () => `Numbers`,
 };
 
 export { en_us };
