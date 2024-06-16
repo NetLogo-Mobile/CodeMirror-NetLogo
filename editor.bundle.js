@@ -38562,7 +38562,7 @@ if(!String.prototype.matchAll) {
             onColorSelect: (cpReturn) => {
                 let newValue = '';
                 // cpReturn is an array of the selected color as well as the saved colors array
-                const selectedColor = cpReturn[0];
+                const selectedColor = cpReturn[0].rgba;
                 savedColors = cpReturn[1];
                 // format correctly based on cpDiv
                 switch (widget.getColorType()) {
