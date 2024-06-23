@@ -5368,14 +5368,14 @@ if(!String.prototype.matchAll) {
         }
         return target;
     }
-    const noAttrs = /*@__PURE__*/Object.create(null);
+    const noAttrs$1 = /*@__PURE__*/Object.create(null);
     function attrsEq(a, b, ignore) {
         if (a == b)
             return true;
         if (!a)
-            a = noAttrs;
+            a = noAttrs$1;
         if (!b)
-            b = noAttrs;
+            b = noAttrs$1;
         let keysA = Object.keys(a), keysB = Object.keys(b);
         if (keysA.length - (ignore && keysA.indexOf(ignore) > -1 ? 1 : 0) !=
             keysB.length - (ignore && keysB.indexOf(ignore) > -1 ? 1 : 0))
@@ -5558,7 +5558,10 @@ if(!String.prototype.matchAll) {
             }
             return rect;
         }
-        become(_other) { return false; }
+        become(other) {
+            return other instanceof LineView && this.children.length == 0 && other.children.length == 0 &&
+                attrsEq(this.attrs, other.attrs) && this.breakAfter == other.breakAfter;
+        }
         covers() { return true; }
         static find(docView, pos) {
             for (let i = 0, off = 0; i < docView.children.length; i++) {
@@ -10897,7 +10900,9 @@ if(!String.prototype.matchAll) {
                 else
                     this.flush();
             });
-            if (window.EditContext && view.constructor.EDIT_CONTEXT === true) {
+            if (window.EditContext && view.constructor.EDIT_CONTEXT !== false &&
+                // Chrome <126 doesn't support inverted selections in edit context (#1392)
+                !(browser.chrome && browser.chrome_version < 126)) {
                 this.editContext = new EditContextManager(view);
                 if (view.state.facet(editable))
                     view.contentDOM.editContext = this.editContext.editContext;
@@ -20825,7 +20830,7 @@ if(!String.prototype.matchAll) {
             return active == this.active && open == this.open ? this : new CompletionState(active, this.id, open);
         }
         get tooltip() { return this.open ? this.open.tooltip : null; }
-        get attrs() { return this.open ? this.open.attrs : baseAttrs; }
+        get attrs() { return this.open ? this.open.attrs : this.active.length ? baseAttrs : noAttrs; }
     }
     function sameResults(a, b) {
         if (a == b)
@@ -20845,6 +20850,7 @@ if(!String.prototype.matchAll) {
     const baseAttrs = {
         "aria-autocomplete": "list"
     };
+    const noAttrs = {};
     function makeAttrs(id, selected) {
         let result = {
             "aria-autocomplete": "list",
@@ -21919,8 +21925,7 @@ if(!String.prototype.matchAll) {
                     }).range(d.from)
                     : Decoration.mark({
                         attributes: { class: "cm-lintRange cm-lintRange-" + d.severity + (d.markClass ? " " + d.markClass : "") },
-                        diagnostic: d,
-                        inclusive: true
+                        diagnostic: d
                     }).range(d.from, d.to);
             }), true);
             return new LintState(ranges, panel, findDiagnostic$1(ranges));
@@ -21996,7 +22001,7 @@ if(!String.prototype.matchAll) {
         provide: f => [showPanel.from(f, val => val.panel),
             EditorView.decorations.from(f, s => s.diagnostics)]
     });
-    const activeMark = /*@__PURE__*/Decoration.mark({ class: "cm-lintRange cm-lintRange-active", inclusive: true });
+    const activeMark = /*@__PURE__*/Decoration.mark({ class: "cm-lintRange cm-lintRange-active" });
     function lintTooltip(view, pos, side) {
         let { diagnostics } = view.state.field(lintState$1);
         let found = [], stackStart = 2e8, stackEnd = 0;
@@ -27996,7 +28001,7 @@ if(!String.prototype.matchAll) {
         'Talk to the computer in natural languages': () => `Talk to the computer in **natural languages**`,
         'Look for the documentation': () => `Look for the **learning materials** of NetLogo`,
         'Ask questions about NetLogo': () => `Ask **questions** about NetLogo`,
-        //Color picker messages
+        // Color picker messages
         Grid: () => `Grid`,
         Wheel: () => `Wheel`,
         Slider: () => `Slider`,
@@ -28007,10 +28012,10 @@ if(!String.prototype.matchAll) {
         Hue: () => `Hue`,
         Saturation: () => `Saturation`,
         Luminance: () => `Luminance`,
-        'Color Parameters': () => `Color Parameters`,
-        'Color Swatches': () => `Color Swatches`,
-        'Model Color Selected': () => `Model Color Selected`,
-        'Background Color Selected': () => `Background Color Selected`,
+        'Color Parameters': () => `Current Color`,
+        'Color Swatches': () => `NetLogo Color Picker`,
+        'Model Color Selected': () => `Editing Foreground Color`,
+        'Background Color Selected': () => `Editing Background Color`,
         Increment: () => `Increment`,
         Numbers: () => `Numbers`,
     };
@@ -28198,9 +28203,9 @@ if(!String.prototype.matchAll) {
         Saturation: () => `S 饱和度`,
         Luminance: () => `L 亮度`,
         'Color Parameters': () => `颜色值`,
-        'Color Swatches': () => `色板`,
-        'Model Color Selected': () => `模型颜色已选`,
-        'Background Color Selected': () => `背景颜色已选`,
+        'Color Swatches': () => `NetLogo 色板`,
+        'Model Color Selected': () => `正在编辑前景颜色`,
+        'Background Color Selected': () => `正在编辑背景颜色`,
         Increment: () => `增量`,
         Numbers: () => `数字`,
     };
@@ -38645,7 +38650,6 @@ if(!String.prototype.matchAll) {
             /** IsVisible: Whether this editor is visible. */
             this.IsVisible = true;
             this.Editable = new Compartment();
-            this.ThemeConfig = new Compartment();
             this.Parent = Parent;
             this.Options = Options;
             // Extensions
