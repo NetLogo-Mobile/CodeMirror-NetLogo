@@ -219,7 +219,7 @@ const en_us: Record<string, Function> = {
   'Look for the documentation': () => `Look for the **learning materials** of NetLogo`,
   'Ask questions about NetLogo': () => `Ask **questions** about NetLogo`,
 
-  //Color picker messages
+  // Color picker messages
   Grid: () => `Grid`,
   Wheel: () => `Wheel`,
   Slider: () => `Slider`,
@@ -230,10 +230,10 @@ const en_us: Record<string, Function> = {
   Hue: () => `Hue`,
   Saturation: () => `Saturation`,
   Luminance: () => `Luminance`,
-  'Color Parameters': () => `Color Parameters`,
-  'Color Swatches': () => `Color Swatches`,
-  'Model Color Selected': () => `Model Color Selected`,
-  'Background Color Selected': () => `Background Color Selected`,
+  'Color Parameters': () => `Current Color`,
+  'Color Swatches': () => `NetLogo Color Picker`,
+  'Model Color Selected': () => `Editing Foreground Color`,
+  'Background Color Selected': () => `Editing Background Color`,
   Increment: () => `Increment`,
   Numbers: () => `Numbers`,
 };

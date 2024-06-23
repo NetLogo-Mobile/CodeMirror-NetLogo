@@ -39,8 +39,6 @@ export class GalapagosEditor {
   public readonly Options: EditorConfig;
   /** Editable: Compartment of the EditorView. */
   private readonly Editable: Compartment;
-  /** ThemeConfig: Compartment of Editor themes */
-  private readonly ThemeConfig: Compartment;
   /** Language: The language support of this editor. */
   public readonly Language: LanguageSupport;
   /** Parent: Parent HTMLElement of the EditorView. */
@@ -61,7 +59,6 @@ export class GalapagosEditor {
   /** Constructor: Create an editor instance. */
   constructor(Parent: HTMLElement, Options: EditorConfig) {
     this.Editable = new Compartment();
-    this.ThemeConfig = new Compartment();
     this.Parent = Parent;
     this.Options = Options;
     // Extensions
