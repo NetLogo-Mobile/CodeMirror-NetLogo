@@ -106,12 +106,13 @@ export class GalapagosEditor {
     // Keybindings
     var KeyBindings = Options.KeyBindings ?? [];
     if (this.Options.OneLine) {
-      if (KeyBindings.findIndex((Binding) => Binding.key === 'Enter') === -1)
-        KeyBindings.push({ key: 'Enter', run: () => true });
-      if (KeyBindings.findIndex((Binding) => Binding.key === 'Tab') === -1)
-        KeyBindings.push({ key: 'Tab', run: acceptCompletion });
+      KeyBindings.push({ key: 'Enter', run: () => true });
     }
-    Extensions.push(keymap.of(KeyBindings));
+    KeyBindings.push({ key: 'Tab', run: acceptCompletion });
+    if (!this.Options.OneLine) {
+      KeyBindings.push(indentWithTab);
+    }
+    Extensions.push(Prec.highest(keymap.of(KeyBindings)));
     // DOM handlers
     Extensions.push(
       EditorView.domEventHandlers({
