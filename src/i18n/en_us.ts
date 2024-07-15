@@ -232,8 +232,8 @@ const en_us: Record<string, Function> = {
   Luminance: () => `Luminance`,
   'Color Parameters': () => `Current Color`,
   'Color Swatches': () => `NetLogo Color Picker`,
-  'Model Color Selected': () => `Editing Foreground Color`,
-  'Background Color Selected': () => `Editing Background Color`,
+  'Foreground Color': () => `Foreground Color`,
+  'Background Color': () => `Background Color`,
   Increment: () => `Increment`,
   Numbers: () => `Numbers`,
 };
