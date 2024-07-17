@@ -55,17 +55,30 @@ class ColorPickerWidget extends WidgetType {
     let wrap = document.createElement('span');
     wrap.setAttribute('aria-hidden', 'true');
     wrap.className = 'cp-widget-wrap';
+    wrap.style.position = 'relative';
+    wrap.style.display = 'inline-block';
+
     let box = wrap.appendChild(document.createElement('div'));
     box.style.width = '9px';
     box.style.height = '9px';
     box.style.border = '1px solid gray';
     box.style.borderRadius = '20%';
     box.style.backgroundColor = this.color;
-    box.style.backgroundColor = this.color;
     box.style.display = 'inline-block';
-    box.style.cursor = 'pointer';
     box.style.marginLeft = '5px';
     box.classList.add('cp-widget-box');
+
+    // overlay an invisible div to increase clickable area
+    let clickable = wrap.appendChild(document.createElement('div'));
+    clickable.style.position = 'absolute';
+    clickable.style.top = '0';
+    clickable.style.left = '5px';
+    clickable.style.border = '20px solid transparent'; // we can adjust this to make it more or less sensitive
+    clickable.style.top = '50%';
+    clickable.style.left = '50%';
+    clickable.style.transform = 'translate(-50%, -50%)';
+    clickable.style.cursor = 'pointer';
+
     return wrap;
   }
 
@@ -212,6 +225,20 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
         mousedown: function (e: MouseEvent, view: EditorView) {
           let target = e.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
+            e.preventDefault();
+            let div = initializeCP(
+              view,
+              view.posAtDOM(target),
+              this.posToWidget.get(view.posAtDOM(target))!,
+              OnColorPickerCreate
+            );
+          }
+        },
+        touchstart: function (e: TouchEvent, view: EditorView) {
+          let touch = e.touches[0];
+          let target = touch.target as HTMLElement;
+          if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
+            e.preventDefault();
             let div = initializeCP(
               view,
               view.posAtDOM(target),
