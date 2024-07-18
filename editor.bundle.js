@@ -38510,20 +38510,22 @@ if(!String.prototype.matchAll) {
             wrap.style.position = 'relative';
             wrap.style.display = 'inline-block';
             let box = wrap.appendChild(document.createElement('div'));
-            box.style.width = '9px';
-            box.style.height = '9px';
+            box.style.width = '0.5rem';
+            box.style.height = '0.5rem';
             box.style.border = '1px solid gray';
             box.style.borderRadius = '20%';
             box.style.backgroundColor = this.color;
             box.style.display = 'inline-block';
-            box.style.marginLeft = '5px';
+            box.style.marginLeft = '0.3rem';
+            box.style.marginRight = '0.3rem';
+            box.style.verticalAlign = 'middle';
             box.classList.add('cp-widget-box');
             // overlay an invisible div to increase clickable area
             let clickable = wrap.appendChild(document.createElement('div'));
             clickable.style.position = 'absolute';
             clickable.style.top = '0';
-            clickable.style.left = '5px';
-            clickable.style.border = '20px solid transparent'; // we can adjust this to make it more or less sensitive
+            clickable.style.left = '0.125rem';
+            clickable.style.border = '0.5rem solid transparent'; // we can adjust this to make it more or less sensitive
             clickable.style.top = '50%';
             clickable.style.left = '50%';
             clickable.style.transform = 'translate(-50%, -50%)';
