@@ -209,8 +209,8 @@ const zh_cn: Record<string, Function> = {
   Luminance: () => `L 亮度`,
   'Color Parameters': () => `颜色值`,
   'Color Swatches': () => `NetLogo 色板`,
-  'Model Color Selected': () => `正在编辑前景颜色`,
-  'Background Color Selected': () => `正在编辑背景颜色`,
+  'Foreground Color': () => `编辑前景颜色`,
+  'Background Color': () => `编辑背景颜色`,
   Increment: () => `增量`,
   Numbers: () => `数字`,
 };

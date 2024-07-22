@@ -1,6 +1,5 @@
 import { syntaxTree } from '@codemirror/language';
 import { Diagnostic } from '@codemirror/lint';
-import { Localized } from '../../editor';
 import { getDiagnostic, Linter } from './linter-builder';
 import { SyntaxNode } from '@lezer/common';
 import { ParseMode } from '../../editor-config';
