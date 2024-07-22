@@ -11384,8 +11384,10 @@ if(!String.prototype.matchAll) {
                 applyDOMChangeInner(view, change, EditorSelection.single(this.toEditorPos(e.selectionStart), this.toEditorPos(e.selectionEnd)));
                 // If the transaction didn't flush our change, revert it so
                 // that the context is in sync with the editor state again.
-                if (this.pendingContextChange)
+                if (this.pendingContextChange) {
                     this.revertPending(view.state);
+                    this.setSelection(view.state);
+                }
             };
             this.handlers.characterboundsupdate = e => {
                 let rects = [], prev = null;
@@ -11467,13 +11469,14 @@ if(!String.prototype.matchAll) {
             return !abort;
         }
         update(update) {
+            let reverted = this.pendingContextChange;
             if (!this.applyEdits(update) || !this.rangeIsValid(update.state)) {
                 this.pendingContextChange = null;
                 this.resetRange(update.state);
                 this.editContext.updateText(0, this.editContext.text.length, update.state.doc.sliceString(this.from, this.to));
                 this.setSelection(update.state);
             }
-            else if (update.docChanged || update.selectionSet) {
+            else if (update.docChanged || update.selectionSet || reverted) {
                 this.setSelection(update.state);
             }
             if (update.geometryChanged || update.docChanged || update.selectionSet)
@@ -11487,7 +11490,7 @@ if(!String.prototype.matchAll) {
         revertPending(state) {
             let pending = this.pendingContextChange;
             this.pendingContextChange = null;
-            this.editContext.updateText(this.toContextPos(pending.from), this.toContextPos(pending.to + pending.insert.length), state.doc.sliceString(pending.from, pending.to));
+            this.editContext.updateText(this.toContextPos(pending.from), this.toContextPos(pending.from + pending.insert.length), state.doc.sliceString(pending.from, pending.to));
         }
         setSelection(state) {
             let { main } = state.selection;
