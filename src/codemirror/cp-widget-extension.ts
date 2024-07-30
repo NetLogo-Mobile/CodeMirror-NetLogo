@@ -102,6 +102,11 @@ function testValidColor(content: string): string[] {
   }
   // check if its of form array
   let arrAsRGB = colors.netlogoArrToRGB(content);
+  if (arrAsRGB) {
+    // its an rgbArr, check if it is rgba or rgb
+    const colorType = arrAsRGB.substring(0, arrAsRGB.indexOf('(')) + 'Arr'; // 'rgba' or 'rgb' as a string + 'Arr' to distinguish that it is an array representation
+    return [arrAsRGB, colorType];
+  }
   if (arrAsRGB) return [arrAsRGB, 'array'];
   return [colors.compoundToRGB(content), 'compound'];
 }
@@ -181,7 +186,15 @@ function initializeCP(
         case 'numeric':
           newValue = colors.rgbToNetlogo(selectedColor).toString();
           break;
-        case 'array':
+        case 'rgbArr':
+          // return the number as [ r g b ], unless the alpha value is not 255 ( suggesting it was changed )
+          if (selectedColor[3] == 255) {
+            newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]}]`;
+          } else {
+            newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
+          }
+          break;
+        case 'rgbaArr':
           newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
       }
 
