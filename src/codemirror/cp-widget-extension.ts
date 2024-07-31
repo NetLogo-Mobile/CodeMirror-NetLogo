@@ -75,16 +75,17 @@ class ColorPickerWidget extends WidgetType {
     clickable.style.position = 'absolute';
     clickable.style.top = '0';
     clickable.style.left = '0.125rem';
-    clickable.style.border = '0.5rem solid transparent'; // we can adjust this to make it more or less sensitive
+    clickable.style.border = '1rem solid transparent'; // we can adjust this to make it more or less sensitive
     clickable.style.top = '50%';
     clickable.style.left = '50%';
     clickable.style.transform = 'translate(-50%, -50%)';
     clickable.style.cursor = 'pointer';
-
+    // * default color picker widget should be uninteractable  */
+    wrap.style.pointerEvents = 'none';
     return wrap;
   }
 
-  ignoreEvent() {
+  ignoreEvent(event: Event): boolean {
     return false;
   }
 }
@@ -246,15 +247,40 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
       }
 
       update(update: ViewUpdate) {
-        if (update.docChanged || update.viewportChanged || syntaxTree(update.startState) != syntaxTree(update.state))
+        if (update.docChanged || update.viewportChanged || syntaxTree(update.startState) != syntaxTree(update.state)) {
           this.posToWidget.clear();
-        this.decorations = colorWidgets(update.view, this.posToWidget);
+          this.decorations = colorWidgets(update.view, this.posToWidget);
+        }
+      }
+
+      /** setWidgetsZindex: Helper function to change the ZIndex briefly to make widget interactable */
+      setWidgetsZIndex(view: EditorView, pointerValue: string) {
+        view.dom.querySelectorAll('.cp-widget-wrap').forEach((el) => {
+          if (el instanceof HTMLElement) {
+            el.style.pointerEvents = pointerValue;
+          }
+        });
       }
     },
+
     {
       decorations: (v) => v.decorations,
       eventHandlers: {
         mousedown: function (e: MouseEvent, view: EditorView) {
+          this.setWidgetsZIndex(view, 'auto');
+        },
+
+        touchstart: function (e: TouchEvent, view: EditorView) {
+          let touch = e.touches[0];
+          this.setWidgetsZIndex(view, 'auto');
+          // don't bring the keyboard if we pressed on the picker
+          let target = touch.target as HTMLElement;
+          if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
+            e.preventDefault();
+          }
+        },
+
+        mouseup: function (e: MouseEvent, view: EditorView) {
           let target = e.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
             e.preventDefault();
@@ -265,8 +291,11 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
               OnColorPickerCreate
             );
           }
+          // set the zindex of the picker back to -1 for consistency
+          this.setWidgetsZIndex(view, 'none');
         },
-        touchstart: function (e: TouchEvent, view: EditorView) {
+
+        touchend: function (e: TouchEvent, view: EditorView) {
           let touch = e.touches[0];
           let target = touch.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
@@ -278,6 +307,8 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
               OnColorPickerCreate
             );
           }
+          // set the zindex of the picker back to -1 for consistency
+          this.setWidgetsZIndex(view, 'none');
         },
       },
     }
