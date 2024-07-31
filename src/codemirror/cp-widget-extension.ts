@@ -93,21 +93,33 @@ class ColorPickerWidget extends WidgetType {
 function testValidColor(content: string): string[] {
   content = content.trim();
   if (!content) return [''];
+
+  // Check if it's a netlogo numeric color
   let number = Number(content);
-  // check if its a netlogo numeric color
   if (!isNaN(number) && number >= 0 && number < 140) return [colors.netlogoToRGB(number), 'numeric'];
-  // check if its one of the constants base color
-  if (colors.baseColorsToRGB[content]) {
-    return [colors.baseColorsToRGB[content], 'compound'];
+
+  // Check if it's one of the constants base color
+  if (colors.baseColorsToRGB[content]) return [colors.baseColorsToRGB[content], 'compound'];
+
+  // Check if it is of the form `rgb <num> <num> <num>`
+  const rgbRegex = /^rgb\s+(\d+)\s+(\d+)\s+(\d+)$/i;
+  const rgbMatch = content.match(rgbRegex);
+  if (rgbMatch) {
+    const [_, r, g, b] = rgbMatch;
+    const rgbValues = [Number(r), Number(g), Number(b)];
+    if (rgbValues.every((v) => v >= 0 && v <= 255)) {
+      return [`rgb(${rgbValues.join(',')})`, 'rgbFn'];
+    }
   }
-  // check if its of form array
+
+  // Check if it's of form array
   let arrAsRGB = colors.netlogoArrToRGB(content);
   if (arrAsRGB) {
-    // its an rgbArr, check if it is rgba or rgb
-    const colorType = arrAsRGB.substring(0, arrAsRGB.indexOf('(')) + 'Arr'; // 'rgba' or 'rgb' as a string + 'Arr' to distinguish that it is an array representation
+    const colorType = arrAsRGB.startsWith('rgba') ? 'rgbaArr' : 'rgbArr';
     return [arrAsRGB, colorType];
   }
-  if (arrAsRGB) return [arrAsRGB, 'array'];
+
+  // If all else fails, try to interpret as a compound color
   return [colors.compoundToRGB(content), 'compound'];
 }
 
@@ -125,6 +137,7 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
             let sibling = node.node.nextSibling;
             // check if node color is valid
             if (sibling) {
+              console.log('this color ' + view.state.doc.sliceString(sibling.from, sibling.to));
               let color: string[] = testValidColor(view.state.doc.sliceString(sibling.from, sibling.to)); // [<color as rgb>, <color type>]
               if (color[0] == '') {
                 return;
@@ -196,6 +209,10 @@ function initializeCP(
           break;
         case 'rgbaArr':
           newValue = `[${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]} ${selectedColor[3]}]`;
+          break;
+        case 'rgbFn':
+          newValue = `rgb ${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]}`;
+          break;
       }
 
       let change = {
