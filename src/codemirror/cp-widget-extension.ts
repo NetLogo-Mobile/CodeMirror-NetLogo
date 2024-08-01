@@ -144,16 +144,6 @@ function testValidColor(content: string): string[] {
 
 /**
  * Parses the visible ranges of the editor to find and create color widgets.
- * This function:
- * 1. Iterates through the syntax tree of visible text
- * 2. Identifies nodes with color-related variable names
- * 3. Validates the color value in the adjacent node
- * 4. Creates a ColorPickerWidget for valid colors
- * 5. Adds the widget to a map and returns a set of decorations
- *
- * This approach allows for dynamic creation of color pickers
- * only for valid color values currently visible in the editor.
- *
  * @param view - The EditorView instance
  * @param posToWidget - A map to store widget positions
  * @returns A DecorationSet containing all created color widgets
