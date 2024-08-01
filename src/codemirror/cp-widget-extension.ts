@@ -179,9 +179,38 @@ function initializeCP(
   pos: number,
   widget: ColorPickerWidget,
   OnColorPickerCreate?: (cpDiv: HTMLElement) => void
-): HTMLElement {
+): number {
+  // check for color picker existence
+  const cpExist = document.querySelector('#colorPickerDiv');
+  if (cpExist) {
+    return -1;
+  }
+  // create a div to hold the color picker
   let cpDiv = document.createElement('div');
-  cpDiv.id = 'colorPickerDiv';
+  document.body.appendChild(cpDiv);
+
+  /** findCPPos: finds the pos where the cpDiv should be. The cp div should be in the top left corner of the window viewport, so a flexbox can center the color picker right in the center of the viewport **/
+  const findAndSetCP = function () {
+    cpDiv.id = 'colorPickerDiv';
+    cpDiv.style.position = 'absolute';
+    cpDiv.style.display = 'flex';
+    cpDiv.style.justifyContent = 'center';
+    cpDiv.style.alignItems = 'center';
+    // first find the coordinate of the top left point in your viewport
+    const x = window.scrollX || document.documentElement.scrollLeft;
+    const y = window.scrollY || document.documentElement.scrollTop;
+    const viewportW = window.innerWidth;
+    const viewportY = window.innerHeight;
+    // min to fit cp is 24rem by 27.8rem (384px by 444.8px ) so if it is less than the minimum, just use the minimum (this is kind of a hack solution, but I can't think of a better one)
+    cpDiv.style.width = Math.max(384, viewportW) + 'px';
+    cpDiv.style.height = Math.max(444.8, viewportY) + 'px';
+    // Set the position of cpDiv
+    cpDiv.style.left = `${x}px`;
+    cpDiv.style.top = `${y}px`;
+    document.body.appendChild(cpDiv);
+  };
+
+  findAndSetCP();
 
   const colorPickerConfig = {
     parent: cpDiv,
@@ -231,7 +260,7 @@ function initializeCP(
   if (OnColorPickerCreate) {
     OnColorPickerCreate(cpDiv);
   }
-  return cpDiv;
+  return 0;
 }
 
 /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
@@ -284,7 +313,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
           let target = e.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
             e.preventDefault();
-            let div = initializeCP(
+            let success = initializeCP(
               view,
               view.posAtDOM(target),
               this.posToWidget.get(view.posAtDOM(target))!,
@@ -300,7 +329,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
           let target = touch.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
             e.preventDefault();
-            let div = initializeCP(
+            let success = initializeCP(
               view,
               view.posAtDOM(target),
               this.posToWidget.get(view.posAtDOM(target))!,
