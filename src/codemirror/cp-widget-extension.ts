@@ -4,9 +4,14 @@ import { Range } from '@codemirror/rangeset';
 import ColorPicker from '@netlogo/netlogo-color-picker';
 import * as colors from '@netlogo/netlogo-color-picker/dist/helpers/colors';
 
+//savedColors for saving the saved colors of the color picker to be used for subsequent color picker creations
 var savedColors: number[][] = [];
 
-/**  extractRGBValues: takes an rgb string andr returns an rgba array*/
+/**
+ * Extracts RGB or RGBA values from a color string.
+ * @param rgbString - A string in the format "rgb(r,g,b)" or "rgba(r,g,b,a)"
+ * @returns An array of four numbers [r, g, b, a], or an empty array if parsing fails
+ */
 function extractRGBValues(rgbString: string) {
   const regex = /rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})(?:,\s*(\d{1,3}|\d\.\d+))?\)/;
   const match = rgbString.match(regex);
@@ -20,7 +25,7 @@ function extractRGBValues(rgbString: string) {
   return [];
 }
 
-/** ColorPickerWidget: Defines a ColorPicker widget of WidgetType */
+/** ColorPickerWidget: Defines a ColorPicker widget of WidgetType. This widget will appear in the cm-dom */
 class ColorPickerWidget extends WidgetType {
   private color: string; // color of the section associated with the widget
   private length: number; // length of the color section associated with the widget
@@ -80,7 +85,7 @@ class ColorPickerWidget extends WidgetType {
     clickable.style.left = '50%';
     clickable.style.transform = 'translate(-50%, -50%)';
     clickable.style.cursor = 'pointer';
-    // * default color picker widget should be uninteractable  */
+    // * default color picker widget should be uninteractable. This is so it doesn't interfere with spacebar scrolling */
     wrap.style.pointerEvents = 'none';
     return wrap;
   }
@@ -90,7 +95,20 @@ class ColorPickerWidget extends WidgetType {
   }
 }
 
-/** testValidColor: returns the color of a SyntaxNode's text as rgba string. If the text is not a valid color, returns an empty string  */
+/**
+ * Tests if the given content represents a valid NetLogo color and returns its RGB representation.
+ * This function handles various NetLogo color formats:
+ * - Numeric color values (0-139)
+ * - Base color names
+ * - RGB function syntax
+ * - RGB/RGBA array syntax
+ * - Compound color expressions
+ *
+ * @param content - The string to test for color validity
+ * @returns An array where:
+ *          - The first element is the RGB(A) string representation of the color, or an empty string if invalid
+ *          - The second element is a string describing the type of color format detected
+ */
 function testValidColor(content: string): string[] {
   content = content.trim();
   if (!content) return [''];
@@ -124,7 +142,22 @@ function testValidColor(content: string): string[] {
   return [colors.compoundToRGB(content), 'compound'];
 }
 
-/** colorWidgets: Parses the visibleRange of the editor looking for colorWidget positions  */
+/**
+ * Parses the visible ranges of the editor to find and create color widgets.
+ * This function:
+ * 1. Iterates through the syntax tree of visible text
+ * 2. Identifies nodes with color-related variable names
+ * 3. Validates the color value in the adjacent node
+ * 4. Creates a ColorPickerWidget for valid colors
+ * 5. Adds the widget to a map and returns a set of decorations
+ *
+ * This approach allows for dynamic creation of color pickers
+ * only for valid color values currently visible in the editor.
+ *
+ * @param view - The EditorView instance
+ * @param posToWidget - A map to store widget positions
+ * @returns A DecorationSet containing all created color widgets
+ */
 function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidget>) {
   let widgets: Range<Decoration>[] = [];
   for (let { from, to } of view.visibleRanges) {
@@ -173,7 +206,16 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
   return Decoration.set(widgets);
 }
 
-/** intializeCP: creates an instance of a ColorPicker */
+/**
+ * Initializes and positions a ColorPicker instance.
+ * The color picker is positioned this way to allow for centered display, based on the visible portion of the window
+ * using flexbox, ensuring it's always visible regardless of scroll position.
+ * @param view - The EditorView instance
+ * @param pos - The position in the document where the color widget was clicked
+ * @param widget - The ColorPickerWidget instance that was clicked
+ * @param OnColorPickerCreate - Optional callback function to be called after color picker creation
+ * @returns -1 if a color picker already exists, 0 on successful creation
+ */
 function initializeCP(
   view: EditorView,
   pos: number,
@@ -265,7 +307,9 @@ function initializeCP(
   return 0;
 }
 
-/** destroyColorPicker: handler function to destroy the colorPickerDiv */
+/**
+ * Removes the color picker from the DOM and cleans up associated event listeners.
+ */
 function destroyColorPicker() {
   const cpDiv = document.querySelector('#colorPickerDiv');
   if (cpDiv) {
@@ -283,7 +327,11 @@ function handleOutsideClick(event: Event) {
   }
 }
 
-/** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
+/**
+ * Creates and returns the main ColorPicker plugin for CodeMirror.
+ * @param OnColorPickerCreate - Optional callback function to be called after color picker creation
+ * @returns A ViewPlugin instance that can be added to the CodeMirror editor
+ */
 function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => void) {
   return ViewPlugin.fromClass(
     class {
@@ -317,13 +365,14 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
       eventHandlers: {
         mousedown: function (e: MouseEvent, view: EditorView) {
           this.setWidgetsInteractability(view, 'auto');
-          // kill the colorPickerDiv if it exists
+          // if we are pressing the editor, close the color picker. This is necessary because the cpDiv won't cover the entire screen if the viewport is changed
           destroyColorPicker();
         },
 
         touchstart: function (e: TouchEvent, view: EditorView) {
           let touch = e.touches[0];
           this.setWidgetsInteractability(view, 'auto');
+          // if we are pressing the editor, close the color picker. This is necessary because the cpDiv won't cover the entire screen if the viewport is changed
           destroyColorPicker();
           // don't bring the keyboard if we pressed on the picker
           let target = touch.target as HTMLElement;
