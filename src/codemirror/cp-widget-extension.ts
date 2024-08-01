@@ -120,7 +120,7 @@ function testValidColor(content: string): string[] {
     return [arrAsRGB, colorType];
   }
 
-  // If all else fails, try to interpret as a compound color
+  // catch all that should never happen
   return [colors.compoundToRGB(content), 'compound'];
 }
 
@@ -251,16 +251,36 @@ function initializeCP(
         insert: newValue,
       };
       view.dispatch({ changes: change });
-      cpDiv.remove();
+      // call destroyColorPicker after processing the selected color
+      destroyColorPicker();
     },
     savedColors: savedColors,
   };
 
   const colorPicker = new ColorPicker(colorPickerConfig);
+  cpDiv.addEventListener('click', handleOutsideClick);
   if (OnColorPickerCreate) {
     OnColorPickerCreate(cpDiv);
   }
   return 0;
+}
+
+/** destroyColorPicker: handler function to destroy the colorPickerDiv */
+function destroyColorPicker() {
+  const cpDiv = document.querySelector('#colorPickerDiv');
+  if (cpDiv) {
+    // Remove the event listener before removing the div
+    cpDiv.removeEventListener('click', handleOutsideClick);
+    cpDiv.remove();
+  }
+}
+
+//separate click handler so we can both add and remove it
+function handleOutsideClick(event: Event) {
+  const cpDiv = event.currentTarget as HTMLElement;
+  if (event.target === cpDiv) {
+    destroyColorPicker();
+  }
 }
 
 /** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
@@ -283,7 +303,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
       }
 
       /** setWidgetsZindex: Helper function to change the ZIndex briefly to make widget interactable */
-      setWidgetsZIndex(view: EditorView, pointerValue: string) {
+      setWidgetsInteractability(view: EditorView, pointerValue: string) {
         view.dom.querySelectorAll('.cp-widget-wrap').forEach((el) => {
           if (el instanceof HTMLElement) {
             el.style.pointerEvents = pointerValue;
@@ -296,12 +316,15 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
       decorations: (v) => v.decorations,
       eventHandlers: {
         mousedown: function (e: MouseEvent, view: EditorView) {
-          this.setWidgetsZIndex(view, 'auto');
+          this.setWidgetsInteractability(view, 'auto');
+          // kill the colorPickerDiv if it exists
+          destroyColorPicker();
         },
 
         touchstart: function (e: TouchEvent, view: EditorView) {
           let touch = e.touches[0];
-          this.setWidgetsZIndex(view, 'auto');
+          this.setWidgetsInteractability(view, 'auto');
+          destroyColorPicker();
           // don't bring the keyboard if we pressed on the picker
           let target = touch.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
@@ -321,7 +344,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
             );
           }
           // set the zindex of the picker back to -1 for consistency
-          this.setWidgetsZIndex(view, 'none');
+          this.setWidgetsInteractability(view, 'none');
         },
 
         touchend: function (e: TouchEvent, view: EditorView) {
@@ -337,7 +360,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
             );
           }
           // set the zindex of the picker back to -1 for consistency
-          this.setWidgetsZIndex(view, 'none');
+          this.setWidgetsInteractability(view, 'none');
         },
       },
     }
