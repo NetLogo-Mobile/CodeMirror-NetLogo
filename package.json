@@ -1,7 +1,7 @@
 {
   "name": "@netlogo/codemirror-netlogo",
   "description": "This repository contains work in progress by Ruth Bagley (@rbagley), Haylie Wu (@wubbalubbadu), and John Chen (@CIVITAS-John), aimed at providing NetLogo language support for CodeMirror 6.",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "type": "module",
   "main": "codemirror-netlogo.js",
   "repository": {
