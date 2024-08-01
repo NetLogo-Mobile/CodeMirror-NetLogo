@@ -1,5 +1,5 @@
-import { WidgetType, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
-/** ColorPickerWidget: Defines a ColorPicker widget of WidgetType */
+import { WidgetType, EditorView, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
+/** ColorPickerWidget: Defines a ColorPicker widget of WidgetType. This widget will appear in the cm-dom */
 declare class ColorPickerWidget extends WidgetType {
     private color;
     private length;
@@ -15,13 +15,19 @@ declare class ColorPickerWidget extends WidgetType {
     getColorType(): string;
     /** toDOM: defines the DOM appearance of the widget. Not connected to the widget as per CodeMirror documentation */
     toDOM(): HTMLSpanElement;
-    ignoreEvent(): boolean;
+    ignoreEvent(event: Event): boolean;
 }
-/** ColorPickerPlugin: Main driver of the plugin. Creates a ColorPicker instance when a widget is pressed. Maintains a mapping of widgets to their position */
+/**
+ * Creates and returns the main ColorPicker plugin for CodeMirror.
+ * @param OnColorPickerCreate - Optional callback function to be called after color picker creation
+ * @returns A ViewPlugin instance that can be added to the CodeMirror editor
+ */
 declare function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => void): ViewPlugin<{
     decorations: DecorationSet;
     posToWidget: Map<number, ColorPickerWidget>;
     update(update: ViewUpdate): void;
+    /** setWidgetsZindex: Helper function to change the ZIndex briefly to make widget interactable */
+    setWidgetsInteractability(view: EditorView, pointerValue: string): void;
 }>;
 export { createColorPickerPlugin };
 //# sourceMappingURL=cp-widget-extension.d.ts.map
