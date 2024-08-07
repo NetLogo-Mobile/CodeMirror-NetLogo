@@ -206,7 +206,7 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
  * @param OnColorPickerCreate - Optional callback function to be called after color picker creation
  * @returns -1 if a color picker already exists, 0 on successful creation
  */
-function initializeCP(
+function initializeColorPicker(
   view: EditorView,
   pos: number,
   widget: ColorPickerWidget,
@@ -289,11 +289,14 @@ function initializeCP(
     savedColors: savedColors,
   };
 
+  // create the color picker
   const colorPicker = new ColorPicker(colorPickerConfig);
   cpDiv.addEventListener('click', handleOutsideClick);
-  if (OnColorPickerCreate) {
-    OnColorPickerCreate(cpDiv);
-  }
+  if (OnColorPickerCreate) OnColorPickerCreate(cpDiv);
+
+  // hide the virtual keyboard if eligible
+  (navigator as any).virtualKeyboard?.hide();
+
   return 0;
 }
 
@@ -375,7 +378,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
           let target = e.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
             e.preventDefault();
-            let success = initializeCP(
+            initializeColorPicker(
               view,
               view.posAtDOM(target),
               this.posToWidget.get(view.posAtDOM(target))!,
@@ -391,7 +394,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
           let target = touch.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
             e.preventDefault();
-            let success = initializeCP(
+            initializeColorPicker(
               view,
               view.posAtDOM(target),
               this.posToWidget.get(view.posAtDOM(target))!,
