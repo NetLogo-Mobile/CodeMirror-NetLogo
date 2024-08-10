@@ -131,6 +131,25 @@ function testValidColor(content: string): string[] {
     }
   }
 
+  // check if it is the form `hsb <num> <num> <num>`
+  const hsbRegex = /^hsb\s+(\d+)\s+(\d+)\s+(\d+)$/i;
+  const hsbMatch = content.match(hsbRegex);
+  if (hsbMatch) {
+    const [_, h, s, b] = hsbMatch;
+    const hsbValues = [Number(h), Number(s), Number(b)];
+    if (
+      hsbValues[0] >= 0 &&
+      hsbValues[0] <= 360 &&
+      hsbValues[1] >= 0 &&
+      hsbValues[1] <= 100 &&
+      hsbValues[2] >= 0 &&
+      hsbValues[2] <= 100
+    ) {
+      // hsb val, convert
+      const rgbValues = colors.HSBAToRGBA(hsbValues[0], hsbValues[1], hsbValues[2], 255).slice(0, -1);
+      return [`rgb(${rgbValues.join(',')})`, 'hsbFn'];
+    }
+  }
   // Check if it's of form array
   let arrAsRGB = colors.netlogoArrToRGB(content);
   if (arrAsRGB) {
@@ -161,7 +180,6 @@ function colorWidgets(view: EditorView, posToWidget: Map<number, ColorPickerWidg
             let sibling = node.node.nextSibling;
             // check if node color is valid
             if (sibling) {
-              console.log('this color ' + view.state.doc.sliceString(sibling.from, sibling.to));
               let color: string[] = testValidColor(view.state.doc.sliceString(sibling.from, sibling.to)); // [<color as rgb>, <color type>]
               if (color[0] == '') {
                 return;
@@ -274,6 +292,11 @@ function initializeColorPicker(
           break;
         case 'rgbFn':
           newValue = `rgb ${selectedColor[0]} ${selectedColor[1]} ${selectedColor[2]}`;
+          break;
+        case 'hsbFn':
+          // convert back to rgba first
+          const asHsb = colors.RGBAToHSBA(selectedColor[0], selectedColor[1], selectedColor[2], 255).slice(0, -1);
+          newValue = `hsb ${asHsb[0]} ${asHsb[1]} ${asHsb[2]}`;
           break;
       }
 
