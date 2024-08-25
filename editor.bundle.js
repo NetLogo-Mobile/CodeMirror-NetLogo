@@ -5419,240 +5419,6 @@ if(!String.prototype.matchAll) {
         return attrs;
     }
 
-    class LineView extends ContentView {
-        constructor() {
-            super(...arguments);
-            this.children = [];
-            this.length = 0;
-            this.prevAttrs = undefined;
-            this.attrs = null;
-            this.breakAfter = 0;
-        }
-        // Consumes source
-        merge(from, to, source, hasStart, openStart, openEnd) {
-            if (source) {
-                if (!(source instanceof LineView))
-                    return false;
-                if (!this.dom)
-                    source.transferDOM(this); // Reuse source.dom when appropriate
-            }
-            if (hasStart)
-                this.setDeco(source ? source.attrs : null);
-            mergeChildrenInto(this, from, to, source ? source.children.slice() : [], openStart, openEnd);
-            return true;
-        }
-        split(at) {
-            let end = new LineView;
-            end.breakAfter = this.breakAfter;
-            if (this.length == 0)
-                return end;
-            let { i, off } = this.childPos(at);
-            if (off) {
-                end.append(this.children[i].split(off), 0);
-                this.children[i].merge(off, this.children[i].length, null, false, 0, 0);
-                i++;
-            }
-            for (let j = i; j < this.children.length; j++)
-                end.append(this.children[j], 0);
-            while (i > 0 && this.children[i - 1].length == 0)
-                this.children[--i].destroy();
-            this.children.length = i;
-            this.markDirty();
-            this.length = at;
-            return end;
-        }
-        transferDOM(other) {
-            if (!this.dom)
-                return;
-            this.markDirty();
-            other.setDOM(this.dom);
-            other.prevAttrs = this.prevAttrs === undefined ? this.attrs : this.prevAttrs;
-            this.prevAttrs = undefined;
-            this.dom = null;
-        }
-        setDeco(attrs) {
-            if (!attrsEq(this.attrs, attrs)) {
-                if (this.dom) {
-                    this.prevAttrs = this.attrs;
-                    this.markDirty();
-                }
-                this.attrs = attrs;
-            }
-        }
-        append(child, openStart) {
-            joinInlineInto(this, child, openStart);
-        }
-        // Only called when building a line view in ContentBuilder
-        addLineDeco(deco) {
-            let attrs = deco.spec.attributes, cls = deco.spec.class;
-            if (attrs)
-                this.attrs = combineAttrs(attrs, this.attrs || {});
-            if (cls)
-                this.attrs = combineAttrs({ class: cls }, this.attrs || {});
-        }
-        domAtPos(pos) {
-            return inlineDOMAtPos(this, pos);
-        }
-        reuseDOM(node) {
-            if (node.nodeName == "DIV") {
-                this.setDOM(node);
-                this.flags |= 4 /* ViewFlag.AttrsDirty */ | 2 /* ViewFlag.NodeDirty */;
-            }
-        }
-        sync(view, track) {
-            var _a;
-            if (!this.dom) {
-                this.setDOM(document.createElement("div"));
-                this.dom.className = "cm-line";
-                this.prevAttrs = this.attrs ? null : undefined;
-            }
-            else if (this.flags & 4 /* ViewFlag.AttrsDirty */) {
-                clearAttributes(this.dom);
-                this.dom.className = "cm-line";
-                this.prevAttrs = this.attrs ? null : undefined;
-            }
-            if (this.prevAttrs !== undefined) {
-                updateAttrs(this.dom, this.prevAttrs, this.attrs);
-                this.dom.classList.add("cm-line");
-                this.prevAttrs = undefined;
-            }
-            super.sync(view, track);
-            let last = this.dom.lastChild;
-            while (last && ContentView.get(last) instanceof MarkView)
-                last = last.lastChild;
-            if (!last || !this.length ||
-                last.nodeName != "BR" && ((_a = ContentView.get(last)) === null || _a === void 0 ? void 0 : _a.isEditable) == false &&
-                    (!browser.ios || !this.children.some(ch => ch instanceof TextView))) {
-                let hack = document.createElement("BR");
-                hack.cmIgnore = true;
-                this.dom.appendChild(hack);
-            }
-        }
-        measureTextSize() {
-            if (this.children.length == 0 || this.length > 20)
-                return null;
-            let totalWidth = 0, textHeight;
-            for (let child of this.children) {
-                if (!(child instanceof TextView) || /[^ -~]/.test(child.text))
-                    return null;
-                let rects = clientRectsFor(child.dom);
-                if (rects.length != 1)
-                    return null;
-                totalWidth += rects[0].width;
-                textHeight = rects[0].height;
-            }
-            return !totalWidth ? null : {
-                lineHeight: this.dom.getBoundingClientRect().height,
-                charWidth: totalWidth / this.length,
-                textHeight
-            };
-        }
-        coordsAt(pos, side) {
-            let rect = coordsInChildren(this, pos, side);
-            // Correct rectangle height for empty lines when the returned
-            // height is larger than the text height.
-            if (!this.children.length && rect && this.parent) {
-                let { heightOracle } = this.parent.view.viewState, height = rect.bottom - rect.top;
-                if (Math.abs(height - heightOracle.lineHeight) < 2 && heightOracle.textHeight < height) {
-                    let dist = (height - heightOracle.textHeight) / 2;
-                    return { top: rect.top + dist, bottom: rect.bottom - dist, left: rect.left, right: rect.left };
-                }
-            }
-            return rect;
-        }
-        become(other) {
-            return other instanceof LineView && this.children.length == 0 && other.children.length == 0 &&
-                attrsEq(this.attrs, other.attrs) && this.breakAfter == other.breakAfter;
-        }
-        covers() { return true; }
-        static find(docView, pos) {
-            for (let i = 0, off = 0; i < docView.children.length; i++) {
-                let block = docView.children[i], end = off + block.length;
-                if (end >= pos) {
-                    if (block instanceof LineView)
-                        return block;
-                    if (end > pos)
-                        break;
-                }
-                off = end + block.breakAfter;
-            }
-            return null;
-        }
-    }
-    class BlockWidgetView extends ContentView {
-        constructor(widget, length, deco) {
-            super();
-            this.widget = widget;
-            this.length = length;
-            this.deco = deco;
-            this.breakAfter = 0;
-            this.prevWidget = null;
-        }
-        merge(from, to, source, _takeDeco, openStart, openEnd) {
-            if (source && (!(source instanceof BlockWidgetView) || !this.widget.compare(source.widget) ||
-                from > 0 && openStart <= 0 || to < this.length && openEnd <= 0))
-                return false;
-            this.length = from + (source ? source.length : 0) + (this.length - to);
-            return true;
-        }
-        domAtPos(pos) {
-            return pos == 0 ? DOMPos.before(this.dom) : DOMPos.after(this.dom, pos == this.length);
-        }
-        split(at) {
-            let len = this.length - at;
-            this.length = at;
-            let end = new BlockWidgetView(this.widget, len, this.deco);
-            end.breakAfter = this.breakAfter;
-            return end;
-        }
-        get children() { return noChildren; }
-        sync(view) {
-            if (!this.dom || !this.widget.updateDOM(this.dom, view)) {
-                if (this.dom && this.prevWidget)
-                    this.prevWidget.destroy(this.dom);
-                this.prevWidget = null;
-                this.setDOM(this.widget.toDOM(view));
-                if (!this.widget.editable)
-                    this.dom.contentEditable = "false";
-            }
-        }
-        get overrideDOMText() {
-            return this.parent ? this.parent.view.state.doc.slice(this.posAtStart, this.posAtEnd) : Text$1.empty;
-        }
-        domBoundsAround() { return null; }
-        become(other) {
-            if (other instanceof BlockWidgetView &&
-                other.widget.constructor == this.widget.constructor) {
-                if (!other.widget.compare(this.widget))
-                    this.markDirty(true);
-                if (this.dom && !this.prevWidget)
-                    this.prevWidget = this.widget;
-                this.widget = other.widget;
-                this.length = other.length;
-                this.deco = other.deco;
-                this.breakAfter = other.breakAfter;
-                return true;
-            }
-            return false;
-        }
-        ignoreMutation() { return true; }
-        ignoreEvent(event) { return this.widget.ignoreEvent(event); }
-        get isEditable() { return false; }
-        get isWidget() { return true; }
-        coordsAt(pos, side) {
-            return this.widget.coordsAt(this.dom, pos, side);
-        }
-        destroy() {
-            super.destroy();
-            if (this.dom)
-                this.widget.destroy(this.dom);
-        }
-        covers(side) {
-            let { startSide, endSide } = this.deco;
-            return startSide == endSide ? false : side < 0 ? startSide < 0 : endSide > 0;
-        }
-    }
-
     /**
     Widgets added to the content are described by subclasses of this
     class. Using a description object like that makes it possible to
@@ -5935,6 +5701,265 @@ if(!String.prototype.matchAll) {
             ranges[last] = Math.max(ranges[last], to);
         else
             ranges.push(from, to);
+    }
+
+    class LineView extends ContentView {
+        constructor() {
+            super(...arguments);
+            this.children = [];
+            this.length = 0;
+            this.prevAttrs = undefined;
+            this.attrs = null;
+            this.breakAfter = 0;
+        }
+        // Consumes source
+        merge(from, to, source, hasStart, openStart, openEnd) {
+            if (source) {
+                if (!(source instanceof LineView))
+                    return false;
+                if (!this.dom)
+                    source.transferDOM(this); // Reuse source.dom when appropriate
+            }
+            if (hasStart)
+                this.setDeco(source ? source.attrs : null);
+            mergeChildrenInto(this, from, to, source ? source.children.slice() : [], openStart, openEnd);
+            return true;
+        }
+        split(at) {
+            let end = new LineView;
+            end.breakAfter = this.breakAfter;
+            if (this.length == 0)
+                return end;
+            let { i, off } = this.childPos(at);
+            if (off) {
+                end.append(this.children[i].split(off), 0);
+                this.children[i].merge(off, this.children[i].length, null, false, 0, 0);
+                i++;
+            }
+            for (let j = i; j < this.children.length; j++)
+                end.append(this.children[j], 0);
+            while (i > 0 && this.children[i - 1].length == 0)
+                this.children[--i].destroy();
+            this.children.length = i;
+            this.markDirty();
+            this.length = at;
+            return end;
+        }
+        transferDOM(other) {
+            if (!this.dom)
+                return;
+            this.markDirty();
+            other.setDOM(this.dom);
+            other.prevAttrs = this.prevAttrs === undefined ? this.attrs : this.prevAttrs;
+            this.prevAttrs = undefined;
+            this.dom = null;
+        }
+        setDeco(attrs) {
+            if (!attrsEq(this.attrs, attrs)) {
+                if (this.dom) {
+                    this.prevAttrs = this.attrs;
+                    this.markDirty();
+                }
+                this.attrs = attrs;
+            }
+        }
+        append(child, openStart) {
+            joinInlineInto(this, child, openStart);
+        }
+        // Only called when building a line view in ContentBuilder
+        addLineDeco(deco) {
+            let attrs = deco.spec.attributes, cls = deco.spec.class;
+            if (attrs)
+                this.attrs = combineAttrs(attrs, this.attrs || {});
+            if (cls)
+                this.attrs = combineAttrs({ class: cls }, this.attrs || {});
+        }
+        domAtPos(pos) {
+            return inlineDOMAtPos(this, pos);
+        }
+        reuseDOM(node) {
+            if (node.nodeName == "DIV") {
+                this.setDOM(node);
+                this.flags |= 4 /* ViewFlag.AttrsDirty */ | 2 /* ViewFlag.NodeDirty */;
+            }
+        }
+        sync(view, track) {
+            var _a;
+            if (!this.dom) {
+                this.setDOM(document.createElement("div"));
+                this.dom.className = "cm-line";
+                this.prevAttrs = this.attrs ? null : undefined;
+            }
+            else if (this.flags & 4 /* ViewFlag.AttrsDirty */) {
+                clearAttributes(this.dom);
+                this.dom.className = "cm-line";
+                this.prevAttrs = this.attrs ? null : undefined;
+            }
+            if (this.prevAttrs !== undefined) {
+                updateAttrs(this.dom, this.prevAttrs, this.attrs);
+                this.dom.classList.add("cm-line");
+                this.prevAttrs = undefined;
+            }
+            super.sync(view, track);
+            let last = this.dom.lastChild;
+            while (last && ContentView.get(last) instanceof MarkView)
+                last = last.lastChild;
+            if (!last || !this.length ||
+                last.nodeName != "BR" && ((_a = ContentView.get(last)) === null || _a === void 0 ? void 0 : _a.isEditable) == false &&
+                    (!browser.ios || !this.children.some(ch => ch instanceof TextView))) {
+                let hack = document.createElement("BR");
+                hack.cmIgnore = true;
+                this.dom.appendChild(hack);
+            }
+        }
+        measureTextSize() {
+            if (this.children.length == 0 || this.length > 20)
+                return null;
+            let totalWidth = 0, textHeight;
+            for (let child of this.children) {
+                if (!(child instanceof TextView) || /[^ -~]/.test(child.text))
+                    return null;
+                let rects = clientRectsFor(child.dom);
+                if (rects.length != 1)
+                    return null;
+                totalWidth += rects[0].width;
+                textHeight = rects[0].height;
+            }
+            return !totalWidth ? null : {
+                lineHeight: this.dom.getBoundingClientRect().height,
+                charWidth: totalWidth / this.length,
+                textHeight
+            };
+        }
+        coordsAt(pos, side) {
+            let rect = coordsInChildren(this, pos, side);
+            // Correct rectangle height for empty lines when the returned
+            // height is larger than the text height.
+            if (!this.children.length && rect && this.parent) {
+                let { heightOracle } = this.parent.view.viewState, height = rect.bottom - rect.top;
+                if (Math.abs(height - heightOracle.lineHeight) < 2 && heightOracle.textHeight < height) {
+                    let dist = (height - heightOracle.textHeight) / 2;
+                    return { top: rect.top + dist, bottom: rect.bottom - dist, left: rect.left, right: rect.left };
+                }
+            }
+            return rect;
+        }
+        become(other) {
+            return other instanceof LineView && this.children.length == 0 && other.children.length == 0 &&
+                attrsEq(this.attrs, other.attrs) && this.breakAfter == other.breakAfter;
+        }
+        covers() { return true; }
+        static find(docView, pos) {
+            for (let i = 0, off = 0; i < docView.children.length; i++) {
+                let block = docView.children[i], end = off + block.length;
+                if (end >= pos) {
+                    if (block instanceof LineView)
+                        return block;
+                    if (end > pos)
+                        break;
+                }
+                off = end + block.breakAfter;
+            }
+            return null;
+        }
+    }
+    class BlockWidgetView extends ContentView {
+        constructor(widget, length, deco) {
+            super();
+            this.widget = widget;
+            this.length = length;
+            this.deco = deco;
+            this.breakAfter = 0;
+            this.prevWidget = null;
+        }
+        merge(from, to, source, _takeDeco, openStart, openEnd) {
+            if (source && (!(source instanceof BlockWidgetView) || !this.widget.compare(source.widget) ||
+                from > 0 && openStart <= 0 || to < this.length && openEnd <= 0))
+                return false;
+            this.length = from + (source ? source.length : 0) + (this.length - to);
+            return true;
+        }
+        domAtPos(pos) {
+            return pos == 0 ? DOMPos.before(this.dom) : DOMPos.after(this.dom, pos == this.length);
+        }
+        split(at) {
+            let len = this.length - at;
+            this.length = at;
+            let end = new BlockWidgetView(this.widget, len, this.deco);
+            end.breakAfter = this.breakAfter;
+            return end;
+        }
+        get children() { return noChildren; }
+        sync(view) {
+            if (!this.dom || !this.widget.updateDOM(this.dom, view)) {
+                if (this.dom && this.prevWidget)
+                    this.prevWidget.destroy(this.dom);
+                this.prevWidget = null;
+                this.setDOM(this.widget.toDOM(view));
+                if (!this.widget.editable)
+                    this.dom.contentEditable = "false";
+            }
+        }
+        get overrideDOMText() {
+            return this.parent ? this.parent.view.state.doc.slice(this.posAtStart, this.posAtEnd) : Text$1.empty;
+        }
+        domBoundsAround() { return null; }
+        become(other) {
+            if (other instanceof BlockWidgetView &&
+                other.widget.constructor == this.widget.constructor) {
+                if (!other.widget.compare(this.widget))
+                    this.markDirty(true);
+                if (this.dom && !this.prevWidget)
+                    this.prevWidget = this.widget;
+                this.widget = other.widget;
+                this.length = other.length;
+                this.deco = other.deco;
+                this.breakAfter = other.breakAfter;
+                return true;
+            }
+            return false;
+        }
+        ignoreMutation() { return true; }
+        ignoreEvent(event) { return this.widget.ignoreEvent(event); }
+        get isEditable() { return false; }
+        get isWidget() { return true; }
+        coordsAt(pos, side) {
+            let custom = this.widget.coordsAt(this.dom, pos, side);
+            if (custom)
+                return custom;
+            if (this.widget instanceof BlockGapWidget)
+                return null;
+            return flattenRect(this.dom.getBoundingClientRect(), this.length ? pos == 0 : side <= 0);
+        }
+        destroy() {
+            super.destroy();
+            if (this.dom)
+                this.widget.destroy(this.dom);
+        }
+        covers(side) {
+            let { startSide, endSide } = this.deco;
+            return startSide == endSide ? false : side < 0 ? startSide < 0 : endSide > 0;
+        }
+    }
+    class BlockGapWidget extends WidgetType {
+        constructor(height) {
+            super();
+            this.height = height;
+        }
+        toDOM() {
+            let elt = document.createElement("div");
+            elt.className = "cm-gap";
+            this.updateDOM(elt);
+            return elt;
+        }
+        eq(other) { return other.height == this.height; }
+        updateDOM(elt) {
+            elt.style.height = this.height + "px";
+            return true;
+        }
+        get editable() { return true; }
+        get estimatedHeight() { return this.height; }
+        ignoreEvent() { return false; }
     }
 
     class ContentBuilder {
@@ -6599,6 +6624,8 @@ if(!String.prototype.matchAll) {
     const updateListener = /*@__PURE__*/Facet.define();
     const inputHandler$1 = /*@__PURE__*/Facet.define();
     const focusChangeEffect = /*@__PURE__*/Facet.define();
+    const clipboardInputFilter = /*@__PURE__*/Facet.define();
+    const clipboardOutputFilter = /*@__PURE__*/Facet.define();
     const perLineTextDirection = /*@__PURE__*/Facet.define({
         combine: values => values.some(x => x)
     });
@@ -7522,26 +7549,6 @@ if(!String.prototype.matchAll) {
         return pos.node.nodeType == 1 && pos.node.firstChild &&
             (pos.offset == 0 || pos.node.childNodes[pos.offset - 1].contentEditable == "false") &&
             (pos.offset == pos.node.childNodes.length || pos.node.childNodes[pos.offset].contentEditable == "false");
-    }
-    class BlockGapWidget extends WidgetType {
-        constructor(height) {
-            super();
-            this.height = height;
-        }
-        toDOM() {
-            let elt = document.createElement("div");
-            elt.className = "cm-gap";
-            this.updateDOM(elt);
-            return elt;
-        }
-        eq(other) { return other.height == this.height; }
-        updateDOM(elt) {
-            elt.style.height = this.height + "px";
-            return true;
-        }
-        get editable() { return true; }
-        get estimatedHeight() { return this.height; }
-        ignoreEvent() { return false; }
     }
     function findCompositionNode(view, headPos) {
         let sel = view.observer.selectionRange;
@@ -8800,7 +8807,13 @@ if(!String.prototype.matchAll) {
             doPaste(view, target.value);
         }, 50);
     }
+    function textFilter(state, facet, text) {
+        for (let filter of state.facet(facet))
+            text = filter(text, state);
+        return text;
+    }
     function doPaste(view, input) {
+        input = textFilter(view.state, clipboardInputFilter, input);
         let { state } = view, changes, i = 1, text = state.toText(input);
         let byLine = text.lines == state.selection.ranges.length;
         let linewise = lastLinewiseCopy != null && state.selection.ranges.every(r => r.empty) && lastLinewiseCopy == text.toString();
@@ -8985,7 +8998,7 @@ if(!String.prototype.matchAll) {
             inputState.mouseSelection.dragging = true;
         inputState.draggedContent = range;
         if (event.dataTransfer) {
-            event.dataTransfer.setData("Text", view.state.sliceDoc(range.from, range.to));
+            event.dataTransfer.setData("Text", textFilter(view.state, clipboardOutputFilter, view.state.sliceDoc(range.from, range.to)));
             event.dataTransfer.effectAllowed = "copyMove";
         }
         return false;
@@ -8995,6 +9008,7 @@ if(!String.prototype.matchAll) {
         return false;
     };
     function dropText(view, event, text, direct) {
+        text = textFilter(view.state, clipboardInputFilter, text);
         if (!text)
             return;
         let dropPos = view.posAtCoords({ x: event.clientX, y: event.clientY }, false);
@@ -9095,7 +9109,7 @@ if(!String.prototype.matchAll) {
             }
             linewise = true;
         }
-        return { text: content.join(state.lineBreak), ranges, linewise };
+        return { text: textFilter(state, clipboardOutputFilter, content.join(state.lineBreak)), ranges, linewise };
     }
     let lastLinewiseCopy = null;
     handlers.copy = handlers.cut = (view, event) => {
@@ -9993,7 +10007,7 @@ if(!String.prototype.matchAll) {
                     left = Math.max(left, parentRect.left);
                     right = Math.min(right, parentRect.right);
                     top = Math.max(top, parentRect.top);
-                    bottom = parent == dom.parentNode ? parentRect.bottom : Math.min(bottom, parentRect.bottom);
+                    bottom = Math.min(parent == dom.parentNode ? win.innerHeight : bottom, parentRect.bottom);
                 }
                 parent = style.position == "absolute" || style.position == "fixed" ? elt.offsetParent : elt.parentNode;
             }
@@ -10647,7 +10661,8 @@ if(!String.prototype.matchAll) {
             height: "100%",
             overflowX: "auto",
             position: "relative",
-            zIndex: 0
+            zIndex: 0,
+            overflowAnchor: "none",
         },
         ".cm-content": {
             margin: 0,
@@ -10784,7 +10799,8 @@ if(!String.prototype.matchAll) {
             boxSizing: "border-box",
             position: "sticky",
             left: 0,
-            right: 0
+            right: 0,
+            zIndex: 300
         },
         "&light .cm-panels": {
             backgroundColor: "#f5f5f5",
@@ -11614,6 +11630,7 @@ if(!String.prototype.matchAll) {
         view, so that the user can see the editor.
         */
         constructor(config = {}) {
+            var _a;
             this.plugins = [];
             this.pluginMap = new Map;
             this.editorAttrs = {};
@@ -11665,6 +11682,8 @@ if(!String.prototype.matchAll) {
             this.updateAttrs();
             this.updateState = 0 /* UpdateState.Idle */;
             this.requestMeasure();
+            if ((_a = document.fonts) === null || _a === void 0 ? void 0 : _a.ready)
+                document.fonts.ready.then(() => this.requestMeasure());
         }
         dispatch(...input) {
             let trs = input.length == 1 && input[0] instanceof Transaction ? input
@@ -12130,7 +12149,7 @@ if(!String.prototype.matchAll) {
         /**
         Find the line block around the given document position. A line
         block is a range delimited on both sides by either a
-        non-[hidden](https://codemirror.net/6/docs/ref/#view.Decoration^replace) line breaks, or the
+        non-[hidden](https://codemirror.net/6/docs/ref/#view.Decoration^replace) line break, or the
         start/end of the document. It will usually just hold a line of
         text, but may be broken into multiple textblocks by block
         widgets.
@@ -12511,6 +12530,15 @@ if(!String.prototype.matchAll) {
     dispatching the custom behavior as a separate transaction.
     */
     EditorView.inputHandler = inputHandler$1;
+    /**
+    Functions provided in this facet will be used to transform text
+    pasted or dropped into the editor.
+    */
+    EditorView.clipboardInputFilter = clipboardInputFilter;
+    /**
+    Transform text copied or dragged from the editor.
+    */
+    EditorView.clipboardOutputFilter = clipboardOutputFilter;
     /**
     Scroll handlers can override how things are scrolled into view.
     If they return `true`, no further handling happens for the
@@ -14441,9 +14469,14 @@ if(!String.prototype.matchAll) {
     }
     const tooltipMargin = 4;
     function isInTooltip(tooltip, event) {
-        let rect = tooltip.getBoundingClientRect();
-        return event.clientX >= rect.left - tooltipMargin && event.clientX <= rect.right + tooltipMargin &&
-            event.clientY >= rect.top - tooltipMargin && event.clientY <= rect.bottom + tooltipMargin;
+        let { left, right, top, bottom } = tooltip.getBoundingClientRect(), arrow;
+        if (arrow = tooltip.querySelector(".cm-tooltip-arrow")) {
+            let arrowRect = arrow.getBoundingClientRect();
+            top = Math.min(arrowRect.top, top);
+            bottom = Math.max(arrowRect.bottom, bottom);
+        }
+        return event.clientX >= left - tooltipMargin && event.clientX <= right + tooltipMargin &&
+            event.clientY >= top - tooltipMargin && event.clientY <= bottom + tooltipMargin;
     }
     function isOverRange(view, from, to, x, y, margin) {
         let rect = view.scrollDOM.getBoundingClientRect();
@@ -14731,6 +14764,11 @@ if(!String.prototype.matchAll) {
     in all gutters for the line).
     */
     const gutterLineClass = /*@__PURE__*/Facet.define();
+    /**
+    Facet used to add a class to all gutter elements next to a widget.
+    Should not provide widgets with a `toDOM` method.
+    */
+    const gutterWidgetClass = /*@__PURE__*/Facet.define();
     const defaults$1 = {
         class: "",
         renderEmptyElements: false,
@@ -14941,9 +14979,14 @@ if(!String.prototype.matchAll) {
             this.addElement(view, line, localMarkers);
         }
         widget(view, block) {
-            let marker = this.gutter.config.widgetMarker(view, block.widget, block);
-            if (marker)
-                this.addElement(view, block, [marker]);
+            let marker = this.gutter.config.widgetMarker(view, block.widget, block), markers = marker ? [marker] : null;
+            for (let cls of view.state.facet(gutterWidgetClass)) {
+                let marker = cls(view, block.widget, block);
+                if (marker)
+                    (markers || (markers = [])).push(marker);
+            }
+            if (markers)
+                this.addElement(view, block, markers);
         }
         finish() {
             let gutter = this.gutter;
@@ -15079,6 +15122,10 @@ if(!String.prototype.matchAll) {
     Facet used to provide markers to the line number gutter.
     */
     const lineNumberMarkers = /*@__PURE__*/Facet.define();
+    /**
+    Facet used to create markers in the line number gutter next to widgets.
+    */
+    const lineNumberWidgetMarker = /*@__PURE__*/Facet.define();
     const lineNumberConfig = /*@__PURE__*/Facet.define({
         combine(values) {
             return combineConfig(values, { formatNumber: String, domEventHandlers: {} }, {
@@ -15113,7 +15160,14 @@ if(!String.prototype.matchAll) {
                 return null;
             return new NumberMarker(formatNumber(view, view.state.doc.lineAt(line.from).number));
         },
-        widgetMarker: () => null,
+        widgetMarker: (view, widget, block) => {
+            for (let m of view.state.facet(lineNumberWidgetMarker)) {
+                let result = m(view, widget, block);
+                if (result)
+                    return result;
+            }
+            return null;
+        },
         lineMarkerChange: update => update.startState.facet(lineNumberConfig) != update.state.facet(lineNumberConfig),
         initialSpacer(view) {
             return new NumberMarker(formatNumber(view, maxLineNumber(view.state.doc.lines)));
@@ -17354,6 +17408,10 @@ if(!String.prototype.matchAll) {
         */
         constructor(
         /**
+        The optional name of the base tag @internal
+        */
+        name, 
+        /**
         The set of this tag and all its parent tags, starting with
         this one itself and sorted in order of decreasing specificity.
         */
@@ -17367,6 +17425,7 @@ if(!String.prototype.matchAll) {
         The modifiers applied to this.base @internal
         */
         modified) {
+            this.name = name;
             this.set = set;
             this.base = base;
             this.modified = modified;
@@ -17375,17 +17434,20 @@ if(!String.prototype.matchAll) {
             */
             this.id = nextTagID++;
         }
-        /**
-        Define a new tag. If `parent` is given, the tag is treated as a
-        sub-tag of that parent, and
-        [highlighters](#highlight.tagHighlighter) that don't mention
-        this tag will try to fall back to the parent tag (or grandparent
-        tag, etc).
-        */
-        static define(parent) {
+        toString() {
+            let { name } = this;
+            for (let mod of this.modified)
+                if (mod.name)
+                    name = `${mod.name}(${name})`;
+            return name;
+        }
+        static define(nameOrParent, parent) {
+            let name = typeof nameOrParent == "string" ? nameOrParent : "?";
+            if (nameOrParent instanceof Tag)
+                parent = nameOrParent;
             if (parent === null || parent === void 0 ? void 0 : parent.base)
                 throw new Error("Can not derive from a modified tag");
-            let tag = new Tag([], null, []);
+            let tag = new Tag(name, [], null, []);
             tag.set.push(tag);
             if (parent)
                 for (let t of parent.set)
@@ -17404,8 +17466,8 @@ if(!String.prototype.matchAll) {
         example `m1(m2(m3(t1)))` is a subtype of `m1(m2(t1))`,
         `m1(m3(t1)`, and so on.
         */
-        static defineModifier() {
-            let mod = new Modifier;
+        static defineModifier(name) {
+            let mod = new Modifier(name);
             return (tag) => {
                 if (tag.modified.indexOf(mod) > -1)
                     return tag;
@@ -17415,7 +17477,8 @@ if(!String.prototype.matchAll) {
     }
     let nextModifierID = 0;
     class Modifier {
-        constructor() {
+        constructor(name) {
+            this.name = name;
             this.instances = [];
             this.id = nextModifierID++;
         }
@@ -17425,7 +17488,7 @@ if(!String.prototype.matchAll) {
             let exists = mods[0].instances.find(t => t.base == base && sameArray(mods, t.modified));
             if (exists)
                 return exists;
-            let set = [], tag = new Tag(set, base, mods);
+            let set = [], tag = new Tag(base.name, set, base, mods);
             for (let m of mods)
                 m.instances.push(tag);
             let configs = powerSet(mods);
@@ -17997,7 +18060,7 @@ if(!String.prototype.matchAll) {
         */
         heading6: t(heading),
         /**
-        A prose separator (such as a horizontal rule).
+        A prose [content](#highlight.tags.content) separator (such as a horizontal rule).
         */
         contentSeparator: t(content),
         /**
@@ -18070,31 +18133,31 @@ if(!String.prototype.matchAll) {
         given element is being defined. Expected to be used with the
         various [name](#highlight.tags.name) tags.
         */
-        definition: Tag.defineModifier(),
+        definition: Tag.defineModifier("definition"),
         /**
         [Modifier](#highlight.Tag^defineModifier) that indicates that
         something is constant. Mostly expected to be used with
         [variable names](#highlight.tags.variableName).
         */
-        constant: Tag.defineModifier(),
+        constant: Tag.defineModifier("constant"),
         /**
         [Modifier](#highlight.Tag^defineModifier) used to indicate that
         a [variable](#highlight.tags.variableName) or [property
         name](#highlight.tags.propertyName) is being called or defined
         as a function.
         */
-        function: Tag.defineModifier(),
+        function: Tag.defineModifier("function"),
         /**
         [Modifier](#highlight.Tag^defineModifier) that can be applied to
         [names](#highlight.tags.name) to indicate that they belong to
         the language's standard environment.
         */
-        standard: Tag.defineModifier(),
+        standard: Tag.defineModifier("standard"),
         /**
         [Modifier](#highlight.Tag^defineModifier) that indicates a given
         [names](#highlight.tags.name) is local to some scope.
         */
-        local: Tag.defineModifier(),
+        local: Tag.defineModifier("local"),
         /**
         A generic variant [modifier](#highlight.Tag^defineModifier) that
         can be used to tag language-specific alternative variants of
@@ -18103,8 +18166,13 @@ if(!String.prototype.matchAll) {
         [variable name](#highlight.tags.variableName) tags, since those
         come up a lot.
         */
-        special: Tag.defineModifier()
+        special: Tag.defineModifier("special")
     };
+    for (let name in tags$1) {
+        let val = tags$1[name];
+        if (val instanceof Tag)
+            val.name = name;
+    }
     /**
     This is a highlighter that adds stable, predictable classes to
     tokens, for styling with external CSS.
@@ -37131,6 +37199,13 @@ if(!String.prototype.matchAll) {
         let baseColorName = Object.keys(mappedColors$1)[baseColorIndex];
         // Calculate offset and immediately round to one decimal point
         let offset = Number(((netlogoColor % 10) - 5).toFixed(1));
+        // if white return white
+        if (netlogoColor == 9.9) {
+            return 'white';
+        }
+        if (netlogoColor == 0) {
+            return 'black';
+        }
         if (offset === 0) {
             // If the color is a base color, return only the base color name
             return baseColorName;
@@ -38121,7 +38196,7 @@ if(!String.prototype.matchAll) {
 
     class ColorPicker {
         /** constructor: creates a Color Picker instance. A color picker has a parent div and a inital color */
-        constructor(config) {
+        constructor(config, openTo = 'g') {
             // color display states that only ColorPicker needs to know about
             this.displayParameter = 'RGBA'; // true if the color display is in RGB mode, false if it is in HSLA mode
             this.isNetLogoNum = true; // true if the color display is in NetLogo number, false if its a compound number like Red + 2
@@ -38141,6 +38216,7 @@ if(!String.prototype.matchAll) {
             if (this.parent.offsetWidth < 600) {
                 this.isMinimized = true;
             }
+            this.openTo = openTo;
             this.init();
         }
         updateLayout() {
@@ -38171,8 +38247,22 @@ if(!String.prototype.matchAll) {
             this.updateColorParameters();
             this.attachEventListeners();
             this.initAlphaSlider();
-            // click the grid button to start
-            this.parent.querySelectorAll('.cp-mode-btn')[0].dispatchEvent(new Event('click'));
+            // click the correct button to start 
+            switch (this.openTo) {
+                case 'wheel':
+                    this.parent.querySelectorAll('.cp-mode-btn')[1].dispatchEvent(new Event('click'));
+                    break;
+                case 'slider':
+                    this.parent.querySelectorAll('.cp-mode-btn')[2].dispatchEvent(new Event('click'));
+                    break;
+                case 'sliderHSB':
+                    this.parent.querySelectorAll('.cp-mode-btn')[2].dispatchEvent(new Event('click'));
+                    // click the hsb button 
+                    this.parent.querySelectorAll('.cp-slider-changer')[0].dispatchEvent(new Event('click'));
+                    break;
+                default:
+                    this.parent.querySelectorAll('.cp-mode-btn')[0].dispatchEvent(new Event('click'));
+            }
         }
         /** updateColorParameters: updates the displayed color parameters to reflect the current Color. Also updates the alpha slider value because I don't know where else to put it  */
         updateColorParameters() {
@@ -38451,7 +38541,9 @@ if(!String.prototype.matchAll) {
     };
     /** colorToNumberMapping: maps the NetLogo Base colors to their corresponding numeric value  */
     const colorToNumberMapping = {
+        black: 0,
         gray: 5,
+        white: 9.9,
         red: 15,
         orange: 25,
         brown: 35,
@@ -38465,8 +38557,6 @@ if(!String.prototype.matchAll) {
         violet: 115,
         magenta: 125,
         pink: 135,
-        black: 145,
-        white: 155,
     };
     /** netlogoToRGB: converts netlogo colors to rgb string  */
     function netlogoToRGB(netlogoColor) {
@@ -38647,6 +38737,13 @@ if(!String.prototype.matchAll) {
         let baseColorName = Object.keys(mappedColors)[baseColorIndex];
         // Calculate offset and immediately round to one decimal point
         let offset = Number(((netlogoColor % 10) - 5).toFixed(1));
+        // if white return white
+        if (netlogoColor == 9.9) {
+            return 'white';
+        }
+        if (netlogoColor == 0) {
+            return 'black';
+        }
         if (offset === 0) {
             // If the color is a base color, return only the base color name
             return baseColorName;
