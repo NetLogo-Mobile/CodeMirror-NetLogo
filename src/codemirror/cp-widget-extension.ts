@@ -312,8 +312,15 @@ function initializeColorPicker(
     savedColors: savedColors,
   };
 
-  // create the color picker
-  const colorPicker = new ColorPicker(colorPickerConfig);
+  // create the color picker, and open to the right mode based on the widget type
+  let openTo = 'grid'; // default is grid
+  if (widget.getColorType() == 'rgbArr' || widget.getColorType() == 'rgbFn') {
+    openTo = 'slider';
+  }
+  if (widget.getColorType() == 'hsbFn') {
+    openTo = 'sliderHSB';
+  }
+  const colorPicker = new ColorPicker(colorPickerConfig, openTo);
   cpDiv.addEventListener('click', handleOutsideClick);
   if (OnColorPickerCreate) OnColorPickerCreate(cpDiv);
 
