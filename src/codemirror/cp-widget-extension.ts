@@ -325,9 +325,18 @@ function initializeColorPicker(
   if (OnColorPickerCreate) OnColorPickerCreate(cpDiv);
 
   // hide the virtual keyboard if eligible
-  (navigator as any).virtualKeyboard?.hide();
+  hideKeyboard();
+  // on iOS, this seems necessary
+  setTimeout(hideKeyboard, 100);
 
   return 0;
+}
+
+/**
+ * Hides the virtual keyboard if it exists.
+ */
+function hideKeyboard() {
+  (navigator as any).virtualKeyboard?.hide();
 }
 
 /**
