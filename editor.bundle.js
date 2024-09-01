@@ -23250,7 +23250,7 @@ if(!String.prototype.matchAll) {
                     config.joinToEvent(tr, isAdjacent(lastEvent.changes, event.changes))) ||
                     // For compose (but not compose.start) events, always join with previous event
                     userEvent == "input.type.compose")) {
-                done = updateBranch(done, done.length - 1, config.minDepth, new HistEvent(event.changes.compose(lastEvent.changes), conc(event.effects, lastEvent.effects), lastEvent.mapped, lastEvent.startSelection, none));
+                done = updateBranch(done, done.length - 1, config.minDepth, new HistEvent(event.changes.compose(lastEvent.changes), conc(StateEffect.mapEffects(event.effects, lastEvent.changes), lastEvent.effects), lastEvent.mapped, lastEvent.startSelection, none));
             }
             else {
                 done = updateBranch(done, done.length, config.minDepth, event);
@@ -38952,7 +38952,6 @@ if(!String.prototype.matchAll) {
      * @returns -1 if a color picker already exists, 0 on successful creation
      */
     function initializeColorPicker(view, pos, widget, OnColorPickerCreate) {
-        var _a;
         // check for color picker existence
         const cpExist = document.querySelector('#colorPickerDiv');
         if (cpExist) {
@@ -39043,8 +39042,17 @@ if(!String.prototype.matchAll) {
         if (OnColorPickerCreate)
             OnColorPickerCreate(cpDiv);
         // hide the virtual keyboard if eligible
-        (_a = navigator.virtualKeyboard) === null || _a === void 0 ? void 0 : _a.hide();
+        hideKeyboard();
+        // on iOS, this seems necessary
+        setTimeout(hideKeyboard, 100);
         return 0;
+    }
+    /**
+     * Hides the virtual keyboard if it exists.
+     */
+    function hideKeyboard() {
+        var _a;
+        (_a = navigator.virtualKeyboard) === null || _a === void 0 ? void 0 : _a.hide();
     }
     /**
      * Removes the color picker from the DOM and cleans up associated event listeners.
