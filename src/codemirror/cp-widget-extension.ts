@@ -327,7 +327,7 @@ function initializeColorPicker(
   // hide the virtual keyboard if eligible
   (navigator as any).virtualKeyboard?.hide();
   view.contentDOM.blur();
-  document.getElementsByClassName('cm-tooltip-hover')[0].setAttribute('style', 'display: none;');
+  document.querySelectorAll('.cm-tooltip-hover').forEach((hover) => hover.setAttribute('style', 'display: none;'));
 
   return 0;
 }
@@ -375,7 +375,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
         }
       }
 
-      /** setWidgetsZindex: Helper function to change the ZIndex briefly to make widget interactable */
+      /** setWidgetsInteractability: sets the pointerEvents of the wrapper to the given value. */
       setWidgetsInteractability(view: EditorView, pointerValue: string) {
         view.dom.querySelectorAll('.cp-widget-wrap').forEach((el) => {
           if (el instanceof HTMLElement) {
@@ -417,7 +417,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
               OnColorPickerCreate
             );
           }
-          // set the zindex of the picker back to -1 for consistency
+          // reset the interactability of the widgets
           this.setWidgetsInteractability(view, 'none');
         },
 
@@ -434,7 +434,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
               OnColorPickerCreate
             );
           }
-          // set the zindex of the picker back to -1 for consistency
+          // reset the interactability of the widgets
           this.setWidgetsInteractability(view, 'none');
         },
       },
