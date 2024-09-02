@@ -26,7 +26,7 @@ declare function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLEleme
     decorations: DecorationSet;
     posToWidget: Map<number, ColorPickerWidget>;
     update(update: ViewUpdate): void;
-    /** setWidgetsZindex: Helper function to change the ZIndex briefly to make widget interactable */
+    /** setWidgetsInteractability: sets the pointerEvents of the wrapper to the given value. */
     setWidgetsInteractability(view: EditorView, pointerValue: string): void;
 }>;
 export { createColorPickerPlugin };

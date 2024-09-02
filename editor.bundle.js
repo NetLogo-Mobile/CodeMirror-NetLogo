@@ -39045,7 +39045,7 @@ if(!String.prototype.matchAll) {
         // hide the virtual keyboard if eligible
         (_a = navigator.virtualKeyboard) === null || _a === void 0 ? void 0 : _a.hide();
         view.contentDOM.blur();
-        document.getElementsByClassName('cm-tooltip-hover')[0].setAttribute('style', 'display: none;');
+        document.querySelectorAll('.cm-tooltip-hover').forEach((hover) => hover.setAttribute('style', 'display: none;'));
         return 0;
     }
     /**
@@ -39083,7 +39083,7 @@ if(!String.prototype.matchAll) {
                     this.decorations = colorWidgets(update.view, this.posToWidget);
                 }
             }
-            /** setWidgetsZindex: Helper function to change the ZIndex briefly to make widget interactable */
+            /** setWidgetsInteractability: sets the pointerEvents of the wrapper to the given value. */
             setWidgetsInteractability(view, pointerValue) {
                 view.dom.querySelectorAll('.cp-widget-wrap').forEach((el) => {
                     if (el instanceof HTMLElement) {
@@ -39116,7 +39116,7 @@ if(!String.prototype.matchAll) {
                         e.preventDefault();
                         initializeColorPicker(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target)), OnColorPickerCreate);
                     }
-                    // set the zindex of the picker back to -1 for consistency
+                    // reset the interactability of the widgets
                     this.setWidgetsInteractability(view, 'none');
                 },
                 touchend: function (e, view) {
@@ -39128,7 +39128,7 @@ if(!String.prototype.matchAll) {
                         e.preventDefault();
                         initializeColorPicker(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target)), OnColorPickerCreate);
                     }
-                    // set the zindex of the picker back to -1 for consistency
+                    // reset the interactability of the widgets
                     this.setWidgetsInteractability(view, 'none');
                 },
             },
