@@ -1,4 +1,4 @@
-import { WidgetType, EditorView, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
+import { WidgetType, DecorationSet, ViewPlugin, ViewUpdate } from '@codemirror/view';
 /** ColorPickerWidget: Defines a ColorPicker widget of WidgetType. This widget will appear in the cm-dom */
 declare class ColorPickerWidget extends WidgetType {
     private color;
@@ -26,8 +26,6 @@ declare function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLEleme
     decorations: DecorationSet;
     posToWidget: Map<number, ColorPickerWidget>;
     update(update: ViewUpdate): void;
-    /** setWidgetsInteractability: sets the pointerEvents of the wrapper to the given value. */
-    setWidgetsInteractability(view: EditorView, pointerValue: string): void;
 }>;
 export { createColorPickerPlugin };
 //# sourceMappingURL=cp-widget-extension.d.ts.map

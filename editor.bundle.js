@@ -39083,25 +39083,15 @@ if(!String.prototype.matchAll) {
                     this.decorations = colorWidgets(update.view, this.posToWidget);
                 }
             }
-            /** setWidgetsInteractability: sets the pointerEvents of the wrapper to the given value. */
-            setWidgetsInteractability(view, pointerValue) {
-                view.dom.querySelectorAll('.cp-widget-wrap').forEach((el) => {
-                    if (el instanceof HTMLElement) {
-                        el.style.pointerEvents = pointerValue;
-                    }
-                });
-            }
         }, {
             decorations: (v) => v.decorations,
             eventHandlers: {
                 mousedown: function (e, view) {
-                    this.setWidgetsInteractability(view, 'auto');
                     // if we are pressing the editor, close the color picker. This is necessary because the cpDiv won't cover the entire screen if the viewport is changed
                     destroyColorPicker();
                 },
                 touchstart: function (e, view) {
                     let touch = e.touches[0];
-                    this.setWidgetsInteractability(view, 'auto');
                     // if we are pressing the editor, close the color picker. This is necessary because the cpDiv won't cover the entire screen if the viewport is changed
                     destroyColorPicker();
                     // don't bring the keyboard if we pressed on the picker
@@ -39116,8 +39106,6 @@ if(!String.prototype.matchAll) {
                         e.preventDefault();
                         initializeColorPicker(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target)), OnColorPickerCreate);
                     }
-                    // reset the interactability of the widgets
-                    this.setWidgetsInteractability(view, 'none');
                 },
                 touchend: function (e, view) {
                     let touch = e.touches[0];
@@ -39128,8 +39116,6 @@ if(!String.prototype.matchAll) {
                         e.preventDefault();
                         initializeColorPicker(view, view.posAtDOM(target), this.posToWidget.get(view.posAtDOM(target)), OnColorPickerCreate);
                     }
-                    // reset the interactability of the widgets
-                    this.setWidgetsInteractability(view, 'none');
                 },
             },
         });
