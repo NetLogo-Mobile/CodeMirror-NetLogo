@@ -85,8 +85,6 @@ class ColorPickerWidget extends WidgetType {
     clickable.style.left = '50%';
     clickable.style.transform = 'translate(-50%, -50%)';
     clickable.style.cursor = 'pointer';
-    // * default color picker widget should be uninteractable. This is so it doesn't interfere with spacebar scrolling */
-    wrap.style.pointerEvents = 'none';
     return wrap;
   }
 
@@ -338,7 +336,7 @@ function initializeColorPicker(
 function destroyColorPicker() {
   const cpDiv = document.querySelector('#colorPickerDiv');
   if (cpDiv) {
-    // Remove the event listener before removing the div
+    // remove the event listener before removing the div
     cpDiv.removeEventListener('click', handleOutsideClick);
     cpDiv.remove();
   }
@@ -362,6 +360,8 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
     class {
       decorations: DecorationSet;
       posToWidget: Map<number, ColorPickerWidget>;
+      // timeout used to revert Color Picker interactability
+      timeout: ReturnType<typeof setTimeout> | null = null;
 
       constructor(view: EditorView) {
         this.posToWidget = new Map();
@@ -373,6 +373,51 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
           this.posToWidget.clear();
           this.decorations = colorWidgets(update.view, this.posToWidget);
         }
+        if (update.selectionSet) {
+          // the selection was changed, indicating a potential drag. We should make the widget uninteractable, but only if the user isn't trying to press the widget.
+          const selectionPos = update.state.selection.main.head;
+          if (!this.isAtColorWidget(update.view, selectionPos)) {
+            this.setWidgetsInteractability(update.view, 'none');
+            this.revertWidgetsInteractability(update.view, 1000);
+          }
+        }
+      }
+
+      /** revertWidgetsInteractability: when called, reverts the widgetInteractability to auto after 300ms. If it is called within 300ms, reset the revert timer.  */
+      revertWidgetsInteractability(view: EditorView, delay = 1000) {
+        const self = this;
+        const revert = () => {
+          if (self.timeout !== null) {
+            clearTimeout(self.timeout);
+          }
+
+          self.timeout = setTimeout(() => {
+            self.setWidgetsInteractability(view, 'auto');
+            self.timeout = null;
+          }, delay);
+        };
+
+        return revert();
+      }
+
+      //isAtColorWidget: checks if the cursor is at a color widget
+      isAtColorWidget(view: EditorView, cursorPos: number): boolean {
+        // check if the cursor position is at color picker widget
+        for (let widgetPos of this.posToWidget.keys()) {
+          if (Math.abs(cursorPos - widgetPos) == 0) {
+            return true;
+          }
+        }
+        return false;
+      }
+
+      /** setWidgetsInteractability: sets the pointerEvents of the wrapper to the given value. */
+      setWidgetsInteractability(view: EditorView, pointerValue: string) {
+        view.dom.querySelectorAll('.cp-widget-wrap').forEach((el) => {
+          if (el instanceof HTMLElement) {
+            el.style.pointerEvents = pointerValue;
+          }
+        });
       }
     },
 
@@ -380,7 +425,6 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
       decorations: (v) => v.decorations,
       eventHandlers: {
         mousedown: function (e: MouseEvent, view: EditorView) {
-          // if we are pressing the editor, close the color picker. This is necessary because the cpDiv won't cover the entire screen if the viewport is changed
           destroyColorPicker();
         },
 
@@ -388,11 +432,6 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
           let touch = e.touches[0];
           // if we are pressing the editor, close the color picker. This is necessary because the cpDiv won't cover the entire screen if the viewport is changed
           destroyColorPicker();
-          // don't bring the keyboard if we pressed on the picker
-          let target = touch.target as HTMLElement;
-          if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
-            e.preventDefault();
-          }
         },
 
         mouseup: function (e: MouseEvent, view: EditorView) {
