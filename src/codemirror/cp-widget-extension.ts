@@ -374,29 +374,18 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
           this.decorations = colorWidgets(update.view, this.posToWidget);
         }
       }
-
-      /** setWidgetsInteractability: sets the pointerEvents of the wrapper to the given value. */
-      setWidgetsInteractability(view: EditorView, pointerValue: string) {
-        view.dom.querySelectorAll('.cp-widget-wrap').forEach((el) => {
-          if (el instanceof HTMLElement) {
-            el.style.pointerEvents = pointerValue;
-          }
-        });
-      }
     },
 
     {
       decorations: (v) => v.decorations,
       eventHandlers: {
         mousedown: function (e: MouseEvent, view: EditorView) {
-          this.setWidgetsInteractability(view, 'auto');
           // if we are pressing the editor, close the color picker. This is necessary because the cpDiv won't cover the entire screen if the viewport is changed
           destroyColorPicker();
         },
 
         touchstart: function (e: TouchEvent, view: EditorView) {
           let touch = e.touches[0];
-          this.setWidgetsInteractability(view, 'auto');
           // if we are pressing the editor, close the color picker. This is necessary because the cpDiv won't cover the entire screen if the viewport is changed
           destroyColorPicker();
           // don't bring the keyboard if we pressed on the picker
@@ -417,8 +406,6 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
               OnColorPickerCreate
             );
           }
-          // reset the interactability of the widgets
-          this.setWidgetsInteractability(view, 'none');
         },
 
         touchend: function (e: TouchEvent, view: EditorView) {
@@ -434,8 +421,6 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
               OnColorPickerCreate
             );
           }
-          // reset the interactability of the widgets
-          this.setWidgetsInteractability(view, 'none');
         },
       },
     }
