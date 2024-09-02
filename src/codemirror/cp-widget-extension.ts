@@ -325,18 +325,11 @@ function initializeColorPicker(
   if (OnColorPickerCreate) OnColorPickerCreate(cpDiv);
 
   // hide the virtual keyboard if eligible
-  hideKeyboard();
-  // on iOS, this seems necessary
-  setTimeout(hideKeyboard, 100);
+  (navigator as any).virtualKeyboard?.hide();
+  view.contentDOM.blur();
+  document.getElementsByClassName('cm-tooltip-hover')[0].setAttribute('style', 'display: none;');
 
   return 0;
-}
-
-/**
- * Hides the virtual keyboard if it exists.
- */
-function hideKeyboard() {
-  (navigator as any).virtualKeyboard?.hide();
 }
 
 /**
@@ -430,6 +423,7 @@ function createColorPickerPlugin(OnColorPickerCreate?: (cpDiv: HTMLElement) => v
 
         touchend: function (e: TouchEvent, view: EditorView) {
           let touch = e.touches[0];
+          if (!touch) return;
           let target = touch.target as HTMLElement;
           if (target.nodeName == 'DIV' && target.parentElement!.classList.contains('cp-widget-wrap')) {
             e.preventDefault();
