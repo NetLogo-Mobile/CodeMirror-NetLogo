@@ -38952,6 +38952,7 @@ if(!String.prototype.matchAll) {
      * @returns -1 if a color picker already exists, 0 on successful creation
      */
     function initializeColorPicker(view, pos, widget, OnColorPickerCreate) {
+        var _a;
         // check for color picker existence
         const cpExist = document.querySelector('#colorPickerDiv');
         if (cpExist) {
@@ -39042,17 +39043,10 @@ if(!String.prototype.matchAll) {
         if (OnColorPickerCreate)
             OnColorPickerCreate(cpDiv);
         // hide the virtual keyboard if eligible
-        hideKeyboard();
-        // on iOS, this seems necessary
-        setTimeout(hideKeyboard, 100);
-        return 0;
-    }
-    /**
-     * Hides the virtual keyboard if it exists.
-     */
-    function hideKeyboard() {
-        var _a;
         (_a = navigator.virtualKeyboard) === null || _a === void 0 ? void 0 : _a.hide();
+        view.contentDOM.blur();
+        document.getElementsByClassName('cm-tooltip-hover')[0].setAttribute('style', 'display: none;');
+        return 0;
     }
     /**
      * Removes the color picker from the DOM and cleans up associated event listeners.
@@ -39127,6 +39121,8 @@ if(!String.prototype.matchAll) {
                 },
                 touchend: function (e, view) {
                     let touch = e.touches[0];
+                    if (!touch)
+                        return;
                     let target = touch.target;
                     if (target.nodeName == 'DIV' && target.parentElement.classList.contains('cp-widget-wrap')) {
                         e.preventDefault();
